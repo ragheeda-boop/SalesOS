@@ -3,6 +3,7 @@
 import os
 import uuid
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 os.environ.setdefault("SALESOS_TESTING", "true")
 os.environ.setdefault("SECRET_KEY", "e2e-test-secret-key-padded-to-32-chars!!")
@@ -17,20 +18,43 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.main import app
+from app.modules.identity.router import get_register_db
 
 
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """FastAPI async test client with DB dependency override."""
+    """FastAPI async test client with DB dependency override.
+
+    Also overrides get_register_db: that dependency calls get_db() as a plain
+    generator (not via Depends), so FastAPI's get_db override alone does not
+    reach register — which caused FK failures (tenant in salesos_test, user
+    insert via live get_db → app DB). Wire db_session_factory for SEC-01
+    fail-closed middleware on tenant-scoped paths.
+    """
 
     async def override_get_db():
         yield db_session
 
+    async def override_get_register_db():
+        yield db_session
+
+    @asynccontextmanager
+    async def _session_factory():
+        yield db_session
+
+    prev_factory = getattr(app.state, "db_session_factory", None)
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_register_db] = override_get_register_db
+    app.state.db_session_factory = _session_factory
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+    if prev_factory is None:
+        if hasattr(app.state, "db_session_factory"):
+            delattr(app.state, "db_session_factory")
+    else:
+        app.state.db_session_factory = prev_factory
 
 
 @pytest_asyncio.fixture

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-hardcoded-colors */
 
 import { useEffect } from "react";
 

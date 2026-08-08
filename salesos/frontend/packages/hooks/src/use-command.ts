@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useRuntime } from "./use-runtime";
 
 export interface Command {
   id: string;
@@ -12,7 +11,7 @@ export interface Command {
 }
 
 let globalCommands: Command[] = [];
-let globalListeners = new Set<() => void>();
+const globalListeners = new Set<() => void>();
 
 export function registerCommand(command: Command): () => void {
   globalCommands = globalCommands.filter((c) => c.id !== command.id);

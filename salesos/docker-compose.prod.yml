@@ -256,6 +256,8 @@ services:
     env_file:
       - .env.production
     environment:
+      # EAB-001-P2-SEC-04: never set SALESOS_TESTING=true in production (CSRF bypass).
+      - SALESOS_TESTING=
       - SALESOS_ENV=production
       - SALESOS_DEBUG=false
       - SALESOS_JWKS_ALLOW_REGENERATE=true

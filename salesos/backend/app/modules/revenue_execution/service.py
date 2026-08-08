@@ -97,6 +97,7 @@ class RevenueService:
         priority: str = "medium",
         source: str = "manual",
         company_id: str | None = None,
+        opportunity_id: str | None = None,
         due_date: str | None = None,
     ):
         parsed_due: date | None = None
@@ -111,6 +112,7 @@ class RevenueService:
                 priority=priority,
                 source=source,
                 company_id=company_id,
+                opportunity_id=opportunity_id,
                 due_date=parsed_due,
             )
             .returning(
@@ -118,6 +120,8 @@ class RevenueService:
                 Task.title,
                 Task.priority,
                 Task.source,
+                Task.company_id,
+                Task.opportunity_id,
                 Task.completed,
                 Task.created_at,
             )
@@ -202,10 +206,17 @@ class RevenueService:
         total = count_result.scalar()
         return {"opportunities": rows, "total": total, "page": page}
 
-    async def list_tasks(self, tenant_id: str, priority: str | None = None):
+    async def list_tasks(
+        self,
+        tenant_id: str,
+        priority: str | None = None,
+        opportunity_id: str | None = None,
+    ):
         filters = [Task.tenant_id == tenant_id]
         if priority:
             filters.append(Task.priority == priority)
+        if opportunity_id:
+            filters.append(Task.opportunity_id == opportunity_id)
         stmt = (
             select(
                 Task.id,
@@ -213,6 +224,7 @@ class RevenueService:
                 Task.priority,
                 Task.source,
                 Task.company_id,
+                Task.opportunity_id,
                 Task.completed,
                 Task.created_at,
             )

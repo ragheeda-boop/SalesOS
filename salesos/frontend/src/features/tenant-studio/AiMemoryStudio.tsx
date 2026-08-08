@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useEffect, useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";

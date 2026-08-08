@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { dashboardTelemetry } from "../dashboard-telemetry";
 
 beforeAll(() => {

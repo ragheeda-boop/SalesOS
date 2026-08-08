@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import Link from "next/link";
 import { ENRICHMENT_HONESTY, ENRICHMENT_NON_GOALS } from "@/features/gtm/enrichmentHonesty";

@@ -23,6 +23,11 @@ class DecisionCenterRepository(ABC):
     async def get_decision(self, decision_id: str, tenant_id: str) -> Optional[Decision]: ...
 
     @abstractmethod
+    async def update_decision_status(
+        self, decision_id: str, tenant_id: str, status: str
+    ) -> Optional[Decision]: ...
+
+    @abstractmethod
     async def list_decisions(
         self,
         tenant_id: str,
@@ -95,6 +100,17 @@ class InMemoryDecisionCenterRepository(DecisionCenterRepository):
             return None
         if (decision.metadata or {}).get("tenant_id") != tenant_id:
             return None
+        return decision
+
+    async def update_decision_status(
+        self, decision_id: str, tenant_id: str, status: str
+    ) -> Optional[Decision]:
+        from .models import DecisionStatus
+
+        decision = await self.get_decision(decision_id, tenant_id)
+        if not decision:
+            return None
+        decision.status = DecisionStatus(status)
         return decision
 
     async def list_decisions(

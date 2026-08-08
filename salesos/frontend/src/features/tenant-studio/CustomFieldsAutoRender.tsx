@@ -7,6 +7,7 @@ import {
   useProjectCustomFieldValues,
 } from "@/lib/hooks/tenantStudioQueries";
 import type { AutoRenderFormField, StudioObjectKey } from "@/lib/api/types/tenantStudio";
+import { useTranslation } from "@/lib/i18n";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
@@ -64,11 +65,15 @@ function renderAutoField(
 export function CustomFieldsAutoRender({
   objectKey,
   initialMetadata,
+  variant = "tenant",
 }: {
   objectKey: StudioObjectKey;
   initialMetadata?: Record<string, unknown>;
+  variant?: "tenant" | "studio";
 }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
+  const isStudio = variant === "studio";
   const formQuery = useCustomFieldsFormSchema(objectKey);
   const projectMutation = useProjectCustomFieldValues(objectKey);
   const [values, setValues] = useState<Record<string, unknown>>({});
@@ -78,6 +83,7 @@ export function CustomFieldsAutoRender({
     if (formQuery.data?.values) {
       setValues({ ...formQuery.data.values });
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formQuery.data?.id, formQuery.data?.schema_version]);
 
   const fields = formQuery.data?.fields ?? [];
@@ -89,7 +95,9 @@ export function CustomFieldsAutoRender({
       data-object-key={objectKey}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Custom fields</h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+          {t("custom_fields.title")}
+        </h2>
         <Button
           data-testid="custom-fields-auto-refresh"
           disabled={formQuery.isFetching}
@@ -97,18 +105,24 @@ export function CustomFieldsAutoRender({
             void formQuery.refetch();
           }}
         >
-          {formQuery.isFetching ? "Refreshing…" : "Refresh form-schema"}
+          {formQuery.isFetching
+            ? t("common.loading")
+            : isStudio
+              ? "Refresh form-schema"
+              : t("common.refresh")}
         </Button>
       </div>
 
-      <p
-        className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
-        data-testid="custom-fields-auto-honesty"
-      >
-        Tip GET .../form-schema returns Form Engine descriptors (renderer=custom_fields_auto). POST
-        .../values projects metadata.custom_fields for known keys only — no ORM write / no Postgres
-        persistence on tip. Not Production GO / RAG GO.
-      </p>
+      {isStudio ? (
+        <p
+          className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
+          data-testid="custom-fields-auto-honesty"
+        >
+          Tip GET .../form-schema returns Form Engine descriptors (renderer=custom_fields_auto). POST
+          .../values projects metadata.custom_fields for known keys only — no ORM write / no Postgres
+          persistence on tip. Not Production GO / RAG GO.
+        </p>
+      ) : null}
 
       {formQuery.isLoading ? (
         <Spinner className="h-5 w-5" />
@@ -116,15 +130,23 @@ export function CustomFieldsAutoRender({
         <p className="text-sm text-[var(--text-danger)]">{getApiError(formQuery.error)}</p>
       ) : fields.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)]" data-testid="custom-fields-auto-empty">
-          No custom fields defined for {objectKey}. Define them at{" "}
-          <code>/studio/custom-fields</code>.
+          {isStudio ? (
+            <>
+              No custom fields defined for {objectKey}. Define them at{" "}
+              <code>/studio/custom-fields</code>.
+            </>
+          ) : (
+            t("custom_fields.empty")
+          )}
         </p>
       ) : (
         <>
-          <p className="text-xs text-[var(--text-muted)]" data-testid="custom-fields-auto-meta">
-            {formQuery.data?.title} · schema_version {formQuery.data?.schema_version} · renderer{" "}
-            {formQuery.data?.renderer} · bag {formQuery.data?.bag_key}
-          </p>
+          {isStudio ? (
+            <p className="text-xs text-[var(--text-muted)]" data-testid="custom-fields-auto-meta">
+              {formQuery.data?.title} · schema_version {formQuery.data?.schema_version} · renderer{" "}
+              {formQuery.data?.renderer} · bag {formQuery.data?.bag_key}
+            </p>
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-2" data-testid="custom-fields-auto-fields">
             {fields.map((field) =>
               renderAutoField(field, values[field.key], (key, next) => {
@@ -132,45 +154,49 @@ export function CustomFieldsAutoRender({
               })
             )}
           </div>
-          <Button
-            data-testid="custom-fields-auto-project"
-            disabled={projectMutation.isPending}
-            onClick={() => {
-              projectMutation.mutate(
-                {
-                  values,
-                  metadata: initialMetadata || projectedMeta || {},
-                },
-                {
-                  onSuccess: (row) => {
-                    setValues(row.values);
-                    setProjectedMeta(row.metadata);
-                    toast({
-                      variant: "success",
-                      title: "Values projected",
-                      description: `metadata.${row.bag_key} (tip POST — no ORM write)`,
-                    });
-                  },
-                  onError: (err) => {
-                    toast({
-                      variant: "error",
-                      title: "Project failed",
-                      description: getApiError(err),
-                    });
-                  },
-                }
-              );
-            }}
-          >
-            {projectMutation.isPending ? "Projecting…" : "Project values (tip POST)"}
-          </Button>
-          {projectedMeta ? (
-            <pre
-              className="overflow-auto rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-[10px] text-[var(--text-muted)]"
-              data-testid="custom-fields-auto-projected-meta"
-            >
-              {JSON.stringify(projectedMeta, null, 2)}
-            </pre>
+          {isStudio ? (
+            <>
+              <Button
+                data-testid="custom-fields-auto-project"
+                disabled={projectMutation.isPending}
+                onClick={() => {
+                  projectMutation.mutate(
+                    {
+                      values,
+                      metadata: initialMetadata || projectedMeta || {},
+                    },
+                    {
+                      onSuccess: (row) => {
+                        setValues(row.values);
+                        setProjectedMeta(row.metadata);
+                        toast({
+                          variant: "success",
+                          title: "Values projected",
+                          description: `metadata.${row.bag_key} (tip POST — no ORM write)`,
+                        });
+                      },
+                      onError: (err) => {
+                        toast({
+                          variant: "error",
+                          title: "Project failed",
+                          description: getApiError(err),
+                        });
+                      },
+                    }
+                  );
+                }}
+              >
+                {projectMutation.isPending ? "Projecting…" : "Project values (tip POST)"}
+              </Button>
+              {projectedMeta ? (
+                <pre
+                  className="overflow-auto rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-[10px] text-[var(--text-muted)]"
+                  data-testid="custom-fields-auto-projected-meta"
+                >
+                  {JSON.stringify(projectedMeta, null, 2)}
+                </pre>
+              ) : null}
+            </>
           ) : null}
         </>
       )}

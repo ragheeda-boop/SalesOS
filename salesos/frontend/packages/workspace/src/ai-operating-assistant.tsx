@@ -9,14 +9,10 @@ import {
   Loader2,
   AlertCircle,
   Zap,
-  ListTodo,
   ExternalLink,
   ArrowRight,
-  Command,
-  User,
   Target,
 } from "lucide-react";
-import { AI_ACTIONS, type AIAction } from "@salesos/design-language";
 
 export type WorkflowStep =
   "understanding" | "searching" | "analyzing" | "executing" | "completed" | "failed";
@@ -342,7 +338,7 @@ export function AIOperatingAssistant({
               <p className="text-sm text-gray-700 dark:text-gray-300">{workflow.query}</p>
             </div>
             <div className="space-y-2">
-              {workflow.steps.map((step, i) => (
+              {workflow.steps.map((step, _i) => (
                 <div key={step.id} className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center">
                     {step.status === "completed" ? (
@@ -430,7 +426,7 @@ export function AIOperatingAssistant({
       <div className="border-t border-gray-200 p-4 dark:border-gray-700">
         <div className="flex gap-2">
           <textarea
-            ref={inputRef as any}
+            ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}

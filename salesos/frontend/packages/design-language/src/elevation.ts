@@ -20,8 +20,6 @@ export interface ElevationStyle {
   opacity: number;
 }
 
-const SHADOW_COLOR = "#151214";
-
 export const ELEVATION: Record<ElevationLevel, ElevationStyle> = {
   0: { shadowX: 0, shadowY: 0, blur: 0, spread: 0, opacity: 0 },
   1: { shadowX: 0, shadowY: 1, blur: 2, spread: 0, opacity: 0.06 },

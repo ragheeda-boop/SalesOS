@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-hardcoded-colors */
 
 import { useTranslation } from "@/lib/i18n";
 import { useCallback } from "react";

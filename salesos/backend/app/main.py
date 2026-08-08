@@ -1,3 +1,4 @@
+import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any, cast
@@ -15,6 +16,7 @@ from app.common.schemas import (
     HealthReadyResponse,
     HealthResponse,
     PingResponse,
+    VersionResponse,
 )
 from app.config import settings
 from app.database import get_db
@@ -408,6 +410,57 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         redis=checks.get("redis", "unknown"),
         rate_limiter=checks.get("rate_limiter", "unknown"),
         uptime_seconds=float(checks["uptime_seconds"]),
+    )
+
+
+@app.get("/api/v1/version", response_model=VersionResponse)
+@app.get("/version", response_model=VersionResponse)
+async def version(request: Request):
+    """Build provenance — backend commit / schema version / OpenAPI hash.
+
+    Canonical endpoint: `/api/v1/version` (matches every other /api/v1/* route so
+    the Next.js rewrite proxies it without a new exception). `/version` is kept
+    as a backward-compatible alias (second decorator — FastAPI `.get()` accepts
+    one path per call; dual positional paths raise TypeError at import).
+
+    Intended for the FE `/system` page and the CI parity gate so that a
+    frontend can prove it speaks the same API contract as the deployed backend.
+    """
+    import hashlib
+    import json as _json
+    from sqlalchemy import text
+
+    from app.database import async_session
+
+    # OpenAPI schema is built lazily and cached by FastAPI; hash it at first call.
+    schema = request.app.openapi()
+    openapi_hash = hashlib.sha256(
+        _json.dumps(schema, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+    schema_version = ""
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                text("SELECT version_num FROM alembic_version LIMIT 1")
+            )
+            row = result.first()
+            schema_version = row[0] if row else ""
+    except Exception:
+        schema_version = "unavailable"
+
+    backend_commit = settings.build_commit or os.environ.get(
+        "SOURCE_COMMIT", os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
+    )
+
+    return VersionResponse(
+        service="salesos-backend",
+        api_version=settings.service_version,
+        backend_commit=backend_commit,
+        build_date=settings.build_date,
+        build_id=settings.build_id,
+        schema_version=schema_version,
+        openapi_hash=openapi_hash,
     )
 
 

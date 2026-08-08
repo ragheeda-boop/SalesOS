@@ -3,11 +3,10 @@ import {
   type UseFormProps,
   type UseFormReturn,
   type FieldValues,
-  type Path,
+  type DefaultValues,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createElement } from "react";
 
 export type FieldType =
   "string" | "number" | "boolean" | "email" | "url" | "date" | "enum" | "textarea";
@@ -111,7 +110,7 @@ export function useFormFromDefinition<T extends FieldValues>(
 
   return useForm({
     resolver: zodResolver(zodSchema),
-    defaultValues: defaults as any,
+    defaultValues: defaults as DefaultValues<T>,
     ...options,
   });
 }

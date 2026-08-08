@@ -6,8 +6,6 @@ import type {
   DecisionWidgetRenderContext,
   NBAFeedItem,
 } from "./types";
-import type { DashboardContextValue } from "./create-dashboard-widget";
-
 type DashboardWidgetMeta = Omit<Partial<WidgetMetadata>, "id">;
 
 interface DecisionWidgetOverrides<T> {

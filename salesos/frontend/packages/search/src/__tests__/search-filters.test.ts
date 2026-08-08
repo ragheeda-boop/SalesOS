@@ -3,7 +3,6 @@ import {
   parseFilterString,
   toggleFacet,
   removeFacet,
-  applyFacet,
 } from "../search-filters";
 
 describe("buildFilterQuery", () => {

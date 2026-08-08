@@ -1,7 +1,8 @@
 """Experimental semantic search endpoints — NOT connected to default UI.
 
-These endpoints demonstrate pgvector capability for evaluation purposes.
-To be connected to SearchPlanner only after validation.
+EAB-001-P1-DUP-02: Quarantined alternate capability. Prefer
+``runtime.search_runtime`` for product search UX. These routes remain mounted
+for analytics/eval but are OpenAPI-deprecated until a DEC consolidates.
 """
 
 from __future__ import annotations
@@ -64,7 +65,15 @@ def get_pgvector_repo(
     return PgVectorCompanyRepository(db=db)
 
 
-@router.get("/search/analytics")
+@router.get(
+    "/search/analytics",
+    deprecated=True,
+    summary="Search analytics (experimental; dual-capability)",
+    description=(
+        "OpenAPI-deprecated — EAB DUP-02 quarantine. Not Search SoT. "
+        "See CAPABILITY-DUP-REGISTER."
+    ),
+)
 async def search_analytics(
     days: int = Query(30, ge=1, le=365),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -145,7 +154,15 @@ async def search_analytics(
     }
 
 
-@router.get("/search/semantic")
+@router.get(
+    "/search/semantic",
+    deprecated=True,
+    summary="Semantic search (experimental; dual-capability)",
+    description=(
+        "OpenAPI-deprecated — EAB DUP-02 quarantine. Not Search SoT. "
+        "See CAPABILITY-DUP-REGISTER."
+    ),
+)
 async def semantic_search(
     q: str = Query(..., description="Natural language query"),
     page_size: int = Query(10, ge=1, le=50),
@@ -184,7 +201,15 @@ async def semantic_search(
     }
 
 
-@router.post("/search/similar")
+@router.post(
+    "/search/similar",
+    deprecated=True,
+    summary="Similar companies (experimental; dual-capability)",
+    description=(
+        "OpenAPI-deprecated — EAB DUP-02 quarantine. Not Search SoT. "
+        "See CAPABILITY-DUP-REGISTER."
+    ),
+)
 async def similar_companies(
     company_id: str = Query(..., description="Source company ID"),
     top_k: int = Query(10, ge=1, le=50),

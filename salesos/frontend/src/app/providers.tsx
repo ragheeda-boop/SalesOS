@@ -31,25 +31,21 @@ export function Providers({ children }: { children: ReactNode }) {
     return "en";
   })();
 
-  const runtime = useMemo<FrontendRuntime>(
-    () =>
-      createFrontendRuntime({
-        wsUrl: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws",
-        locale,
-        stateOptions: { name: "salesos", debug: false },
-      }),
-    [locale]
-  );
-
-  const [ready, setReady] = useState(false);
+  // EAB-001-P0-FE-01: build runtime synchronously so SSR/first paint can
+  // render the provider shell (do not return null until useEffect).
+  const runtime = useMemo<FrontendRuntime>(() => {
+    const rt = createFrontendRuntime({
+      wsUrl: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws",
+      locale,
+      stateOptions: { name: "salesos", debug: false },
+    });
+    rt.localization.setLocale(locale);
+    return rt;
+  }, [locale]);
 
   useEffect(() => {
-    runtime.localization.setLocale(locale);
-    setReady(true);
     return () => runtime.destroy();
-  }, [runtime, locale]);
-
-  if (!ready) return null;
+  }, [runtime]);
 
   return (
     <ToastProvider>

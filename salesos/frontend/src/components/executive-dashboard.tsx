@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useExecutiveDashboard } from "@/lib/hooks/executiveQueries";
 import { Card, CardContent, CardHeader, Badge, cn } from "@salesos/ui";

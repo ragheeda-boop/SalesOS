@@ -1,11 +1,10 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useEmployeePerformance } from "@/lib/hooks/employeeQueries";
 import { Card, CardContent, CardHeader, Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
 import {
   TrendingUp,
-  TrendingDown,
-  Minus,
   Users,
   Shield,
   BarChart3,

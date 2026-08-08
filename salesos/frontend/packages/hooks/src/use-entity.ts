@@ -16,6 +16,8 @@ export function useEntity<T = Record<string, unknown>>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fieldsKey = options?.fields?.join(",");
+  const cacheTtlMs = options?.cacheTtlMs;
 
   const fetch = useCallback(async () => {
     if (!entityId) {
@@ -32,17 +34,17 @@ export function useEntity<T = Record<string, unknown>>(
     setLoading(true);
     setError(null);
     try {
-      const params = options?.fields ? { fields: options.fields.join(",") } : {};
+      const params = fieldsKey !== undefined ? { fields: fieldsKey } : {};
       const res = await axios.get(`/api/v1/data/${entityType}/${entityId}`, { params });
       const result = res.data as T;
-      runtime.cache.set(cacheKey, result, options?.cacheTtlMs);
+      runtime.cache.set(cacheKey, result, cacheTtlMs);
       setData(result);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load entity");
     } finally {
       setLoading(false);
     }
-  }, [entityType, entityId, options?.fields?.join(","), options?.cacheTtlMs, runtime]);
+  }, [entityType, entityId, fieldsKey, cacheTtlMs, runtime]);
 
   useEffect(() => {
     fetch();

@@ -20,6 +20,7 @@ import {
 import api from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { useTranslation } from "@/lib/i18n";
+import { useAiCopilotEnabled } from "@/lib/hooks/useAiCopilotEnabled";
 import { AiInsightsProvider, useAiInsights } from "./ai-insights/ContextualInsightsProvider";
 import { ContextualInsight } from "./ai-insights/ContextualInsight";
 import { InlineSuggestion } from "./ai-insights/InlineSuggestion";
@@ -74,6 +75,11 @@ export function CopilotPanel({
   context,
   embedded = false,
 }: CopilotPanelProps) {
+  const { enabled, ready } = useAiCopilotEnabled();
+  // AIGOV-01: defense-in-depth — parent layout also gates; do not render when flag off.
+  if (!ready || !enabled) {
+    return null;
+  }
   return (
     <AiInsightsProvider
       page={typeof window !== "undefined" ? window.location.pathname : "/"}

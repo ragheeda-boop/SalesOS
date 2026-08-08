@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -51,28 +51,20 @@ import { ErrorFallback } from "@/components/foundation/error-boundary";
 import { useTranslation } from "@/lib/i18n";
 import { ScoreBadge } from "@/components/employee-360/employee-360-shared";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { EmployeeListItem } from "@/lib/api";
+import type { EmployeeListItem, BulkEditEmployeesRequest } from "@/lib/api";
 
-const DEPARTMENT_OPTIONS = [
-  { label: "All", value: "" },
-  { label: "Sales", value: "sales" },
-  { label: "Marketing", value: "marketing" },
-  { label: "Engineering", value: "engineering" },
-  { label: "Support", value: "support" },
-  { label: "Finance", value: "finance" },
-  { label: "HR", value: "hr" },
-  { label: "Operations", value: "operations" },
-];
+const DEPARTMENT_VALUES = [
+  "",
+  "sales",
+  "marketing",
+  "engineering",
+  "support",
+  "finance",
+  "hr",
+  "operations",
+] as const;
 
-const ROLE_OPTIONS = [
-  { label: "All Roles", value: "" },
-  { label: "Executive", value: "executive" },
-  { label: "Manager", value: "manager" },
-  { label: "Sales Rep", value: "sales_rep" },
-  { label: "Engineer", value: "engineer" },
-  { label: "Analyst", value: "analyst" },
-  { label: "Admin", value: "admin" },
-];
+const ROLE_VALUES = ["", "executive", "manager", "sales_rep", "engineer", "analyst", "admin"] as const;
 
 function TrendIcon({ trend }: { trend: string | null | undefined }) {
   if (!trend) return null;
@@ -81,11 +73,19 @@ function TrendIcon({ trend }: { trend: string | null | undefined }) {
   return <Minus className="h-3.5 w-3.5 text-[var(--text-disabled)]" />;
 }
 
-export default function EmployeesPage() {
+function EmployeesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const departmentOptions = DEPARTMENT_VALUES.map((value) => ({
+    value,
+    label: value ? t(`dept.${value}`) : t("dept.all"),
+  }));
+  const roleOptions = ROLE_VALUES.map((value) => ({
+    value,
+    label: value ? t(`role.${value}`) : t("role.all"),
+  }));
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [departmentFilter, setDepartmentFilter] = useState(searchParams.get("department") || "");
@@ -111,6 +111,7 @@ export default function EmployeesPage() {
 
   const [exportLoading, setExportLoading] = useState(false);
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const params: Record<string, unknown> = { page_size: 20 };
   if (debouncedQuery) params.q = debouncedQuery;
   if (departmentFilter) params.department = departmentFilter;
@@ -176,7 +177,7 @@ export default function EmployeesPage() {
       if (editStatus) payload.status = editStatus;
       if (selectAllAcross) payload.all = true;
       else payload.ids = ids;
-      await bulkEdit.mutateAsync(payload as any);
+      await bulkEdit.mutateAsync(payload as BulkEditEmployeesRequest);
       setBulkEditOpen(false);
       setEditDepartment("");
       setEditRole("");
@@ -227,6 +228,7 @@ export default function EmployeesPage() {
         description: "Bulk delete failed",
       });
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIds, selectAllAcross, data, bulkDelete, handleClearSelection, toast]);
 
   const handleBulkExport = useCallback(async () => {
@@ -395,7 +397,7 @@ export default function EmployeesPage() {
           />
           <div className="w-40">
             <Select
-              options={DEPARTMENT_OPTIONS}
+              options={departmentOptions}
               placeholder={t("employees.filter_department")}
               value={departmentFilter}
               onChange={(v) => {
@@ -407,7 +409,7 @@ export default function EmployeesPage() {
           </div>
           <div className="w-40">
             <Select
-              options={ROLE_OPTIONS}
+              options={roleOptions}
               placeholder={t("employees.filter_role")}
               value={roleFilter}
               onChange={(v) => {
@@ -448,7 +450,7 @@ export default function EmployeesPage() {
           <div className="flex flex-wrap items-center gap-2">
             {departmentFilter && (
               <span className="inline-flex items-center gap-1 rounded-md bg-[var(--bg-tertiary)] px-2 py-1 text-xs text-[var(--text-secondary)]">
-                {t("employees.filter_department")}: {departmentFilter}
+                {t("employees.filter_department")}: {t(`dept.${departmentFilter}`)}
                 <button
                   onClick={() => {
                     setDepartmentFilter("");
@@ -463,7 +465,7 @@ export default function EmployeesPage() {
             )}
             {roleFilter && (
               <span className="inline-flex items-center gap-1 rounded-md bg-[var(--bg-tertiary)] px-2 py-1 text-xs text-[var(--text-secondary)]">
-                {t("employees.filter_role")}: {roleFilter}
+                {t("employees.filter_role")}: {t(`role.${roleFilter}`)}
                 <button
                   onClick={() => {
                     setRoleFilter("");
@@ -663,7 +665,7 @@ export default function EmployeesPage() {
                   {t("employees.department")}
                 </label>
                 <Select
-                  options={DEPARTMENT_OPTIONS.slice(1)}
+                  options={departmentOptions.slice(1)}
                   placeholder={t("employees.filter_department")}
                   value={editDepartment}
                   onChange={setEditDepartment}
@@ -674,7 +676,7 @@ export default function EmployeesPage() {
                   {t("employees.role")}
                 </label>
                 <Select
-                  options={ROLE_OPTIONS.slice(1)}
+                  options={roleOptions.slice(1)}
                   placeholder={t("employees.filter_role")}
                   value={editRole}
                   onChange={setEditRole}
@@ -686,10 +688,10 @@ export default function EmployeesPage() {
                 </label>
                 <Select
                   options={[
-                    { label: "Active", value: "active" },
-                    { label: "Inactive", value: "inactive" },
+                    { label: t("status.active"), value: "active" },
+                    { label: t("status.inactive"), value: "inactive" },
                   ]}
-                  placeholder="Select status"
+                  placeholder={t("labels.select_status")}
                   value={editStatus}
                   onChange={setEditStatus}
                 />
@@ -1019,3 +1021,11 @@ function EmployeeScorePanel({ employeeId }: { employeeId: string }) {
 }
 
 // Lazy imports for the expanded detail panel
+
+export default function EmployeesPage() {
+  return (
+    <Suspense>
+      <EmployeesPageContent />
+    </Suspense>
+  );
+}

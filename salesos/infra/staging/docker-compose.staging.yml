@@ -213,8 +213,10 @@ services:
     env_file:
       - ../../.env.staging
     environment:
+      # EAB-001-P2-SEC-04: never set SALESOS_TESTING=true in staging (CSRF bypass).
+      - SALESOS_TESTING=
       - SALESOS_ENV=staging
-      - SALESOS_DEBUG=true
+      - SALESOS_DEBUG=false
     command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

@@ -56,7 +56,7 @@ def _bootstrap_load_slo_imports() -> None:
 # Host substrings that must never be targeted by this harness.
 _PROD_HOST_MARKERS = (
     "salesos.app",
-    "aqliya.com",
+    "example.com",
     "prod.railway",
     "railway.app",  # DEC-149 single-env — treat as live; require --allow-deployed-nonprod
 )

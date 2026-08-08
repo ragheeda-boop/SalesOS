@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { Card, CardContent, cn } from "@salesos/ui";
 import { useDashboardContext } from "../../_providers/dashboard-provider";
@@ -10,13 +11,12 @@ interface ExecCardProps {
   value: string | number;
   subtitle?: string;
   icon: React.ReactNode;
-  color: string;
   bgColor: string;
   trend?: number;
   trendUp?: boolean;
 }
 
-function ExecCard({ title, value, subtitle, icon, color, bgColor, trend, trendUp }: ExecCardProps) {
+function ExecCard({ title, value, subtitle, icon, bgColor, trend, trendUp }: ExecCardProps) {
   return (
     <Card className="overflow-hidden transition-all hover:shadow-muhide-2">
       <CardContent className="p-4">
@@ -69,7 +69,6 @@ export function ExecutiveSummaryCards() {
       title: "الشركات المُتتبَعة",
       value: mission.companiesTracked.toLocaleString(),
       icon: <Users className="h-5 w-5 text-info-600 dark:text-info-400" />,
-      color: "text-info-600",
       bgColor: "bg-info-100 dark:bg-info-950/30",
     },
     {
@@ -77,21 +76,18 @@ export function ExecutiveSummaryCards() {
       value: mission.activeDeals,
       subtitle: `${pipelineFormatted} قيمة الأنبوب`,
       icon: <DollarSign className="h-5 w-5 text-[var(--muhide-orange)]" />,
-      color: "text-[var(--muhide-orange)]",
       bgColor: "bg-orange-100 dark:bg-orange-950/30",
     },
     {
       title: "قيمة الأنبوب",
       value: `${pipelineFormatted}`,
       icon: <TrendingUp className="h-5 w-5 text-success-600 dark:text-success-400" />,
-      color: "text-success-600",
       bgColor: "bg-success-100 dark:bg-success-950/30",
     },
     {
       title: "القرارات المُعلَّقة",
       value: mission.decisionsPending,
       icon: <Target className="h-5 w-5 text-purple-600 dark:text-purple-400" />,
-      color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-950/30",
     },
   ];

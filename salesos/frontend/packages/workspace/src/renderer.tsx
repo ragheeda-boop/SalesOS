@@ -2,7 +2,6 @@ import { useState } from "react";
 import { SchemaRenderer, type UISchema } from "@salesos/renderer";
 import { cn } from "@salesos/ui";
 import { AI_ACTIONS, type AIAction } from "@salesos/design-language";
-import { useSchema, useLocalization, useRuntime } from "@salesos/hooks";
 import {
   Clock,
   Sparkles,
@@ -12,7 +11,6 @@ import {
   Maximize2,
   Minimize2,
   Bot,
-  Loader2,
 } from "lucide-react";
 
 export interface WorkspaceRendererProps {
@@ -28,11 +26,10 @@ export function WorkspaceRenderer({
   schema,
   loading,
   error,
-  entityType,
-  entityId,
+  entityType: _entityType,
+  entityId: _entityId,
   className,
 }: WorkspaceRendererProps) {
-  const { t } = useLocalization();
   const [activeView, setActiveView] = useState("overview" as string);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);

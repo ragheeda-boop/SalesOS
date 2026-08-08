@@ -49,7 +49,13 @@ class SuspendedTenantWriteGuardMiddleware:
 
         db_session = getattr(request.app.state, "db_session_factory", None)
         if not db_session:
-            return await self.app(scope, receive, send)
+            # EAB-001-P0-SEC-01: fail-closed — never skip suspension write guard
+            resp = JSONResponse(
+                {"detail": "Unable to verify tenant suspension status"},
+                status_code=503,
+            )
+            await resp(scope, receive, send)
+            return
 
         try:
             async with db_session() as db:

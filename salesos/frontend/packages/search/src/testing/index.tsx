@@ -1,6 +1,5 @@
-import { screen, fireEvent } from "@testing-library/react";
 import { render, type RenderResult } from "@testing-library/react";
-import { SearchProvider, useSearchContext } from "../search-provider";
+import { SearchProvider } from "../search-provider";
 import type { SearchResponse, SearchQuery } from "../types";
 import { mockSearchResponse } from "./mockSearchResults";
 import type { ReactNode } from "react";

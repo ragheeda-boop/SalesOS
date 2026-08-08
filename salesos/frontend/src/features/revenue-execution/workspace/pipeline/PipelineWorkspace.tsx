@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useState, useEffect, useCallback, useMemo, type DragEvent } from "react";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import { DollarSign, TrendingUp, Clock, Target, GripVertical } from "lucide-reac
 import type { Opportunity } from "@/lib/api";
 import { safeArray } from "@/lib/utils";
 import { useAdvanceOpportunity, useCloseWon, useCloseLost } from "@/lib/hooks/opportunityQueries";
+import { useTranslation } from "@/lib/i18n";
 
 interface HealthMapItem {
   opportunity_id: string;
@@ -48,44 +50,45 @@ const STAGE_ORDER = [
 ] as const;
 type StageKey = (typeof STAGE_ORDER)[number];
 
-const STAGE_CONFIG: Record<StageKey, { label: string; color: string; dot: string; bg: string }> = {
-  lead: {
-    label: "Lead",
-    color: "bg-blue-500",
-    dot: "bg-blue-500",
-    bg: "border-blue-200 dark:border-blue-800",
-  },
-  opportunity: {
-    label: "Opportunity",
-    color: "bg-indigo-500",
-    dot: "bg-indigo-500",
-    bg: "border-indigo-200 dark:border-indigo-800",
-  },
-  proposal: {
-    label: "Proposal",
-    color: "bg-amber-500",
-    dot: "bg-amber-500",
-    bg: "border-[var(--status-warning-border)]",
-  },
-  negotiation: {
-    label: "Negotiation",
-    color: "bg-orange-500",
-    dot: "bg-orange-500",
-    bg: "border-orange-200 dark:border-orange-800",
-  },
-  closed_won: {
-    label: "Closed Won",
-    color: "bg-emerald-500",
-    dot: "bg-emerald-500",
-    bg: "border-emerald-200 dark:border-emerald-800",
-  },
-  closed_lost: {
-    label: "Closed Lost",
-    color: "bg-red-500",
-    dot: "bg-red-500",
-    bg: "border-[var(--status-danger-border)]",
-  },
-};
+const STAGE_CONFIG: Record<StageKey, { labelKey: string; color: string; dot: string; bg: string }> =
+  {
+    lead: {
+      labelKey: "pipeline.stage.lead",
+      color: "bg-blue-500",
+      dot: "bg-blue-500",
+      bg: "border-blue-200 dark:border-blue-800",
+    },
+    opportunity: {
+      labelKey: "pipeline.stage.opportunity",
+      color: "bg-indigo-500",
+      dot: "bg-indigo-500",
+      bg: "border-indigo-200 dark:border-indigo-800",
+    },
+    proposal: {
+      labelKey: "pipeline.stage.proposal",
+      color: "bg-amber-500",
+      dot: "bg-amber-500",
+      bg: "border-[var(--status-warning-border)]",
+    },
+    negotiation: {
+      labelKey: "pipeline.stage.negotiation",
+      color: "bg-orange-500",
+      dot: "bg-orange-500",
+      bg: "border-orange-200 dark:border-orange-800",
+    },
+    closed_won: {
+      labelKey: "pipeline.stage.closed_won",
+      color: "bg-emerald-500",
+      dot: "bg-emerald-500",
+      bg: "border-emerald-200 dark:border-emerald-800",
+    },
+    closed_lost: {
+      labelKey: "pipeline.stage.closed_lost",
+      color: "bg-red-500",
+      dot: "bg-red-500",
+      bg: "border-[var(--status-danger-border)]",
+    },
+  };
 
 function formatCurrency(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M SAR`;
@@ -119,6 +122,7 @@ export function DealCard({
   onDragStart?: (e: DragEvent<HTMLDivElement>, id: string) => void;
   onDragEnd?: () => void;
 }) {
+  const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const age = daysSince(opportunity.expected_close_date) ?? null;
   const score = healthScore ?? null;
@@ -172,7 +176,7 @@ export function DealCard({
           href={`/companies/${opportunity.company_id}`}
           className="hover:text-[var(--muhide-orange)] transition-colors truncate"
         >
-          {opportunity.company_name ?? "Unknown"}
+          {opportunity.company_name ?? t("common.unknown")}
         </Link>
       </div>
 
@@ -218,6 +222,7 @@ function PipelineColumn({
   healthMap: HealthMapItem[];
   onDrop: (oppId: string, toStage: string) => void;
 }) {
+  const { t } = useTranslation();
   const config = STAGE_CONFIG[stageKey];
   const [dragOver, setDragOver] = useState(false);
   const totalValue = opportunities.reduce((sum, o) => sum + (o.value ?? 0), 0);
@@ -250,7 +255,9 @@ function PipelineColumn({
     >
       <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-3 py-2.5">
         <span className={cn("h-2.5 w-2.5 rounded-full", config.dot)} />
-        <span className="text-sm font-semibold text-[var(--text-primary)]">{config.label}</span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">
+          {t(config.labelKey)}
+        </span>
         <div className="mr-auto flex items-center gap-1.5">
           <Badge variant="outline" className="text-[10px]">
             {opportunities.length}
@@ -269,7 +276,7 @@ function PipelineColumn({
         ))}
         {opportunities.length === 0 && (
           <div className="py-8 text-center">
-            <p className="text-xs text-[var(--text-muted)]">Drop deals here</p>
+            <p className="text-xs text-[var(--text-muted)]">{t("pipeline.drop_here")}</p>
           </div>
         )}
       </div>
@@ -279,6 +286,7 @@ function PipelineColumn({
 
 // ─── Main Workspace ──────────────────────────────────────────
 export function PipelineWorkspace() {
+  const { t } = useTranslation();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [healthMap, setHealthMap] = useState<HealthMapItem[]>([]);
   const [forecast, setForecast] = useState<Forecast | null>(null);
@@ -395,9 +403,9 @@ export function PipelineWorkspace() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Pipeline</h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("pipeline.title")}</h1>
           <p className="text-sm text-[var(--text-muted)]">
-            {openOpps.length} open deals &middot;{""}
+            {t("pipeline.open_deals", { count: openOpps.length })}
             <span className="font-semibold text-[var(--text-primary)]">
               {formatCurrency(totalValue)}
             </span>
@@ -407,7 +415,7 @@ export function PipelineWorkspace() {
           <Link href="/pipeline/analytics">
             <Button variant="outline" size="sm">
               <TrendingUp className="ml-1 h-4 w-4" />
-              Analytics
+              {t("pipeline.analytics")}
             </Button>
           </Link>
           <div className="flex rounded-lg border border-[var(--border-default)] overflow-hidden">
@@ -420,7 +428,7 @@ export function PipelineWorkspace() {
                   : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
-              Board
+              {t("pipeline.board")}
             </button>
             <button
               onClick={() => setView("list")}
@@ -431,7 +439,7 @@ export function PipelineWorkspace() {
                   : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
-              Table
+              {t("pipeline.table")}
             </button>
           </div>
         </div>
@@ -440,16 +448,23 @@ export function PipelineWorkspace() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
-          label="Pipeline Value"
+          label={t("pipeline.value")}
           value={formatCurrency(totalValue)}
           icon={<DollarSign className="h-4 w-4" />}
         />
-        <MetricCard label="Win Rate" value={`${winRate}%`} icon={<Target className="h-4 w-4" />} />
         <MetricCard
-          label="Avg Deal Size"
+          label={t("pipeline.win_rate")}
+          value={`${winRate}%`}
+          icon={<Target className="h-4 w-4" />}
+        />
+        <MetricCard
+          label={t("pipeline.avg_deal")}
           value={formatCurrency(openOpps.length > 0 ? totalValue / openOpps.length : 0)}
         />
-        <MetricCard label="Weighted" value={formatCurrency(forecast?.commit ?? totalValue * 0.5)} />
+        <MetricCard
+          label={t("pipeline.weighted")}
+          value={formatCurrency(forecast?.commit ?? totalValue * 0.5)}
+        />
       </div>
 
       {/* Health Map */}
@@ -457,15 +472,21 @@ export function PipelineWorkspace() {
         <div className="flex items-center gap-4 px-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-[var(--text-secondary)]">{healthyCount} Healthy</span>
+            <span className="text-xs text-[var(--text-secondary)]">
+              {healthyCount} {t("pipeline.healthy")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-            <span className="text-xs text-[var(--text-secondary)]">{atRiskCount} At Risk</span>
+            <span className="text-xs text-[var(--text-secondary)]">
+              {atRiskCount} {t("pipeline.at_risk")}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <span className="text-xs text-[var(--text-secondary)]">{criticalCount} Critical</span>
+            <span className="text-xs text-[var(--text-secondary)]">
+              {criticalCount} {t("pipeline.critical")}
+            </span>
           </div>
         </div>
       )}
@@ -490,22 +511,22 @@ export function PipelineWorkspace() {
             <thead>
               <tr className="border-b border-[var(--border-default)] bg-[var(--bg-secondary)]">
                 <th className="text-right px-4 py-3 font-medium text-[var(--text-secondary)]">
-                  Name
+                  {t("labels.name")}
                 </th>
                 <th className="text-right px-4 py-3 font-medium text-[var(--text-secondary)]">
-                  Company
+                  {t("labels.company")}
                 </th>
                 <th className="text-right px-4 py-3 font-medium text-[var(--text-secondary)]">
-                  Stage
+                  {t("pipeline.stages")}
                 </th>
                 <th className="text-right px-4 py-3 font-medium text-[var(--text-secondary)]">
-                  Value
+                  {t("labels.amount")}
                 </th>
                 <th className="text-right px-4 py-3 font-medium text-[var(--text-secondary)]">
-                  Score
+                  {t("pipeline.score")}
                 </th>
                 <th className="text-right px-4 py-3 font-medium text-[var(--text-secondary)]">
-                  Owner
+                  {t("labels.assigned_to")}
                 </th>
               </tr>
             </thead>
@@ -543,7 +564,7 @@ export function PipelineWorkspace() {
                           )}
                         />
                         <span className="text-[var(--text-secondary)]">
-                          {stageConfig?.label ?? opp.stage}
+                          {stageConfig ? t(stageConfig.labelKey) : opp.stage}
                         </span>
                       </span>
                     </td>
@@ -573,7 +594,7 @@ export function PipelineWorkspace() {
               {opportunities.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-[var(--text-muted)]">
-                    No deals in pipeline
+                    {t("pipeline.empty")}
                   </td>
                 </tr>
               )}

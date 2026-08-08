@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * End-to-end integration test — complete product flow.
  * Tests that all modules work together: Search → Company Intelligence → NBA → Opportunity → Pipeline → Task

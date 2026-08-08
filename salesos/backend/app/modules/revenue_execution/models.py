@@ -40,6 +40,9 @@ class Task(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
     company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), index=True)
+    # FE SoT opportunity ids live on commercial_opportunities (String 36). No FK —
+    # revenue `opportunities.id` is a different table (A.2 dual-table).
+    opportunity_id = Column(String(36), nullable=True)
     title = Column(String(500), nullable=False)
     priority = Column(String(10))
     source = Column(String(20), default="manual")
@@ -51,4 +54,5 @@ class Task(Base):
     __table_args__ = (
         Index("ix_tasks_tenant_priority", "tenant_id", "priority"),
         Index("ix_tasks_assignee_completed", "assignee_id", "completed"),
+        Index("ix_tasks_tenant_opportunity", "tenant_id", "opportunity_id"),
     )

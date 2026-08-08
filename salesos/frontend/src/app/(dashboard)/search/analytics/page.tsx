@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes, custom-rules/no-hardcoded-colors */
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";

@@ -540,18 +540,22 @@ class TestTenantContextMiddleware:
     @pytest.mark.asyncio
     async def test_header_sets_tenant_context(self):
         """X-Tenant-Id header should set the tenant ContextVar."""
-        set_tenant = Mock()
+        set_tenant = Mock(return_value="tok")
 
         async def inner_app(scope, receive, send):
             await send({"type": "http.response.start", "status": 200, "headers": []})
             await send({"type": "http.response.body"})
 
-        with patch("app.database.set_current_tenant_id", set_tenant):
+        with (
+            patch("app.database.set_current_tenant_id", set_tenant),
+            patch("app.database.reset_current_tenant_id") as reset_tenant,
+        ):
             app = TenantContextMiddleware(inner_app)
             scope = _make_scope(headers={"x-tenant-id": "tenant-456"})
             await app(scope, AsyncMock(), AsyncMock())
 
         set_tenant.assert_called_once_with("tenant-456")
+        reset_tenant.assert_called_once_with("tok")
 
     @pytest.mark.asyncio
     async def test_matching_header_and_token_uses_header_value(self):
@@ -568,7 +572,8 @@ class TestTenantContextMiddleware:
                 "app.modules.identity.service.decode_access_token",
                 return_value={"sub": "u1", "tenant_id": "tenant-456"},
             ),
-            patch("app.database.set_current_tenant_id") as set_tenant,
+            patch("app.database.set_current_tenant_id", return_value="tok") as set_tenant,
+            patch("app.database.reset_current_tenant_id") as reset_tenant,
         ):
             app = TenantContextMiddleware(inner_app)
             scope = _make_scope(
@@ -581,6 +586,7 @@ class TestTenantContextMiddleware:
 
         assert len(collected) == 1
         set_tenant.assert_called_once_with("tenant-456")
+        reset_tenant.assert_called_once_with("tok")
 
     @pytest.mark.asyncio
     async def test_mismatched_header_and_token_rejected_403(self):
@@ -603,6 +609,7 @@ class TestTenantContextMiddleware:
                 return_value={"sub": "u1", "tenant_id": "tenant-999"},
             ),
             patch("app.database.set_current_tenant_id") as set_tenant,
+            patch("app.database.reset_current_tenant_id") as reset_tenant,
         ):
             app = TenantContextMiddleware(inner_app)
             scope = _make_scope(
@@ -616,6 +623,7 @@ class TestTenantContextMiddleware:
         assert statuses == [403]
         assert collected == []  # downstream app never invoked
         set_tenant.assert_not_called()
+        reset_tenant.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_token_fallback_when_no_header(self):
@@ -625,23 +633,44 @@ class TestTenantContextMiddleware:
                 "app.modules.identity.service.decode_access_token",
                 return_value={"sub": "u1", "tenant_id": "tenant-456"},
             ),
-            patch("app.database.set_current_tenant_id") as set_tenant,
+            patch("app.database.set_current_tenant_id", return_value="tok") as set_tenant,
+            patch("app.database.reset_current_tenant_id") as reset_tenant,
         ):
             app = TenantContextMiddleware(_dummy_app)
             scope = _make_scope(headers={"authorization": "Bearer some-token"})
             await app(scope, AsyncMock(), AsyncMock())
 
         set_tenant.assert_called_once_with("tenant-456")
+        reset_tenant.assert_called_once_with("tok")
 
     @pytest.mark.asyncio
-    async def test_no_tenant_does_not_set_context(self):
-        """No header and no token should leave the ContextVar untouched."""
-        with patch("app.database.set_current_tenant_id") as set_tenant:
+    async def test_no_tenant_clears_context(self):
+        """No header/token still pins None so finally can reset (SEC-03)."""
+        with (
+            patch("app.database.set_current_tenant_id") as set_tenant,
+            patch("app.database.reset_current_tenant_id") as reset_tenant,
+        ):
+            set_tenant.return_value = "token"
             app = TenantContextMiddleware(_dummy_app)
             scope = _make_scope()
             await app(scope, AsyncMock(), AsyncMock())
 
-        set_tenant.assert_not_called()
+        set_tenant.assert_called_once_with(None)
+        reset_tenant.assert_called_once_with("token")
+
+    @pytest.mark.asyncio
+    async def test_header_resets_tenant_context(self):
+        """ContextVar Token is reset in finally after the request (SEC-03)."""
+        with (
+            patch("app.database.set_current_tenant_id", return_value="tok") as set_tenant,
+            patch("app.database.reset_current_tenant_id") as reset_tenant,
+        ):
+            app = TenantContextMiddleware(_dummy_app)
+            scope = _make_scope(headers={"x-tenant-id": "tenant-456"})
+            await app(scope, AsyncMock(), AsyncMock())
+
+        set_tenant.assert_called_once_with("tenant-456")
+        reset_tenant.assert_called_once_with("tok")
 
     @pytest.mark.asyncio
     async def test_non_http_scope_passthrough(self):

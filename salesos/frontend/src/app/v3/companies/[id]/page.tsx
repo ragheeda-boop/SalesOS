@@ -635,8 +635,8 @@ export default function V3Company360Page() {
                 </button>
                 <GhostButtonLink href="/v3/companies">Back to list</GhostButtonLink>
                 <GhostButtonLink href={`/companies/${company.id}`}>Legacy company</GhostButtonLink>
-                <GhostButtonLink href={`/companies/${company.id}/360`} primary>
-                  Legacy 360
+                <GhostButtonLink href={`/v3/companies/${company.id}/360`} primary>
+                  Company 360
                 </GhostButtonLink>
               </div>
             }

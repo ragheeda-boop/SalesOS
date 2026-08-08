@@ -25,6 +25,21 @@ export async function login(email: string, password: string) {
   return response.data;
 }
 
+/**
+ * DEC-093 follow-up — Owner Platform mint (`salesos-owner-platform`).
+ * Clears any prior tenant session before persisting owner tokens (no tenant_id).
+ */
+export async function ownerLogin(email: string, password: string) {
+  const response = await api.post("/api/v1/identity/owner/login", {
+    email,
+    password,
+  });
+  const { access_token, refresh_token } = response.data as TokenBundle;
+  clearAuthTokens();
+  persistAuthTokens({ access_token, refresh_token });
+  return response.data;
+}
+
 export async function register(email: string, password: string, fullName: string) {
   const response = await api.post("/api/v1/identity/register", {
     email,

@@ -97,7 +97,34 @@ const ACTION_CONFIG: Record<string, { icon: typeof Mail; color: string; labelKey
     color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
     labelKey: "activity.opportunity_lost",
   },
+  "user.logged_in": {
+    icon: User,
+    color: "text-info-600 bg-info-100 dark:text-info-400 dark:bg-info-900/50",
+    labelKey: "activity.user.logged_in",
+  },
+  "user.logged_out": {
+    icon: User,
+    color: "text-[var(--text-secondary)] bg-[var(--bg-tertiary)]",
+    labelKey: "activity.user.logged_out",
+  },
+  "user.role_changed": {
+    icon: User,
+    color: "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
+    labelKey: "activity.user.role_changed",
+  },
 };
+
+function activityLabel(
+  action: string,
+  t: (key: string, params?: Record<string, string | number>) => string
+): string {
+  const config = ACTION_CONFIG[action];
+  if (config?.labelKey) return t(config.labelKey);
+  const dotted = `activity.${action}`;
+  const translated = t(dotted);
+  if (translated !== dotted) return translated;
+  return action.replace(/[._]+/g, " ").trim();
+}
 
 function formatRelativeTime(
   timestamp: string,
@@ -155,6 +182,7 @@ export default function ActivitiesPage() {
   }, [actionFilter]);
 
   const { data, isLoading, isError, error, refetch } = useGlobalActivities(filters);
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const activities = data?.items || [];
   const total = data?.total || 0;
 
@@ -271,7 +299,7 @@ export default function ActivitiesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-[var(--text-primary)]">
-                                {config.labelKey ? t(config.labelKey) : activity.action}
+                                {activityLabel(activity.action, t)}
                               </span>
                               <Badge variant="default" className="text-[9px]">
                                 {activity.entity_type}

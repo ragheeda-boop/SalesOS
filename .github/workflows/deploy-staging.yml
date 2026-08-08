@@ -1,8 +1,7 @@
-# Deploy Staging — DEC-149 (deferred until staging exists)
-# Current operating state: ONE environment only (production Railway / live path).
-# Staging Railway env + RAILWAY_STAGING_* secrets are OPTIONAL / DEFERRED.
-# Do NOT auto-run on push (avoids dual-fire with deploy.yml on master).
-# Manual dispatch only; soft-skips when staging IDs absent (does not fail default path).
+# Deploy Staging — DEC-149 / OPS-01 Row 4 (staging provisioned 2026-08-06)
+# Staging Railway env + RAILWAY_STAGING_* secrets present (SERVICE 668122aa-...,
+# ENV 5ce7864a-...). Manual dispatch only (no auto-run on push — avoids
+# dual-fire with deploy.yml on master). Raises when staging secrets absent.
 # Frontend → Vercel (Git primary; optional CLI). No GHCR/SSH.
 # CI Stage 6 GHCR publish (ci.yml) quarantined under DEC-150 Option B — not Phase 0 required.
 
@@ -52,9 +51,8 @@ jobs:
           ACK: ${{ inputs.confirm_staging }}
         run: |
           if [ "${ACK}" != "CONFIRM-STAGING-DEPLOY" ]; then
-            echo "::error::Staging deploy is deferred (DEC-149 single-env — production only until staging exists)."
-            echo "To run intentionally, set confirm_staging=CONFIRM-STAGING-DEPLOY."
-            echo "Missing RAILWAY_STAGING_* is expected until a Railway staging environment is provisioned."
+            echo "::error::Staging deploy requires explicit confirmation."
+            echo "To run, set confirm_staging=CONFIRM-STAGING-DEPLOY."
             exit 1
           fi
       - id: tag
@@ -64,7 +62,7 @@ jobs:
           SHORT=$(echo "${COMMIT_SHA}" | cut -c1-7)
           echo "short=$SHORT" >> "$GITHUB_OUTPUT"
           echo "Deploying: $SHORT"
-      - name: Probe Railway staging secrets (soft skip if absent)
+      - name: Probe Railway staging secrets (fail if absent — staging is provisioned)
         id: probe
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -79,11 +77,10 @@ jobs:
             fi
           done
           if [ -n "${missing}" ]; then
-            echo "::notice::DEC-149 single-env: staging Railway not provisioned — soft-skip deploy."
-            echo "Absent secret names:${missing}"
-            echo "Do not invent values. Re-enable after Railway staging env + RAILWAY_STAGING_* exist."
+            echo "::error::Staging Railway secrets missing:${missing}"
+            echo "Set RAILWAY_STAGING_SERVICE_ID / RAILWAY_STAGING_ENVIRONMENT_ID in repo secrets (OPS-01 Row 4)."
             echo "staging_ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            exit 1
           fi
           echo "staging_ready=true" >> "$GITHUB_OUTPUT"
           echo "Staging Railway secrets present — proceed with deploy."
@@ -190,7 +187,7 @@ jobs:
           ready="${{ needs.staging-gate.outputs.staging_ready }}"
           if [ "$ready" = "false" ]; then
             echo "status=soft-skip" >> "$GITHUB_OUTPUT"
-            echo "DEC-149 single-env: staging soft-skipped (RAILWAY_STAGING_* absent)."
+            echo "Staging deploy blocked (staging secrets absent)."
           elif [ "${{ needs.health-check.result }}" = "success" ] || [ "${{ needs.deploy-backend-railway.result }}" = "skipped" ]; then
             echo "status=success" >> "$GITHUB_OUTPUT"
           else
@@ -208,7 +205,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*SalesOS Staging Deploy (DEC-149 single-env)* — `${{ needs.staging-gate.outputs.short_tag }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                    "text": "*SalesOS Staging Deploy (OPS-01 Row 4)* — `${{ needs.staging-gate.outputs.short_tag }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
                   }
                 }]
               }]

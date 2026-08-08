@@ -1,9 +1,15 @@
 # ═══════════════════════════════════════════════════════════════════════
-# AUTHORITATIVE MONITORING STACK — GA-P2-03
-# This compose file is the authoritative source for monitoring services
-# (Prometheus, Grafana, Alertmanager, Loki, OTel, Promtail, exporters).
-# The root docker-compose.yml is the convenience dev stack that mounts
-# config from this directory. When stacks diverge, this file wins.
+# AUTHORITATIVE SalesOS LOCAL/DEV COMPOSE — EAB-001-P1-OPS-02
+# This file is the source of truth for SalesOS local bring-up (API + data
+# + Kafka Confluent 7.7.2 + monitoring). Prefer: docker compose up --build
+# from this directory (salesos/).
+#
+# Also authoritative for monitoring services (GA-P2-03): Prometheus,
+# Grafana, Alertmanager, Loki, OTel, Promtail, exporters.
+#
+# Repo-root docker-compose.yml is LEGACY/QUARANTINED — do not treat as SoT.
+# Policy: docs/ops/COMPOSE-SOURCE-OF-TRUTH.md
+# Prod overlay: docker-compose.prod.yml | Staging: infra/staging/
 # ═══════════════════════════════════════════════════════════════════════
 services:
   postgres:
@@ -165,6 +171,8 @@ services:
     environment:
       # Must be empty/false — any non-empty truthy string (including "0") used to skip boot.
       SALESOS_TESTING: ""
+      # ADR-102 / EAB verify: compose overrides .env HS256 leftovers (fail-closed at Settings).
+      JWT_ALGORITHM: RS256
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       # Direct Postgres for app DB sessions — PgBouncer (6432) can hang asyncpg
       # during lifespan Alembic checks under transaction pooling.
@@ -177,6 +185,8 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-http://localhost:3000,http://127.0.0.1:3000}
       # Default in_memory = GA degraded for Kafka. Set EVENT_BUS_TYPE=kafka when Kafka is required.
       EVENT_BUS_TYPE: ${EVENT_BUS_TYPE:-in_memory}
+      # Local only after alembic f7a1b82c3d09. Do not copy to prod without upgrade.
+      FEATURE_SIGNAL_MARKETPLACE_POSTGRES: ${FEATURE_SIGNAL_MARKETPLACE_POSTGRES:-true}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}
     command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 120

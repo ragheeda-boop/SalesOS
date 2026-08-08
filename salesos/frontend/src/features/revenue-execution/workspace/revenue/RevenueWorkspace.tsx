@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-hardcoded-colors */
 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";

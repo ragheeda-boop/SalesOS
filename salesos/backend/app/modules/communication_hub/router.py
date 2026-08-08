@@ -191,7 +191,7 @@ async def disconnect_google(service: GoogleOAuthService = Depends(_get_service))
 
 @router.post("/sync", response_model=GoogleSyncResponse, dependencies=_AUTH)
 async def sync_gmail(
-    request: GoogleSyncRequest = GoogleSyncRequest(),
+    body: GoogleSyncRequest = GoogleSyncRequest(),
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db_session),
@@ -203,8 +203,8 @@ async def sync_gmail(
     service = GmailSyncService(db, UUID(tenant_id), UUID(user_id))
     try:
         result = await service.sync(
-            days_lookback=request.days_lookback,
-            max_results=request.max_results,
+            days_lookback=body.days_lookback,
+            max_results=body.max_results,
         )
         return GoogleSyncResponse(
             success=True,
@@ -223,7 +223,7 @@ async def sync_gmail(
 
 @router.post("/calendar-sync", response_model=GoogleCalendarSyncResponse, dependencies=_AUTH)
 async def sync_calendar(
-    request: GoogleCalendarSyncRequest = GoogleCalendarSyncRequest(),
+    body: GoogleCalendarSyncRequest = GoogleCalendarSyncRequest(),
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db_session),
@@ -235,8 +235,8 @@ async def sync_calendar(
     service = CalendarSyncService(db, UUID(tenant_id), UUID(user_id))
     try:
         result = await service.sync(
-            days_lookback=request.days_lookback,
-            days_forward=request.days_forward,
+            days_lookback=body.days_lookback,
+            days_forward=body.days_forward,
         )
         return GoogleCalendarSyncResponse(
             success=True,

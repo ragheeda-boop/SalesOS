@@ -96,7 +96,9 @@ function FollowupRow({ item }: { item: FollowUpStatusDTO }) {
     need_followup: "يحتاج متابعة",
   };
 
-  const activeLabel = Object.entries(labels).find(([key]) => (item as any)[key])?.[1];
+  const activeLabel = Object.entries(labels).find(
+    ([key]) => (item as unknown as Record<string, boolean | undefined>)[key]
+  )?.[1];
 
   return (
     <div

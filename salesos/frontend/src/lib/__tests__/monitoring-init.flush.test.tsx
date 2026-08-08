@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-require-imports -- jest.isolateModules requires synchronous require() to get a fresh module per test */
 
 jest.mock("../api", () => {

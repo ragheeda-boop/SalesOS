@@ -280,6 +280,26 @@ class IdentityService:
         await self.db.flush()
         return refresh_token, family_id, family.id, jti
 
+    async def create_owner_token_family(
+        self,
+        user_id: str,
+        tenant_id: str,
+    ) -> tuple[str, str, str, str]:
+        family_id = _generate_id()
+        jti = secrets.token_urlsafe(16)
+        refresh_token = create_owner_refresh_token(user_id, jti=jti)
+        token_hash = _hash_jti(jti)
+        family = RefreshTokenFamily(
+            id=_generate_id(),
+            user_id=uuid.UUID(user_id),
+            family_id=family_id,
+            token_hash=token_hash,
+            expires_at=_now() + timedelta(days=settings.jwt_refresh_token_expire_days),
+        )
+        self.db.add(family)
+        await self.db.flush()
+        return refresh_token, family_id, family.id, jti
+
     async def rotate_refresh_token(
         self,
         refresh_token_jti: str,
@@ -321,6 +341,49 @@ class IdentityService:
         )
         self.db.add(new_family)
         new_access = create_access_token(user_id, tenant_id)
+        await self.db.flush()
+        return new_access, new_refresh
+
+    async def rotate_owner_refresh_token(
+        self,
+        refresh_token_jti: str,
+        user_id: str,
+    ) -> tuple[str, str]:
+        token_hash = _hash_jti(refresh_token_jti)
+        result = await self.db.execute(
+            select(RefreshTokenFamily).where(
+                RefreshTokenFamily.token_hash == token_hash,
+                RefreshTokenFamily.is_compromised.is_(False),
+            )
+        )
+        family = result.scalar_one_or_none()
+        if not family:
+            raise UnauthorizedError("Invalid or expired refresh token")
+        if family.used_at is not None:
+            family.is_compromised = True
+            await self.db.flush()
+            await self._revoke_family_sessions(family.family_id)
+            if self.logger:
+                self.logger.warn(
+                    "refresh.owner_reuse_detected",
+                    user_id=user_id,
+                    family_id=family.family_id,
+                )
+            raise UnauthorizedError("Refresh token reuse detected — session revoked")
+        if family.expires_at < _now():
+            raise UnauthorizedError("Refresh token expired")
+        family.used_at = _now()
+        new_jti = secrets.token_urlsafe(16)
+        new_refresh = create_owner_refresh_token(user_id, jti=new_jti)
+        new_family = RefreshTokenFamily(
+            id=_generate_id(),
+            user_id=uuid.UUID(user_id),
+            family_id=family.family_id,
+            token_hash=_hash_jti(new_jti),
+            expires_at=_now() + timedelta(days=settings.jwt_refresh_token_expire_days),
+        )
+        self.db.add(new_family)
+        new_access = create_owner_access_token(user_id)
         await self.db.flush()
         return new_access, new_refresh
 

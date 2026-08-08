@@ -4,7 +4,7 @@ Webhook outbound URL allowlist must reject SSRF targets (localhost, link-local
 metadata, RFC1918) at the ASGI boundary for:
 
 1. Integration Hub subscriptions — ``POST /api/v1/webhooks/subscriptions``
-2. Workflow webhook endpoints — ``POST /api/v1/webhooks`` (historical finding)
+2. Workflow webhook endpoints — ``POST /api/v1/workflow/webhooks`` (historical finding)
 
 Does not modify get_db() / set_config (DEC-085).
 """
@@ -190,7 +190,7 @@ async def test_workflow_webhook_rejects_ssrf_targets(wf_app: FastAPI, url: str) 
     transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
-            "/api/v1/webhooks",
+            "/api/v1/workflow/webhooks",
             json={"url": url, "name": "SSRF Probe", "auth_type": "none"},
             headers={"Authorization": "Bearer test", "X-Tenant-Id": TENANT},
         )

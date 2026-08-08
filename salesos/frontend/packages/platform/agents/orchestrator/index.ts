@@ -3,7 +3,6 @@ import type {
   AgentTask,
   AgentResult,
   AgentAction,
-  TaskStatus,
   TaskPriority,
 } from "../contracts";
 import * as registry from "../registry";
@@ -75,7 +74,6 @@ export async function executeTask(taskId: string): Promise<AgentResult> {
   agentBusyMap.set(task.agentId, busyCount + 1);
 
   const actions: AgentAction[] = [];
-  const startedAt = now();
 
   try {
     const decContext: DecisionContext = {

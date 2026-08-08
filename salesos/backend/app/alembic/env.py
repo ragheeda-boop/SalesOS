@@ -13,8 +13,12 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from app.common.models import Base
 from app.config import settings
-from app.database import Base
+
+# Prefer app.common.models.Base (metadata only). Importing app.database would
+# create async engines at module import (~40s cold) and historically contributed
+# to Docker `alembic current` hangs after MigrationContext setup.
 
 # When invoked via `alembic` CLI, context.config is set by Alembic.
 # When invoked programmatically, we create a Config from alembic.ini.

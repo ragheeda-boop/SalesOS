@@ -81,6 +81,24 @@ class HealthReadyResponse(BaseModel):
     checks: dict
 
 
+class VersionResponse(BaseModel):
+    """GET /version — build provenance for FE/CI parity checks (GA gate).
+
+    backend_commit is the Git SHA the running backend was built from
+    (SOURCE_COMMIT / RAILWAY_GIT_COMMIT_SHA at deploy). schema_version is the
+    Alembic migration head. openapi_hash is a stable SHA-256 over the OpenAPI
+    schema so the frontend can detect contract drift without diffing JSON.
+    """
+
+    service: str
+    api_version: str
+    backend_commit: str
+    build_date: str
+    build_id: str = ""
+    schema_version: str
+    openapi_hash: str
+
+
 class AuditLogEntry(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

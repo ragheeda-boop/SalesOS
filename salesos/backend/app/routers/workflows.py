@@ -500,7 +500,9 @@ async def execute_workflow(
         raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.post("/webhooks", status_code=201)
+# EAB-001-P1-DUP-02: remounted from `/webhooks` → `/workflow/webhooks` so Hub
+# owns `/api/v1/webhooks/*` without prefix-family collision.
+@router.post("/workflow/webhooks", status_code=201)
 async def create_webhook(
     body: WebhookEndpointCreate,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -530,7 +532,7 @@ async def create_webhook(
         raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.get("/webhooks")
+@router.get("/workflow/webhooks")
 async def list_webhooks(
     tenant_id: str = Depends(get_current_tenant_id),
     svc: WorkflowService = Depends(_get_service),
@@ -554,7 +556,7 @@ async def list_webhooks(
         raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.get("/webhooks/{endpoint_id}")
+@router.get("/workflow/webhooks/{endpoint_id}")
 async def get_webhook(
     endpoint_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -579,7 +581,7 @@ async def get_webhook(
         raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.put("/webhooks/{endpoint_id}")
+@router.put("/workflow/webhooks/{endpoint_id}")
 async def update_webhook(
     endpoint_id: str,
     body: WebhookEndpointCreate,
@@ -612,7 +614,7 @@ async def update_webhook(
         raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.delete("/webhooks/{endpoint_id}")
+@router.delete("/workflow/webhooks/{endpoint_id}")
 async def delete_webhook(
     endpoint_id: str,
     tenant_id: str = Depends(get_current_tenant_id),

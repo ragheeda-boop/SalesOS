@@ -51,7 +51,7 @@ export function EntitlementDenialListener() {
         title: "Owner audience required",
         description:
           detail?.message ||
-          "Admin APIs require salesos-owner-platform JWT. Owner login mint is DEC-093 follow-up. Not Production GO.",
+          "Admin APIs require salesos-owner-platform JWT. Sign in at /admin/login. Not Production GO.",
         duration: 8000,
       });
     };

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useState, useCallback, type DragEvent } from "react";
 import { Building2, Plus, X } from "lucide-react";

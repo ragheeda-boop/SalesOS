@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, Suspense, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getApiKeys, getNotificationPreferences, type ApiKeyRecord } from "@/lib/api";
@@ -163,7 +163,7 @@ function ApiKeysPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }
   );
 }
 
-export default function V3SettingsPage() {
+function V3SettingsPageContent() {
   const { ready, hasToken } = useAccessToken();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -344,5 +344,13 @@ export default function V3SettingsPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function V3SettingsPage() {
+  return (
+    <Suspense>
+      <V3SettingsPageContent />
+    </Suspense>
   );
 }

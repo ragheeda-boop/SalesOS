@@ -13,7 +13,6 @@ so one slow/failing service never blocks others in the same phase.
 """
 
 import asyncio
-import contextlib
 import os
 import time
 from typing import Any, cast
@@ -24,7 +23,7 @@ from redis.asyncio import Redis  # type: ignore[import-untyped]
 from app.cache import CacheService
 from app.common.logging_config import configure_logging
 from app.config import settings
-from app.database import async_session, close_db, init_db
+from app.database import FactoryBoundRepository, async_session, close_db, init_db
 from sdk.telemetry import StructuredLogger, setup_telemetry
 
 # ── Phase 0: Bootstrap ──────────────────────────────────────────────────────
@@ -125,9 +124,8 @@ async def _init_timeline_recorder(app: FastAPI, logger: StructuredLogger) -> Non
     from domains.timeline.engine.recorder import TimelineRecorder
 
     try:
-        sess = async_session()
-        app.state._timeline_session = sess
-        repo = PostgresTimelineRepository(sess)
+        # EAB-001-P0-SEC-02: short-lived factory sessions + DEC-085 GUC (no lifetime session)
+        repo = FactoryBoundRepository(PostgresTimelineRepository, async_session)
         app.state.timeline_recorder = TimelineRecorder(repo)
         logger.info("  timeline recorder: ok")
     except Exception:
@@ -170,9 +168,7 @@ async def _init_feature_store_domain(app: FastAPI, logger: StructuredLogger) -> 
     from domains.feature_store.postgres_repo import PostgresFeatureStoreRepository
 
     try:
-        sess = async_session()
-        app.state._fs_repo_session = sess
-        repo = PostgresFeatureStoreRepository(sess)
+        repo = FactoryBoundRepository(PostgresFeatureStoreRepository, async_session)
         app.state.feature_store_domain_service = FSDomainService(repository=repo)
         logger.info("  feature store domain: ok")
     except Exception:
@@ -202,9 +198,7 @@ async def _init_decision_center(app: FastAPI, logger: StructuredLogger) -> None:
         from domains.decision_center.postgres_repo import PostgresDecisionCenterRepository
         from domains.decision_center.service import DecisionCenterService
 
-        sess = async_session()
-        app.state._dc_session = sess
-        repo = PostgresDecisionCenterRepository(sess)
+        repo = FactoryBoundRepository(PostgresDecisionCenterRepository, async_session)
         app.state.decision_center_service = DecisionCenterService(repository=repo)
         logger.info("  decision center: ok")
     except Exception:
@@ -296,9 +290,7 @@ async def _init_opportunity(app: FastAPI, logger: StructuredLogger) -> None:
         event_runtime = getattr(app.state, "event_runtime", None)
         from domains.commercial.opportunity.engine.service import OpportunityService
 
-        sess = async_session()
-        app.state._opportunity_session = sess
-        repo = PostgresOpportunityRepository(sess)
+        repo = FactoryBoundRepository(PostgresOpportunityRepository, async_session)
         app.state.opportunity_service = OpportunityService(
             repository=repo,
             event_bus=event_runtime,
@@ -528,9 +520,9 @@ async def _init_workflow_subscriber(app: FastAPI, logger: StructuredLogger) -> N
             logger.warning("  workflow subscriber: skipped (no event_runtime)")
             return
 
-        sess = async_session()
-        app.state._workflow_session = sess
-        repo = PostgresWorkflowRepository(session=sess)
+        repo = FactoryBoundRepository(
+            PostgresWorkflowRepository, async_session, session_kw="session"
+        )
         engine = WorkflowEngine(repository=repo)
         service = WorkflowService(repository=repo, engine=engine)
 
@@ -597,9 +589,30 @@ async def _phase5_background(app: FastAPI, logger: StructuredLogger) -> list[asy
 async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     """Orchestrate layered parallel startup of all SalesOS services."""
 
+    # EAB-001-P0-SEC-01: wire before any early return so entitlement /
+    # suspended-tenant / API-key middleware never fail-open when unset.
+    # async_session is the canonical request-scoped sessionmaker (app role).
+    app.state.db_session_factory = async_session
+
     # Only skip boot when explicitly testing ("1"/"true"). Compose sets
     # SALESOS_TESTING=0 which must NOT skip init (Python truthy string trap).
     _testing = os.environ.get("SALESOS_TESTING", "").strip().lower()
+    # EAB-001-P2-SEC-04: warn before early-return so misconfigured prod still surfaces.
+    from app.config import settings as _settings
+
+    _env = (_settings.env or "").strip().lower()
+    if _env in ("production", "prod", "staging", "stage") and _testing in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    ):
+        StructuredLogger("salesos.boot").error(
+            "SALESOS_TESTING=%s with ENV=%s — CSRF bypass active; "
+            "unset SALESOS_TESTING in production/staging (EAB-001-P2-SEC-04)",
+            _testing,
+            _env,
+        )
     if _testing in ("1", "true", "yes", "on"):
         return []
 
@@ -607,6 +620,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     logger = StructuredLogger("salesos.boot")
     app.state.logger = logger
     logger.info("SalesOS startup sequence initiated")
+    logger.info("  db_session_factory: wired (async_session)")
 
     # ── Phase 0: Bootstrap (sequential) ──────────────────────────────────
     try:
@@ -726,17 +740,7 @@ async def shutdown_services(app: FastAPI) -> None:
         if svc is not None and hasattr(svc, "close"):
             await _safe_close(name, svc.close())
 
-    for sess_attr in (
-        "_timeline_session",
-        "_opportunity_session",
-        "_fs_repo_session",
-        "_dc_session",
-        "_workflow_session",
-    ):
-        sess = getattr(app.state, sess_attr, None)
-        if sess:
-            with contextlib.suppress(Exception):
-                await sess.close()
+    # Lifetime AsyncSessions removed (EAB-001-P0-SEC-02); factory sessions close per call.
 
     await _safe_close("database", close_db())
     if logger:

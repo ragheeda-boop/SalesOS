@@ -1,16 +1,17 @@
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 /**
  * FE-S07-07 — shared Owner Console ops-page honesty strip.
- * Audience enforcement stays BE; mint remains DEC-093. Not Production GO.
+ * Audience enforcement stays BE; mint via /admin/login (DEC-093). Not Production GO.
  */
 export type OwnerOpsSurface = "flags" | "config" | "audit";
 
 const SURFACE_COPY: Record<OwnerOpsSurface, string> = {
   flags:
-    "Feature flags require owner-audience admin APIs. Mutating rollouts is Ops-owned; tenant JWT 401s toast honesty and keep the session (FE-S07-06). Not Production GO.",
+    "Feature flags require owner-audience admin APIs. Mutating rollouts is Ops-owned; tenant JWT 401s toast honesty and keep the session (FE-S07-06). Sign in at /admin/login for owner mint. Not Production GO.",
   config:
-    "System config YAML requires owner-audience admin APIs. Validate before save; no invented owner mint. Not Production GO.",
+    "System config YAML requires owner-audience admin APIs. Validate before save; owner mint at /admin/login. Not Production GO.",
   audit:
-    "Audit log is a read-path Ops surface. Export/filter still need owner audience. Owner login mint remains DEC-093 follow-up. Not Production GO.",
+    "Audit log is a read-path Ops surface. Export/filter still need owner audience. Sign in at /admin/login for owner mint. Not Production GO.",
 };
 
 export function OwnerOpsPageHonesty({ surface }: { surface: OwnerOpsSurface }) {

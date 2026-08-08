@@ -56,10 +56,22 @@ def setup_middleware(app: FastAPI) -> None:
     app.add_middleware(ApiKeyMiddleware)
 
     # Outermost — must wrap all other middleware for CORS on errors/OPTIONS.
-    allowed_hosts_list = [o.strip() for o in settings.allowed_hosts.split(",") if o.strip()]
+    # `allowed_hosts` settings are CORS *origins* (scheme://host[:port]). TrustedHost
+    # needs bare hostnames — do not pass origin URLs (EAB verify / Invalid host header).
+    cors_origins = [o.strip() for o in settings.allowed_hosts.split(",") if o.strip()]
+    # Include "test" — httpx AsyncClient fixtures use base_url="http://test"
+    # (Starlette TestClient historically used "testserver").
+    trusted_hosts: set[str] = {"localhost", "127.0.0.1", "testserver", "test", "backend"}
+    for origin in cors_origins:
+        host = origin
+        if "://" in host:
+            host = host.split("://", 1)[1]
+        host = host.split("/")[0].split(":")[0].strip()
+        if host:
+            trusted_hosts.add(host)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=allowed_hosts_list,
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=[m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
         allow_headers=[h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
@@ -68,5 +80,5 @@ def setup_middleware(app: FastAPI) -> None:
     )
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=allowed_hosts_list,
+        allowed_hosts=sorted(trusted_hosts),
     )

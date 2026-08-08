@@ -54,12 +54,6 @@ function isWithinRange(date: Date, range: DateRange): boolean {
   return date >= range.start && date <= range.end;
 }
 
-function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
 function isDateDisabled(date: Date, minDate?: Date, maxDate?: Date): boolean {
   if (minDate && date < minDate) return true;
   if (maxDate && date > maxDate) return true;
@@ -82,7 +76,7 @@ export const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(
       error,
       className,
     },
-    ref
+    _ref
   ) => {
     const generatedId = useId();
     const id = `datepicker-${generatedId}`;

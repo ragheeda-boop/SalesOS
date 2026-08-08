@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "buildCommand": "NEXT_PUBLIC_BUILD_COMMIT=\"${VERCEL_GIT_COMMIT_SHA:-}\" NEXT_PUBLIC_BUILD_DATE=\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" NEXT_PUBLIC_BUILD_ID=\"${VERCEL_GIT_COMMIT_SHA:-}\" npm run build",
   "regions": ["iad1"],
   "headers": [
     {

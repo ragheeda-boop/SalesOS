@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useMemo, useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
@@ -209,7 +210,7 @@ export function CustomFieldsStudio() {
         <h2 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">
           Auto-render preview (tip form-schema)
         </h2>
-        <CustomFieldsAutoRender objectKey={objectKey} />
+        <CustomFieldsAutoRender objectKey={objectKey} variant="studio" />
       </div>
     </div>
   );

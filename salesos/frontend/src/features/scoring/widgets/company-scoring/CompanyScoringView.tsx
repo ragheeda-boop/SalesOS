@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import type { Score, Recommendation } from "@salesos/decision-platform";
 

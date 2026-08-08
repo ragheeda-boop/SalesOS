@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, Badge } from "@salesos/ui";
-import { Lightbulb, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
+import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 interface CoachingInsight {

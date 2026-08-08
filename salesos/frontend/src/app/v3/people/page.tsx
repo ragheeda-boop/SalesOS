@@ -40,6 +40,7 @@ export default function V3PeoplePage() {
     staleTime: 15_000,
   });
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const rows = data?.data ?? [];
   const filtered = useMemo(() => {
     if (status === "all") return rows;

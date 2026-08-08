@@ -168,7 +168,8 @@ api.interceptors.response.use(
         original401 &&
         !original401._refreshRetry &&
         !isRefreshCall &&
-        !requestUrl.includes("/api/v1/identity/login")
+        !requestUrl.includes("/api/v1/identity/login") &&
+        !requestUrl.includes("/api/v1/identity/owner/login")
       ) {
         original401._refreshRetry = true;
         try {

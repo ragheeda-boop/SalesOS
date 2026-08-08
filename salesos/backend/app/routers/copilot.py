@@ -6,7 +6,10 @@ Phase 11 additions:
 - B-3: Tool telemetry logging + aggregation endpoints
 - B-4: Arabic copilot engine (NLP detection, RTL, Saudi context)
 
-GA honesty (Wave 6–7): product endpoints require settings.feature_ai_copilot.
+GA honesty (Wave 6–7 + Completion Program Stream B / AIGOV-01):
+product mutate/detect endpoints require settings.feature_ai_copilot.
+Arabic detect/prompts + telemetry/log gated (EAB residual closure).
+Read-only status/telemetry remain readable for honest empty dashboards.
 Registration ≠ GA; see docs/audit/ga-engineering-audit/AI_HONESTY.md
 """
 
@@ -537,8 +540,12 @@ async def telemetry_log(
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
     _rbac=Depends(require_permission_dep("copilot", PermissionAction.CREATE)),
+    _flag=Depends(require_ai_copilot_enabled),
 ):
-    """Manually log a tool call (for testing or external integrations)."""
+    """Manually log a tool call (for testing or external integrations).
+
+    Gated: write path must not invent live copilot activity while flag is False.
+    """
     record = _telemetry_service.log(
         tool_name=body.tool_name,
         tenant_id=tenant_id,
@@ -558,8 +565,12 @@ async def telemetry_log(
 async def arabic_detect(
     body: ArabicDetectRequest,
     _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+    _flag=Depends(require_ai_copilot_enabled),
 ):
-    """Detect Arabic content and extract Saudi business entities."""
+    """Detect Arabic content and extract Saudi business entities.
+
+    AIGOV-01: gated with feature_ai_copilot (was ungated residual).
+    """
     detection = _arabic_engine.detect(body.text)
     return ArabicDetectResponse(
         is_arabic=detection.is_arabic,
@@ -577,8 +588,12 @@ async def arabic_prompts(
         description="Prompt intent: research, proposal, meeting, search, default",
     ),
     _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+    _flag=Depends(require_ai_copilot_enabled),
 ):
-    """Get Arabic or English prompt template for a given intent."""
+    """Get Arabic or English prompt template for a given intent.
+
+    AIGOV-01: gated with feature_ai_copilot (was ungated residual).
+    """
     ar_template = _arabic_engine.get_prompt_template(intent, "ar")
     en_template = _arabic_engine.get_prompt_template(intent, "en")
     return {

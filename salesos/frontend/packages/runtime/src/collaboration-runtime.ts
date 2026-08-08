@@ -143,11 +143,15 @@ export class CollaborationRuntime {
     return () => this.listeners.get(sessionKey)?.delete(listener);
   }
 
-  private notify(sessionKey: string, event: keyof CollaborationListener, data: any) {
+  private notify(
+    sessionKey: string,
+    event: keyof CollaborationListener,
+    data: Collaborator | string | CursorPosition | Collaborator[]
+  ) {
     const listeners = this.listeners.get(sessionKey);
     if (listeners) {
       listeners.forEach((l) => {
-        const handler = l[event];
+        const handler = l[event] as ((payload: typeof data) => void) | undefined;
         if (handler) handler(data);
       });
     }

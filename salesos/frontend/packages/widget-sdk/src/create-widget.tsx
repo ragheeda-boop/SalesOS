@@ -1,12 +1,12 @@
 "use client";
 
-import { memo, useRef, useEffect, useCallback, useState, type ReactNode } from "react";
+import { memo, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { Skeleton, useToast } from "@salesos/ui";
 import { useWidgetLifecycle } from "./widget-lifecycle";
 import { widgetTelemetry } from "./widget-telemetry";
 import { checkPermissions } from "./widget-permissions";
 import { isFeatureEnabled } from "./widget-feature-flags";
-import type { WidgetConfig, WidgetRenderContext, WidgetStatus } from "./types";
+import type { WidgetConfig, WidgetStatus } from "./types";
 
 const STATUS_LABEL: Record<WidgetStatus, string> = {
   ready: "",
@@ -214,7 +214,7 @@ export function createWidget<T>(config: WidgetConfig<T>) {
         telemetrySent.current = true;
         return;
       }
-    }, [data, status, error]);
+    }, [data, status, error, toast]);
 
     useEffect(() => {
       if (prevStatusRef.current !== status) {

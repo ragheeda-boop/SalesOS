@@ -1,3 +1,13 @@
+"""Decision Platform HTTP API (alternate capability — not Decision Center SoT).
+
+EAB-001-P0-DUP-01 / Completion Program Stream B:
+Canonical governed ledger is Decision Center (``/api/v1/decisions*``).
+This module owns ``/api/v1/decision/*`` (evaluate, batch, history, rules,
+learning). Decision Runtime is remounted at ``/api/v1/decision-runtime`` —
+do not treat this Platform engine as Center or Runtime. Engines retained
+(honest Partial). See DECISION-API-SOT.md.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies import get_current_tenant_id, verify_token
@@ -24,9 +34,17 @@ from app.modules.decision.schemas import (
     ScoresResponseAPI,
 )
 
+# OpenAPI: alternate (not deprecated) — Center remains SoT for governed ledger.
+_PLATFORM_ALT = (
+    "Decision Platform alternate — not Decision Center SoT. "
+    "Prefer /api/v1/decisions* for durable governed records. "
+    "EAB-001-P0-DUP-01 / DECISION-API-SOT.md."
+)
+
 router = APIRouter(prefix="/api/v1/decision")
 
 API_VERSION = "1.0.0"
+SOT_ROLE = "alternate"  # not center; not runtime
 
 
 def _engine() -> DecisionEngine:
@@ -219,7 +237,12 @@ def _result_to_api(result) -> DecisionResultAPI:
 # ---------------------------------------------------------------------------
 
 
-@router.post("/evaluate", response_model=DecisionResultAPI)
+@router.post(
+    "/evaluate",
+    response_model=DecisionResultAPI,
+    summary="Evaluate (Platform alternate)",
+    description=_PLATFORM_ALT,
+)
 async def evaluate_decision(
     body: DecisionContext,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -232,7 +255,12 @@ async def evaluate_decision(
     return _result_to_api(result)
 
 
-@router.post("/batch", response_model=BatchResponseAPI)
+@router.post(
+    "/batch",
+    response_model=BatchResponseAPI,
+    summary="Batch evaluate (Platform alternate)",
+    description=_PLATFORM_ALT,
+)
 async def evaluate_batch(
     contexts: list[DecisionContext],
     tenant_id: str = Depends(get_current_tenant_id),
@@ -332,7 +360,16 @@ async def explain_decision(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/history", response_model=HistoryResponseAPI)
+@router.get(
+    "/history",
+    response_model=HistoryResponseAPI,
+    summary="History (Platform alternate; hybrid FE residual)",
+    description=(
+        f"{_PLATFORM_ALT} FE /decisions may list Platform history while "
+        "accept/dismiss call Runtime under /api/v1/decision-runtime — "
+        "cross-engine ID mismatch risk remains (honest Partial)."
+    ),
+)
 async def get_history(
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(20, ge=1, le=100),

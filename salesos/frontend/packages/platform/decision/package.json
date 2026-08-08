@@ -1,0 +1,8 @@
+{
+  "name": "@salesos/decision-platform",
+  "version": "0.0.0-stub",
+  "private": true,
+  "description": "STUB — NOT production GA. Throws on evaluate/explain/history/feedback. FE tsconfig resolves here. Prefer Decision Center HTTP /api/v1/decisions. Lab twin renamed to @salesos/decision-platform-lab (salesos/packages/platform/decision). See AI_HONESTY.md and EAB DECISION-API-SOT.md.",
+  "main": "index.ts",
+  "types": "index.ts"
+}

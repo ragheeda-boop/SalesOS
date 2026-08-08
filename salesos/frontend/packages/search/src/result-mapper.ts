@@ -21,13 +21,17 @@ const VALID_VARIANTS = ["info", "success", "warning", "danger", "neutral"] as co
 const VALID_DIRECTIONS = ["inbound", "outbound", "bidirectional"] as const;
 
 function sanitizeVariant(v: string): SearchResult["badges"][number]["variant"] {
-  return VALID_VARIANTS.includes(v as any) ? (v as any) : "neutral";
+  return (VALID_VARIANTS as readonly string[]).includes(v)
+    ? (v as SearchResult["badges"][number]["variant"])
+    : "neutral";
 }
 
 function sanitizeDirection(
   d: string
 ): NonNullable<SearchResult["relationships"]>[number]["direction"] {
-  return VALID_DIRECTIONS.includes(d as any) ? (d as any) : "bidirectional";
+  return (VALID_DIRECTIONS as readonly string[]).includes(d)
+    ? (d as NonNullable<SearchResult["relationships"]>[number]["direction"])
+    : "bidirectional";
 }
 
 export function mapSearchResult(raw: RawSearchResult): SearchResult {

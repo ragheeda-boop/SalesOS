@@ -24,14 +24,12 @@ export async function createOpportunity(input: {
   relationshipStrength: number;
   sourceActionId?: string;
 }): Promise<RevenueOpportunity> {
-  const response = await api.post("/api/v1/opportunities", {
-    company_id: input.companyId,
-    title: input.title,
-    estimated_value: input.estimatedValue,
-    confidence: input.confidence,
-    buying_intent: input.buyingIntent,
-    relationship_strength: input.relationshipStrength,
-    source_action_id: input.sourceActionId,
+  const response = await api.post("/api/v1/opportunities", null, {
+    params: {
+      company_id: input.companyId,
+      name: input.title,
+      value: input.estimatedValue,
+    },
   });
   return response.data;
 }

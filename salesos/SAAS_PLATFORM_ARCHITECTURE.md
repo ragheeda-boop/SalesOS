@@ -347,7 +347,7 @@ Every new tenant-scoped table gets `(tenant_id, updated_at)` composite indexes m
 | **Credential isolation** | Every `ExternalSystemConnection` credential is tenant-scoped, Fernet-encrypted, referenced (never stored raw) — exact precedent from `GoogleAccount` (already ✅ in the existing codebase) | Extends existing pattern |
 | **Cross-tenant regression testing** | Mandatory merge gate on any PR touching a tenant-scoped table or the Integration Hub, per the ARB's own recommendation (§16 of `ARB_REVIEW_ODOO_INTEGRATION.md`) given the platform "has already shipped this bug class once" | Carried forward, now platform-wide policy, not Odoo-specific |
 | **Support impersonation** | `SupportImpersonationGrant` — time-boxed, tenant-consent-gated, fully audited; no standing Owner access to tenant data ever | New |
-| **Data residency** | `Tenant.region` / `data_residency` field — determines which physical database/region a tenant's data lives in, relevant given AQLIYA's GCC/Saudi regulatory context (PDPL) already flagged as a real gap in the ARB meta-review | New — directly answers the ARB's flagged PDPL omission |
+| **Data residency** | `Tenant.region` / `data_residency` field — determines which physical database/region a tenant's data lives in, relevant given the GCC/Saudi regulatory context (PDPL) already flagged as a real gap in the ARB meta-review | New — directly answers the ARB's flagged PDPL omission |
 | **Secrets vault** | All connector and AI-provider credentials in a dedicated secrets manager (not `connection_config` JSONB directly) — `credential_ref` is a pointer, never the value | Extends existing pattern from GoogleAccount |
 | **Webhook SSRF/CSRF** | The existing unresolved P0s (`app/routers/workflows.py:493`, `app/common/csrf.py`) become a **hard platform-wide launch blocker**, not just an Odoo-integration blocker — any tenant's webhook-based connector (not just Odoo's) is unusable until these close | Elevated priority under this redesign |
 
@@ -439,7 +439,7 @@ Usage-based + seat-based hybrid, metered via `UsageMeter` (OBJ-324):
 
 Concrete diff list, ready for a CTO/Architect-approved PR per §16.2's own change-control rule:
 
-1. **§1 Product Vision** — add a "Product Platform" horizon above "Today/6 Months/12 Months": *SalesOS is a multi-tenant SaaS platform sold to hundreds of customers; AQLIYA's other products (AuditOS, DecisionOS, LocalContentOS) are future tenants-of-a-different-shape on the same Owner Platform, not separate codebases.*
+1. **§1 Product Vision** — add a "Product Platform" horizon above "Today/6 Months/12 Months": *SalesOS is a multi-tenant SaaS platform sold to hundreds of customers; other planned products (AuditOS, DecisionOS, LocalContentOS) are future tenants-of-a-different-shape on the same Owner Platform, not separate codebases.*
 2. **§2 Business Domains** — append DOM-020 through DOM-024 (this document, §9).
 3. **§3 Canonical Object Model** — append OBJ-320–356 (this document, §8); execute the `OBJ-303 Invoice → PlatformBillingInvoice` rename now (it was "Recommended" in the meta-review when only one new `CustomerInvoice` object existed; at platform scale, with `Invoice` now also meaning "an Owner-Platform billing record queried across every tenant," the ambiguity is materially worse, and the rename becomes mandatory — with a migration/aliasing period the original ARB report was correctly criticized for omitting, per `ARB_META_REVIEW.md` §9).
 4. **§4 Capability Registry** — append CAP-067 (redefined as generic, per §5.0) through CAP-104 (this document, §10); mark CAP-036 Signal Marketplace as **superseded by DOM-024/CAP-071/072** (the old marketplace becomes the tenant-facing install surface for the new Owner-curated listings, not a separate system).
@@ -459,7 +459,7 @@ Concrete diff list, ready for a CTO/Architect-approved PR per §16.2's own chang
 
 Run the same stress test the Odoo ARB applied (`ARB_REVIEW_ODOO_INTEGRATION.md` §19), against this document instead of a single connector:
 
-- **Assume 500 tenants, 15 certified connectors, 3 acquired AQLIYA sibling products, and a Studio ecosystem with 200 third-party playbooks, in 2036.** Does this architecture survive without a rewrite?
+- **Assume 500 tenants, 15 certified connectors, 3 acquired sibling products, and a Studio ecosystem with 200 third-party playbooks, in 2036.** Does this architecture survive without a rewrite?
 - **Owner/Tenant split:** survives — adding a product (AuditOS) means a new set of DOM/CAP under the same Tenant Workspace shell and the same Owner Platform billing/provisioning substrate, not a new codebase.
 - **Integration Hub:** survives — each of the 15 connectors is one `SourceConnector` implementation; none required a framework change, per the same reasoning that made this mandatory in §5.0.
 - **Entitlement/Plan model:** survives — new products and new capabilities are new entitlement keys, not new billing systems.

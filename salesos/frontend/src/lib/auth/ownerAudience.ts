@@ -1,12 +1,15 @@
 /**
  * STORY-07-03 / FE-S07-04 — Owner Console JWT audience + host honesty.
  * Tenant API: salesos-api. Owner Platform: salesos-owner-platform.
- * Not Production GO. Mint UX still BE follow-up (DEC-093).
+ * Owner mint: POST /api/v1/identity/owner/login + UI /admin/login (DEC-093 follow-up DONE).
+ * Not Production GO.
  */
 
 export const TENANT_JWT_AUDIENCE = "salesos-api";
 export const OWNER_JWT_AUDIENCE = "salesos-owner-platform";
 export const OWNER_CONSOLE_HOST = "owner.salesos.io";
+export const OWNER_LOGIN_PATH = "/admin/login";
+export const OWNER_LOGIN_API = "/api/v1/identity/owner/login";
 
 export type JwtAudienceKind = "owner" | "tenant" | "unknown" | "missing";
 export type OwnerHostKind = "owner-target" | "local" | "shared-app";
@@ -57,14 +60,14 @@ export function formatOwnerAudienceHonesty(kind: JwtAudienceKind, aud?: string |
   if (kind === "tenant") {
     return (
       `Tenant JWT audience=${TENANT_JWT_AUDIENCE} cannot call /api/v1/admin/* ` +
-      `(requires ${OWNER_JWT_AUDIENCE}). Owner login mint remains BE follow-up (DEC-093). ` +
-      `Not Production GO.`
+      `(requires ${OWNER_JWT_AUDIENCE}). Use Owner login at ${OWNER_LOGIN_PATH} ` +
+      `(${OWNER_LOGIN_API}). Not Production GO.`
     );
   }
   if (kind === "missing") {
     return (
       `No access token in session. Owner Console requires ${OWNER_JWT_AUDIENCE}. ` +
-      `Not Production GO.`
+      `Sign in at ${OWNER_LOGIN_PATH}. Not Production GO.`
     );
   }
   return (
@@ -136,7 +139,7 @@ export function formatOwnerAuthDeniedMessage(kind: JwtAudienceKind = "tenant"): 
   if (kind === "tenant") {
     return (
       `Owner admin API rejected tenant JWT (${TENANT_JWT_AUDIENCE}). ` +
-      `Requires ${OWNER_JWT_AUDIENCE}. Owner login mint remains DEC-093 follow-up — not invented. ` +
+      `Requires ${OWNER_JWT_AUDIENCE}. Sign in at ${OWNER_LOGIN_PATH} — not invented tokens. ` +
       `Tenant session kept. Not Production GO.`
     );
   }

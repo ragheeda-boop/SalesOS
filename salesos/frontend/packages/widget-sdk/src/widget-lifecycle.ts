@@ -8,21 +8,31 @@ export function useWidgetLifecycle(
   hooks?: LifecycleHooks
 ) {
   const prevStatus = useRef<WidgetStatus>(status);
+  const hooksRef = useRef(hooks);
+  const metadataRef = useRef(metadata);
+  hooksRef.current = hooks;
+  metadataRef.current = metadata;
 
   useEffect(() => {
-    hooks?.onMount?.({ id, metadata });
-    return () => hooks?.onUnmount?.({ id, metadata });
+    hooksRef.current?.onMount?.({ id, metadata: metadataRef.current });
+    return () => hooksRef.current?.onUnmount?.({ id, metadata: metadataRef.current });
   }, [id]);
 
   useEffect(() => {
     if (prevStatus.current !== status) {
-      hooks?.onStatusChange?.({ id, metadata, status, previous: prevStatus.current });
+      hooksRef.current?.onStatusChange?.({
+        id,
+        metadata: metadataRef.current,
+        status,
+        previous: prevStatus.current,
+      });
       prevStatus.current = status;
     }
   });
 
   return {
-    notifyRefresh: () => hooks?.onRefresh?.({ id, metadata }),
-    notifyError: (error: Error) => hooks?.onError?.({ id, metadata, error }),
+    notifyRefresh: () => hooksRef.current?.onRefresh?.({ id, metadata: metadataRef.current }),
+    notifyError: (error: Error) =>
+      hooksRef.current?.onError?.({ id, metadata: metadataRef.current, error }),
   };
 }

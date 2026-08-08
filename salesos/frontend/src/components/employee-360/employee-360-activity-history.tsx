@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
+import { Card, CardContent, CardHeader, EmptyState, Badge, cn } from "@salesos/ui";
 import { Clock } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { formatRelativeTime, getActionConfig } from "./employee-360-shared";

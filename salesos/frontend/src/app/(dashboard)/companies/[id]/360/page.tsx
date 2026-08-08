@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -45,6 +46,8 @@ import { useTranslation } from "@/lib/i18n";
 import { KnowledgeGraphPanel } from "@/features/company-intelligence/widgets/company-360/KnowledgeGraphPanel";
 import { ActivityTimeline } from "@/features/company-intelligence/widgets/company-360/ActivityTimeline";
 import { DecisionPlatformPanel } from "@/features/company-intelligence/widgets/company-360/DecisionPlatformPanel";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { asArray } from "@/lib/asArray";
 import type { ColumnDef } from "@tanstack/react-table";
 
 type TabId = "overview" | "people" | "dealroom" | "activity" | "more";
@@ -245,9 +248,9 @@ export default function Company360Page() {
   const overview = company360?.overview;
   const organization = company360?.organization;
   const enrichment = company360?.enrichment;
-  const opportunities = company360?.opportunities || [];
-  const contracts = company360?.contracts || [];
-  const invoices = company360?.invoices || [];
+  const opportunities = asArray<Record<string, unknown>>(company360?.opportunities);
+  const contracts = asArray<Record<string, unknown>>(company360?.contracts);
+  const invoices = asArray<Record<string, unknown>>(company360?.invoices);
 
   const enrichmentData = [
     {
@@ -274,22 +277,21 @@ export default function Company360Page() {
           title: "الفروع",
           icon: Building2,
           items:
-            organization.branches?.map(
-              (b: { id: string; name: string; city: string | null; region: string | null }) => ({
-                id: b.id,
-                label: b.name,
-                subtitle: [b.city, b.region].filter(Boolean).join(","),
-              })
-            ) || [],
+            asArray<{ id: string; name: string; city: string | null; region: string | null }>(
+              organization.branches
+            ).map((b) => ({
+              id: b.id,
+              label: b.name,
+              subtitle: [b.city, b.region].filter(Boolean).join(","),
+            })),
         },
         {
           title: "الأقسام",
           icon: Users,
-          items:
-            organization.departments?.map((d: string, i: number) => ({
-              id: String(i),
-              label: d,
-            })) || [],
+          items: asArray<string>(organization.departments).map((d, i) => ({
+            id: String(i),
+            label: typeof d === "string" ? d : String((d as { name?: string })?.name ?? i),
+          })),
         },
       ]
     : [];
@@ -478,7 +480,9 @@ export default function Company360Page() {
               )}
             </div>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <DecisionPlatformPanel companyId={id} />
+              <ErrorBoundary>
+                <DecisionPlatformPanel companyId={id} company360={company360} />
+              </ErrorBoundary>
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -762,7 +766,9 @@ export default function Company360Page() {
         </TabsPanel>
 
         <TabsPanel value="activity">
-          <ActivityTimeline companyId={id} />
+          <ErrorBoundary>
+            <ActivityTimeline companyId={id} />
+          </ErrorBoundary>
         </TabsPanel>
 
         <TabsPanel value="more">

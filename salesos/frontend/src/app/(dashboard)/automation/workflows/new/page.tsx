@@ -552,7 +552,7 @@ export default function NewWorkflowPage() {
     const apiSteps: WorkflowStep[] = steps.map((s, i) => ({
       id: s.id,
       type: s.type,
-      config: s.config as any,
+      config: s.config as WorkflowStep["config"],
       condition_expression: s.conditionExpression || undefined,
       order: i,
     }));

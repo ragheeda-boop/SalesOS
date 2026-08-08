@@ -141,9 +141,16 @@ export async function getDlqStats(
   return response.data;
 }
 
-export async function listTasks(tenantId: string, priority?: string): Promise<TaskResponse[]> {
+export async function listTasks(
+  tenantId: string,
+  priority?: string,
+  opportunityId?: string
+): Promise<TaskResponse[]> {
+  const params: Record<string, string> = {};
+  if (priority) params.priority = priority;
+  if (opportunityId) params.opportunity_id = opportunityId;
   const response = await api.get("/api/v1/tasks", {
-    params: priority ? { priority } : undefined,
+    params: Object.keys(params).length ? params : undefined,
     headers: { "X-Tenant-Id": tenantId },
   });
   return response.data;
@@ -159,11 +166,18 @@ export async function createTask(
   title: string,
   priority?: string,
   companyId?: string,
-  source?: string
+  source?: string,
+  opportunityId?: string
 ): Promise<TaskResponse> {
   const response = await api.post(
     "/api/v1/tasks",
-    { title, priority, company_id: companyId, source },
+    {
+      title,
+      priority,
+      company_id: companyId,
+      source,
+      opportunity_id: opportunityId,
+    },
     { headers: { "X-Tenant-Id": tenantId } }
   );
   return response.data;

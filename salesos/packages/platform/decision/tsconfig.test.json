@@ -13,6 +13,8 @@
     "rootDir": "..",
     "baseUrl": ".",
     "paths": {
+      "@salesos/decision-platform-lab": ["./index.ts"],
+      "@salesos/decision-platform-lab/*": ["./*"],
       "@salesos/decision-platform": ["./index.ts"],
       "@salesos/decision-platform/*": ["./*"],
       "@salesos/*": ["../../*/src"]

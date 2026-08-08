@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { cn } from "@salesos/ui";
 import { MetricCard, BarChart, type ChartDataPoint } from "@salesos/charts";
-import type { ActivityEvent } from "./global-activity-feed";
 import {
-  Clock,
-  TrendingUp,
   Target,
   DollarSign,
-  AlertCircle,
   Zap,
   Calendar,
-  Users,
-  BarChart3,
   ArrowUpRight,
 } from "lucide-react";
 

@@ -20,7 +20,9 @@ function DashboardBody() {
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">{t("dashboard.title")}</h1>
           {!isLoading && !isError ? (
-            <p className="text-xs text-[var(--text-muted)]">{t("dashboard.overview_subtitle")}</p>
+            <p className="text-xs text-[var(--text-muted)]">
+              {t("dashboard.overview_subtitle")} — {t("dashboard.widgets_empty_honesty")}
+            </p>
           ) : null}
         </div>
         {!isLoading && !isError && <QuickActionsBar />}

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   buildLoginRedirectUrl,
   readAccessTokenFromRequest,
+  shouldRedirectOwnerConsoleToOwnerLogin,
   shouldRedirectToLogin,
 } from "@/lib/auth/middleware-auth";
 
@@ -10,6 +11,11 @@ export function middleware(request: NextRequest) {
   const token = readAccessTokenFromRequest(request);
 
   if (shouldRedirectToLogin(pathname, token)) {
+    const loginUrl = buildLoginRedirectUrl(request.nextUrl.origin, pathname, search);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (shouldRedirectOwnerConsoleToOwnerLogin(pathname, token)) {
     const loginUrl = buildLoginRedirectUrl(request.nextUrl.origin, pathname, search);
     return NextResponse.redirect(loginUrl);
   }

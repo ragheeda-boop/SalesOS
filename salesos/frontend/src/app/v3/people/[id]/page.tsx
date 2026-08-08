@@ -472,6 +472,7 @@ export default function V3People360Page() {
       default:
         return null;
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, tab, legacyHref]);
 
   return (

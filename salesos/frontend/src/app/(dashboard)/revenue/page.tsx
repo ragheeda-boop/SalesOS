@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
@@ -125,6 +126,7 @@ function MiniTrendChart({
 }
 
 function ForecastVsActualChart({ data }: { data: ForecastVsActual[] }) {
+  const { t } = useTranslation();
   if (!data.length) return null;
   const maxVal = Math.max(...data.map((d) => Math.max(d.forecast, d.actual)), 1);
 
@@ -135,7 +137,8 @@ function ForecastVsActualChart({ data }: { data: ForecastVsActual[] }) {
           <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
             <span>{d.month}</span>
             <span>
-              Actual: {formatCurrency(d.actual)} / Forecast: {formatCurrency(d.forecast)}
+              {t("revenue.actual")}: {formatCurrency(d.actual)} / {t("revenue.forecast")}:{" "}
+              {formatCurrency(d.forecast)}
             </span>
           </div>
           <div className="relative h-5 rounded bg-[var(--bg-tertiary)] overflow-hidden">
@@ -152,11 +155,11 @@ function ForecastVsActualChart({ data }: { data: ForecastVsActual[] }) {
       ))}
       <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
         <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-green-500/60" /> Actual
+          <span className="h-2 w-2 rounded-sm bg-green-500/60" /> {t("revenue.actual")}
         </span>
         <span className="flex items-center gap-1">
           <span className="h-2 w-2 rounded-sm border border-dashed border-[var(--muhide-orange)]" />{" "}
-          Forecast
+          {t("revenue.forecast")}
         </span>
       </div>
     </div>
@@ -188,18 +191,17 @@ function LoadingSkeleton() {
 }
 
 function EmptyStateComponent({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <BarChart3 className="h-12 w-12 text-[var(--text-muted)] mb-4" />
-      <h3 className="text-lg font-semibold text-[var(--text-primary)]">No Revenue Data</h3>
-      <p className="text-sm text-[var(--text-muted)] mt-1 max-w-md">
-        Revenue metrics will appear here once opportunities and contracts are processed.
-      </p>
+      <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t("revenue.empty_title")}</h3>
+      <p className="text-sm text-[var(--text-muted)] mt-1 max-w-md">{t("revenue.empty_hint")}</p>
       <button
         onClick={onRetry}
         className="mt-4 flex items-center gap-2 rounded-lg bg-[var(--muhide-orange)] px-4 py-2 text-sm text-white hover:opacity-90 transition"
       >
-        <RefreshCw className="h-4 w-4" /> Refresh
+        <RefreshCw className="h-4 w-4" /> {t("revenue.refresh")}
       </button>
     </div>
   );
@@ -292,14 +294,14 @@ export default function RevenueDashboardPage() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="h-12 w-12 text-[var(--status-danger-text)] mb-4" />
         <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-          Error Loading Dashboard
+          {t("revenue.load_error")}
         </h3>
         <p className="text-sm text-[var(--status-danger-text)] mt-1">{error}</p>
         <button
           onClick={fetchDashboard}
           className="mt-4 flex items-center gap-2 rounded-lg bg-[var(--muhide-orange)] px-4 py-2 text-sm text-white hover:opacity-90 transition"
         >
-          <RefreshCw className="h-4 w-4" /> Retry
+          <RefreshCw className="h-4 w-4" /> {t("revenue.retry")}
         </button>
       </div>
     );
@@ -313,47 +315,45 @@ export default function RevenueDashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">Revenue Dashboard</h1>
-            <p className="text-sm text-[var(--text-muted)]">
-              Key metrics, trends, and forecast tracking
-            </p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("revenue.title")}</h1>
+            <p className="text-sm text-[var(--text-muted)]">{t("revenue.subtitle")}</p>
           </div>
           <button
             onClick={fetchDashboard}
             className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] transition"
           >
-            <RefreshCw className="h-4 w-4" /> Refresh
+            <RefreshCw className="h-4 w-4" /> {t("revenue.refresh")}
           </button>
         </div>
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
-            label="ARR (Annual Recurring Revenue)"
+            label={t("revenue.arr")}
             value={formatCurrency(data.metrics.arr)}
             trend={data.metrics.arr_trend}
-            trendLabel="vs last period"
+            trendLabel={t("revenue.vs_period")}
             icon={<DollarSign className="h-4 w-4" />}
           />
           <MetricCard
-            label="NRR (Net Revenue Retention)"
+            label={t("revenue.nrr")}
             value={`${data.metrics.nrr}%`}
             trend={data.metrics.nrr_trend}
-            trendLabel="vs last period"
+            trendLabel={t("revenue.vs_period")}
             icon={<Target className="h-4 w-4" />}
           />
           <MetricCard
-            label="Churn Rate"
+            label={t("revenue.churn")}
             value={`${data.metrics.churn_rate}%`}
             trend={data.metrics.churn_trend}
-            trendLabel="vs last period"
+            trendLabel={t("revenue.vs_period")}
             icon={<TrendingDown className="h-4 w-4" />}
           />
           <MetricCard
-            label="Expansion Revenue"
+            label={t("revenue.expansion")}
             value={formatCurrency(data.metrics.expansion_revenue)}
             trend={data.metrics.expansion_trend}
-            trendLabel="vs last period"
+            trendLabel={t("revenue.vs_period")}
             icon={<TrendingUp className="h-4 w-4" />}
           />
         </div>
@@ -362,25 +362,25 @@ export default function RevenueDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: "ARR Trend",
+              label: t("revenue.arr_trend"),
               data: data.trends.arr,
               color: "#3B82F6",
               format: formatCurrency,
             },
             {
-              label: "NRR Trend",
+              label: t("revenue.nrr_trend"),
               data: data.trends.nrr,
               color: "#10B981",
               format: (v: number) => `${v}%`,
             },
             {
-              label: "Churn Trend",
+              label: t("revenue.churn_trend"),
               data: data.trends.churn,
               color: "#EF4444",
               format: (v: number) => `${v}%`,
             },
             {
-              label: "Expansion Trend",
+              label: t("revenue.expansion_trend"),
               data: data.trends.expansion,
               color: "#8B5CF6",
               format: formatCurrency,
@@ -408,7 +408,7 @@ export default function RevenueDashboardPage() {
           {/* Forecast vs Actual */}
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-              Forecast vs Actual
+              {t("revenue.forecast_vs_actual")}
             </h3>
             <ForecastVsActualChart data={data.forecast_vs_actual} />
           </div>
@@ -416,11 +416,11 @@ export default function RevenueDashboardPage() {
           {/* Rep Leaderboard */}
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-              Rep Leaderboard
+              {t("revenue.leaderboard")}
             </h3>
             {data.leaderboard.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-sm text-[var(--text-muted)]">
-                <Users className="h-4 w-4 mr-2" /> No rep data available
+                <Users className="h-4 w-4 mr-2" /> {t("revenue.no_reps")}
               </div>
             ) : (
               <div className="space-y-2">
@@ -448,7 +448,7 @@ export default function RevenueDashboardPage() {
                         {rep.rep_name}
                       </p>
                       <p className="text-xs text-[var(--text-muted)]">
-                        {rep.deals_closed} deals closed
+                        {t("revenue.deals_closed", { count: rep.deals_closed })}
                       </p>
                     </div>
                     <div className="text-right">

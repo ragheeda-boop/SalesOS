@@ -105,15 +105,6 @@ export class StateRuntime {
     };
   }
 
-  useStore<T = unknown>(path: string): T | undefined {
-    const getSnapshot = useCallback(() => this.get<T>(path), [path]);
-    const subscribe = useCallback(
-      (onStoreChange: () => void) => this.subscribe(path, onStoreChange),
-      [path]
-    );
-    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  }
-
   clear(path?: string): void {
     if (path) {
       const keys = assertSafePath(path);
@@ -150,4 +141,14 @@ export class StateRuntime {
   private log(...args: unknown[]) {
     if (this.debug) console.log(`[StateRuntime:${this.name}]`, ...args);
   }
+}
+
+/** Function hook — must not live on the class (rules-of-hooks). Same get/subscribe snapshot as former `StateRuntime.useStore(path)`. */
+export function useStore<T = unknown>(runtime: StateRuntime, path: string): T | undefined {
+  const getSnapshot = useCallback(() => runtime.get<T>(path), [runtime, path]);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => runtime.subscribe(path, onStoreChange),
+    [runtime, path]
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

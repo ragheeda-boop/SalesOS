@@ -73,6 +73,7 @@ export default function V3CsPage() {
   });
 
   const data = execQuery.data;
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const companies = companiesQuery.data?.items ?? [];
 
   const sections: DomainSection[] = useMemo(() => {

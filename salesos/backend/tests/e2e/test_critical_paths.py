@@ -249,8 +249,10 @@ class TestCompanySearchViewEnrich:
         )
         assert resp.status_code == 200, resp.text
         data = resp.json()
-        assert "total" in data
-        assert "items" in data
+        # Accept page ({items,total}) or cursor ({data,has_next}) list envelopes.
+        assert ("items" in data and "total" in data) or (
+            "data" in data and isinstance(data["data"], list)
+        )
 
     async def test_get_company_by_id(
         self,
@@ -418,12 +420,16 @@ class TestNBADecisionFlow:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """POST /api/v1/decision/evaluate triggers evaluation."""
+        """POST Runtime evaluate under /api/v1/decision-runtime (company_id body).
+
+        Decision Platform evaluate remains at POST /api/v1/decision/evaluate
+        (different schema; covered in test_decision_center e2e).
+        """
         company_id = await self._seed_company_id(client, registered_user_headers)
 
         resp = await asyncio.wait_for(
             client.post(
-                "/api/v1/decision/evaluate",
+                "/api/v1/decision-runtime/decision/evaluate",
                 json={"company_id": company_id},
                 headers=registered_user_headers,
             ),
@@ -437,12 +443,12 @@ class TestNBADecisionFlow:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """GET /api/v1/decision/next-best-action returns recommendation or 503."""
+        """GET /api/v1/decision-runtime/decision/next-best-action (Runtime SoT prefix)."""
         company_id = await self._seed_company_id(client, registered_user_headers)
 
         resp = await asyncio.wait_for(
             client.get(
-                "/api/v1/decision/next-best-action",
+                "/api/v1/decision-runtime/decision/next-best-action",
                 params={"company_id": company_id},
                 headers=registered_user_headers,
             ),
@@ -455,12 +461,12 @@ class TestNBADecisionFlow:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """GET /api/v1/decisions/history returns timeline or empty list."""
+        """GET /api/v1/decision-runtime/decisions/history (Runtime; not Center)."""
         company_id = await self._seed_company_id(client, registered_user_headers)
 
         resp = await asyncio.wait_for(
             client.get(
-                "/api/v1/decisions/history",
+                "/api/v1/decision-runtime/decisions/history",
                 params={"company_id": company_id},
                 headers=registered_user_headers,
             ),
@@ -475,10 +481,10 @@ class TestNBADecisionFlow:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """POST /api/v1/decisions/{id}/accept with fake ID returns error."""
+        """POST Runtime accept path with fake ID returns error."""
         resp = await asyncio.wait_for(
             client.post(
-                "/api/v1/decisions/fake-decision-id/accept",
+                "/api/v1/decision-runtime/decisions/fake-decision-id/accept",
                 headers=registered_user_headers,
             ),
             timeout=_TEST_TIMEOUT,
@@ -490,10 +496,10 @@ class TestNBADecisionFlow:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """POST /api/v1/decisions/{id}/feedback with fake ID returns error."""
+        """POST Runtime feedback path with fake ID returns error."""
         resp = await asyncio.wait_for(
             client.post(
-                "/api/v1/decisions/fake-decision-id/feedback",
+                "/api/v1/decision-runtime/decisions/fake-decision-id/feedback",
                 json={
                     "accepted": True,
                     "executed": False,
@@ -510,10 +516,10 @@ class TestNBADecisionFlow:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """GET /api/v1/decision/metrics returns status."""
+        """GET /api/v1/decision-runtime/decision/metrics returns status."""
         resp = await asyncio.wait_for(
             client.get(
-                "/api/v1/decision/metrics",
+                "/api/v1/decision-runtime/decision/metrics",
                 headers=registered_user_headers,
             ),
             timeout=_TEST_TIMEOUT,

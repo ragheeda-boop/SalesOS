@@ -161,6 +161,10 @@ class DecisionCenterService:
             created_at=_now(),
         )
         await self._repo.save_feedback(fb)
+        new_status = (
+            DecisionStatus.ACCEPTED if FeedbackRating(rating) == FeedbackRating.UP else DecisionStatus.REJECTED
+        )
+        await self._repo.update_decision_status(decision_id, tenant_id, new_status.value)
         return fb
 
     async def get_feedback_for_decision(

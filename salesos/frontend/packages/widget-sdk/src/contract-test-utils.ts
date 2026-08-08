@@ -2,9 +2,9 @@ import { screen, fireEvent, waitFor, type RenderResult } from "@testing-library/
 import { describeWidgetContract } from "./testing/WidgetContract";
 import { renderWidget } from "./testing/renderWidget";
 import { createMockWidget } from "./testing/mockWidgetContext";
-import { mockPermissionsAll, mockPermissionsNone } from "./testing/mockPermissions";
-import { mockFeatureFlagsAll, mockFeatureFlagsNone } from "./testing/mockFeatureFlags";
-import type { WidgetConfig, WidgetData, WidgetStatus } from "./types";
+import { mockPermissionsAll } from "./testing/mockPermissions";
+import { mockFeatureFlagsAll } from "./testing/mockFeatureFlags";
+import type { WidgetConfig, WidgetData } from "./types";
 
 export interface ContractTestSuiteConfig<T> {
   name: string;

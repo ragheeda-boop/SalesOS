@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { decisionKeys } from "@/lib/queryKeys";
 import { getTenantId } from "./hooks/useTenant";
+import { asArray } from "@/lib/asArray";
 import type {
   DecisionContext,
   DecisionResult,
@@ -32,6 +33,58 @@ export interface DecisionFeedbackRequest {
 export interface DecisionHistoryResponse {
   items: DecisionHistoryItem[];
   total: number;
+}
+
+/** Decision Center list row (camelCase OpenAPI) mapped for /decisions UI. */
+export interface DecisionCenterLedgerItem {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  priority: "high" | "medium" | "low";
+  score: number;
+  reasoning: string;
+  created_at: string;
+  status: "pending" | "accepted" | "executed" | "dismissed";
+  domain?: string;
+  type?: string;
+  provider?: string;
+  confidence?: number;
+}
+
+export interface DecisionCenterListResponse {
+  items: DecisionCenterLedgerItem[];
+  total: number;
+}
+
+function mapCenterStatus(
+  status: string | undefined
+): DecisionCenterLedgerItem["status"] {
+  if (status === "accepted" || status === "executed") return status;
+  if (status === "rejected" || status === "expired" || status === "superseded" || status === "dismissed") {
+    return "dismissed";
+  }
+  return "pending";
+}
+
+export function mapDecisionCenterItem(raw: Record<string, unknown>): DecisionCenterLedgerItem {
+  const confidence = Number(raw.confidence ?? 0);
+  const status = typeof raw.status === "string" ? raw.status : "active";
+  return {
+    id: String(raw.id ?? ""),
+    entity_type: String(raw.entityType ?? raw.entity_type ?? ""),
+    entity_id: String(raw.entityId ?? raw.entity_id ?? ""),
+    action: String(raw.decision ?? raw.action ?? ""),
+    priority: confidence >= 0.8 ? "high" : confidence >= 0.5 ? "medium" : "low",
+    score: confidence,
+    reasoning: String(raw.reasoning ?? ""),
+    created_at: String(raw.timestamp ?? raw.created_at ?? ""),
+    status: mapCenterStatus(status),
+    domain: typeof raw.domain === "string" ? raw.domain : undefined,
+    type: typeof raw.type === "string" ? raw.type : undefined,
+    provider: typeof raw.provider === "string" ? raw.provider : undefined,
+    confidence,
+  };
 }
 
 export interface DecisionFeedbackStatsResponse {
@@ -88,6 +141,30 @@ export function useDecisionHistory(limit?: number) {
   });
 }
 
+/** Governed ledger list — Decision Center SoT (`/api/v1/decisions`). */
+export function useDecisionCenterList(limit?: number) {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: [...decisionKeys.center(tenantId), { limit }],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/decisions", {
+        params: { limit: limit ?? 50 },
+        headers: { "X-Tenant-Id": tenantId },
+      });
+      const payload = response.data as { items?: unknown; total?: number };
+      const items = asArray<Record<string, unknown>>(payload?.items ?? payload).map(
+        mapDecisionCenterItem
+      );
+      return {
+        items,
+        total: typeof payload?.total === "number" ? payload.total : items.length,
+      } satisfies DecisionCenterListResponse;
+    },
+    staleTime: 15_000,
+    refetchInterval: 60_000,
+  });
+}
+
 export function useDecisionRecommendations(entityId?: string, entityType?: string) {
   return useQuery({
     queryKey: [...decisionKeys.recommendations(entityId), { entityType }],
@@ -96,7 +173,7 @@ export function useDecisionRecommendations(entityId?: string, entityType?: strin
         params: { entity_id: entityId, entity_type: entityType },
         headers: { "X-Tenant-Id": getTenantId() },
       });
-      return response.data as Recommendation[];
+      return asArray<Recommendation>(response.data);
     },
     staleTime: 15_000,
     refetchInterval: 60_000,
@@ -111,7 +188,7 @@ export function useDecisionScores(entityId: string, entityType: string) {
         params: { entity_id: entityId, entity_type: entityType },
         headers: { "X-Tenant-Id": getTenantId() },
       });
-      return response.data as Score[];
+      return asArray<Score>(response.data);
     },
     enabled: !!entityId && !!entityType,
     staleTime: 30_000,

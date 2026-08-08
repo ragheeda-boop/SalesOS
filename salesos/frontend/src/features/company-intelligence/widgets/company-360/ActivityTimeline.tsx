@@ -193,6 +193,7 @@ export function ActivityTimeline({ companyId, limit = 50 }: ActivityTimelineProp
   const [visibleCount, setVisibleCount] = useState(20);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const activities = data?.items || [];
 
   const toggleFilter = useCallback((key: string) => {

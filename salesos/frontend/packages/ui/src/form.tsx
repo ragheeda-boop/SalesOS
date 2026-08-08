@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  useContext,
   forwardRef,
   type ReactNode,
   type FormHTMLAttributes,
@@ -16,10 +15,6 @@ interface FormContextValue {
 }
 
 const FormContext = createContext<FormContextValue>({});
-
-function useFormContext() {
-  return useContext(FormContext);
-}
 
 // --- Form ---
 

@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
+  useDecisionCenterList,
   useDecisionExplain,
   useDecisionFeedback,
   useDecisionFeedbackStats,
@@ -48,7 +48,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import api from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
-import { decisionKeys } from "@/lib/queryKeys";
+import { ExperimentalAiBadge } from "@/components/ai/ExperimentalAiBadge";
 
 const DOMAIN_OPTIONS = [
   { label: "All Domains", value: "" },
@@ -109,11 +109,6 @@ interface DecisionItem {
   type?: string;
   provider?: string;
   confidence?: number;
-}
-
-interface DecisionHistoryResponse {
-  items: DecisionItem[];
-  total: number;
 }
 
 function ConfidenceGauge({ value }: { value: number }) {
@@ -407,18 +402,7 @@ export default function DecisionCenterPage() {
 
   const tenantId = getTenantId();
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: [...decisionKeys.history(tenantId), { limit: 50 }],
-    queryFn: async () => {
-      const response = await api.get("/api/v1/decision/history", {
-        params: { limit: 50 },
-        headers: { "X-Tenant-Id": tenantId },
-      });
-      return response.data as DecisionHistoryResponse;
-    },
-    staleTime: 15_000,
-    refetchInterval: 60_000,
-  });
+  const { data, isLoading, isError, error, refetch } = useDecisionCenterList(50);
 
   const feedbackStats = useDecisionFeedbackStats();
 
@@ -497,9 +481,10 @@ export default function DecisionCenterPage() {
   const handleAccept = useCallback(
     async (id: string) => {
       try {
+        // Center feedback only — no accept endpoint; status stays active until a human status API exists.
         await api.post(
-          `/api/v1/decisions/${id}/accept`,
-          {},
+          `/api/v1/decisions/${id}/feedback`,
+          { rating: "up" },
           { headers: { "X-Tenant-Id": tenantId } }
         );
         toast({ variant: "success", title: t("decisions.accepted") });
@@ -516,7 +501,7 @@ export default function DecisionCenterPage() {
       try {
         await api.post(
           `/api/v1/decisions/${id}/feedback`,
-          { accepted: false },
+          { rating: "down" },
           { headers: { "X-Tenant-Id": tenantId } }
         );
         toast({ variant: "success", title: t("decisions.dismissed") });
@@ -687,8 +672,19 @@ export default function DecisionCenterPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("decisions.title")}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("decisions.title")}</h1>
+            <ExperimentalAiBadge />
+          </div>
           <p className="mt-1 text-sm text-[var(--text-muted)]">{t("decisions.subtitle")}</p>
+          <p
+            className="mt-1 text-xs text-[var(--text-muted)]"
+            data-testid="decisions-honesty-banner"
+          >
+            Ledger list = Decision Center /api/v1/decisions. Accept/dismiss =
+            Center feedback (up→accepted, down→rejected). Evaluate/scores stay
+            on Platform /api/v1/decision/*. Not FE STUB; not AI-native GA.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/decisions/templates">

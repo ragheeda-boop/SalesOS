@@ -12,7 +12,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from domains.analytics.engine import ReportEngine, _compute_next_run
+from domains.analytics.engine import CUBE_REGISTRY, ReportEngine, _compute_next_run
 from domains.analytics.models import (
     CubeType,
     DomainMetrics,
@@ -26,6 +26,20 @@ from domains.analytics.models import (
 )
 from domains.analytics.repository import InMemoryReportRepository
 
+# Fixture rows for export path tests only — cubes stay honestly empty.
+_PIPELINE_FIXTURE_ROWS = [
+    {
+        "stage": "prospecting",
+        "owner": "owner-1",
+        "date": "2026-08-01T00:00:00+00:00",
+        "company": "comp-1",
+        "count": 5,
+        "value": 250000.0,
+        "weighted_value": 25000.0,
+        "avg_deal_size": 50000.0,
+    },
+]
+
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
 
@@ -37,6 +51,16 @@ def repo():
 @pytest.fixture
 def engine(repo):
     return ReportEngine(repository=repo)
+
+
+@pytest.fixture
+def pipeline_cube_with_rows(monkeypatch):
+    """Inject deterministic pipeline rows so export formatting is tested."""
+
+    async def _query(*_args, **_kwargs):
+        return list(_PIPELINE_FIXTURE_ROWS)
+
+    monkeypatch.setattr(CUBE_REGISTRY[CubeType.PIPELINE], "query", _query)
 
 
 @pytest.fixture
@@ -201,17 +225,20 @@ class TestExportEngine:
         assert parsed["total_rows"] == 1
 
     @pytest.mark.asyncio
-    async def test_export_report_csv(self, engine, csv_report):
+    async def test_export_report_csv(self, engine, csv_report, pipeline_cube_with_rows):
         result = await engine.export_report(csv_report.id, "t-1", OutputFormat.CSV)
         assert result["format"] == "csv"
         assert "stage" in result["content"]
 
     @pytest.mark.asyncio
-    async def test_export_report_json(self, engine, sample_report):
+    async def test_export_report_json(
+        self, engine, sample_report, pipeline_cube_with_rows
+    ):
         result = await engine.export_report(sample_report.id, "t-1", OutputFormat.JSON)
         assert result["format"] == "json"
         data = json.loads(result["content"])
         assert len(data) > 0
+        assert data[0]["stage"] == "prospecting"
 
     @pytest.mark.asyncio
     async def test_export_report_pdf(self, engine, sample_report):

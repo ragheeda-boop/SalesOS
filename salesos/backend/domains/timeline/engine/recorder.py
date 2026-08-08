@@ -109,7 +109,14 @@ class TimelineRecorder:
             timestamp=datetime.now(timezone.utc),
             tenant_id=tenant_id,
         )
-        await self._repository.append(event)
+        # Background / event paths may lack middleware ContextVar — pin for DEC-085 GUC.
+        from app.database import reset_current_tenant_id, set_current_tenant_id
+
+        token = set_current_tenant_id(tenant_id or None)
+        try:
+            await self._repository.append(event)
+        finally:
+            reset_current_tenant_id(token)
         return event
 
     async def on_domain_event(self, event_data: dict[str, Any]) -> None:

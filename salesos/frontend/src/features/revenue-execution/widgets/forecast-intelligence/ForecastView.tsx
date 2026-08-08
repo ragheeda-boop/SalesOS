@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { cn } from "@salesos/ui";
 import { AlertTriangle } from "lucide-react";

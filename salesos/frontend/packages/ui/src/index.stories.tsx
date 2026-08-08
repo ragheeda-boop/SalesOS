@@ -10,7 +10,7 @@ import { DatePicker } from "./date-picker";
 import { Pagination } from "./pagination";
 import { Skeleton } from "./skeleton";
 import { EmptyState } from "./empty-state";
-import { Toast, ToastProvider, ToastViewport } from "./toast";
+import { Toast } from "./toast";
 import { Sidebar } from "./sidebar";
 import { Breadcrumbs } from "./breadcrumbs";
 import { DataTable } from "./data-table";
@@ -194,20 +194,22 @@ export const ComboboxStory: StoryObj = {
   ),
 };
 
+function PaginationStoryRender() {
+  const [page, setPage] = useState(1);
+  return (
+    <Pagination
+      currentPage={page}
+      totalPages={25}
+      totalItems={487}
+      pageSize={20}
+      onPageChange={setPage}
+      onPageSizeChange={() => {}}
+    />
+  );
+}
+
 export const PaginationStory: StoryObj = {
-  render: () => {
-    const [page, setPage] = useState(1);
-    return (
-      <Pagination
-        currentPage={page}
-        totalPages={25}
-        totalItems={487}
-        pageSize={20}
-        onPageChange={setPage}
-        onPageSizeChange={() => {}}
-      />
-    );
-  },
+  render: () => <PaginationStoryRender />,
 };
 
 // ============================================================

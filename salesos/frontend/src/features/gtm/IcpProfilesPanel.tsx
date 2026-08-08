@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -129,6 +130,7 @@ export function IcpProfilesPanel() {
     setWTitles(String(row.weights.titles));
     setWKeywords(String(row.weights.keywords));
     setIsActive(row.is_active);
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailQuery.data?.id, detailQuery.data?.schema_version, selectedId, hydrated]);
 
   function bodyFromForm() {

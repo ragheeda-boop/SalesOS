@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { cn } from "@salesos/ui";
 import {
-  CheckCircle2,
   AlertCircle,
   Bell,
   Bot,
   MessageSquare,
   ThumbsUp,
-  Clock,
-  ArrowRight,
   Sparkles,
   ListTodo,
-  UserPlus,
 } from "lucide-react";
 import { EMPTY_STATES } from "@salesos/design-language";
 

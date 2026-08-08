@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, useId } from "react";
+import { forwardRef, useId } from "react";
 import { cn } from "./utils";
 
 interface RadioOption {

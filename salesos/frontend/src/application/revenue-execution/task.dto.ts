@@ -8,6 +8,7 @@ export interface RevenueTask {
   source: "nba" | "meeting" | "email" | "manual" | "signal";
   sourceEntityId?: string;
   companyId?: string;
+  opportunityId?: string;
   companyName?: string;
   assignee?: string;
   dueDate?: string;

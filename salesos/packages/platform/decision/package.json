@@ -1,7 +1,8 @@
 {
-  "name": "@salesos/decision-platform",
-  "version": "1.0.0",
-  "description": "Decision Intelligence Platform — centralized commercial reasoning engine for SalesOS",
+  "name": "@salesos/decision-platform-lab",
+  "version": "0.0.0-lab-twin",
+  "private": true,
+  "description": "FULL TWIN (lab) — renamed from @salesos/decision-platform to clear name collision with FE STUB. NOT the FE resolve target. Do not market as GA AI. Canonical HTTP SoT: Decision Center /api/v1/decisions. See EAB DECISION-API-SOT.md + AI_HONESTY.md.",
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {

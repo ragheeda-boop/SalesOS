@@ -308,12 +308,14 @@ class TenantContextMiddleware:
             return await response(scope, receive, send)
 
         tenant_id = header_tenant or token_tenant
-        if tenant_id:
-            from app.database import set_current_tenant_id
+        # Always pin (value or None) so finally can reset — EAB-001-P1-SEC-03.
+        from app.database import reset_current_tenant_id, set_current_tenant_id
 
-            set_current_tenant_id(tenant_id)
-
-        return await self.app(scope, receive, send)
+        token = set_current_tenant_id(tenant_id)
+        try:
+            return await self.app(scope, receive, send)
+        finally:
+            reset_current_tenant_id(token)
 
     @staticmethod
     def _header_tenant(headers: dict) -> str | None:
@@ -512,6 +514,7 @@ class CsrfEnforcementMiddleware:
         {
             "/api/v1/identity/register",
             "/api/v1/identity/login",
+            "/api/v1/identity/owner/login",
             "/api/v1/identity/forgot-password",
             "/api/v1/identity/reset-password",
             "/api/v1/identity/refresh",
@@ -529,6 +532,19 @@ class CsrfEnforcementMiddleware:
             return await self.app(scope, receive, send)
 
         if os.environ.get("SALESOS_TESTING") == "true":
+            # EAB-001-P2-SEC-04: test-only bypass — must never be true in prod/staging.
+            # Compose prod/staging leave SALESOS_TESTING empty; startup logs ERROR if
+            # ENV is production|staging and this flag is truthy. Do not remove bypass.
+            if (settings.env or "").strip().lower() in (
+                "production",
+                "prod",
+                "staging",
+                "stage",
+            ):
+                logger.error(
+                    "CSRF bypass via SALESOS_TESTING=true while ENV=%s (EAB-001-P2-SEC-04)",
+                    settings.env,
+                )
             return await self.app(scope, receive, send)
 
         method = scope.get("method", "GET")

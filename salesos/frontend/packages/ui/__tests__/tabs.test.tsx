@@ -16,7 +16,7 @@ describe("Tabs", () => {
 
 describe("TabsPanel", () => {
   it("renders content", () => {
-    const { container } = render(
+    render(
       <Tabs defaultValue="a">
         <TabsList>
           <Tab value="a">A</Tab>

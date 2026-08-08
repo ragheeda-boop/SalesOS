@@ -10,5 +10,5 @@ export const SECOND_CONNECTOR_NON_GOALS = [
   "Live HubSpot OAuth / CRM network",
   "Production pilot tenant sync soak (R-02 residual OPEN)",
   "Territory Studio (STORY-10-05)",
-  "Owner mint invent (DEC-093)",
+  "Owner mint invent tokens (use /admin/login — DEC-093)",
 ] as const;

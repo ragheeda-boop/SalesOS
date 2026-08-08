@@ -34,20 +34,20 @@ def register_resources(mcp: FastMCP, api_key: str) -> None:
     async def recent_search() -> str:
         """Recent search activity and top searches."""
         try:
-            from sqlalchemy import Column, DateTime, Float, Integer, MetaData, String, Table, select
+            from sqlalchemy import DateTime, Float, Integer, String, column, select, table
 
             from app.database import async_session as db_session
 
-            # CI-19 Slice 6: allowlisted Core Table (no sqlalchemy.text).
-            search_log = Table(
+            # EAB-001-P1-DRIFT-01: ephemeral TableClause — no private metadata registry.
+            # CI-19 Slice 6: allowlisted Core columns (no sqlalchemy.text).
+            search_log = table(
                 "search_log",
-                MetaData(),
-                Column("query", String),
-                Column("strategy", String),
-                Column("total", Integer),
-                Column("took_ms", Float),
-                Column("created_at", DateTime),
-                Column("tenant_id", String),
+                column("query", String),
+                column("strategy", String),
+                column("total", Integer),
+                column("took_ms", Float),
+                column("created_at", DateTime),
+                column("tenant_id", String),
             )
             async with db_session() as db:
                 rows = await db.execute(

@@ -219,6 +219,26 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
         row = result.scalar_one_or_none()
         return _decision_from_row(row) if row else None
 
+    async def update_decision_status(
+        self, decision_id: str, tenant_id: str, status: str
+    ) -> Optional[Decision]:
+        try:
+            uid = uuid.UUID(decision_id)
+        except ValueError:
+            return None
+        result = await self._session.execute(
+            select(DecisionModel).where(
+                DecisionModel.id == uid,
+                DecisionModel.tenant_id == tenant_id,
+            )
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            return None
+        row.status = status
+        await self._session.flush()
+        return _decision_from_row(row)
+
     async def list_decisions(
         self,
         tenant_id: str,

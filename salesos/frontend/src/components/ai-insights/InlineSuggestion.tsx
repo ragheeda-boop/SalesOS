@@ -4,7 +4,7 @@ import { useState } from "react";
 import { cn } from "@salesos/ui";
 import { Sparkles, Check, X } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
-import { ConfidenceBadge, getConfidenceLevel } from "./ConfidenceBadge";
+import { ConfidenceBadge } from "./ConfidenceBadge";
 import type { InlineSuggestionData } from "./types";
 
 interface InlineSuggestionProps {

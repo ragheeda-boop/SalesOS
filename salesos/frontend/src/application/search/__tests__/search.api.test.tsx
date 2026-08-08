@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const mockAxios = {
   create: jest.fn(() => mockAxios),
   get: jest.fn(),

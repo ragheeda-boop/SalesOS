@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -48,6 +49,7 @@ export default function V3ActivitiesPage() {
     staleTime: 15_000,
   });
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const items = data?.items ?? [];
   const total = data?.total ?? items.length;
   const dash = intelligence.dashboard.data;

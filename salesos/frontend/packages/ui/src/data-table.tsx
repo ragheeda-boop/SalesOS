@@ -75,7 +75,7 @@ export function DataTable<TData>({
   sortable = false,
   selectable = false,
   onSort,
-  onSelect,
+  onSelect: _onSelect,
   onRowClick,
   actions,
   loading = false,

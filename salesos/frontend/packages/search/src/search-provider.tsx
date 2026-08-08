@@ -12,7 +12,6 @@ import type {
   SearchContextValue,
 } from "./types";
 import { searchTelemetry, createTelemetryTimer } from "./search-telemetry";
-import { queryToKey, isQueryEmpty } from "./query-builder";
 
 interface SearchProviderProps {
   children: ReactNode;
@@ -27,7 +26,7 @@ export function SearchProvider({
   children,
   initialQuery,
   onSearch,
-  onSuggest,
+  onSuggest: _onSuggest,
 }: SearchProviderProps) {
   const [query, setQueryState] = useState<SearchQuery>({ text: "", ...initialQuery });
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -37,7 +36,7 @@ export function SearchProvider({
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [suggestions] = useState<SearchSuggestion[]>([]);
   const [history, setHistory] = useState<SearchHistoryEntry[]>([]);
 
   const setQuery = useCallback((partial: Partial<SearchQuery>) => {

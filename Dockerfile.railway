@@ -2,6 +2,14 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
+# Build provenance — injected by CI (deploy.yml). Used by GET /version.
+ARG BUILD_COMMIT=""
+ARG BUILD_DATE=""
+ARG BUILD_ID=""
+ENV BUILD_COMMIT=$BUILD_COMMIT \
+    BUILD_DATE=$BUILD_DATE \
+    BUILD_ID=$BUILD_ID
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -20,6 +28,14 @@ RUN pip install --no-cache-dir .
 
 
 FROM python:3.12-slim AS production
+
+# Keep build provenance in the runtime image (ARG must be redeclared).
+ARG BUILD_COMMIT=""
+ARG BUILD_DATE=""
+ARG BUILD_ID=""
+ENV BUILD_COMMIT=$BUILD_COMMIT \
+    BUILD_DATE=$BUILD_DATE \
+    BUILD_ID=$BUILD_ID
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \

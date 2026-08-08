@@ -1,5 +1,3 @@
-import type { WidgetStatus } from "@salesos/widget-sdk";
-
 export interface WorkspaceWidgetEntry {
   id: string;
   config: {

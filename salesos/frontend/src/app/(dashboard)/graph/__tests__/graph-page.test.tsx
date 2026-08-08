@@ -113,15 +113,17 @@ describe("KnowledgeGraphPage", () => {
     });
   });
 
-  it("falls back to demo data on API error", async () => {
+  it("shows no-results on API error without silent demo fallback", async () => {
     mockApiGet.mockRejectedValueOnce(new Error("Network error"));
     render(<KnowledgeGraphPage />);
     const input = screen.getByPlaceholderText("Search entities...");
     fireEvent.change(input, { target: { value: "test" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => {
-      expect(screen.getByText(/Nodes/)).toBeInTheDocument();
+      expect(screen.getByText("No results found")).toBeInTheDocument();
     });
+    // Intentional: failed search clears the graph; demo is opt-in via Expand.
+    expect(screen.queryByText(/Nodes/)).not.toBeInTheDocument();
   });
 
   it("shows zoom controls", () => {

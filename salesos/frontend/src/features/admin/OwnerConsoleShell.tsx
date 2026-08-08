@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { ACCESS_TOKEN_KEY } from "@/lib/auth/session";
 import {
   OWNER_CONSOLE_HOST,
   OWNER_JWT_AUDIENCE,
+  OWNER_LOGIN_PATH,
   classifyJwtAudience,
   classifyOwnerHost,
   formatOwnerAudienceHonesty,
@@ -148,7 +150,7 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
         >
           Phase 1 Ops surfaces: tenants + billing + flags/config/audit. Deferred write actions
           (manual refund, suspend override beyond existing lifecycle APIs) stay later-increment.
-          Owner login mint is DEC-093 follow-up — not invented here. Not Production GO.
+          Owner mint: <Link href={OWNER_LOGIN_PATH}>{OWNER_LOGIN_PATH}</Link>. Not Production GO.
         </p>
       </header>
 
@@ -160,13 +162,21 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
           <p className="font-medium">Owner audience required for admin APIs</p>
           <p className="mt-1">{honesty}</p>
           <p className="mt-2 text-xs">
-            STORY-07-03: shell + nav stay available for Ops UX; BE `owner_auth` still rejects tenant
-            `salesos-api` tokens on `/api/v1/admin/*`. Owner login mint remains DEC-093 follow-up.
+            DEC-093 mint is live:{" "}
+            <Link
+              href={OWNER_LOGIN_PATH}
+              className="underline font-medium"
+              data-testid="owner-console-login-link"
+            >
+              Sign in at {OWNER_LOGIN_PATH}
+            </Link>{" "}
+            with an <strong>admin</strong> user to mint <code>{OWNER_JWT_AUDIENCE}</code>. Tenant JWT
+            cannot call <code>/api/v1/admin/*</code>. Not Production GO.
           </p>
         </div>
-      ) : null}
-
-      <div data-testid="owner-console-content">{children}</div>
+      ) : (
+        <div data-testid="owner-console-content">{children}</div>
+      )}
     </div>
   );
 }

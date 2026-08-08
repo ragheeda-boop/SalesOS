@@ -3,7 +3,6 @@
 import { useEmployeeScore } from "@/lib/hooks/employeeQueries";
 import { useDecisionScores } from "@/lib/decisionQueries";
 import { Skeleton } from "@salesos/ui";
-import { Brain } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
 import { ScoreBreakdown } from "./employee-360-score-breakdown";

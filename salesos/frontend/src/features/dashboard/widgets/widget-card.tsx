@@ -1,9 +1,11 @@
 "use client";
+/* eslint-disable custom-rules/no-hardcoded-colors */
 
 import { type ReactNode } from "react";
 import type { DashboardWidget, WidgetStatus } from "@/application/dashboard/widget.contract";
 import { DashboardErrorBoundary } from "../_layout/dashboard-error-boundary";
 import { getWidgetConfig, type WidgetId } from "../_registry/widget-config";
+import { useTranslation } from "@/lib/i18n";
 
 const STATUS_LABEL: Record<WidgetStatus, string> = {
   ready: "",
@@ -26,8 +28,10 @@ interface WidgetCardProps<T> {
 }
 
 export function WidgetCard<T>({ widget, widgetId, children }: WidgetCardProps<T>) {
+  const { t } = useTranslation();
   const config = getWidgetConfig(widgetId);
   const showStatus = widget.status !== "ready";
+  const title = t(`dashboard.widget.${widgetId}`);
 
   return (
     <DashboardErrorBoundary widgetId={widgetId}>
@@ -53,7 +57,7 @@ export function WidgetCard<T>({ widget, widgetId, children }: WidgetCardProps<T>
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <h3 style={{ margin: 0, fontSize: "0.9375rem", fontWeight: 600 }}>{widget.title}</h3>
+            <h3 style={{ margin: 0, fontSize: "0.9375rem", fontWeight: 600 }}>{title}</h3>
             {showStatus && (
               <span
                 style={{

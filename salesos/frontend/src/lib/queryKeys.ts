@@ -271,6 +271,7 @@ export const decisionKeys = {
   evaluate: () => [...decisionKeys.all, "evaluate"] as const,
   explain: (id: string) => [...decisionKeys.all, "explain", id] as const,
   history: (tenantId: string) => [...decisionKeys.all, "history", tenantId] as const,
+  center: (tenantId: string) => [...decisionKeys.all, "center", tenantId] as const,
   recommendations: (entityId?: string) =>
     [...decisionKeys.all, "recommendations", entityId] as const,
   scores: (entityId: string) => [...decisionKeys.all, "scores", entityId] as const,

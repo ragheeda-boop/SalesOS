@@ -179,6 +179,7 @@ export default function V3TaskDetailPage() {
             <Field label="Priority" value={task.priority} />
             <Field label="Status" value={task.completed ? "Done" : "Open"} />
             <Field label="Source" value={task.source} />
+            <Field label="Opportunity id" value={task.opportunity_id} />
             <Field label="Created" value={formatWhen(task.created_at)} />
             <Field label="Task id" value={task.id} />
           </dl>

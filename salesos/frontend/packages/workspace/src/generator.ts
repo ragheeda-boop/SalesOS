@@ -1,5 +1,5 @@
-import type { UISchema, UISchemaTab, UISchemaSection, UIWidget } from "@salesos/renderer";
-import type { WorkspacePreset, WorkspaceRole } from "./presets";
+import type { UISchema, UISchemaTab, UIWidget } from "@salesos/renderer";
+import type { WorkspaceRole } from "./presets";
 import { getPreset } from "./presets";
 import type { Density } from "@salesos/design-language";
 

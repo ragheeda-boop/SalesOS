@@ -20,7 +20,7 @@ export default function DashboardError({
           <span className="text-2xl">!</span>
         </div>
         <h1 className="text-xl font-display text-[var(--text-primary)]">Something went wrong</h1>
-        <p className="text-sm text-[var(--text-muted)]">
+        <p className="text-sm text-[var(--text-muted)]" dir="ltr">
           An unexpected error occurred. Please try again.
         </p>
         <button

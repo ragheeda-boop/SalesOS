@@ -13,7 +13,7 @@
 
 **SalesOS** — Enterprise Company Intelligence Platform for the Saudi/GCC market.  
 **Tagline:** Bloomberg Terminal for Saudi companies, with AI intelligence at CRM pricing.  
-**Parent platform:** AQLIYA — Private Governed Institutional Intelligence Platform.
+**Parent platform:** Private Governed Institutional Intelligence Platform.
 
 ### Vision Horizons
 
@@ -719,7 +719,7 @@ VISION: Integration & Data
 | **Domain ≠ Module ≠ Engine** | `workflow` exists as module, domain, runtime, and page — undefined relationship |
 | **In-memory repositories** | Many services still use InMemoryRepository (not PostgreSQL) |
 | **No middleware.ts** | Auth protection is client-side only (localStorage check in useEffect) |
-| **AQLIYA multi-product** | No code exists for AuditOS, DecisionOS, or LocalContentOS |
+| **Multi-product** | No code exists for AuditOS, DecisionOS, or LocalContentOS |
 
 ### Test Gaps
 

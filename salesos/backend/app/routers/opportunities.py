@@ -1,9 +1,12 @@
-"""Opportunity REST API — CRUD, stage management, pipeline analytics."""
+"""Opportunity JSON mutate API — PUT / PATCH stage / close-won|lost.
+
+List, create, and GET-by-id live on commercial.py (`commercial_opportunities`).
+"""
 
 import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from app.common.rate_limit import rate_limit_dep
@@ -13,16 +16,6 @@ from sdk.permissions import PermissionAction
 logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Depends(rate_limit_dep("opportunity", 60, 60))])
-
-
-class OpportunityCreateRequest(BaseModel):
-    company_id: str
-    name: str
-    value: float = 0.0
-    currency: str = "SAR"
-    expected_close_date: date | None = None
-    owner_id: str = ""
-    description: str = ""
 
 
 class OpportunityUpdateRequest(BaseModel):
@@ -75,108 +68,6 @@ def _to_response(opp) -> OpportunityResponse:
         if hasattr(opp.updated_at, "isoformat")
         else str(opp.updated_at),
     )
-
-
-@router.get("/opportunities", response_model=list[OpportunityResponse])
-async def list_opportunities(
-    request: Request,
-    tenant_id: str = Depends(get_current_tenant_id),
-    stage: str | None = Query(None),
-    status: str | None = Query(None),
-    company_id: str | None = Query(None),
-    owner_id: str | None = Query(None),
-    limit: int = Query(50, ge=1, le=200),
-    cursor: str | None = Query(None),
-    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
-):
-    """List opportunities with cursor-based pagination."""
-    try:
-        svc = getattr(request.app.state, "opportunity_service", None)
-        if not svc:
-            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-        from domains.commercial.opportunity.contracts.models import OpportunityStatus
-        from domains.commercial.opportunity.contracts.repository import OpportunityQuery
-
-        offset = 0
-        if cursor:
-            try:
-                offset = int(cursor)
-            except (ValueError, TypeError):
-                offset = 0
-        page = (offset // limit) + 1 if limit else 1
-        status_enum: OpportunityStatus | None = None
-        if status:
-            try:
-                status_enum = OpportunityStatus(status)
-            except ValueError:
-                status_enum = None
-        query = OpportunityQuery(
-            tenant_id=tenant_id,
-            stage=stage or "",
-            status=status_enum,
-            company_id=company_id or "",
-            owner_id=owner_id or "",
-            page=page,
-            page_size=limit,
-        )
-        result = await svc.query(query)
-        next_cursor = str(offset + limit) if offset + limit < result.total else None
-        return {
-            "items": [_to_response(o) for o in result.items],
-            "next_cursor": next_cursor,
-            "total": result.total,
-        }
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error("list_opportunities failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error") from exc
-
-
-@router.get("/opportunities/{opportunity_id}", response_model=OpportunityResponse)
-async def get_opportunity(
-    opportunity_id: str,
-    request: Request,
-    tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
-):
-    try:
-        svc = getattr(request.app.state, "opportunity_service", None)
-        if not svc:
-            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-        opp = await svc.get(opportunity_id)
-        if not opp:
-            raise HTTPException(status_code=404, detail="Opportunity not found")
-        if getattr(opp, "tenant_id", None) != tenant_id:
-            raise HTTPException(status_code=404, detail="Opportunity not found")
-        return _to_response(opp)
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error("get_opportunity failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error") from exc
-
-
-@router.post("/opportunities", response_model=OpportunityResponse, status_code=201)
-async def create_opportunity(
-    body: OpportunityCreateRequest,
-    request: Request,
-    tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.CREATE)),
-):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-    opp = await svc.create_opportunity(
-        tenant_id=tenant_id,
-        company_id=body.company_id,
-        name=body.name,
-        value=body.value,
-        owner_id=body.owner_id,
-        expected_close_date=body.expected_close_date,
-        description=body.description,
-    )
-    return _to_response(opp)
 
 
 @router.put("/opportunities/{opportunity_id}", response_model=OpportunityResponse)

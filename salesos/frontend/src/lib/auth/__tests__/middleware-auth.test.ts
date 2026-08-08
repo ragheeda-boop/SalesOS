@@ -3,6 +3,7 @@ import {
   isProtectedPath,
   isPublicPath,
   readAccessTokenFromRequest,
+  shouldRedirectOwnerConsoleToOwnerLogin,
   shouldRedirectToLogin,
 } from "../middleware-auth";
 import { ACCESS_TOKEN_KEY } from "../session";
@@ -14,6 +15,7 @@ describe("middleware-auth", () => {
       expect(isPublicPath("/")).toBe(true);
       expect(isPublicPath("/login")).toBe(true);
       expect(isPublicPath("/register")).toBe(true);
+      expect(isPublicPath("/admin/login")).toBe(true);
     });
 
     it("allows api and next internals", () => {
@@ -41,7 +43,13 @@ describe("middleware-auth", () => {
     it("does not protect public routes", () => {
       expect(isProtectedPath("/")).toBe(false);
       expect(isProtectedPath("/login")).toBe(false);
+      expect(isProtectedPath("/admin/login")).toBe(false);
       expect(isProtectedPath("/api/v1/identity/login")).toBe(false);
+    });
+
+    it("protects Owner Console except login", () => {
+      expect(isProtectedPath("/admin")).toBe(true);
+      expect(isProtectedPath("/admin/tenants")).toBe(true);
     });
   });
 
@@ -108,11 +116,43 @@ describe("middleware-auth", () => {
     });
   });
 
+  describe("shouldRedirectOwnerConsoleToOwnerLogin", () => {
+    function jwtWithAud(aud: string): string {
+      const payload = Buffer.from(JSON.stringify({ aud })).toString("base64url");
+      return `eyJhbGciOiJub25lIn0.${payload}.sig`;
+    }
+
+    it("sends tenant JWT on /admin to owner login", () => {
+      expect(shouldRedirectOwnerConsoleToOwnerLogin("/admin", jwtWithAud("salesos-api"))).toBe(true);
+      expect(
+        shouldRedirectOwnerConsoleToOwnerLogin("/admin/tenants", jwtWithAud("salesos-api"))
+      ).toBe(true);
+    });
+
+    it("allows owner JWT on /admin", () => {
+      expect(
+        shouldRedirectOwnerConsoleToOwnerLogin("/admin", jwtWithAud("salesos-owner-platform"))
+      ).toBe(false);
+    });
+
+    it("does not redirect tenant app routes", () => {
+      expect(shouldRedirectOwnerConsoleToOwnerLogin("/dashboard", jwtWithAud("salesos-api"))).toBe(
+        false
+      );
+    });
+  });
+
   describe("buildLoginRedirectUrl", () => {
     it("includes callbackUrl for protected path", () => {
       const url = buildLoginRedirectUrl("http://localhost:3000", "/companies", "?tab=1");
       expect(url.pathname).toBe("/login");
       expect(url.searchParams.get("callbackUrl")).toBe("/companies?tab=1");
+    });
+
+    it("routes Owner Console unauth to /admin/login", () => {
+      const url = buildLoginRedirectUrl("http://localhost:3000", "/admin/tenants", "");
+      expect(url.pathname).toBe("/admin/login");
+      expect(url.searchParams.get("callbackUrl")).toBe("/admin/tenants");
     });
   });
 });

@@ -2,10 +2,11 @@
 
 import logging
 import os
-from datetime import UTC
+from datetime import UTC, date
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
@@ -15,6 +16,18 @@ from sdk.permissions import PermissionAction
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+class OpportunityUpdateBody(BaseModel):
+    name: str | None = None
+    value: float | None = None
+    expected_close_date: date | None = None
+    description: str | None = None
+
+
+class OpportunityStageBody(BaseModel):
+    stage: str
+    reason: str | None = None
 
 
 async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
@@ -256,6 +269,86 @@ async def list_opportunities(
     }
 
 
+@router.get("/opportunities/{opportunity_id}", tags=["Opportunities"])
+async def get_opportunity(
+    opportunity_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
+):
+    svc = _get_opp(db)
+    opp = await svc.get(opportunity_id)
+    if not opp or getattr(opp, "tenant_id", None) != tenant_id:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    return {
+        "id": opp.id,
+        "name": opp.name,
+        "stage": opp.stage,
+        "value": opp.value,
+        "company_id": opp.company_id,
+        "status": opp.status.value if hasattr(opp.status, "value") else opp.status,
+        "probability": getattr(opp, "probability", None),
+        "owner_id": getattr(opp, "owner_id", ""),
+        "description": getattr(opp, "description", ""),
+    }
+
+
+@router.put("/opportunities/{opportunity_id}", tags=["Opportunities"])
+async def update_opportunity(
+    opportunity_id: str,
+    body: OpportunityUpdateBody,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
+    svc = _get_opp(db)
+    try:
+        opp = await svc.update_details(
+            opportunity_id,
+            tenant_id,
+            name=body.name,
+            value=body.value,
+            expected_close_date=body.expected_close_date,
+            description=body.description,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=safe_error_detail(exc, "Invalid update")) from exc
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    return {
+        "id": opp.id,
+        "name": opp.name,
+        "stage": opp.stage,
+        "value": opp.value,
+        "company_id": opp.company_id,
+        "status": opp.status.value if hasattr(opp.status, "value") else opp.status,
+    }
+
+
+@router.put("/opportunities/{opportunity_id}/stage", tags=["Opportunities"])
+async def update_opportunity_stage_json(
+    opportunity_id: str,
+    body: OpportunityStageBody,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
+    """FE hooks + opportunity.store PUT JSON `{stage}` — commercial SoT table."""
+    svc = _get_opp(db)
+    existing = await svc.get(opportunity_id)
+    if not existing or getattr(existing, "tenant_id", None) != tenant_id:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    try:
+        opp = await svc.advance_stage(opportunity_id, body.stage)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid stage transition") from None
+    return {
+        "id": opp.id,
+        "stage": opp.stage,
+        "status": opp.status.value if hasattr(opp.status, "value") else opp.status,
+    }
+
+
 @router.post("/opportunities/{opportunity_id}/advance", tags=["Opportunities"])
 async def advance_opportunity(
     opportunity_id: str,
@@ -292,6 +385,38 @@ async def close_lost(
 ):
     svc = _get_opp(db)
     opp = await svc.close_lost(opportunity_id, reason)
+    return {"id": opp.id, "status": "lost", "loss_reason": opp.loss_reason}
+
+
+@router.post("/opportunities/{opportunity_id}/close-won", tags=["Opportunities"])
+async def close_won_hyphen_alias(
+    opportunity_id: str,
+    won_amount: float | None = None,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
+    svc = _get_opp(db)
+    existing = await svc.get(opportunity_id)
+    if not existing or getattr(existing, "tenant_id", None) != tenant_id:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    opp = await svc.close_won(opportunity_id, won_amount)
+    return {"id": opp.id, "status": "won", "won_amount": opp.won_amount}
+
+
+@router.post("/opportunities/{opportunity_id}/close-lost", tags=["Opportunities"])
+async def close_lost_hyphen_alias(
+    opportunity_id: str,
+    loss_reason: str = "",
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
+    svc = _get_opp(db)
+    existing = await svc.get(opportunity_id)
+    if not existing or getattr(existing, "tenant_id", None) != tenant_id:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    opp = await svc.close_lost(opportunity_id, loss_reason)
     return {"id": opp.id, "status": "lost", "loss_reason": opp.loss_reason}
 
 

@@ -20,8 +20,10 @@ def get_service(db: AsyncSession = Depends(get_db_session)) -> RevenueService:
     return RevenueService(db)
 
 
+# A.1 SoT: FE + commercial live at `/api/v1/opportunities` (query-param create).
+# These legacy revenue_execution routes stay available under a distinct prefix.
 @router.post(
-    "/opportunities",
+    "/revenue-execution/opportunities",
     response_model=OpportunityResponse,
     status_code=201,
     dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.CREATE))],
@@ -46,7 +48,7 @@ async def create_opportunity(
 
 
 @router.get(
-    "/opportunities",
+    "/revenue-execution/opportunities",
     dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.READ))],
 )
 async def list_opportunities(
@@ -59,7 +61,7 @@ async def list_opportunities(
 
 
 @router.put(
-    "/opportunities/{opportunity_id}/stage",
+    "/revenue-execution/opportunities/{opportunity_id}/stage",
     dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))],
 )
 async def update_opportunity_stage(
@@ -93,6 +95,7 @@ async def create_task(
         priority=body.priority,
         source=body.source,
         company_id=body.company_id,
+        opportunity_id=body.opportunity_id,
         due_date=str(body.due_date) if body.due_date else None,
     )
 
@@ -100,10 +103,11 @@ async def create_task(
 @router.get("/tasks", dependencies=[Depends(require_permission_dep("task", PermissionAction.READ))])
 async def list_tasks(
     priority: str | None = Query(None),
+    opportunity_id: str | None = Query(None),
     tenant_id: str = Depends(get_current_tenant_id),
     service: RevenueService = Depends(get_service),
 ):
-    return await service.list_tasks(tenant_id, priority)
+    return await service.list_tasks(tenant_id, priority, opportunity_id=opportunity_id)
 
 
 @router.put(

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { persistAuthTokens } from "@/lib/auth/session";
+import { clearAuthTokens, persistAuthTokens } from "@/lib/auth/session";
 import { companyKeys } from "@/lib/queryKeys";
 import { getTenantId } from "./useTenant";
 
@@ -15,6 +15,22 @@ export function useLogin() {
       });
       const { access_token, refresh_token, tenant_id } = response.data;
       persistAuthTokens({ access_token, refresh_token, tenant_id });
+      return response.data;
+    },
+  });
+}
+
+/** DEC-093 follow-up — Owner Platform mint (admin → salesos-owner-platform). */
+export function useOwnerLogin() {
+  return useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const response = await api.post("/api/v1/identity/owner/login", {
+        email,
+        password,
+      });
+      const { access_token, refresh_token } = response.data;
+      clearAuthTokens();
+      persistAuthTokens({ access_token, refresh_token });
       return response.data;
     },
   });

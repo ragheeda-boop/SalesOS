@@ -63,7 +63,13 @@ class EntitlementEnforcementMiddleware:
 
         db_session = getattr(request.app.state, "db_session_factory", None)
         if not db_session:
-            return await self.app(scope, receive, send)
+            # EAB-001-P0-SEC-01: fail-closed — never skip entitlement/quota gates
+            resp = JSONResponse(
+                {"detail": "Unable to verify plan entitlements"},
+                status_code=503,
+            )
+            await resp(scope, receive, send)
+            return
 
         try:
             async with db_session() as db:

@@ -81,6 +81,7 @@ export interface TaskResponse {
   priority: string;
   source: string;
   company_id?: string | null;
+  opportunity_id?: string | null;
   completed: boolean;
   created_at?: string | null;
 }

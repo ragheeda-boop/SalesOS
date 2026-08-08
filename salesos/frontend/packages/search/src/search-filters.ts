@@ -1,4 +1,4 @@
-import type { SearchFilter, SearchFacet, SearchQuery } from "./types";
+import type { SearchFilter, SearchFacet } from "./types";
 
 export function buildFilterQuery(filters: SearchFilter[]): string {
   return filters

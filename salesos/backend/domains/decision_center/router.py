@@ -1,4 +1,14 @@
-"""Decision Center REST endpoints."""
+"""Decision Center REST endpoints — CANONICAL SoT (EAB-001-P0-DUP-01).
+
+Prefer this router for durable, auditable governed decisions
+(``/api/v1/decisions*``, ``/api/v1/decision-templates*``).
+
+Do not confuse with:
+- Decision Platform ``/api/v1/decision/*`` (alternate evaluate/scoring)
+- Decision Runtime ``/api/v1/decision-runtime/*`` (NBA accept/execute)
+
+See DECISION-API-SOT.md and AI_HONESTY.md. Engines retained (honest Partial).
+"""
 
 from __future__ import annotations
 

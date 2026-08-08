@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { deriveWidgets, deriveStatus } from "../widget.store";
 
 describe("deriveStatus", () => {

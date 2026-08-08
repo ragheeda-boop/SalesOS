@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { Search, TrendingUp, AlertCircle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";

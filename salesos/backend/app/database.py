@@ -1,7 +1,9 @@
 import contextlib
+import inspect
 import os
-from collections.abc import AsyncGenerator
-from contextvars import ContextVar
+from collections.abc import AsyncGenerator, Callable
+from contextlib import asynccontextmanager
+from contextvars import ContextVar, Token
 from typing import Any, cast
 
 from sqlalchemy import text as sa_text
@@ -14,8 +16,19 @@ from app.config import settings
 _current_tenant_id: ContextVar[str | None] = ContextVar("current_tenant_id", default=None)
 
 
-def set_current_tenant_id(tenant_id: str | None) -> None:
-    _current_tenant_id.set(tenant_id)
+def set_current_tenant_id(tenant_id: str | None) -> Token:
+    """Pin tenant for this context; return Token for reset_current_tenant_id."""
+    return _current_tenant_id.set(tenant_id)
+
+
+def clear_current_tenant_id() -> None:
+    """Clear tenant ContextVar (EAB-001-P1-SEC-03 — request / task reuse safety)."""
+    _current_tenant_id.set(None)
+
+
+def reset_current_tenant_id(token: Token) -> None:
+    """Restore prior ContextVar value from set_current_tenant_id Token."""
+    _current_tenant_id.reset(token)
 
 
 def get_current_tenant_id_context() -> str | None:
@@ -24,9 +37,9 @@ def get_current_tenant_id_context() -> str | None:
 
 # STORY-02-01 / R-14 remediation (docs/program/RISK_REGISTER.md): request-
 # serving traffic connects through app_database_url (salesos_app — non-
-# superuser, non-BYPASSRLS — falls back to resolved_database_url if
-# salesos_app isn't provisioned in this environment yet, so this is safe to
-# deploy everywhere at once). Bootstrap/admin operations (init_db()'s
+# superuser, non-BYPASSRLS). Empty APP_POSTGRES_PASSWORD falls back to
+# resolved_database_url only in development/test; production/staging refuse
+# boot (EAB-001-P0-SEC-02). Bootstrap/admin operations (init_db()'s
 # CREATE EXTENSION/CREATE SCHEMA, and the Alembic migration check below)
 # keep using owner_engine (resolved_database_url, the salesos owner role) —
 # CREATE SCHEMA IF NOT EXISTS still requires database-level CREATE
@@ -73,6 +86,82 @@ def get_pool_metrics() -> dict[str, Any]:
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
+async def apply_tenant_guc(session: AsyncSession, tenant_id: str | None = None) -> None:
+    """DEC-085: pin app.tenant_id via set_config (never SET LOCAL).
+
+    Uses ContextVar when tenant_id is omitted — same pattern as get_db().
+    """
+    tid = tenant_id if tenant_id is not None else _current_tenant_id.get(None)
+    if not tid:
+        return
+    await session.execute(
+        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": tid},
+    )
+
+
+@asynccontextmanager
+async def tenant_scoped_session(
+    session_factory: Callable[[], Any] | None = None,
+) -> AsyncGenerator[AsyncSession, None]:
+    """Short-lived AsyncSession with DEC-085 tenant GUC; commit on success.
+
+    Replaces process-lifetime shared sessions (EAB-001-P0-SEC-02 remainder).
+    """
+    factory = session_factory or async_session
+    async with factory() as session:
+        await apply_tenant_guc(session)
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            with contextlib.suppress(Exception):
+                await session.rollback()
+            raise
+
+
+class FactoryBoundRepository:
+    """Thin proxy: session-only repos get a fresh factory session per async method.
+
+    Prefer native session_factory support when a repo already has it. For repos
+    that only accept ``AsyncSession``, wrap once at startup instead of holding
+    a process-lifetime session.
+    """
+
+    def __init__(
+        self,
+        repo_cls: type,
+        session_factory: Callable[[], Any] | None = None,
+        *,
+        session_kw: str | None = None,
+    ) -> None:
+        self._repo_cls = repo_cls
+        self._session_factory = session_factory or async_session
+        self._session_kw = session_kw
+
+    def __getattr__(self, name: str) -> Any:
+        if name.startswith("_"):
+            raise AttributeError(name)
+        proto = getattr(self._repo_cls, name, None)
+        if proto is None or not callable(proto):
+            raise AttributeError(f"{self._repo_cls.__name__}.{name}")
+        if not inspect.iscoroutinefunction(proto):
+            raise AttributeError(
+                f"{self._repo_cls.__name__}.{name} is not an async method; "
+                "FactoryBoundRepository only proxies coroutines"
+            )
+
+        async def _method(*args: Any, **kwargs: Any) -> Any:
+            async with tenant_scoped_session(self._session_factory) as session:
+                if self._session_kw:
+                    repo = self._repo_cls(**{self._session_kw: session})
+                else:
+                    repo = self._repo_cls(session)
+                return await getattr(repo, name)(*args, **kwargs)
+
+        return _method
+
+
 # Register all models so Alembic can discover them
 import app.modules.admin.db_models  # noqa: F401  # admin_plans Stripe price cols
 import app.modules.api_keys.models  # noqa: F401
@@ -83,7 +172,7 @@ import app.modules.company.models  # noqa: F401
 import app.modules.contact.models  # noqa: F401
 import app.modules.entity_resolution.models  # noqa: F401
 import app.modules.identity.models  # noqa: F401
-import app.modules.signal_marketplace.models  # noqa: F401
+import app.modules.signal_marketplace.db_models  # noqa: F401
 import app.modules.sso.models  # noqa: F401
 import app.modules.telemetry.models  # noqa: F401
 import app.modules.webhooks.repository  # noqa: F401  # DEC-130g

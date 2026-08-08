@@ -507,7 +507,7 @@ class ActivityIntelligenceCapability:
     dependencies=["identity", "company", "event-runtime", "decision-engine"],
     contract=CapabilityContract(
         entities=["workflow", "workflow_execution", "scheduled_job", "webhook_endpoint"],
-        apis=["/api/v1/workflows/*", "/api/v1/jobs/*", "/api/v1/webhooks/*"],
+        apis=["/api/v1/workflows/*", "/api/v1/jobs/*", "/api/v1/workflow/webhooks/*"],
         events=["workflow.created", "workflow.executed", "workflow.scheduled",
                 "workflow.completed", "workflow.failed", "job.executed"],
         permissions=["workflow.read", "workflow.write", "workflow.admin",

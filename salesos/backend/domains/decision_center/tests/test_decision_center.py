@@ -648,6 +648,28 @@ class TestDecisionCenterService:
         fb = await svc.submit_feedback(d.id, "up", TENANT, comment="Good", actor_id="u1")
         assert fb is not None
         assert fb.rating == FeedbackRating.UP
+        refreshed = await svc.get_decision(d.id, TENANT)
+        assert refreshed is not None
+        assert refreshed.status == DecisionStatus.ACCEPTED
+
+    @pytest.mark.asyncio
+    async def test_submit_feedback_down_rejects(self, svc: DecisionCenterService):
+        d = await svc.create_decision(
+            domain="pipeline",
+            decision_type="deal_scoring",
+            entity_id="co1",
+            entity_type="company",
+            decision="pursue",
+            confidence=0.4,
+            reasoning="r",
+            provider="p",
+            tenant_id=TENANT,
+        )
+        fb = await svc.submit_feedback(d.id, "down", TENANT)
+        assert fb is not None
+        refreshed = await svc.get_decision(d.id, TENANT)
+        assert refreshed is not None
+        assert refreshed.status == DecisionStatus.REJECTED
 
     @pytest.mark.asyncio
     async def test_submit_feedback_not_found(self, svc: DecisionCenterService):

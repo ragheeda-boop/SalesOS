@@ -135,3 +135,31 @@ def test_admin_router_wires_owner_role_dep():
     dep_fn = require_owner_role_dep("admin")
     assert inspect.iscoroutinefunction(dep_fn)
     assert "get_current_owner_user_role" in inspect.getsource(dep_fn)
+
+
+def test_owner_login_route_mints_owner_audience():
+    """DEC-093 follow-up: owner login endpoint exists and uses owner mint helpers."""
+    from app.modules.identity import router as identity_router_mod
+
+    src = inspect.getsource(identity_router_mod)
+    assert '"/owner/login"' in src or "'/owner/login'" in src
+    assert "create_owner_access_token" in src
+    assert "create_owner_refresh_token" in src
+    assert "Owner Platform requires admin role" in src
+    assert "owner_login" in src
+    # Tenant login path must remain distinct (do not weaken).
+    assert "create_access_token(uid, tid)" in src
+
+
+def test_csrf_exempts_owner_login_path():
+    from app.common.middleware import CsrfEnforcementMiddleware
+
+    assert "/api/v1/identity/owner/login" in CsrfEnforcementMiddleware._PUBLIC_PATHS
+    assert "/api/v1/identity/login" in CsrfEnforcementMiddleware._PUBLIC_PATHS
+
+
+def test_suspension_guard_skips_owner_login():
+    from app.modules.identity.tenant_lifecycle_guard import path_skips_suspension_guard
+
+    assert path_skips_suspension_guard("/api/v1/identity/owner/login") is True
+    assert path_skips_suspension_guard("/api/v1/identity/login") is True

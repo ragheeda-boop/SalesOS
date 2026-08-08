@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PipelineWorkspace } from "../PipelineWorkspace";
+import { I18nProvider } from "@/lib/i18n";
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -70,7 +72,11 @@ function makeOpp(overrides: Record<string, unknown> = {}) {
 
 function renderWithQuery(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+  return render(
+    <I18nProvider>
+      <QueryClientProvider client={qc}>{ui}</QueryClientProvider>
+    </I18nProvider>
+  );
 }
 
 function setupApiMocks(
@@ -94,6 +100,7 @@ function setupApiMocks(
 
 describe("PipelineWorkspace", () => {
   beforeEach(() => {
+    window.localStorage.setItem("salesos-locale", "en");
     jest.clearAllMocks();
     setupApiMocks();
     mockUseAdvanceOpp.mockReturnValue({ mutate: jest.fn() });

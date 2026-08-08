@@ -10,7 +10,7 @@ Handles:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from typing import Any
 
@@ -115,6 +115,32 @@ class OpportunityService:
             "value": opportunity.value, "status": opportunity.status.value,
         })
         return result
+
+    async def update_details(
+        self,
+        opportunity_id: str,
+        tenant_id: str,
+        *,
+        name: str | None = None,
+        value: float | None = None,
+        expected_close_date: date | None = None,
+        description: str | None = None,
+    ) -> Opportunity | None:
+        opportunity = await self._repository.get(opportunity_id)
+        if not opportunity or opportunity.tenant_id != tenant_id:
+            return None
+        if name is not None:
+            opportunity.name = name
+        if value is not None:
+            if opportunity.is_terminal:
+                raise ValueError("Cannot change value of a closed opportunity")
+            opportunity.value = value
+        if expected_close_date is not None:
+            opportunity.expected_close_date = expected_close_date
+        if description is not None:
+            opportunity.description = description
+        opportunity.updated_at = datetime.now(timezone.utc)
+        return await self._repository.save(opportunity)
 
     async def update_value(self, opportunity_id: str, new_value: float) -> Opportunity:
         opportunity = await self._repository.get(opportunity_id)

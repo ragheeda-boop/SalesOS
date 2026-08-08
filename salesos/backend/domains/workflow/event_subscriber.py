@@ -65,33 +65,40 @@ class WorkflowEventSubscriber:
 
         logger.debug("Workflow subscriber received event: %s", event_type)
 
-        workflows = await self._workflow_service.list(tenant_id)
-        matching = self._match_workflows(event_type, workflows)
+        # Pin tenant for FactoryBoundRepository DEC-085 GUC (no HTTP middleware here).
+        from app.database import reset_current_tenant_id, set_current_tenant_id
 
-        if not matching:
-            return
+        token = set_current_tenant_id(tenant_id)
+        try:
+            workflows = await self._workflow_service.list(tenant_id)
+            matching = self._match_workflows(event_type, workflows)
 
-        context = {
-            "trigger": event_type,
-            "event_id": getattr(event, "event_id", ""),
-            "tenant_id": tenant_id,
-            **data,
-        }
+            if not matching:
+                return
 
-        for wf in matching:
-            try:
-                execution = await self._workflow_service.execute(
-                    wf.id, tenant_id, context=context,
-                )
-                logger.info(
-                    "Workflow '%s' (%s) executed for event %s: status=%s",
-                    wf.name, wf.id, event_type, execution.status,
-                )
-            except Exception:
-                logger.exception(
-                    "Workflow '%s' (%s) failed for event %s",
-                    wf.name, wf.id, event_type,
-                )
+            context = {
+                "trigger": event_type,
+                "event_id": getattr(event, "event_id", ""),
+                "tenant_id": tenant_id,
+                **data,
+            }
+
+            for wf in matching:
+                try:
+                    execution = await self._workflow_service.execute(
+                        wf.id, tenant_id, context=context,
+                    )
+                    logger.info(
+                        "Workflow '%s' (%s) executed for event %s: status=%s",
+                        wf.name, wf.id, event_type, execution.status,
+                    )
+                except Exception:
+                    logger.exception(
+                        "Workflow '%s' (%s) failed for event %s",
+                        wf.name, wf.id, event_type,
+                    )
+        finally:
+            reset_current_tenant_id(token)
 
     def _match_workflows(
         self, event_type: str, workflows: list[Workflow],

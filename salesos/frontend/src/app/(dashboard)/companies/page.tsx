@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -46,13 +46,7 @@ import { getCurrentUser } from "@/lib/api";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Company } from "@/lib/api";
 
-const STATUS_OPTIONS = [
-  { label: "All", value: "" },
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-  { label: "Suspended", value: "suspended" },
-  { label: "Expired", value: "expired" },
-];
+const STATUS_VALUES = ["active", "inactive", "suspended", "expired"] as const;
 
 const STATUS_VARIANT: Record<string, "success" | "warning" | "danger" | "default"> = {
   active: "success",
@@ -91,10 +85,25 @@ const REGION_OPTIONS = [
   { label: "Al Jawf", value: "al_jawf" },
 ];
 
-export default function CompaniesPage() {
+function CompaniesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
+  const statusOptions = [
+    { label: t("status.all"), value: "" },
+    { label: t("status.active"), value: "active" },
+    { label: t("status.inactive"), value: "inactive" },
+    { label: t("status.suspended"), value: "suspended" },
+    { label: t("status.expired"), value: "expired" },
+  ];
+  const industryOptions = INDUSTRY_OPTIONS.map((opt) => ({
+    ...opt,
+    label: t(`industry.${opt.value}`),
+  }));
+  const regionOptions = REGION_OPTIONS.map((opt) => ({
+    ...opt,
+    label: opt.value ? t(`region.${opt.value}`) : t("labels.all_regions"),
+  }));
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
@@ -137,6 +146,7 @@ export default function CompaniesPage() {
 
   const [exportLoading, setExportLoading] = useState(false);
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const params: Record<string, unknown> = { page, page_size: 20 };
   if (debouncedQuery) params.q = debouncedQuery;
   if (statusFilter) params.status = statusFilter;
@@ -353,7 +363,7 @@ export default function CompaniesPage() {
     const chips: { label: string; onRemove: () => void }[] = [];
     if (filterIndustry)
       chips.push({
-        label: `Industry: ${filterIndustry}`,
+        label: `${t("labels.industry")}: ${t(`industry.${filterIndustry}`)}`,
         onRemove: () => {
           setFilterIndustry("");
           setPage(1);
@@ -361,7 +371,7 @@ export default function CompaniesPage() {
       });
     if (filterSizeMin)
       chips.push({
-        label: `Min size: ${filterSizeMin}`,
+        label: `${t("labels.min_size")}: ${filterSizeMin}`,
         onRemove: () => {
           setFilterSizeMin("");
           setPage(1);
@@ -369,7 +379,7 @@ export default function CompaniesPage() {
       });
     if (filterSizeMax)
       chips.push({
-        label: `Max size: ${filterSizeMax}`,
+        label: `${t("labels.max_size")}: ${filterSizeMax}`,
         onRemove: () => {
           setFilterSizeMax("");
           setPage(1);
@@ -377,7 +387,7 @@ export default function CompaniesPage() {
       });
     if (filterRegion)
       chips.push({
-        label: `Region: ${filterRegion}`,
+        label: `${t("labels.region")}: ${t(`region.${filterRegion}`)}`,
         onRemove: () => {
           setFilterRegion("");
           setPage(1);
@@ -385,7 +395,7 @@ export default function CompaniesPage() {
       });
     if (filterDateFrom)
       chips.push({
-        label: `From: ${filterDateFrom.toLocaleDateString()}`,
+        label: `${t("labels.from_date")}: ${filterDateFrom.toLocaleDateString()}`,
         onRemove: () => {
           setFilterDateFrom(null);
           setPage(1);
@@ -393,7 +403,7 @@ export default function CompaniesPage() {
       });
     if (filterDateTo)
       chips.push({
-        label: `To: ${filterDateTo.toLocaleDateString()}`,
+        label: `${t("labels.to_date")}: ${filterDateTo.toLocaleDateString()}`,
         onRemove: () => {
           setFilterDateTo(null);
           setPage(1);
@@ -401,7 +411,7 @@ export default function CompaniesPage() {
       });
     filterStatusChips.forEach((s) =>
       chips.push({
-        label: `Status: ${s}`,
+        label: `${t("labels.status")}: ${t(`status.${s}`)}`,
         onRemove: () => handleFilterStatusToggle(s),
       })
     );
@@ -415,6 +425,7 @@ export default function CompaniesPage() {
     filterDateTo,
     filterStatusChips,
     handleFilterStatusToggle,
+    t,
   ]);
 
   const columns: ColumnDef<Company>[] = [
@@ -446,7 +457,11 @@ export default function CompaniesPage() {
       header: t("labels.status"),
       cell: ({ getValue }) => {
         const status = getValue() as string;
-        return <Badge variant={STATUS_VARIANT[status] || "default"}>{status}</Badge>;
+        return (
+          <Badge variant={STATUS_VARIANT[status] || "default"}>
+            {t(`status.${status}`, undefined) === `status.${status}` ? status : t(`status.${status}`)}
+          </Badge>
+        );
       },
     },
     {
@@ -586,8 +601,8 @@ export default function CompaniesPage() {
           />
           <div className="w-44">
             <Combobox
-              options={INDUSTRY_OPTIONS}
-              placeholder="Industry"
+              options={industryOptions}
+              placeholder={t("labels.industry")}
               value={filterIndustry}
               onChange={(v) => {
                 setFilterIndustry(v);
@@ -597,8 +612,8 @@ export default function CompaniesPage() {
           </div>
           <div className="w-44">
             <Select
-              options={REGION_OPTIONS}
-              placeholder="Region"
+              options={regionOptions}
+              placeholder={t("labels.region")}
               value={filterRegion}
               onChange={(v) => {
                 setFilterRegion(v);
@@ -609,7 +624,7 @@ export default function CompaniesPage() {
           <div className="w-32">
             <Input
               type="number"
-              placeholder="Min size"
+              placeholder={t("labels.min_size")}
               value={filterSizeMin}
               onChange={(e) => {
                 setFilterSizeMin(e.target.value);
@@ -620,7 +635,7 @@ export default function CompaniesPage() {
           <div className="w-32">
             <Input
               type="number"
-              placeholder="Max size"
+              placeholder={t("labels.max_size")}
               value={filterSizeMax}
               onChange={(e) => {
                 setFilterSizeMax(e.target.value);
@@ -631,7 +646,7 @@ export default function CompaniesPage() {
           <div className="w-48">
             <DatePicker
               mode="single"
-              placeholder="From date"
+              placeholder={t("labels.from_date")}
               value={filterDateFrom}
               onChange={(v) => {
                 setFilterDateFrom(v as Date | null);
@@ -642,7 +657,7 @@ export default function CompaniesPage() {
           <div className="w-48">
             <DatePicker
               mode="single"
-              placeholder="To date"
+              placeholder={t("labels.to_date")}
               value={filterDateTo}
               onChange={(v) => {
                 setFilterDateTo(v as Date | null);
@@ -654,8 +669,8 @@ export default function CompaniesPage() {
 
         {/* Status chips */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-[var(--text-muted)]">Status:</span>
-          {["active", "inactive", "suspended", "expired"].map((s) => (
+          <span className="text-sm text-[var(--text-muted)]">{t("labels.status")}:</span>
+          {STATUS_VALUES.map((s) => (
             <button
               key={s}
               onClick={() => handleFilterStatusToggle(s)}
@@ -665,7 +680,7 @@ export default function CompaniesPage() {
                   : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-neutral-700"
               }`}
             >
-              {s}
+              {t(`status.${s}`)}
               {filterStatusChips.includes(s) && <X className="h-3 w-3" />}
             </button>
           ))}
@@ -783,7 +798,8 @@ export default function CompaniesPage() {
                       label: t("companies.add_company"),
                       onClick: () => setModalOpen(true),
                     },
-                  }
+}
+
                 : {}),
             }}
           />
@@ -842,11 +858,11 @@ export default function CompaniesPage() {
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
-                  Industry
+                  {t("labels.industry")}
                 </label>
                 <Select
-                  options={INDUSTRY_OPTIONS.slice(1)}
-                  placeholder="Select industry"
+                  options={industryOptions}
+                  placeholder={t("labels.select_industry")}
                   value={editIndustry}
                   onChange={setEditIndustry}
                 />
@@ -864,11 +880,11 @@ export default function CompaniesPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
-                  Status
+                  {t("labels.status")}
                 </label>
                 <Select
-                  options={STATUS_OPTIONS.slice(1)}
-                  placeholder="Select status"
+                  options={statusOptions.slice(1)}
+                  placeholder={t("labels.select_status")}
                   value={editStatus}
                   onChange={setEditStatus}
                 />
@@ -938,5 +954,13 @@ export default function CompaniesPage() {
         </ModalContent>
       </Modal>
     </div>
+  );
+}
+
+export default function CompaniesPage() {
+  return (
+    <Suspense>
+      <CompaniesPageContent />
+    </Suspense>
   );
 }

@@ -37,6 +37,7 @@ class TaskCreate(BaseModel):
     priority: str = Field(default="medium", pattern="^(critical|high|medium|low)$")
     source: str = "manual"
     company_id: str | None = None
+    opportunity_id: str | None = None
     due_date: date | None = None
 
 
@@ -46,6 +47,7 @@ class TaskResponse(BaseModel):
     priority: str
     source: str
     company_id: str | None = None
+    opportunity_id: str | None = None
     completed: bool
     created_at: datetime | None = None
 

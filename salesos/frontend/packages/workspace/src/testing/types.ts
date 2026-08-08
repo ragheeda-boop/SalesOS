@@ -1,4 +1,4 @@
-import type { WidgetStatus, WidgetData, WidgetFeatureFlag } from "../types";
+import type { WidgetStatus, WidgetData } from "../types";
 
 export interface MockWidgetContext<T> {
   data: T | null;

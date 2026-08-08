@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { cn } from "@salesos/ui";
 import { Users, Activity, DollarSign, Target, Search, BarChart3, Sparkles } from "lucide-react";

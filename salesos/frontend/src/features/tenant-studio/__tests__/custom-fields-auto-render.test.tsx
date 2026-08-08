@@ -56,7 +56,7 @@ jest.mock("@salesos/ui", () => ({
 
 describe("CustomFieldsAutoRender — FE-S10-02", () => {
   it("renders tip form-schema fields generically", () => {
-    render(<CustomFieldsAutoRender objectKey="company" />);
+    render(<CustomFieldsAutoRender objectKey="company" variant="studio" />);
     expect(screen.getByTestId("custom-fields-auto-render")).toBeInTheDocument();
     expect(screen.getByTestId("custom-fields-auto-honesty")).toHaveTextContent(/form-schema/);
     expect(screen.getByTestId("custom-fields-auto-input-segment_tier")).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("CustomFieldsAutoRender — FE-S10-02", () => {
   });
 
   it("projects tip POST .../values payload", async () => {
-    render(<CustomFieldsAutoRender objectKey="company" />);
+    render(<CustomFieldsAutoRender objectKey="company" variant="studio" />);
     fireEvent.change(screen.getByTestId("custom-fields-auto-input-segment_tier"), {
       target: { value: "A" },
     });

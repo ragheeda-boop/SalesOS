@@ -12,7 +12,24 @@ jest.mock("@/lib/hooks/useTenant", () => ({
 import api from "@/lib/api";
 import { CopilotPanel } from "../copilot-panel";
 
+jest.mock("@/lib/hooks/useAiCopilotEnabled", () => ({
+  useAiCopilotEnabled: () => ({ enabled: true, ready: true }),
+}));
+
 const mockPost = api.post as jest.Mock;
+
+/** Panel defaults to Insights tab; chat input/welcome live under the Chat tab. */
+function switchToChat() {
+  fireEvent.click(screen.getByRole("button", { name: "المساعد الذكي" }));
+}
+
+function getChatInput() {
+  return screen.getByPlaceholderText("اسأل المساعد الذكي...");
+}
+
+function getSendButton(container: HTMLElement) {
+  return container.querySelector("svg.lucide-send")?.closest("button") as HTMLButtonElement | null;
+}
 
 describe("CopilotPanel", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -24,12 +41,14 @@ describe("CopilotPanel", () => {
 
   it("renders panel when open", () => {
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    expect(screen.getByText("المساعد الذكي")).toBeInTheDocument();
+    // Title appears in header + Chat tab label.
+    expect(screen.getAllByText("المساعد الذكي").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("AI")).toBeInTheDocument();
   });
 
   it("shows default welcome message without entityType", () => {
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
+    switchToChat();
     expect(screen.getByText(/مرحباً! أنا المساعد الذكي/)).toBeInTheDocument();
   });
 
@@ -46,7 +65,8 @@ describe("CopilotPanel", () => {
   it("sends message on Enter key", async () => {
     mockPost.mockResolvedValue({ data: { response: "رد تجريبي" } });
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال تجريبي" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
@@ -54,29 +74,36 @@ describe("CopilotPanel", () => {
 
   it("sends message on send button click", async () => {
     mockPost.mockResolvedValue({ data: { response: "رد" } });
-    render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    const { container } = render(<CopilotPanel open={true} onClose={jest.fn()} />);
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال" } });
-    const buttons = screen.getAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 1]);
+    const sendBtn = getSendButton(container);
+    expect(sendBtn).toBeTruthy();
+    fireEvent.click(sendBtn!);
     await waitFor(() => expect(mockPost).toHaveBeenCalled());
   });
 
   it("does not send empty messages", () => {
     mockPost.mockResolvedValue({ data: { response: "رد" } });
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    switchToChat();
+    const input = getChatInput();
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(mockPost).not.toHaveBeenCalled();
+    expect(mockPost).not.toHaveBeenCalledWith(
+      "/api/v1/copilot/query",
+      expect.anything(),
+      expect.anything()
+    );
   });
 
   it("displays user message after sending", async () => {
     mockPost.mockResolvedValue({ data: { response: "رد تجريبي" } });
-    render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    const { container } = render(<CopilotPanel open={true} onClose={jest.fn()} />);
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال" } });
-    const buttons = screen.getAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 1]);
+    fireEvent.click(getSendButton(container)!);
     await waitFor(() => {
       const matches = screen.getAllByText("سؤال");
       expect(matches.length).toBeGreaterThanOrEqual(1);
@@ -86,7 +113,8 @@ describe("CopilotPanel", () => {
   it("displays assistant response after API call", async () => {
     mockPost.mockResolvedValue({ data: { response: "هذا رد من المساعد" } });
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => {
@@ -97,7 +125,8 @@ describe("CopilotPanel", () => {
   it("shows error message on API failure", async () => {
     mockPost.mockRejectedValue(new Error("Network error"));
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => {
@@ -108,7 +137,8 @@ describe("CopilotPanel", () => {
   it("shows default response when API returns empty", async () => {
     mockPost.mockResolvedValue({ data: {} });
     render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => {
@@ -127,7 +157,8 @@ describe("CopilotPanel", () => {
         context={{ company_name: "أرامكو", cr_number: "1234", city: "الرياض" }}
       />
     );
-    const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
+    switchToChat();
+    const input = getChatInput();
     fireEvent.change(input, { target: { value: "سؤال" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => {
@@ -145,8 +176,10 @@ describe("CopilotPanel", () => {
   });
 
   it("disables send button when input is empty", () => {
-    render(<CopilotPanel open={true} onClose={jest.fn()} />);
-    const buttons = screen.getAllByRole("button");
-    expect(buttons[buttons.length - 1]).toBeDisabled();
+    const { container } = render(<CopilotPanel open={true} onClose={jest.fn()} />);
+    switchToChat();
+    const sendBtn = getSendButton(container);
+    expect(sendBtn).toBeTruthy();
+    expect(sendBtn).toBeDisabled();
   });
 });

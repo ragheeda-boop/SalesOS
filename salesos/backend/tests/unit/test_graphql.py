@@ -1,17 +1,35 @@
 """Tests for the GraphQL API layer — schema validation, endpoint health, query/mutation structure."""  # noqa: E501
 
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+from app.modules.admin.entitlements import default_entitlements_for_tier
 from app.modules.identity.service import create_access_token
+
+
+def _stub_session_factory():
+    """Satisfy fail-closed middleware without a real DB (EAB post-verify)."""
+
+    @asynccontextmanager
+    async def _cm():
+        yield MagicMock()
+
+    return _cm
 
 
 @pytest.fixture
 def graphql_client():
+    # Entitlement/suspended middleware require app.state.db_session_factory when
+    # X-Tenant-Id is set (SEC-01 fail-closed → 503 if missing).
+    prev = getattr(app.state, "db_session_factory", None)
+    app.state.db_session_factory = _stub_session_factory()
     transport = ASGITransport(app=app)
     token = create_access_token("test-user", "test-tenant")
-    return AsyncClient(
+    client = AsyncClient(
         transport=transport,
         base_url="http://test",
         headers={
@@ -19,6 +37,35 @@ def graphql_client():
             "x-tenant-id": "test-tenant",
         },
     )
+    with (
+        patch(
+            "app.modules.admin.entitlement_middleware.resolve_entitlements_for_tenant",
+            new=AsyncMock(
+                return_value=(
+                    default_entitlements_for_tier("growth"),
+                    {"plan_id": "plan-growth", "tier": "growth", "source": "test"},
+                )
+            ),
+        ),
+        patch("app.modules.admin.entitlement_middleware.UsageMeterService") as meter_cls,
+    ):
+        meter_cls.return_value.quota_usage_snapshot = AsyncMock(
+            return_value={
+                "usage": {
+                    "seats": 0.0,
+                    "connectors": 0.0,
+                    "ai_tokens": 0.0,
+                    "storage_mb": 0.0,
+                },
+                "period": "2026-08",
+            }
+        )
+        yield client
+    if prev is None:
+        if hasattr(app.state, "db_session_factory"):
+            delattr(app.state, "db_session_factory")
+    else:
+        app.state.db_session_factory = prev
 
 
 @pytest.mark.asyncio

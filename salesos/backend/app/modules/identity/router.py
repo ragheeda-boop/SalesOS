@@ -31,7 +31,14 @@ from .schemas import (
     UserCreate,
     UserResponse,
 )
-from .service import IdentityService, create_access_token, decode_refresh_token
+from .service import (
+    IdentityService,
+    create_access_token,
+    create_owner_access_token,
+    create_owner_refresh_token,
+    decode_owner_refresh_token,
+    decode_refresh_token,
+)
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -428,6 +435,73 @@ async def login(
     )
 
 
+@router.post("/owner/login", response_model=TokenResponse)
+async def owner_login(
+    body: LoginRequest,
+    request: Request,
+    response: Response,
+    service: IdentityService = Depends(get_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Mint Owner Platform JWT (``salesos-owner-platform``). DEC-093 follow-up.
+
+    Reuses password authenticate; gates on active ``admin`` role (same bar as
+    ``require_owner_role_dep("admin")``). Does **not** mint tenant ``salesos-api``
+    tokens and does not weaken tenant ``/login``.
+    """
+    from sdk.audit import AuditTrail
+
+    user = await service.authenticate(email=body.email, password=body.password)
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account inactive")
+    # Match require_role / require_owner_role_dep("admin") hierarchy.
+    role_hierarchy = {"admin": 3, "manager": 2, "user": 1, "api": 1, "auditor": 0}
+    if role_hierarchy.get(user.role, 0) < role_hierarchy.get("admin", 0):
+        raise HTTPException(
+            status_code=403,
+            detail="Owner Platform requires admin role",
+        )
+
+    uid = str(user.id)
+    tid = str(user.tenant_id)
+
+    refresh_token, family_id, family_pk, jti = await service.create_owner_token_family(uid, tid)
+    device_name, device_type = _parse_device_info(request)
+    await service.create_device_session(
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=family_pk,
+        device_name=device_name,
+        device_type=device_type,
+        ip_address=request.client.host if request.client else "",
+    )
+
+    access_token = create_owner_access_token(uid)
+    max_age = settings.jwt_refresh_token_expire_days * 86400
+    _set_refresh_cookie(response, refresh_token, max_age)
+    _set_access_cookie(response, access_token)
+
+    audit = AuditTrail(db)
+    await audit.record(
+        tenant_id=tid,
+        entity_type="user",
+        entity_id=uid,
+        action="owner_login",
+        metadata={
+            "email": body.email,
+            "audience": settings.jwt_owner_audience,
+            "ip": request.client.host if request.client else "",
+        },
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=settings.jwt_access_token_expire_minutes * 60,
+        tenant_id=None,
+    )
+
+
 @router.get("/users/me", response_model=UserResponse)
 async def get_current_user(
     user_id: str = Depends(get_current_user_id),
@@ -534,13 +608,37 @@ async def refresh_token(
     from app.database import set_current_tenant_id
 
     token = _extract_refresh_token(request, body)
+
+    try:
+        owner_payload = decode_owner_refresh_token(token)
+        uid = owner_payload["sub"]
+        jti = owner_payload["jti"]
+        blacklisted = await service.is_token_blacklisted(jti)
+        if blacklisted:
+            raise HTTPException(status_code=401, detail="Token revoked")
+        new_access, new_refresh = await service.rotate_owner_refresh_token(jti, uid)
+        old_exp = (
+            datetime.fromtimestamp(owner_payload["exp"], tz=UTC)
+            if "exp" in owner_payload
+            else datetime.now(UTC)
+        )
+        await service.blacklist_token(jti, "refresh", old_exp)
+        max_age = settings.jwt_refresh_token_expire_days * 86400
+        _set_refresh_cookie(response, new_refresh, max_age)
+        _set_access_cookie(response, new_access)
+        return TokenResponse(
+            access_token=new_access,
+            refresh_token=new_refresh,
+            expires_in=settings.jwt_access_token_expire_minutes * 60,
+            tenant_id=None,
+        )
+    except ValueError:
+        pass
+
     payload = decode_refresh_token(token)
     uid = payload["sub"]
     tid = str(payload["tenant_id"])
     jti = payload["jti"]
-    # Category B5 FORCE RLS on refresh_token_families (join users): unset GUC
-    # fails closed. Refresh has no Bearer; pin tenant from refresh JWT claims
-    # (same pattern as authenticate() email probe) before family lookup.
     set_current_tenant_id(tid)
     await service.db.execute(
         sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
@@ -595,7 +693,23 @@ async def logout(
                     family_revoked = await service.revoke_by_refresh_jti(jti, user_id)
                     revoked = max(1, family_revoked)
             except Exception:
-                pass
+                try:
+                    owner_payload = decode_owner_refresh_token(token)
+                    if str(owner_payload.get("sub", "")) == str(user_id):
+                        jti = owner_payload["jti"]
+                        old_exp = (
+                            datetime.fromtimestamp(owner_payload["exp"], tz=UTC)
+                            if "exp" in owner_payload
+                            else datetime.now(UTC)
+                        )
+                        await service.blacklist_token(jti, "refresh", old_exp)
+                        try:
+                            family_revoked = await service.revoke_by_refresh_jti(jti, user_id)
+                            revoked = max(1, family_revoked)
+                        except Exception:
+                            revoked = 1
+                except Exception:
+                    pass
     _clear_refresh_cookie(response)
     _clear_access_cookie(response)
     return LogoutResponse(

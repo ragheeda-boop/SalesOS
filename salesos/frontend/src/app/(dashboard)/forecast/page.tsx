@@ -6,16 +6,28 @@ import { cn } from "@salesos/ui";
 import { useTranslation } from "@/lib/i18n";
 
 interface ForecastData {
-  total_expected: number;
-  weighted: number;
-  confidence: number;
-  risk: number;
-  horizon: string;
+  total_expected?: number;
+  weighted?: number;
+  confidence?: number;
+  overall_confidence?: number;
+  risk?: number;
+  horizon?: string;
+  message?: string;
   scenarios?: {
     pessimistic: number;
     baseline: number;
     optimistic: number;
   };
+}
+
+function formatConfidencePct(
+  raw: unknown,
+  fallback: string
+): string {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  const pct = n <= 1 ? n * 100 : n;
+  return `${Math.round(pct)}%`;
 }
 
 function ForecastCard({
@@ -77,16 +89,38 @@ export default function ForecastPage() {
   if (loading)
     return <div className="p-8 text-center text-[var(--text-muted)]">{t("common.loading")}</div>;
   if (error) return <div className="p-8 text-center text-[var(--status-danger-text)]">{error}</div>;
-  if (!forecast)
-    return <div className="p-8 text-center text-[var(--text-muted)]">{t("common.no_results")}</div>;
+
+  const confidenceRaw = forecast?.confidence ?? forecast?.overall_confidence;
+  const hasMetrics =
+    forecast != null &&
+    (forecast.total_expected != null ||
+      forecast.weighted != null ||
+      forecast.confidence != null ||
+      forecast.overall_confidence != null);
+
+  if (!forecast || !hasMetrics) {
+    return (
+      <div className="p-8 text-center space-y-2">
+        <h1 className="text-2xl font-bold">{t("forecast.title")}</h1>
+        <p className="font-medium text-[var(--text-primary)]">{t("forecast.none_title")}</p>
+        <p className="text-sm text-[var(--text-muted)]">{t("forecast.none_hint")}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">{t("forecast.title")}</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ForecastCard label={t("forecast.total_expected")} value={forecast.total_expected} />
-        <ForecastCard label={t("forecast.weighted")} value={forecast.weighted} />
-        <ForecastCard label={t("forecast.confidence")} value={`${forecast.confidence}%`} />
+        <ForecastCard
+          label={t("forecast.total_expected")}
+          value={forecast.total_expected ?? t("forecast.na")}
+        />
+        <ForecastCard label={t("forecast.weighted")} value={forecast.weighted ?? t("forecast.na")} />
+        <ForecastCard
+          label={t("forecast.confidence")}
+          value={formatConfidencePct(confidenceRaw, t("forecast.na"))}
+        />
       </div>
       {forecast.scenarios && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

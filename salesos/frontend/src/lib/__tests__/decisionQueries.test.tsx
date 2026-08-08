@@ -8,6 +8,8 @@ jest.mock("@/lib/hooks/useTenant");
 import api from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import {
+  mapDecisionCenterItem,
+  useDecisionCenterList,
   useDecisionEvaluate,
   useDecisionExplain,
   useDecisionHistory,
@@ -223,6 +225,73 @@ describe("useDecisionHistory", () => {
       wrapper: createWrapper(),
     });
     expect(result.current.data).toBeUndefined();
+  });
+});
+
+describe("mapDecisionCenterItem", () => {
+  it("maps Center camelCase ledger rows to UI items", () => {
+    const mapped = mapDecisionCenterItem({
+      id: "dc-1",
+      domain: "company",
+      type: "nba",
+      entityId: "c-1",
+      entityType: "company",
+      decision: "follow_up",
+      confidence: 0.9,
+      reasoning: "signal",
+      provider: "rule_engine",
+      timestamp: "2026-08-08T12:00:00Z",
+      status: "active",
+    });
+    expect(mapped).toMatchObject({
+      id: "dc-1",
+      entity_id: "c-1",
+      entity_type: "company",
+      action: "follow_up",
+      status: "pending",
+      priority: "high",
+      score: 0.9,
+      created_at: "2026-08-08T12:00:00Z",
+    });
+  });
+});
+
+describe("useDecisionCenterList", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedGetTenantId.mockReturnValue("tenant-1");
+  });
+
+  it("fetches Decision Center ledger", async () => {
+    mockedApi.get.mockResolvedValue({
+      data: {
+        items: [
+          {
+            id: "dc-1",
+            entityId: "c-1",
+            entityType: "company",
+            decision: "follow_up",
+            confidence: 0.5,
+            reasoning: "ok",
+            timestamp: "2026-08-08T12:00:00Z",
+            status: "active",
+          },
+        ],
+        total: 1,
+      },
+    });
+    const { result } = renderHook(() => useDecisionCenterList(50), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/decisions", {
+      params: { limit: 50 },
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
+    expect(result.current.data?.items[0]?.id).toBe("dc-1");
+    expect(result.current.data?.items[0]?.status).toBe("pending");
   });
 });
 

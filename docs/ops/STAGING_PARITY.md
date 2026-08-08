@@ -1,8 +1,8 @@
 # Staging-Parity Gaps
 
-> **Status:** Production no-go (W11.1)  
-> **Audit source:** `docs/audit/ga-engineering-audit/`  
-> **Last updated:** 2026-07-25
+> **Status:** VERIFICATION IN PROGRESS (A-09 partially addressed 2026-08-08)
+> **Audit source:** `docs/audit/ga-engineering-audit/`
+> **Last updated:** 2026-08-08 (env parity + DEBUG fix applied; operator verification pending)
 
 ## Summary
 
@@ -68,20 +68,23 @@ a staging environment that does not represent the production configuration.
 
 ---
 
-## Validation Status
+## Validation Status (2026-08-08 refresh)
 
-| Check | Status |
-|-------|--------|
-| `.env.staging.example` parity | ❌ 92 vs 174 lines |
-| SMTP config present | ❌ |
-| SSO config present | ❌ |
-| Sentry DSN present | ❌ |
-| Rate limiting vars present | ❌ |
-| CORS origins present | ❌ |
-| Celery broker present | ❌ |
-| Audit retention present | ❌ |
-| Feature flags match prod | ❌ |
-| Kafka version match | ❌ (separate task) |
+| Check | Before | After | Evidence |
+|-------|:------:|:-----:|----------|
+| `.env.staging` parity | 58 lines | **~135 lines** | SMTP, SSO, Sentry, RateLimit, Celery, CORS, Audit, Feature flags, Stripe, Google, Meili sections added |
+| `.env.staging.example` parity | 106 lines | **~170 lines** | All prod env categories mirrored |
+| CHANGEME passwords | 4/8 | **still 4/8** | Waiting on operator to generate real tokens |
+| `SALESOS_DEBUG` | `true` | **`false`** | `docker-compose.staging.yml` line 219 fixed |
+| Feature flags match prod | mismatched | **aligned** | All flags set to `false` in `.env.staging` |
+| SMTP config present | ❌ | ✅ | Vars in `.env.staging`, needs Mailpit/real SMTP |
+| SSO config present | ❌ | ✅ | Vars in `.env.staging`, needs test OAuth app |
+| Sentry DSN present | ❌ | ✅ | DSN field present, still empty (optional) |
+| Rate limiting vars present | ❌ | ✅ | Defaults set |
+| CORS origins present | ❌ | ✅ | Defaults set |
+| Celery broker present | ❌ | ✅ | Redis broker configured |
+| Audit retention present | ❌ | ✅ | 90-day retention, INFO level |
+| Startup smoke test | ❌ | ⏳ | Awaiting `docker compose up` by operator |
+| Deploy workflow | ❌ | ✅ | `deploy-staging.yml` exists (manual dispatch) |
 
-**Overall staging-parity status:** ❌ Production no-go — staging is not a reliable
-pre-production gate until the gaps above are closed.
+**Overall staging-parity status:** ⚠️ Env files now at production parity; CHANGEME passwords + operator startup pending. See [STAGING_VERIFICATION_2026-08-08.md](STAGING_VERIFICATION_2026-08-08.md) for step-by-step verification checklist.

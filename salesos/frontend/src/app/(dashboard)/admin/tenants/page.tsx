@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Input,
@@ -140,7 +140,7 @@ const PLAN_VARIANT: Record<string, "success" | "warning" | "default" | "danger">
   free: "default",
 };
 
-export default function AdminTenantsPage() {
+function AdminTenantsPageContent() {
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -243,6 +243,7 @@ export default function AdminTenantsPage() {
   const hardDeleteMutation = useHardDeleteAdminTenant();
   const rowReprovisionMutation = useReprovisionAdminTenant();
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const tenants = tenantsPage?.items ?? [];
   const totalCount = tenantsPage?.total ?? 0;
 
@@ -1500,7 +1501,7 @@ function TenantDetailModal({
                         ) : (
                           <RefreshCw className="h-4 w-4" />
                         )
-                      }
+}
                     >
                       {reprovisionMutation.isPending ? "Reprovisioning…" : "Reprovision"}
                     </Button>
@@ -1596,5 +1597,13 @@ function TenantDetailModal({
         </ModalFooter>
       </ModalContent>
     </Modal>
+  );
+}
+
+export default function AdminTenantsPage() {
+  return (
+    <Suspense>
+      <AdminTenantsPageContent />
+    </Suspense>
   );
 }

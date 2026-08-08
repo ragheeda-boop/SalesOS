@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@salesos/ui";
 import { AppShell, useAppShell } from "@/components/foundation/app-shell";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { Search, Settings, Bell, Menu, User, Shield, Bot, LogOut, X } from "lucide-react";
+import { Search, Settings, Bell, Menu, User, Bot, LogOut, X } from "lucide-react";
 import { LazyCommandBar, LazySearchPanel, LazyCopilotPanel } from "@/components/lazy-exports";
 import { MobileNav } from "@/components/foundation/MobileNav";
 import { useTheme } from "@salesos/hooks";

@@ -30,7 +30,7 @@ class SignalSubscriptionRepository:
         raise NotImplementedError
 
     async def list_by_signal_and_company(
-        self, signal_id: str, company_id: str
+        self, signal_id: str, company_id: str, tenant_id: str
     ) -> list[SignalSubscription]:
         raise NotImplementedError
 
@@ -107,12 +107,12 @@ class InMemorySignalSubscriptionRepository(SignalSubscriptionRepository):
         return [s for s in self._store.values() if s.tenant_id == tenant_id]
 
     async def list_by_signal_and_company(
-        self, signal_id: str, company_id: str
+        self, signal_id: str, company_id: str, tenant_id: str
     ) -> list[SignalSubscription]:
         return [
             s
             for s in self._store.values()
-            if s.signal_id == signal_id and s.company_id == company_id
+            if s.signal_id == signal_id and s.company_id == company_id and s.tenant_id == tenant_id
         ]
 
     async def delete(self, sub_id: str) -> bool:

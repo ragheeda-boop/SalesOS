@@ -336,7 +336,7 @@ async def test_create_webhook(wf_app: FastAPI):
     transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
-            "/api/v1/webhooks",
+            "/api/v1/workflow/webhooks",
             json={"url": "https://example.com/webhook", "name": "Test Hook", "auth_type": "hmac", "secret": "s3cret"},
             headers={"Authorization": "Bearer test", "X-Tenant-Id": "tenant-1"},
         )
@@ -354,7 +354,7 @@ async def test_list_webhooks(wf_app: FastAPI, svc: WorkflowService):
     transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
-            "/api/v1/webhooks",
+            "/api/v1/workflow/webhooks",
             headers={"Authorization": "Bearer test", "X-Tenant-Id": "tenant-1"},
         )
     assert response.status_code in (200, 500)
@@ -370,7 +370,7 @@ async def test_get_webhook(wf_app: FastAPI, svc: WorkflowService):
     transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
-            f"/api/v1/webhooks/{ep.id}",
+            f"/api/v1/workflow/webhooks/{ep.id}",
             headers={"Authorization": "Bearer test", "X-Tenant-Id": "tenant-1"},
         )
     assert response.status_code in (200, 500)
@@ -386,7 +386,7 @@ async def test_delete_webhook(wf_app: FastAPI, svc: WorkflowService):
     transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.delete(
-            f"/api/v1/webhooks/{ep.id}",
+            f"/api/v1/workflow/webhooks/{ep.id}",
             headers={"Authorization": "Bearer test", "X-Tenant-Id": "tenant-1"},
         )
     assert response.status_code in (200, 500)

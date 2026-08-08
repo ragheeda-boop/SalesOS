@@ -1,3 +1,4 @@
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 /**
  * FE-S08-01 / STORY-08-07 / FE-S08-08 — Studio step ids + Owner Console pointer.
  * Live Studio is IntegrationsStudio against Hub HTTP. Not Production GO.

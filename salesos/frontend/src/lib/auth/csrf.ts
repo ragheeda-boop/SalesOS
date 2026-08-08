@@ -11,6 +11,7 @@ export const CSRF_TOKEN_PATH = "/api/v1/identity/csrf-token";
 
 const CSRF_EXEMPT_PATH_SUFFIXES = [
   "/api/v1/identity/login",
+  "/api/v1/identity/owner/login",
   "/api/v1/identity/register",
   "/api/v1/identity/forgot-password",
   "/api/v1/identity/reset-password",

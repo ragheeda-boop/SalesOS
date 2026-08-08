@@ -29,6 +29,9 @@ test.describe("Critical Path 16: Decision Center", () => {
   });
 
   test("decision center handles API errors gracefully", async ({ page }) => {
+    await page.route("**/api/v1/decisions**", (route) => {
+      route.fulfill({ status: 500, body: "Server error" });
+    });
     await page.route("**/api/v1/decision/**", (route) => {
       route.fulfill({ status: 500, body: "Server error" });
     });

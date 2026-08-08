@@ -97,6 +97,7 @@
   --bg-primary: #ffffff;
   --bg-secondary: #f7f6f4;
   --bg-tertiary: #edebe6;
+  --bg-muted: #f7f6f4;
   --bg-hover: #edebe6;
   --bg-active: #d9d5cd;
 
@@ -174,6 +175,68 @@
   --sidebar-width: 256px;
   --sidebar-collapsed-width: 64px;
   --topbar-height: 56px;
+
+  /* ─── Semantic color aliases (component-facing) ─────── */
+  --color-success: var(--status-success-text);
+  --color-success-bg: var(--status-success-bg);
+  --color-success-border: var(--status-success-border);
+  --color-danger: var(--status-danger-text);
+  --color-danger-bg: var(--status-danger-bg);
+  --color-danger-border: var(--status-danger-border);
+  --color-danger-50: var(--danger-50);
+  --color-danger-600: var(--danger-600);
+  --color-warning: var(--status-warning-text);
+  --color-warning-bg: var(--status-warning-bg);
+  --color-warning-border: var(--status-warning-border);
+  --color-info: var(--status-info-text);
+  --color-info-bg: var(--status-info-bg);
+  --color-info-border: var(--status-info-border);
+  --color-neutral: var(--text-secondary);
+  --color-neutral-bg: var(--bg-tertiary);
+  --color-error: var(--danger-500);
+  --color-purple: #8b5cf6;
+  --color-purple-bg: #ede9fe;
+  --color-purple-border: #c4b5fd;
+  --color-orange: #f97316;
+  --color-orange-bg: #fed7aa;
+  --color-orange-border: #fdba74;
+
+  /* ─── Chart named + indicators (dashboard widgets) ──── */
+  --chart-purple: #8b5cf6;
+  --chart-purple-bg: #ede9fe;
+  --chart-emerald: #10b981;
+  --chart-emerald-bg: #d1fae5;
+  --chart-blue: #3b82f6;
+  --chart-blue-bg: #dbeafe;
+  --chart-orange: #f97316;
+  --chart-orange-bg: #fed7aa;
+  --chart-violet: #7c3aed;
+  --chart-violet-bg: #ede9fe;
+  --chart-yellow: #eab308;
+  --chart-yellow-bg: #fef9c3;
+  --indicator-success: #10b981;
+  --indicator-danger: #ef4444;
+  --indicator-warning: #f59e0b;
+  --indicator-info: #3b82f6;
+  --indicator-neutral: #6b7280;
+
+  /* ─── Convenience aliases (legacy / shadcn-style) ───── */
+  --border: var(--border-default);
+  --border-color: var(--border-default);
+  --border-secondary: var(--border-muted);
+  --border-interactive: var(--border-hover);
+  --card: var(--surface-default);
+  --background: var(--bg-primary);
+  --muted: var(--bg-muted);
+  --muted-foreground: var(--text-muted);
+  --surface-muted: var(--bg-muted);
+  --text-danger: var(--status-danger-text);
+  --accent-primary: var(--muhide-orange);
+  --shadow-sm: 0 1px 2px rgba(21, 18, 20, 0.06);
+  --danger: var(--danger-500);
+  --success: var(--success-500);
+  --warning: var(--warning-500);
+  --info: var(--info-500);
 }
 
 /* ─── Dark Mode ──────────────────────────────────────────────── */
@@ -189,6 +252,7 @@
   --bg-primary: #151214;
   --bg-secondary: #26231e;
   --bg-tertiary: #3d3932;
+  --bg-muted: #26231e;
   --bg-hover: #26211e;
   --bg-active: #3d3630;
 
@@ -239,4 +303,64 @@
 
   /* ─── Focus ─────────────────────────────────────────── */
   --focus-ring: #64b5f6;
+
+  /* ─── Semantic color aliases (component-facing) ─────── */
+  --color-success: var(--status-success-text);
+  --color-success-bg: var(--status-success-bg);
+  --color-success-border: var(--status-success-border);
+  --color-danger: var(--status-danger-text);
+  --color-danger-bg: var(--status-danger-bg);
+  --color-danger-border: var(--status-danger-border);
+  --color-warning: var(--status-warning-text);
+  --color-warning-bg: var(--status-warning-bg);
+  --color-warning-border: var(--status-warning-border);
+  --color-info: var(--status-info-text);
+  --color-info-bg: var(--status-info-bg);
+  --color-info-border: var(--status-info-border);
+  --color-neutral: var(--text-secondary);
+  --color-neutral-bg: var(--bg-tertiary);
+  --color-error: var(--danger-400);
+  --color-purple: #a78bfa;
+  --color-purple-bg: #4c1d95;
+  --color-purple-border: #7c3aed;
+  --color-orange: #fb923c;
+  --color-orange-bg: #7c2d12;
+  --color-orange-border: #ea580c;
+
+  /* ─── Chart named + indicators ──────────────────────── */
+  --chart-purple: #a78bfa;
+  --chart-purple-bg: #4c1d95;
+  --chart-emerald: #34d399;
+  --chart-emerald-bg: #064e3b;
+  --chart-blue: #60a5fa;
+  --chart-blue-bg: #1e3a5f;
+  --chart-orange: #fb923c;
+  --chart-orange-bg: #7c2d12;
+  --chart-violet: #8b5cf6;
+  --chart-violet-bg: #4c1d95;
+  --chart-yellow: #facc15;
+  --chart-yellow-bg: #713f12;
+  --indicator-success: #34d399;
+  --indicator-danger: #f87171;
+  --indicator-warning: #fbbf24;
+  --indicator-info: #60a5fa;
+  --indicator-neutral: #9ca3af;
+
+  /* ─── Convenience aliases ───────────────────────────── */
+  --border: var(--border-default);
+  --border-color: var(--border-default);
+  --border-secondary: var(--border-muted);
+  --border-interactive: var(--border-hover);
+  --card: var(--surface-default);
+  --background: var(--bg-primary);
+  --muted: var(--bg-muted);
+  --muted-foreground: var(--text-muted);
+  --surface-muted: var(--bg-muted);
+  --text-danger: var(--status-danger-text);
+  --accent-primary: var(--muhide-orange);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --danger: var(--danger-400);
+  --success: var(--success-400);
+  --warning: var(--warning-400);
+  --info: var(--info-400);
 }

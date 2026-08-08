@@ -7,15 +7,18 @@ from .repository import (
     InMemorySignalEventRepository,
     InMemorySignalRepository,
     InMemorySignalSubscriptionRepository,
+    SignalEventRepository,
+    SignalRepository,
+    SignalSubscriptionRepository,
 )
 
 
 class SignalMarketplaceService:
     def __init__(
         self,
-        signal_repo: InMemorySignalRepository | None = None,
-        sub_repo: InMemorySignalSubscriptionRepository | None = None,
-        event_repo: InMemorySignalEventRepository | None = None,
+        signal_repo: SignalRepository | None = None,
+        sub_repo: SignalSubscriptionRepository | None = None,
+        event_repo: SignalEventRepository | None = None,
     ):
         self.signal_repo = signal_repo or InMemorySignalRepository()
         self.sub_repo = sub_repo or InMemorySignalSubscriptionRepository()
@@ -51,7 +54,7 @@ class SignalMarketplaceService:
         if signal is None:
             raise ValueError(f"Signal {signal_id} not found")
 
-        existing = await self.sub_repo.list_by_signal_and_company(signal_id, company_id)
+        existing = await self.sub_repo.list_by_signal_and_company(signal_id, company_id, tenant_id)
         for sub in existing:
             if sub.tenant_id == tenant_id and sub.active:
                 return sub

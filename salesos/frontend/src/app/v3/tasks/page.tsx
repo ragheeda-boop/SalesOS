@@ -54,6 +54,7 @@ export default function V3TasksPage() {
     },
   });
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const items = data ?? [];
 
   const filtered = useMemo(() => {
@@ -63,7 +64,7 @@ export default function V3TasksPage() {
       if (status === "done" && !task.completed) return false;
       if (!needle) return true;
       const hay =
-        `${task.title} ${task.priority} ${task.source} ${task.company_id ?? ""}`.toLowerCase();
+        `${task.title} ${task.priority} ${task.source} ${task.company_id ?? ""} ${task.opportunity_id ?? ""}`.toLowerCase();
       return hay.includes(needle);
     });
   }, [items, q, status]);
@@ -222,6 +223,9 @@ export default function V3TasksPage() {
                         Company
                       </th>
                       <th scope="col" className="px-3 py-2.5 font-medium">
+                        Opportunity
+                      </th>
+                      <th scope="col" className="px-3 py-2.5 font-medium">
                         Created
                       </th>
                       <th scope="col" className="px-3 py-2.5 font-medium">
@@ -260,6 +264,15 @@ export default function V3TasksPage() {
                             >
                               Company 360
                             </Link>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-[var(--text-secondary)]">
+                          {task.opportunity_id ? (
+                            <span className="font-mono text-[12px]" dir="ltr">
+                              {task.opportunity_id}
+                            </span>
                           ) : (
                             "—"
                           )}

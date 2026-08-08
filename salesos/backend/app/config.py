@@ -98,11 +98,18 @@ class Settings(BaseSettings):
                 return url.replace("postgres://", "postgresql+asyncpg://", 1)
             return url
         if not self.app_postgres_password:
-            # salesos_app not provisioned in this environment yet (e.g. CI,
-            # staging, or the prod template haven't run the R-14 remediation
-            # script) — fall back to the owner-role URL so nothing breaks.
-            # This fallback is the entire reason app_database_url is safe to
-            # wire in everywhere at once rather than per-environment.
+            # EAB-001-P0-SEC-02 / R-14: empty password previously fell back to
+            # the owner role (BYPASSRLS) — silent tenant-isolation fail-open.
+            # Refuse in non-dev; keep local/dev/test fallback so boots still work
+            # before salesos_app is provisioned (OPERATIONS_MANUAL §14).
+            env = (self.env or "").strip().lower()
+            if env in ("production", "prod", "staging", "stage"):
+                raise RuntimeError(
+                    "APP_POSTGRES_PASSWORD is required when ENV is "
+                    f"{env!r}. Empty password would fall back to the owner "
+                    "role (BYPASSRLS). Provision salesos_app and set "
+                    "APP_POSTGRES_USER/APP_POSTGRES_PASSWORD (R-14 / DEC-013)."
+                )
             return self.resolved_database_url
         return f"postgresql+asyncpg://{self.app_postgres_user}:{self.app_postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
@@ -148,6 +155,9 @@ class Settings(BaseSettings):
     # Do not market copilot as production-ready while this remains False.
     # See docs/audit/ga-engineering-audit/AI_HONESTY.md
     feature_ai_copilot: bool = False
+    # C.1: Postgres signal marketplace after alembic f7a1b82c3d09. Default False =
+    # InMemory (current behavior). Flip only after non-prod upgrade.
+    feature_signal_marketplace_postgres: bool = False
     feature_crm_kanban: bool = False
     # FE-SEC-02 vertical slice — optional httpOnly access JWT cookie (salesos_access).
     # Default False: body TokenResponse + Bearer unchanged; no half-break.
@@ -183,6 +193,13 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"
     sentry_traces_sample_rate: float = 0.1
+
+    # Build provenance — set at deploy time (Railway: RAILWAY_GIT_COMMIT_SHA /
+    # SOURCE_COMMIT; Vercel: VERCEL_GIT_COMMIT_SHA). Used by GET /version so the
+    # FE /system page and CI can prove backend==frontend commit parity (GA gate).
+    build_commit: str = ""
+    build_date: str = ""
+    build_id: str = ""
 
     # Neo4j connection details
     neo4j_database: str = "neo4j"

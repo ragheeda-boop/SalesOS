@@ -2,6 +2,10 @@
 
 Tenant CRUD + versioning + rollback. Not Production GO. DEC-085 untouched.
 feature_ai_copilot remains False. No live LLM / RAG GO.
+
+EAB-001-P1-DUP-02 quarantine: dual prompt surface with ``app.routers.ai``
+``/api/v1/ai/prompts*`` — Studio library is experimental, not single SoT.
+See CAPABILITY-DUP-REGISTER.md. Do not remount as mega Prompt API without DEC.
 """
 
 from __future__ import annotations
@@ -19,7 +23,10 @@ from app.modules.tenant_studio.prompt_library_store import (
     MemPromptLibraryStore,
 )
 
-router = APIRouter(prefix="/studio/prompt-library", tags=["AI Studio"])
+router = APIRouter(
+    prefix="/studio/prompt-library",
+    tags=["AI Studio (experimental; prompt dual-registry)"],
+)
 _AUTH = [Depends(verify_token)]
 
 _STORE = DEFAULT_PROMPT_LIBRARY_STORE
@@ -87,6 +94,7 @@ async def prompt_library_meta() -> dict[str, Any]:
         "operations": ["create", "list", "get", "add_version", "rollback", "delete"],
         "feature_ai_copilot": bool(settings.feature_ai_copilot),
         "honesty": (
+            "DUP-02: dual with /api/v1/ai/prompts* — not single prompt SoT. "
             "Tenant Prompt Library is in-memory CI store extending CAP-023 shape; "
             "live LLM execution / RAG GO / Marketplace prompt-pack install not claimed. "
             "feature_ai_copilot remains False."

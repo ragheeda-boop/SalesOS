@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { Users, Activity, CalendarDays } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";

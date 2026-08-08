@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 

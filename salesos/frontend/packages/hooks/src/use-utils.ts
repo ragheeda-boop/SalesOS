@@ -40,18 +40,17 @@ export function useMediaQuery(query: string): boolean {
   return matches;
 }
 
-export function useKeyboard(
-  key: string,
-  handler: (e: KeyboardEvent) => void,
-  deps: unknown[] = []
-) {
+export function useKeyboard(key: string, handler: (e: KeyboardEvent) => void) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
-      if (e.key === key) handler(e);
+      if (e.key === key) handlerRef.current(e);
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [key, handler, ...deps]);
+  }, [key]);
 }
 
 export function usePrevious<T>(value: T): T | undefined {

@@ -1,5 +1,6 @@
 import { ACCESS_TOKEN_KEY, hasValidAccessToken, readAccessTokenFromCookieHeader } from "./session";
 import { HTTPONLY_ACCESS_COOKIE } from "./httpOnlyAccessCookie";
+import { classifyJwtAudience } from "./ownerAudience";
 
 /** Routes that require an authenticated session (dashboard + v3 workspace). */
 export const PROTECTED_PREFIXES = [
@@ -33,7 +34,7 @@ export const PROTECTED_PREFIXES = [
   "/v3",
 ] as const;
 
-export const PUBLIC_EXACT_PATHS = new Set(["/", "/login", "/register"]);
+export const PUBLIC_EXACT_PATHS = new Set(["/", "/login", "/register", "/admin/login"]);
 
 export const PUBLIC_PREFIXES = [
   "/api/",
@@ -90,10 +91,25 @@ export function shouldRedirectToLogin(pathname: string, token: string | null): b
   return isProtectedPath(pathname) && !hasValidAccessToken(token);
 }
 
+export function isOwnerConsolePath(pathname: string): boolean {
+  return pathname === "/admin" || (pathname.startsWith("/admin/") && pathname !== "/admin/login");
+}
+
+/** Tenant/unknown JWT on /admin* → Owner login (DEC-093 mint). */
+export function shouldRedirectOwnerConsoleToOwnerLogin(
+  pathname: string,
+  token: string | null
+): boolean {
+  if (!isOwnerConsolePath(pathname)) return false;
+  if (!hasValidAccessToken(token)) return false;
+  return classifyJwtAudience(token) !== "owner";
+}
+
 export function buildLoginRedirectUrl(origin: string, pathname: string, search: string): URL {
-  const loginUrl = new URL("/login", origin);
+  const loginPath = isOwnerConsolePath(pathname) ? "/admin/login" : "/login";
+  const loginUrl = new URL(loginPath, origin);
   const callback = `${pathname}${search}`;
-  if (callback && callback !== "/login") {
+  if (callback && callback !== "/login" && callback !== "/admin/login") {
     loginUrl.searchParams.set("callbackUrl", callback);
   }
   return loginUrl;

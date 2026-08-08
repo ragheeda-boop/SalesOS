@@ -42,11 +42,14 @@
 
 ## Quick Start
 
+> **Compose SoT:** Use **`salesos/docker-compose.yml`** (this directory).  
+> Repo-root `docker-compose.yml` is **legacy/quarantined** — see [`docs/ops/COMPOSE-SOURCE-OF-TRUTH.md`](../docs/ops/COMPOSE-SOURCE-OF-TRUTH.md).
+
 ```bash
-# Clone and start everything
+# From salesos/ (authoritative) — clone and start everything
 make dev
 
-# Or manually:
+# Or manually (run from salesos/, not repo root):
 docker compose up --build -d
 
 # Backend API: http://localhost:8000/docs

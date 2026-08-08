@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
-from app.dependencies import get_current_tenant_id, verify_token
+from app.config import settings
+from app.dependencies import get_current_tenant_id, get_db_session, verify_token
 
 from .schemas import (
     AcknowledgeResponse,
@@ -14,6 +16,11 @@ from .schemas import (
     SubscribeRequest,
     SubscribeResponse,
 )
+from .postgres_repo import (
+    PostgresSignalEventRepository,
+    PostgresSignalRepository,
+    PostgresSignalSubscriptionRepository,
+)
 from .service import SignalMarketplaceService
 
 router = APIRouter(
@@ -22,14 +29,17 @@ router = APIRouter(
     dependencies=[Depends(verify_token)],
 )
 
-_service: SignalMarketplaceService | None = None
 
-
-def get_signal_service() -> SignalMarketplaceService:
-    global _service
-    if _service is None:
-        _service = SignalMarketplaceService()
-    return _service
+def get_signal_service(
+    db: AsyncSession = Depends(get_db_session),
+) -> SignalMarketplaceService:
+    if not settings.feature_signal_marketplace_postgres:
+        return SignalMarketplaceService()
+    return SignalMarketplaceService(
+        signal_repo=PostgresSignalRepository(db),
+        sub_repo=PostgresSignalSubscriptionRepository(db),
+        event_repo=PostgresSignalEventRepository(db),
+    )
 
 
 @router.get("", response_model=SignalListResponse)

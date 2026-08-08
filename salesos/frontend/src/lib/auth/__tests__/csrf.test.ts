@@ -23,6 +23,7 @@ describe("csrf helpers — FE 14-04/14-05 support", () => {
     expect(isMutatingMethod("get")).toBe(false);
     expect(isCsrfExemptUrl(CSRF_TOKEN_PATH)).toBe(true);
     expect(isCsrfExemptUrl("/api/v1/identity/login")).toBe(true);
+    expect(isCsrfExemptUrl("/api/v1/identity/owner/login")).toBe(true);
     expect(isCsrfExemptUrl("/api/v1/studio/ai-policies")).toBe(false);
   });
 

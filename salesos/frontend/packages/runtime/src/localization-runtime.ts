@@ -28,8 +28,10 @@ export class LocalizationRuntime {
 
   setLocale(locale: Locale): void {
     this.locale = locale;
-    document.documentElement.lang = locale;
-    document.documentElement.dir = this.isRTL() ? "rtl" : "ltr";
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = locale;
+      document.documentElement.dir = this.isRTL() ? "rtl" : "ltr";
+    }
     this.listeners.forEach((fn) => fn());
   }
 

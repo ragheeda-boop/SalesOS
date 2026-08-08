@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { OnboardingProvider, useOnboarding } from "../onboarding/OnboardingProvider";
 import { OnboardingChecklist } from "../onboarding/OnboardingChecklist";

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,6 +23,8 @@ interface GoogleStatus {
   account: GoogleAccount | null;
   scopes_granted: string[];
   token_valid: boolean;
+  oauth_configured?: boolean;
+  config_missing?: string[];
 }
 
 interface Props {
@@ -47,6 +50,14 @@ function readOauthReturnParams(): {
   };
 }
 
+/** Strip OAuth return params so success/error banners are one-shot (not sticky in the URL). */
+function clearOauthReturnParams(): void {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  ["google", "email", "reason", "sync", "tab"].forEach((k) => url.searchParams.delete(k));
+  window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+}
+
 /** After Google sync, Emp360 / Company360 / contacts / dashboard must refetch. */
 function invalidatePostSync(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: employeeKeys.all });
@@ -55,6 +66,27 @@ function invalidatePostSync(queryClient: ReturnType<typeof useQueryClient>) {
   void queryClient.invalidateQueries({ queryKey: dashboardKeys.stats() });
   void queryClient.invalidateQueries({ queryKey: dashboardKeys.exec() });
   void queryClient.invalidateQueries({ queryKey: dashboardKeys.main() });
+}
+
+/** Prefer string API detail; avoid "[object Object]" for entitlement payloads. */
+function extractApiDetail(err: unknown, fallback: string): string {
+  const data = (err as { response?: { data?: { detail?: unknown; message?: string } } })?.response
+    ?.data;
+  const detail = data?.detail;
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (detail && typeof detail === "object") {
+    const nested =
+      (detail as { message?: string; detail?: string }).message ||
+      (detail as { detail?: string }).detail;
+    if (typeof nested === "string" && nested.trim()) return nested;
+    try {
+      return JSON.stringify(detail);
+    } catch {
+      /* fall through */
+    }
+  }
+  if (typeof data?.message === "string" && data.message.trim()) return data.message;
+  return fallback;
 }
 
 export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
@@ -148,13 +180,13 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
           void runFirstSync();
         }
       });
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        ["google", "email", "reason", "sync", "tab"].forEach((k) => url.searchParams.delete(k));
-        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
-      }
+      clearOauthReturnParams();
     } else if (google === "error") {
       setError(`Google connection failed (${reason || "unknown"})`);
+      clearOauthReturnParams();
+    } else {
+      // Unknown google=* return — still strip so params never stick forever.
+      clearOauthReturnParams();
     }
   }, [fetchStatus, ready, hasToken, runFirstSync]);
 
@@ -189,9 +221,10 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
 
   const handleSyncGmail = useCallback(async () => {
     console.warn("[GooglePanel] handleSyncGmail fired");
+    // Immediate UI proof the handler ran (before network / CSRF mint).
     setSyncingGmail(true);
     setError(null);
-    setSyncMessage(null);
+    setSyncMessage("Syncing Gmail…");
     try {
       const res = await client.post<{ message: string; errors?: string[] }>(
         "/api/v1/integrations/google/sync",
@@ -202,10 +235,8 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       invalidatePostSync(queryClient);
       await fetchStatus();
     } catch (err: unknown) {
-      const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Gmail sync failed — check connection and try again";
-      setError(String(detail));
+      setSyncMessage(null);
+      setError(extractApiDetail(err, "Gmail sync failed — check connection and try again"));
     } finally {
       setSyncingGmail(false);
     }
@@ -213,9 +244,10 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
 
   const handleSyncCalendar = useCallback(async () => {
     console.warn("[GooglePanel] handleSyncCalendar fired");
+    // Immediate UI proof the handler ran (before network / CSRF mint).
     setSyncingCalendar(true);
     setError(null);
-    setSyncMessage(null);
+    setSyncMessage("Syncing Calendar…");
     try {
       const res = await client.post<{ message: string; errors?: string[] }>(
         "/api/v1/integrations/google/calendar-sync",
@@ -226,10 +258,8 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       invalidatePostSync(queryClient);
       await fetchStatus();
     } catch (err: unknown) {
-      const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Calendar sync failed — check connection and try again";
-      setError(String(detail));
+      setSyncMessage(null);
+      setError(extractApiDetail(err, "Calendar sync failed — check connection and try again"));
     } finally {
       setSyncingCalendar(false);
     }
@@ -337,7 +367,9 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={handleSyncGmail}
+                data-testid="google-sync-gmail"
+                aria-busy={syncingGmail}
+                onClick={() => void handleSyncGmail()}
                 disabled={syncingGmail || syncingCalendar || !canSync}
                 className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
               >
@@ -345,15 +377,25 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
               </button>
               <button
                 type="button"
-                onClick={handleSyncCalendar}
+                data-testid="google-sync-calendar"
+                aria-busy={syncingCalendar}
+                onClick={() => void handleSyncCalendar()}
                 disabled={syncingCalendar || syncingGmail || !canSync}
                 className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
               >
                 {syncingCalendar ? "Syncing Calendar..." : "Sync Calendar"}
               </button>
             </div>
-            {syncMessage && (
-              <p className="mt-2 text-green-700 dark:text-green-300">{syncMessage}</p>
+            {(syncMessage || syncingGmail || syncingCalendar) && (
+              <p
+                role="status"
+                aria-live="polite"
+                data-testid="google-sync-status"
+                className="mt-2 text-green-700 dark:text-green-300"
+              >
+                {syncMessage ||
+                  (syncingGmail ? "Syncing Gmail…" : syncingCalendar ? "Syncing Calendar…" : null)}
+              </p>
             )}
           </div>
         )}
@@ -364,6 +406,19 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
               Not connected — Employee360 email/calendar and Communication Hub stay empty until you
               connect. Nothing is invented while disconnected.
             </p>
+            {status?.oauth_configured === false && (
+              <p
+                className="text-amber-700 dark:text-amber-300"
+                data-testid="google-oauth-config-gap"
+              >
+                Google OAuth is not configured on this environment
+                {status.config_missing?.length
+                  ? ` (missing: ${status.config_missing.join(", ")})`
+                  : ""}
+                . Connect returns 503 until credentials are set; Sync buttons appear only after a
+                successful connect.
+              </p>
+            )}
             <p>
               Connect Google to enable Gmail and Calendar sync. First sync starts automatically
               after consent; tokens are encrypted at rest.

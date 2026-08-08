@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useCompany360 } from "@/lib/hooks/company360Queries";
+import { asArray } from "@/lib/asArray";
 import { Card, CardContent, CardHeader, cn, Skeleton, EmptyState } from "@salesos/ui";
 import { Share2, ExternalLink, Building2 } from "lucide-react";
 
@@ -69,12 +70,11 @@ export function KnowledgeGraphPanel({
   const company360 = externalCompany360 ?? fetchedCompany360;
 
   const relatedEntities = useMemo(() => {
-    if (!company360?.related_entities) return [];
-    return company360.related_entities.map((e: Record<string, unknown>) => ({
-      id: e.id as string,
-      name: e.name as string,
+    return asArray<Record<string, unknown>>(company360?.related_entities).map((e) => ({
+      id: String(e.id ?? ""),
+      name: String(e.name ?? "—"),
       type: (e.type as RelationshipType) || "partner",
-      confidence: (e.confidence as number) || 0.5,
+      confidence: typeof e.confidence === "number" ? e.confidence : 0.5,
     }));
   }, [company360]);
 

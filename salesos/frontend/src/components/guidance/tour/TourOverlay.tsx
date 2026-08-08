@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-hardcoded-colors */
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";

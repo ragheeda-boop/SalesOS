@@ -19,7 +19,9 @@ interface CreateTaskInput {
   title: string;
   priority?: string;
   company_id?: string;
+  opportunity_id?: string;
   assignee_id?: string;
+  source?: string;
 }
 
 export function useOpportunities(stage?: string) {
@@ -41,7 +43,12 @@ export function useCreateOpportunity() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateOpportunityInput) => {
-      const res = await api.post("/api/v1/opportunities", data, {
+      const res = await api.post("/api/v1/opportunities", null, {
+        params: {
+          company_id: data.companyId,
+          name: data.name,
+          value: data.estimatedValue ?? 0,
+        },
         headers: { "X-Tenant-Id": getTenantId() },
       });
       return res.data;
@@ -67,13 +74,16 @@ export function useUpdateOpportunityStage() {
   });
 }
 
-export function useTasks(priority?: string) {
-  const params = priority ? { priority } : undefined;
+export function useTasks(priority?: string, opportunityId?: string) {
+  const params = {
+    ...(priority ? { priority } : {}),
+    ...(opportunityId ? { opportunity_id: opportunityId } : {}),
+  };
   return useQuery({
-    queryKey: ["tasks", priority],
+    queryKey: ["tasks", priority, opportunityId],
     queryFn: async () => {
       const res = await api.get("/api/v1/tasks", {
-        params,
+        params: Object.keys(params).length ? params : undefined,
         headers: { "X-Tenant-Id": getTenantId() },
       });
       return res.data;

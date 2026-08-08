@@ -68,7 +68,10 @@ jest.mock("@salesos/ui", () => ({
 describe("CustomFieldsStudio — FE-S10-01", () => {
   it("lists tip schema fields and shows in-memory honesty", () => {
     render(<CustomFieldsStudio />);
-    expect(screen.getByTestId("custom-fields-studio-honesty")).toHaveTextContent(/in-memory/i);
+    // Honesty crumb uses "process memory" (same store semantics as in-memory).
+    expect(screen.getByTestId("custom-fields-studio-honesty")).toHaveTextContent(
+      /process memory|in-memory/i
+    );
     expect(screen.getByTestId("custom-fields-schema-meta")).toHaveTextContent(/schema_version\s*2/);
     expect(screen.getByTestId("custom-fields-row")).toHaveTextContent("renewal_notes");
     expect(screen.getByTestId("custom-fields-auto-preview")).toBeInTheDocument();

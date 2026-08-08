@@ -1,3 +1,12 @@
+"""Decision Platform in-process engine (alternate — not Decision Center SoT).
+
+EAB-001-P0-DUP-01 quarantine: retained for ``/api/v1/decision/*`` scoring /
+rules / learning. Do not delete without DEC. Do not remount as Center or
+Runtime. Prefer ``domains.decision_center`` for governed ledger HTTP.
+See DECISION-API-SOT.md. Disposition remains honest Partial while ≥3 BE
+engines coexist.
+"""
+
 import time
 import uuid
 from datetime import UTC, datetime

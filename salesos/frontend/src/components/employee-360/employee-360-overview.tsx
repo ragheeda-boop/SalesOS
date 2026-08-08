@@ -13,10 +13,10 @@ function ProfileCard({
   data,
   t,
 }: {
-  data: { profile: any };
+  data: { profile: Record<string, unknown> };
   t: (k: string, vars?: Record<string, string | number>) => string;
 }) {
-  const profile = data.profile as any;
+  const profile = data.profile;
   const initials = String(profile.full_name || "")
     .split("")
     .map((n: string) => n[0])
@@ -48,9 +48,11 @@ function ProfileCard({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={profile.is_active ? "success" : "default"}>
-              {profile.is_active ? t("status.active") : t("status.inactive")}
-            </Badge>
+            {typeof profile.is_active === "boolean" ? (
+              <Badge variant={profile.is_active ? "success" : "default"}>
+                {profile.is_active ? t("status.active") : t("status.inactive")}
+              </Badge>
+            ) : null}
             {(profile.phone as string) && (
               <a
                 href={`tel:${profile.phone as string}`}
@@ -70,7 +72,7 @@ function ProfileCard({
           </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--border-subtle)] pt-4">
-          {profile.manager && (
+          {profile.manager != null && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-[var(--text-muted)]">{t("employee.manager")}</span>
               <span className="font-medium text-[var(--text-primary)]">
@@ -229,8 +231,7 @@ export function EmployeeOverview({
     <div className="space-y-4">
       {noSyncData && (
         <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]">
-          No Gmail/Calendar sync data for this employee yet. Empty signals and timeline are honest —
-          connect Google under Settings → Integrations, then run Sync.
+          {t("emp360.no_sync_yet")}
         </div>
       )}
       <ProfileCard data={data} t={t} />

@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR) Index
 
 > **Purpose**: Central registry of all architectural decisions for SalesOS.
-> **Last updated**: 2026-08-01 (DEC-139 — criterion 6.5: ADR-036 multi-index registration)
+> **Last updated**: 2026-08-08 (ADR-109 added)
 
 ---
 
@@ -26,6 +26,14 @@
 | ADR-036 | Engineering Organization — Layer Separation | 2026-08-01 | ✅ Accepted | Governance | `docs/adr/0036-engineering-organization-layer-separation.md` |
 | ADR-100 | Repository Canonicalization | 2026-08-05 | ✅ Accepted — governs repository topology; partially supersedes `docs/architecture/REPOSITORY_RESTRUCTURE_PLAN.md` v2.0; program complete | Architecture | `docs/adr/0100-repository-canonicalization.md` |
 | ADR-101 | Platform Bootstrap & Stabilization | 2026-08-05 | ✅ Accepted — governs install/build/Docker/healthcheck/test cycle; new program, does not reopen ADR-100 | Platform Engineering | `docs/adr/0101-platform-bootstrap-stabilization.md` |
+| ADR-102 | Engineering Hardening | 2026-08-06 | ✅ Accepted — quality/security/CI/observability hardening after Green Bootstrap; Kafka image claim aligned to compose `confluentinc/cp-kafka:7.7.2` | Platform Engineering | `docs/adr/0102-engineering-hardening.md` |
+| ADR-103 | Digital Twin — Defer to v2.0 | 2026-08-07 | ✅ Accepted — zero components exist; defer to v2.0; remove from v1.0 scope | Architecture | `docs/adr/0103-digital-twin-deferred.md` |
+| ADR-104 | Agent Runtime — Defer to v2.0 | 2026-08-07 | ✅ Accepted — placeholder string only; defer to v2.0; remove from v1.0 scope | Architecture | `docs/adr/0104-agent-runtime-deferred.md` |
+| ADR-105 | Revenue Brain — Defer to v2.0 | 2026-08-07 | ✅ Accepted — no implementation; defer to v2.0; remove from v1.0 scope | Architecture | `docs/adr/0105-revenue-brain-deferred.md` |
+| ADR-106 | Platform — Scope to SalesOS Only | 2026-08-07 | ✅ Accepted — only SalesOS exists as code; scope v1.0 to SalesOS only | Architecture | `docs/adr/0106-platform-scope.md` |
+| ADR-107 | Data Residency — Use Existing Tenant.region Field | 2026-08-07 | ✅ Accepted — field exists but unused; implement basic enforcement in v1.0 | Architecture | `docs/adr/0107-data-residency-field.md` |
+| ADR-108 | Knowledge Graph (Neo4j) — Keep Offline in v1.0 | 2026-08-07 | ✅ Accepted — Neo4j offline in production; keep offline for v1.0; SQL fallback remains | Architecture | `docs/adr/0108-neo4j-keep-offline.md` |
+| ADR-109 | Kafka Event Bus — Current Posture and Graduation Path | 2026-08-08 | ✅ Accepted — Kafka provisioned idle; default in_memory; graduation criteria (C1-C5) before enabling in production | Platform Engineering | `docs/adr/0109-kafka-event-bus-posture.md` |
 
 ---
 

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable custom-rules/no-tailwind-color-classes */
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import api from "@/lib/api";

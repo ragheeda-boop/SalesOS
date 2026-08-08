@@ -96,9 +96,23 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(
         work_intelligence_router, prefix="/api/v1", tags=["Work Intelligence"], dependencies=_auth
     )
+    # EAB-001-P0-DUP-01 / Decision API SoT:
+    # Canonical governed decisions = Decision Center (`/api/v1/decisions*`).
+    # Decision Platform keeps `/api/v1/decision/*` (alternate capability).
+    # Decision Runtime remounted under `/api/v1/decision-runtime` (below) — do not
+    # remount Runtime at `/api/v1` (collided with Platform evaluate + Center decisions).
+    # See docs/audit/ga-engineering-audit/enterprise-audit-board/history/
+    # EAB-2026-08-06-001/DECISION-API-SOT.md
     app.include_router(
-        decision_platform_router, prefix="", tags=["Decision Platform"], dependencies=_auth
+        decision_platform_router,
+        prefix="",
+        tags=["Decision Platform (alternate)"],
+        dependencies=_auth,
     )
+    # A.1: revenue_execution opportunity CRUD remounted to
+    # `/api/v1/revenue-execution/opportunities*` (see that router). Canonical
+    # `/api/v1/opportunities` = commercial.py (FE query-param + GET-by-id).
+    # opportunities.py keeps JSON PUT / PATCH stage / close-won|lost only.
     app.include_router(
         revenue_execution_router, prefix="", tags=["Revenue Execution"], dependencies=_auth
     )
@@ -106,7 +120,10 @@ def register_routers(app: FastAPI) -> None:
     from domains.decision_center.router import router as decision_center_router
 
     app.include_router(
-        decision_center_router, prefix="/api/v1", tags=["Decision Center"], dependencies=_auth
+        decision_center_router,
+        prefix="/api/v1",
+        tags=["Decision Center (SoT)"],
+        dependencies=_auth,
     )
     app.include_router(
         company_router, prefix="/api/v1/companies", tags=["Companies"], dependencies=_auth
@@ -143,15 +160,26 @@ def register_routers(app: FastAPI) -> None:
         tags=["Feature Store Domain"],
         dependencies=_auth,
     )
+    # Deprecated HTTP prefix: was `/api/v1` (collided with Center + Platform).
+    # New SoT prefix: `/api/v1/decision-runtime` (engine code retained; not deleted).
     app.include_router(
-        decision_router, prefix="/api/v1", tags=["Decision Engine"], dependencies=_auth
+        decision_router,
+        prefix="/api/v1/decision-runtime",
+        tags=["Decision Runtime (remounted; deprecated /api/v1 aliases)"],
+        dependencies=_auth,
     )
     app.include_router(graph_router, prefix="/api/v1", tags=["Knowledge Graph"], dependencies=_auth)
     app.include_router(timeline_router, prefix="/api/v1", tags=["Timeline"], dependencies=_auth)
+    # EAB-001-P1-DUP-02: runtime search is primary; app.routers.search is experimental.
     app.include_router(search_router, prefix="/api/v1", tags=["Search"], dependencies=_auth)
     from app.routers.search import router as search_api_router
 
-    app.include_router(search_api_router, prefix="/api/v1", tags=["Search"], dependencies=_auth)
+    app.include_router(
+        search_api_router,
+        prefix="/api/v1",
+        tags=["Search (experimental)"],
+        dependencies=_auth,
+    )
     app.include_router(capability_router, dependencies=_auth)
     app.include_router(ux_router, dependencies=_auth)
 
@@ -473,6 +501,8 @@ def register_routers(app: FastAPI) -> None:
 
     from app.routers.workflows import router as workflow_router
 
+    # EAB-001-P1-DUP-02: workflow webhook CRUD lives at `/api/v1/workflow/webhooks*`
+    # (not `/api/v1/webhooks*`) so Integration Hub owns `/api/v1/webhooks/*`.
     app.include_router(
         workflow_router, prefix="/api/v1", tags=["Workflow Engine"], dependencies=_auth
     )
@@ -482,14 +512,13 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(rules_engine_router, tags=["Rules Engine"], dependencies=_auth)
 
     from app.routers.meetings import router as meetings_router
-    from app.routers.opportunities import router as opportunities_router
     from app.routers.revenue import router as revenue_router
     from runtime.nba_engine.api.router import router as nba_router
     from runtime.pipeline_analytics.router import router as pipeline_analytics_router
 
-    app.include_router(
-        opportunities_router, prefix="/api/v1", tags=["Opportunities"], dependencies=_auth
-    )
+    # B.1: commercial.py owns all `/api/v1/opportunities*` (list/create/get/mutate).
+    # `routers/opportunities.py` unmounted — same table via `_get_opp`; do not remount
+    # without a distinct prefix (would shadow commercial).
     app.include_router(
         meetings_router, prefix="/api/v1", tags=["Meeting Intelligence"], dependencies=_auth
     )
@@ -523,6 +552,7 @@ def register_routers(app: FastAPI) -> None:
 
     from app.modules.webhooks.router import router as webhooks_router
 
+    # Integration Hub subscriptions SoT: `/api/v1/webhooks/subscriptions*` (not workflow).
     app.include_router(webhooks_router)
 
     from app.routers.enrichment import router as enrichment_router

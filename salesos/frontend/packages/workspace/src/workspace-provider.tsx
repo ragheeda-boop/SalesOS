@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useRef, type ReactNode } from "react";
 import type { WorkspaceContextValue } from "./workspace-types";
 
 export function createWorkspaceProvider<
@@ -24,13 +24,15 @@ export function createWorkspaceProvider<
     ...props
   }: { children: ReactNode; onReady?: () => void } & P) {
     const { data, isLoading, isError, error, refetch } = useData(props as unknown as P);
+    const onReadyRef = useRef(onReady);
+    onReadyRef.current = onReady;
     const widgets = useMemo(
       () => deriveWidgets(data, isLoading, isError),
       [data, isLoading, isError]
     );
 
     useMemo(() => {
-      if (!isLoading && widgets) onReady?.();
+      if (!isLoading && widgets) onReadyRef.current?.();
     }, [isLoading, widgets]);
 
     const value = useMemo<WorkspaceContextValue<W>>(

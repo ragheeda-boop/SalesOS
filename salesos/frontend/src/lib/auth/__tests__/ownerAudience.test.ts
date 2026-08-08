@@ -36,9 +36,10 @@ describe("ownerAudience — STORY-07-03", () => {
 
   it("formats honest gate copy without claiming Production GO", () => {
     expect(formatOwnerAudienceHonesty("owner")).toContain(OWNER_JWT_AUDIENCE);
-    expect(formatOwnerAudienceHonesty("tenant")).toContain("DEC-093");
+    expect(formatOwnerAudienceHonesty("tenant")).toContain("/admin/login");
     expect(formatOwnerAudienceHonesty("tenant")).toContain("Not Production GO");
     expect(formatOwnerAudienceHonesty("missing")).toContain("No access token");
+    expect(formatOwnerAudienceHonesty("missing")).toContain("/admin/login");
   });
 
   it("classifies Owner Console host honesty without inventing deploy GO", () => {
@@ -60,7 +61,7 @@ describe("ownerAudience — STORY-07-03", () => {
     expect(isOwnerConsoleAudience(owner)).toBe(true);
     expect(isOwnerConsoleAudience(tenant)).toBe(false);
     expect(formatOwnerAudienceHonesty("tenant")).toMatch(/admin/i);
-    expect(formatOwnerAudienceHonesty("owner")).not.toMatch(/DEC-093/);
+    expect(formatOwnerAudienceHonesty("owner")).not.toMatch(/admin\/login/);
   });
 
   it("surfaces owner-audience denial for tenant JWT on admin APIs only", () => {
@@ -93,7 +94,7 @@ describe("ownerAudience — STORY-07-03", () => {
         token: tenant,
       })
     ).toBe(false);
-    expect(formatOwnerAuthDeniedMessage("tenant")).toContain("DEC-093");
+    expect(formatOwnerAuthDeniedMessage("tenant")).toContain("/admin/login");
     expect(formatOwnerAuthDeniedMessage("tenant")).toContain("Tenant session kept");
   });
 });

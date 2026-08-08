@@ -1,4 +1,4 @@
-import type { DecisionContext, DecisionResult } from "@salesos/decision-platform";
+import type { DecisionResult } from "@salesos/decision-platform";
 
 export type AgentStatus = "idle" | "busy" | "error" | "disabled";
 export type TaskStatus = "pending" | "assigned" | "running" | "completed" | "failed" | "cancelled";

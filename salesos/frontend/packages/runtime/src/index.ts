@@ -1,4 +1,4 @@
-export { StateRuntime, type StateRuntimeOptions } from "./state-runtime";
+export { StateRuntime, useStore, type StateRuntimeOptions } from "./state-runtime";
 export { SessionRuntime, type Session, type SessionUser } from "./session-runtime";
 export { RealtimeRuntime, type RealtimeSubscription } from "./realtime-runtime";
 export { CacheRuntime, type CacheEntry, type CacheOptions } from "./cache-runtime";

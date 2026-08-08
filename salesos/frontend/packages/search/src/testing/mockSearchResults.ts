@@ -1,4 +1,4 @@
-import type { SearchResult, SearchSuggestion, SearchResponse, SearchFacet } from "../types";
+import type { SearchResult, SearchSuggestion, SearchResponse } from "../types";
 
 const now = new Date().toISOString();
 

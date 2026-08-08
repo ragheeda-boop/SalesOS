@@ -4,6 +4,8 @@ module.exports = {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.test.json", diagnostics: false }],
   },
   moduleNameMapper: {
+    "^@salesos/decision-platform-lab$": "<rootDir>/index.ts",
+    "^@salesos/decision-platform-lab/(.*)$": "<rootDir>/$1",
     "^@salesos/decision-platform$": "<rootDir>/index.ts",
     "^@salesos/decision-platform/(.*)$": "<rootDir>/$1",
     "^@salesos/(.*)$": "<rootDir>/../../$1/src",
