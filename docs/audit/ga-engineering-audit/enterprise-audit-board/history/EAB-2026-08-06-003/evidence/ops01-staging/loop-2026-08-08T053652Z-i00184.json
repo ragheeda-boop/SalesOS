@@ -1,0 +1,158 @@
+{
+  "iteration": 184,
+  "timestamp": "2026-08-08T05:36:52Z",
+  "gate_pass": true,
+  "counts": {
+    "PASS": 7,
+    "FAIL": 0,
+    "WARN": 0,
+    "SKIP": 2,
+    "UNVERIFIED": 0
+  },
+  "hard_fails": [],
+  "checks": [
+    {
+      "name": "api.ping",
+      "status": "PASS",
+      "detail": "HTTP 200 in 636ms",
+      "evidence": {
+        "url": "https://salesos-staging.up.railway.app/ping",
+        "http_status": 200,
+        "latency_ms": 635.6,
+        "body": "{\"ping\":\"pong\"}"
+      }
+    },
+    {
+      "name": "api.health",
+      "status": "PASS",
+      "detail": "HTTP 200 in 614ms status='ok'",
+      "evidence": {
+        "url": "https://salesos-staging.up.railway.app/health",
+        "http_status": 200,
+        "latency_ms": 613.6,
+        "body": {
+          "status": "ok",
+          "version": "5.1.0-rc1",
+          "database": "connected",
+          "cache": "connected",
+          "graph": "connected",
+          "kafka": "in_memory",
+          "redis": "connected",
+          "rate_limiter": "active",
+          "uptime_seconds": 114061.3109819889
+        },
+        "retries": 3
+      }
+    },
+    {
+      "name": "api.health_detailed",
+      "status": "PASS",
+      "detail": "HTTP 200 in 471ms overall='healthy'",
+      "evidence": {
+        "url": "https://salesos-staging.up.railway.app/health/detailed",
+        "http_status": 200,
+        "latency_ms": 470.7,
+        "body": {
+          "status": "healthy",
+          "checks": {
+            "database": {
+              "status": "connected",
+              "pool_size": 20,
+              "checked_in": 1,
+              "checked_out": 0,
+              "overflow": -19,
+              "total_open": 1
+            },
+            "cache": {
+              "status": "connected"
+            },
+            "graph": {
+              "status": "connected"
+            },
+            "kafka": {
+              "status": "in_memory"
+            },
+            "websocket": {
+              "total_connections_opened": 0,
+              "total_connections_closed": 0,
+              "total_heartbeats_sent": 0,
+              "total_heartbeats_received": 0,
+              "total_messages_sent": 0,
+              "total_messages_received": 0,
+              "rejected_by_limit": 0,
+              "active_connections": 0,
+              "by_tenant": {},
+              "max_per_tenant": 100,
+              "heartbeat_interval_seconds": 30.0
+            },
+            "sla": {
+              "status": "healthy",
+              "evaluated_at": "2026-08-08T05:36:52Z",
+              "breached_count": 0,
+              "healthy_count": 0,
+              "categories": [],
+              "recent_violations": []
+            },
+            "uptime_seconds": 114061.9,
+            "version": "5.1.0-rc1"
+          }
+        }
+      }
+    },
+    {
+      "name": "api.redis_cache",
+      "status": "PASS",
+      "detail": "cache='connected' redis='connected' (from health)",
+      "evidence": {
+        "cache": "connected",
+        "redis": "connected",
+        "source": "health"
+      }
+    },
+    {
+      "name": "alembic.current_eq_heads",
+      "status": "SKIP",
+      "detail": "--skip-alembic set",
+      "evidence": {}
+    },
+    {
+      "name": "flags.demo_and_copilot",
+      "status": "SKIP",
+      "detail": "--skip-flags set",
+      "evidence": {}
+    },
+    {
+      "name": "fe.route/root",
+      "status": "PASS",
+      "detail": "HTTP 200 in 342ms bytes=10271",
+      "evidence": {
+        "url": "https://sales-os-jet.vercel.app/",
+        "http_status": 200,
+        "latency_ms": 341.8,
+        "bytes": 10271
+      }
+    },
+    {
+      "name": "fe.route/copilot",
+      "status": "PASS",
+      "detail": "HTTP 200 in 474ms bytes=12491",
+      "evidence": {
+        "url": "https://sales-os-jet.vercel.app/copilot",
+        "http_status": 200,
+        "latency_ms": 473.9,
+        "bytes": 12491
+      }
+    },
+    {
+      "name": "fe.route/analytics",
+      "status": "PASS",
+      "detail": "HTTP 200 in 490ms bytes=12491",
+      "evidence": {
+        "url": "https://sales-os-jet.vercel.app/analytics",
+        "http_status": 200,
+        "latency_ms": 490.1,
+        "bytes": 12491
+      }
+    }
+  ]
+}

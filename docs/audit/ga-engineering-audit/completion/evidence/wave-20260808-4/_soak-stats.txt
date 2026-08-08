@@ -1,0 +1,21 @@
+SOAK_SNAPSHOT_UTC=2026-08-08T10:16:00Z
+wave=WAVE-20260808-4
+loop_files=239
+gate_pass_iters=239
+gate_fail_iters=0
+first_ts=2026-08-07T14:10:06Z first_iter=1 first_file=loop-2026-08-07T141006Z-i00001.json
+last_ts=2026-08-08T10:15:13Z last_iter=239 last_file=loop-2026-08-08T101513Z-i00239.json
+elapsed_from_start_h=20.08
+target_duration_h=72
+approx_remaining_h=51.92
+expected_iters_at_5min_72h=864
+NOT_576_NOT_COMPLETE=true
+soak_complete_claim=false
+harness_pid=16044
+harness_alive=true
+api=https://salesos-staging.up.railway.app
+fe=https://sales-os-jet.vercel.app
+cmdline=python wave11-soak-gate.py --loop --interval 300 --duration-hours 72 --skip-alembic --skip-flags --fail-soft
+last_loop_gate_pass=true
+last_loop_PASS=7 SKIP=2 FAIL=0
+do_not_start_second_soak=true

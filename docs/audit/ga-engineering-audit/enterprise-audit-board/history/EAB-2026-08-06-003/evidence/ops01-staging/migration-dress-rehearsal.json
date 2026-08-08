@@ -1,0 +1,34 @@
+{
+  "rehearsal": "migration-dress-rehearsal",
+  "date": "2026-08-07",
+  "approved_by": "CTO explicit approval (2026-08-07)",
+  "source": "read-only pg_dump of production (19.4MB, -Fc, --no-owner)",
+  "scratch_env": "docker pgvector/pgvector:pg18, host port 5544, scratch only",
+  "restore": { "exit": 0, "seconds": 45.2, "alembic": "d1a8c35e7f09", "tables": 96, "companies": 141221 },
+  "migration_runner_image": "salesos-migrate-4750038c",
+  "timed_steps": {
+    "rev1_e2b9d46f8a10_admin_trio": { "exit": 0, "seconds": 22.8 },
+    "rev2_a4f7c29e1b80_37_indexes_widen_HIGH": { "exit": 0, "seconds": 19.7 },
+    "rev3_to_head_remaining_13": { "exit": 0, "seconds": 18.1 }
+  },
+  "total": { "exit": 0, "seconds": 60.6 },
+  "verify": {
+    "alembic": "e5f9a32b0c08",
+    "tables_total": 134,
+    "companies_rows": 141221,
+    "tenants_rows": 57,
+    "new_tables_present": 13,
+    "target_indexes_created": "37 of 37",
+    "contacts_name_width": 500,
+    "contacts_name_ar_width": 500,
+    "rls_forced_hub_tables": "4 of 4 (external_system_connections, field_mapping_configs, sync_runs, conflict_resolution_policies)",
+    "sync_runs_partitions": 25
+  },
+  "conclusion": {
+    "verdict": "CLEAN PASS",
+    "window_impact_estimate": "~20s for the feared a4f7c29e1b80 index build; ~60s total for all 15 revisions on a prod-data-size copy",
+    "data_integrity": "companies 141,221 preserved; tenants 57 preserved",
+    "risk_assessment_upper_bound": "45+ min estimate from PROD-MIGRATION-RISK.md is NOT supported by prod-size rehearsal; actual measured impact ~1 min wall clock (single-threaded)",
+    "residual": "production execution still requires backup+restore-verify, code freeze, and explicit window approval; this rehearsal validates feasibility + timing only"
+  }
+}

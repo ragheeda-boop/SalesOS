@@ -1,0 +1,31 @@
+WAVE-20260808-4 targeted FE lint
+cwd=salesos/frontend
+command=npx next lint --dir packages
+when_utc=2026-08-08T10:15Z
+full_npm_run_lint=NOT_RUN
+full_npm_run_build=NOT_RUN
+
+BEFORE (W2 residual, same command class): ~9 Errors
+AFTER (this wave): 4 Errors + 2 Warnings (a11y, not Errors)
+
+Errors remaining:
+./packages/hooks/src/use-utils.ts
+54:21  Error: React Hook useEffect has a spread element in its dependency array. (useKeyboard ...deps)  react-hooks/exhaustive-deps
+
+./packages/runtime/src/state-runtime.ts
+109:25  Error: React Hook "useCallback" cannot be called in a class component.  react-hooks/rules-of-hooks
+110:23  Error: React Hook "useCallback" cannot be called in a class component.  react-hooks/rules-of-hooks
+114:12  Error: React Hook "useSyncExternalStore" cannot be called in a class component.  react-hooks/rules-of-hooks
+
+Warnings (not counted in CP-C-02 Error residual):
+./packages/ui/src/date-picker.tsx jsx-a11y/role-supports-aria-props (2)
+
+Fixed this wave (exhaustive-deps, no eslint-disable):
+- packages/hooks/src/use-entity.ts (extract fieldsKey/cacheTtlMs)
+- packages/widget-sdk/src/create-widget.tsx (add toast dep)
+- packages/widget-sdk/src/widget-lifecycle.ts (hooks/metadata refs; mount still [id])
+- packages/workspace/src/workspace-provider.tsx (onReadyRef)
+
+Skipped:
+- useKeyboard spread (cannot statically list deps without API change; zero in-repo callers)
+- state-runtime class useStore hooks (not trivial rename)

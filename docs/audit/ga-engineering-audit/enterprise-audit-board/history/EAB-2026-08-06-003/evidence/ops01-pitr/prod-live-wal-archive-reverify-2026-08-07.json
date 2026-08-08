@@ -1,0 +1,27 @@
+{
+  "artifact": "production-live-wal-archive-reverify",
+  "run": "EAB-2026-08-06-003",
+  "date": "2026-08-07",
+  "mode": "read-only SQL via local tunnel (no writes)",
+  "environment": "production",
+  "connection": "local tunnel -> prod Postgres (alembic d1a8c35e7f09)",
+  "query": "SHOW archive_mode; SELECT archived_count, failed_count, last_archived_wal FROM pg_stat_archiver; SELECT count(*) FROM pg_stat_activity WHERE state='active';",
+  "results": {
+    "archive_mode": "on",
+    "pg_stat_archiver": {
+      "archived_count": 1240,
+      "failed_count": 0,
+      "last_archived_wal": "000000010000000500000032"
+    },
+    "active_connections": 15,
+    "alembic_current": "d1a8c35e7f09"
+  },
+  "interpretation": "archive_mode=on confirmed LIVE on production; archived_count grew 6 -> 1240 since 2026-08-06 drill (row2), failed=0. Disproves stale 'archive still off' claim in DR-GA-GAPS-CHECKLIST (which references local compose, not prod).",
+  "resolves": "BOARD-CONSENSUS RC-P0-02 / R1 DB-P0-2 / R2 DO-P0-2 / R3 EA-P0-2: DR checklist EAB-003 block 'archive still off' vs linked evidence JSON (archive on)",
+  "cross_references": {
+    "row2_drill": "ops01-row2-wal-archiver.json",
+    "stale_claim_source": "docs/ops/DR-GA-GAPS-CHECKLIST.md (local compose context, not prod)",
+    "offsite": "ops01-row1-offsite-restore.json"
+  },
+  "signed_off_by": ""
+}

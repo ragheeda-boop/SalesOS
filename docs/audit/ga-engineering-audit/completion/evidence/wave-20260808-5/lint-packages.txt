@@ -1,0 +1,22 @@
+WAVE-20260808-5 targeted FE lint
+cwd=salesos/frontend
+command=npx next lint --dir packages
+when_utc=2026-08-08T10:33:17Z
+exit_code=0
+full_npm_run_lint=NOT_RUN
+full_npm_run_build=NOT_RUN
+
+BEFORE (W4 residual, same command class): 4 Errors + 2 Warnings
+AFTER (this wave): 0 Errors + 2 Warnings (a11y, not Errors)
+
+Warnings remaining (not counted in CP-C-02 Error residual):
+./packages/ui/src/date-picker.tsx
+261:9  Warning: The attribute aria-invalid is not supported by the role button.  jsx-a11y/role-supports-aria-props
+393:19  Warning: The attribute aria-selected is not supported by the role button.  jsx-a11y/role-supports-aria-props
+
+Fixed this wave (no eslint-disable):
+- packages/hooks/src/use-utils.ts — useKeyboard: handlerRef + [key] only; dropped unused deps spread (zero in-repo callers)
+- packages/runtime/src/state-runtime.ts — extracted function hook useStore(runtime, path); removed class method (rules-of-hooks)
+- packages/runtime/src/index.ts — re-export useStore
+
+Store semantics: same get + subscribe + useSyncExternalStore snapshot. Call shape changed from runtime.useStore(path) → useStore(runtime, path). Zero in-repo call sites.

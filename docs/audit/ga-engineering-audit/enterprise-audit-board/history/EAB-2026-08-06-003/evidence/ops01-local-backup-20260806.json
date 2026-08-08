@@ -1,0 +1,51 @@
+{
+  "artifact": "ops01-local-backup-restore",
+  "run_id": "EAB-2026-08-06-003",
+  "finding": "EAB-001-P0-OPS-01",
+  "timestamp_utc": "2026-08-06T13:51:42Z",
+  "environment": "local Docker Compose NON-PROD (salesos/docker-compose.yml)",
+  "production_go_claim": false,
+  "offsite_claim": false,
+  "wal_pitr_claim": false,
+  "validation_label": "light validated",
+  "compose_sot": "salesos/docker-compose.yml",
+  "wal_primary": {
+    "wal_level": "replica",
+    "archive_mode": "off",
+    "archive_command": "(disabled)",
+    "archived_count": 0,
+    "note": "Primary continuous archive still OPEN — does not close OPS01-02/03"
+  },
+  "backup": {
+    "command": "docker compose --profile backup run --rm backup backup-db",
+    "dump_file": "salesos_20260806_135142.dump",
+    "size_bytes": 533851,
+    "toc_entries_approx": 1363,
+    "format": "custom (-Fc) gzip",
+    "pg_dump_version": "16.14",
+    "exit_code": 0,
+    "script_reported_mb": 0,
+    "note": "Script MB integer truncates sub-1MiB dumps; size_bytes is authoritative"
+  },
+  "restore": {
+    "target_db": "salesos_restore_drill_eab003",
+    "primary_db_touched": false,
+    "command_shape": "pg_restore -h postgres -U $DB_USER -d salesos_restore_drill_eab003 --clean --if-exists --no-owner --no-acl /backups/salesos_20260806_135142.dump",
+    "exit_code": 0,
+    "elapsed_sec_approx": 8.5,
+    "public_table_count": 134,
+    "alembic_version": "e5f9a32b0c08",
+    "matches_primary_alembic": true
+  },
+  "minio_objectstore": {
+    "profile_present": true,
+    "running_this_session": false,
+    "upload_download_drill": "not_run"
+  },
+  "closes_ops01_rows_1_to_5": false,
+  "related_docs": [
+    "OPS-01-ADVANCEMENT.md",
+    "docs/audit/ga-engineering-audit/PROGRESS-WAVE10-BACKUP.md",
+    "docs/audit/ga-engineering-audit/runbooks/backup-restore-drill.md"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "row": 3,
+  "control": "OPS-01 Row 3 - PITR restore drill",
+  "date": "2026-08-06",
+  "status": "DONE",
+  "product": "SalesOS production PostgreSQL",
+  "repository": "salesos-pitr-w-857q3fjjrr (Railway-managed pgBackRest S3 bucket, region sjc)",
+  "stanza": "main (repo path /pgbackrest/cluster-7666941693427392564)",
+  "pgbackrest_version": "2.59.0",
+  "base_backup_restored": "20260806-192926F",
+  "backup_start_stop": "2026-08-06 19:29:26+00 / 2026-08-06 19:29:49+00",
+  "database_size": 367.8,
+  "restore_size_bytes": 367.8,
+  "file_total": 1949,
+  "recovery_started_at": "2026-08-06 19:29:26",
+  "recovery_target": "2026-08-06 19:29:50",
+  "recovery_target_type": "time",
+  "recovery_target_action": "promote",
+  "restore_duration_ms": 259310,
+  "restore_exit": 0,
+  "promoted_timeline": 2,
+  "readiness": "database system is ready to accept connections",
+  "pg_is_in_recovery_after_promote": false,
+  "notes": [
+    "Attempt 1 target=19:40:00 UTC FATAL 'recovery ended before configured recovery target was reached': production had ZERO committed transactions between 19:29:50 and 19:48 (last completed txn was 19:29:50.379789+00, WAL archived through segment 0x76). PostgreSQL stops at first commit with ts >= target; no such commit existed, so recovery ran to end of available WAL and aborted. Correct PG semantics; demonstrates PITR requires a commit at/after target.",
+    "Attempt 2 target=19:29:50 UTC (last committed transaction): recovery stopped at that commit and promoted cleanly to timeline 2.",
+    "Backup is a hot physical backup; PITR replay was fed WAL via archive-get from the Railway-managed pgBackRest repo (S3 bucket), i.e. the same archive the Railway PITR feature uses.",
+    "Restore target 19:29:50 vs last commit 19:29:50.379 -> identical because window had no later commits (idle DB); high-water equality vs live is expected and documented."
+  ],
+  "verification": {
+    "alembic_version": "d1a8c35e7f09",
+    "companies_count_restored": 141221,
+    "companies_count_live": 141221,
+    "audit_logs_count_restored": 683,
+    "audit_logs_count_live": 683,
+    "audit_logs_max_created_at_restored": "2026-08-06 17:54:01.780827+00",
+    "audit_logs_max_created_at_live": "2026-08-06 17:54:01.780827+00",
+    "tenants_count_restored": 57,
+    "tenants_count_live": 57,
+    "match": "exact"
+  },
+  "railway_native_pitr": {
+    "graphql_mutation": "volumeInstancePITRRestore",
+    "attempt": "targetTimestamp=2026-08-06T19:40:00.000Z, newServiceName=salesos-pitr-restore-drill-20260806",
+    "result": "Not Authorized (Railway plan/permission gating)",
+    "fallback": "pgBackRest local restore against the SAME managed archive (this drill)"
+  },
+  "produced_by": "opsai session 2026-08-06 (full operator authorization)"
+}

@@ -1,0 +1,46 @@
+{
+  "artifact": "production-health-detailed-post-neo4j-repair",
+  "run": "EAB-2026-08-06-003",
+  "date": "2026-08-07",
+  "captured_at": "2026-08-07T16:23:30Z",
+  "environment": "production",
+  "base_url": "https://salesos-production-96c0.up.railway.app",
+  "probe": "read-only HTTP GET (no writes)",
+  "endpoint": "/health/detailed",
+  "http_status": 200,
+  "body": {
+    "status": "healthy",
+    "checks": {
+      "database": {
+        "status": "connected",
+        "pool_size": 20,
+        "checked_in": 5,
+        "checked_out": 0,
+        "overflow": -15,
+        "total_open": 5
+      },
+      "cache": {
+        "status": "connected"
+      },
+      "graph": {
+        "status": "connected"
+      },
+      "kafka": {
+        "status": "in_memory"
+      },
+      "sla": {
+        "status": "healthy",
+        "evaluated_at": "2026-08-07T16:21:16Z",
+        "breached_count": 0,
+        "healthy_count": 0
+      },
+      "uptime_seconds": 154226.6,
+      "version": "5.1.0-rc1"
+    }
+  },
+  "uptime_hours": 42.84,
+  "cross_references": {
+    "root_cause": "ROOTCAUSE-NEO4J.md section 3",
+    "simple_health": "prod-health-2026-08-07T1623Z.json"
+  }
+}

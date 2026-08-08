@@ -1,0 +1,47 @@
+{
+  "row": 1,
+  "title": "Offsite logical backup (durable off-box store + retention) + restore drill",
+  "date": "2026-08-06",
+  "source": "production SalesOS Postgres (railway internal, server 18.4)",
+  "dump": {
+    "filename": "salesos_prod_20260806.dump",
+    "format": "pg_dump custom (-Fc), compression 9",
+    "size_bytes": 20167454,
+    "sha256": "E5DBA2311397509717B0B292C9BA995F611C25CF5296DB8553D689CA1919FBC8",
+    "toc_entries": 936,
+    "pg_dump_exit": 0
+  },
+  "store": {
+    "type": "Railway Bucket (S3-compatible)",
+    "bucket": "salesos-backups",
+    "bucket_name_physical": "salesos-backups-iwrweogrr",
+    "region": "sjc",
+    "endpoint": "https://t3.storageapi.dev",
+    "object_key": "2026/08/salesos_prod_20260806.dump",
+    "upload_at": "2026-08-06T19:39:09Z",
+    "upload_size_bytes": 20167454,
+    "etag": "487e9b7fd69d19cf5bbfdce06a46fcbb-3",
+    "upload_ok": true
+  },
+  "download_verify": {
+    "downloaded_size_bytes": 20167454,
+    "downloaded_sha256": "E5DBA2311397509717B0B292C9BA995F611C25CF5296DB8553D689CA1919FBC8",
+    "checksum_match": true
+  },
+  "restore_drill": {
+    "target": "disposable local pgvector/pgvector:pg18 container (salesos-restore-drill-pg18) -> DB salesos_restore_drill_offsite",
+    "pg_restore_exit": 0,
+    "restore_seconds": 29,
+    "flags": "--no-owner --no-acl --exit-on-error",
+    "public_tables_restored": 96,
+    "alembic_version_restored": "d1a8c35e7f09",
+    "alembic_version_live": "d1a8c35e7f09",
+    "alembic_match": true,
+    "companies_restored": 141221,
+    "companies_live": 141221,
+    "row_match": true,
+    "primary_untouched": true
+  },
+  "retention": "bucket + operator schedule under review; lifecycle/TTL documented in ops01-row1-evidence.md",
+  "signed_off_by": ""
+}

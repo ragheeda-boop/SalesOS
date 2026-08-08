@@ -1,0 +1,15 @@
+﻿NAME                          STATUS
+salesos-alertmanager-1        Up 2 days (healthy)
+salesos-backend-1             Up 29 hours (healthy)
+salesos-frontend-1            Up 2 days (healthy)
+salesos-grafana-1             Up 2 days (healthy)
+salesos-kafka-1               Up 2 days (healthy)
+salesos-neo4j-1               Up 33 minutes (healthy)
+salesos-pgbouncer-1           Up 2 days
+salesos-postgres-1            Up 2 days (healthy)
+salesos-postgres-exporter-1   Up 2 days
+salesos-prometheus-1          Up 2 days (healthy)
+salesos-redis-1               Up 2 days (healthy)
+salesos-redis-exporter-1      Up 2 days
+salesos-schema-registry-1     Up 2 days
+salesos-zookeeper-1           Up 2 days

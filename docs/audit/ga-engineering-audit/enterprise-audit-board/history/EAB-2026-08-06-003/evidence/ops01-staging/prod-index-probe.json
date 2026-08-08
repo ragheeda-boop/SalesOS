@@ -1,0 +1,28 @@
+{
+  "probe": "prod-readonly-schema-index-size",
+  "date": "2026-08-07",
+  "mode": "read-only SELECT (no writes)",
+  "environment": "production",
+  "alembic_current": "d1a8c35e7f09",
+  "max_connections": 500,
+  "active_connections": 15,
+  "target_indexes_existing": 0,
+  "target_indexes_total": 37,
+  "hot_tables": {
+    "companies": { "approx_rows": 141221, "total_bytes": 345096192 },
+    "audit_logs": { "approx_rows": 604, "total_bytes": 638976 },
+    "contacts": { "approx_rows": 44, "total_bytes": 114688 },
+    "golden_records": { "approx_rows": null, "total_bytes": 65536 },
+    "meetings": { "approx_rows": null, "total_bytes": 40960 },
+    "emails": { "approx_rows": null, "total_bytes": 40960 },
+    "commercial_contracts": { "approx_rows": null, "total_bytes": 40960 },
+    "licenses": { "approx_rows": null, "total_bytes": 40960 },
+    "commercial_stage_entries": { "approx_rows": null, "total_bytes": 32768 },
+    "commercial_activities": { "approx_rows": null, "total_bytes": 32768 },
+    "entity_resolution_conflicts": { "approx_rows": null, "total_bytes": 32768 }
+  },
+  "contacts_name_width": "VARCHAR(255)",
+  "contacts_name_ar_width": "VARCHAR(255)",
+  "interpretation": "All 37 indexes will be created (no idempotent skips). companies (345MB/141K) dominates index-build cost; remaining tables near-empty. Expected a4f7c29e1b80 write-impact: minutes, not 45+min. contacts widen 255->500 will execute (metadata-only for 44-row table).",
+  "classification": "de-risks PROD-MIGRATION-RISK.md upper bound; window sized ~2-10min subject to dress rehearsal"
+}

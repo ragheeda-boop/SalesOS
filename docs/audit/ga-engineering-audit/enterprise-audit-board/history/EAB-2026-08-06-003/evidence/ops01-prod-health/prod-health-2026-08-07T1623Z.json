@@ -1,0 +1,29 @@
+{
+  "artifact": "production-health-post-neo4j-repair",
+  "run": "EAB-2026-08-06-003",
+  "date": "2026-08-07",
+  "captured_at": "2026-08-07T16:23:00Z",
+  "environment": "production",
+  "base_url": "https://salesos-production-96c0.up.railway.app",
+  "probe": "read-only HTTP GET (no writes)",
+  "endpoint": "/health",
+  "http_status": 200,
+  "body": {
+    "status": "ok",
+    "version": "5.1.0-rc1",
+    "database": "connected",
+    "cache": "connected",
+    "graph": "connected",
+    "kafka": "in_memory",
+    "redis": "connected",
+    "rate_limiter": "active",
+    "uptime_seconds": 154216.23540830612
+  },
+  "uptime_hours": 42.84,
+  "resolves": "BOARD-CONSENSUS Missing Evidence #1: post-repair production /health JSON under evidence claiming durable graph=connected",
+  "cross_references": {
+    "root_cause": "ROOTCAUSE-NEO4J.md section 3 (deploymentRedeploy 6163f9e3 -> a11ca6f0, status SUCCESS)",
+    "previous_state": "graph=unavailable before 2026-08-06"
+  },
+  "remaining_risk": "neo4j-prod still has NO attached persistent volume (P1 human decision; data ephemeral on redeploy/restart). graph=connected is current runtime state, NOT a durability claim."
+}

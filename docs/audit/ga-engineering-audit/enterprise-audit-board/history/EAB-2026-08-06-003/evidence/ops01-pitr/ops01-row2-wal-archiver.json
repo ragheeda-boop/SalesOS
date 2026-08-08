@@ -1,0 +1,43 @@
+{
+  "row": 2,
+  "title": "WAL continuous archive on primary (managed PITR)",
+  "date": "2026-08-06",
+  "managed_capability": "Railway Postgres PITR (pgBackRest 2.59.0, postgres-ssl:18 image)",
+  "bucket": "salesos-pitr",
+  "archive_destination": "s3://salesos-pitr-w-857q3fjjrr/pgbackrest/cluster-7666941693427392564",
+  "evidence": {
+    "archive_mode": "on",
+    "archive_command": "/usr/local/bin/pgbackrest-archive-push-wrapper.sh %p",
+    "pg_stat_archiver": {
+      "archived_count": 6,
+      "failed_count": 0,
+      "last_archived_wal": "000000010000000000000060",
+      "last_archived_time": "2026-08-06 19:32:50.875675+00"
+    },
+    "pgbackrest_repo": {
+      "status": "ok",
+      "db_version": 18,
+      "system_id": 7666941693427392564,
+      "archive_min_wal": "00000001000000000000005C",
+      "archive_max_wal": "000000010000000000000061",
+      "full_backup": {
+        "label": "20260806-192926F",
+        "type": "full",
+        "start_timestamp": 1786044566,
+        "stop_timestamp": 1786044589,
+        "size_delta_bytes": 385691087,
+        "repo_size_bytes": 89536749,
+        "lsn_start": "0/5D000028",
+        "lsn_stop": "0/5D000158",
+        "error": false
+      }
+    }
+  },
+  "retention": {
+    "full_backups_kept": 4,
+    "diff_backups_kept": 14,
+    "approx_window": "4 weeks",
+    "authority": "pgbackrest expire (bucket lifecycle disabled by design)"
+  },
+  "signed_off_by": ""
+}

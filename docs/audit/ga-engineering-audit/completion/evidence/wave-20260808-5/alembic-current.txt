@@ -1,0 +1,10 @@
+WAVE-20260808-5 Stream E confirm (non-prod local compose only)
+cwd=salesos
+command=docker compose exec -T backend alembic current
+when_utc=2026-08-08T10:33:56Z
+exit_code=0
+result=e5f9a32b0c08 (head)
+alembic_upgrade=NOT_RUN
+prod_migrate=NOT_RUN
+identity=local compose (salesos-backend-1 Up; ENVIRONMENT not re-probed this wave)
+note=PowerShell surfaced alembic INFO lines on stderr as NativeCommandError noise; exit 0 + head revision printed.

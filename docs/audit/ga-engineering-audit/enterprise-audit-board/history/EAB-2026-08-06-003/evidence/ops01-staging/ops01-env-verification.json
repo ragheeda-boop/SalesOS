@@ -1,0 +1,78 @@
+{
+  "evidence_id": "ops01-staging-env-verification",
+  "run": "EAB-2026-08-06-003",
+  "date": "2026-08-06",
+  "mode": "VERIFY_FIRST_READ_ONLY",
+  "validation_label": "machine verified",
+  "method": [
+    "GET /health (production + staging)",
+    "GraphQL railway api: project/environments/serviceInstances/activeDeployments/domains",
+    "railway variable list (values redacted to sha256 first 10 hex)",
+    "railway logs (SalesOS, both envs)",
+    "local SQL via railway connect --tunnel-only port 5435 + disposable postgres:18 container",
+    "gh api environments / gh secret list"
+  ],
+  "project": {
+    "name": "responsible-comfort",
+    "id": "96032c9a-38cf-4792-8168-b78d5353e26b"
+  },
+  "environments": {
+    "production": { "id": "652c450a-1473-4445-98e4-15aceefd49c3", "salesos_domain": "https://salesos-production-96c0.up.railway.app" },
+    "staging": { "id": "5ce7864a-27c5-43c7-847d-667aecfbf773", "salesos_domain": "https://salesos-staging.up.railway.app" }
+  },
+  "salesos_service_id": "668122aa-523b-4ec3-a7d8-c3b579c90f66",
+  "deployments": {
+    "production": {
+      "id": "bdce3450-53d4-4bc4-90d8-4c940e0e1002",
+      "createdAt": "2026-08-05T21:29:24.073Z",
+      "status": "SUCCESS",
+      "imageDigestPrefix": "sha256:11b14ac58b85",
+      "sourceCommit": "4750038c96fe5d95656aade7257ed134d5df5194",
+      "deployMethod": "CI deploy.yml (railway up --ci, push master)"
+    },
+    "staging": {
+      "id": "98bf85bf-89cc-4198-97d9-d477b2734a23",
+      "createdAt": "2026-08-01T11:34:53.924Z",
+      "status": "SUCCESS",
+      "imageDigestPrefix": "sha256:1f7f845fd772",
+      "sourceCommit": "0bd73fc5672e61aee8fafc9de114492ceb9f2f0c",
+      "deployMethod": "manual CLI (skill:use-railway DEC-120 B)",
+      "commitsBehindProduction": 409
+    }
+  },
+  "health": {
+    "production": { "http": 200, "status": "ok", "version": "5.1.0-rc1", "database": "connected", "cache": "connected", "graph": "unavailable", "kafka": "in_memory", "redis": "connected", "rate_limiter": "active", "uptime_seconds": 83961.2 },
+    "staging": { "http": 200, "status": "ok", "version": "5.1.0-rc1", "database": "connected", "cache": "connected", "graph": "connected", "kafka": "in_memory", "redis": "connected", "rate_limiter": "active", "uptime_seconds": 465240.4 },
+    "ready_route": { "http": 404, "note": "route does not exist on either environment" }
+  },
+  "database_verification": {
+    "production": { "alembic": "d1a8c35e7f09", "companies": 141221, "tenants": 57, "audit_logs": 683, "pgpassword_sha10": "D7A9844452", "database_url_sha10": "971975109E", "wal_archive": "enabled", "pitr": "verified rows 2-3" },
+    "staging": { "alembic": "b7e2f65a3f07", "companies": 0, "tenants": 0, "audit_logs": 1, "pgpassword_sha10": "246F5CB1FF", "database_url_sha10": "67E6C68423", "wal_archive": "absent", "isolation": "separate instance, empty of production data" }
+  },
+  "variable_diff_highlights": {
+    "shared_identical": ["JWT_SECRET_KEY(sha256=06823858C2)", "SECRET_KEY(sha256=73534985DF)", "SERVICE_VERSION", "EVENT_BUS_TYPE", "FEATURE_AI_COPILOT", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT", "APP_POSTGRES_USER", "NEXT_PUBLIC_API_URL", "RAILWAY_PROJECT_ID", "RAILWAY_SERVICE_NAME", "NEO4J_USER"],
+    "staging_only_or_missing": { "DEBUG": "true", "missing_vs_prod": ["FRONTEND_URL", "GOOGLE_REDIRECT_URI", "SSO_GOOGLE_CLIENT_ID", "SSO_GOOGLE_CLIENT_SECRET", "FEATURE_HTTPONLY_ACCESS_COOKIE"] },
+    "production_only": { "DEBUG": "false" },
+    "redis_url_sha10": { "staging": "ABA243FF78", "production": "B83804E4EE", "note": "different -> isolated" },
+    "neo4j": { "staging": "connected", "production": "OFFLINE (neo4j-prod no active deployment)" }
+  },
+  "ci_cd": {
+    "repo_secrets": ["RAILWAY_TOKEN", "RAILWAY_PROJECT_ID", "RAILWAY_SERVICE_ID", "RAILWAY_ENVIRONMENT_ID", "RAILWAY_HEALTH_URL"],
+    "staging_secrets_absent": ["RAILWAY_STAGING_SERVICE_ID", "RAILWAY_STAGING_ENVIRONMENT_ID", "RAILWAY_STAGING_HEALTH_URL"],
+    "github_env_staging": { "id": "18978929506", "secrets_count": 0 },
+    "deploy_staging_yml": "manual dispatch only; soft-skip without RAILWAY_STAGING_* secrets",
+    "deploy_production_yml": "QUARANTINED (DEC-149) K8s",
+    "deploy_yml": "ACTIVE push master -> railway up prod + Vercel FE"
+  },
+  "logs": {
+    "production": { "window_lines": 455, "restart_observed": false, "errors": "none in window", "warnings": ["alembic head check failed (No module named 'scripts')", "scraper auth keys missing -> mock mode", "duplicate operation ids"] },
+    "staging": { "window_lines": 500, "restart_observed": false, "errors": "none in window", "warnings": ["duplicate operation ids", "scraper auth config missing"] }
+  },
+  "verdict": {
+    "production": "READY WITH CONDITIONS - NOT GO (neo4j-prod OFFLINE; audit no-go unchanged)",
+    "staging": "NOT READY (not production-parity: 409 commits, empty DB, DEBUG=true, no SSO/FE vars, no CI wiring, shared secrets, inverted graph)",
+    "ops01_row4": "OPEN",
+    "launch": "NO-GO",
+    "soak_complete_claim": "false"
+  }
+}

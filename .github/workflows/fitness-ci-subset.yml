@@ -1,0 +1,34 @@
+# EAB-001-P2-FIT-01 — minimal fitness subset
+# FF-07/AIGOV + FF-DUP-01 + FF-09 + FF-10 + FF-12 (light grep/shell only)
+# Not full pytest / npm / FF catalog / Audit Maturity L3. See FITNESS-CI-SUBSET-PLAN.md
+name: Fitness CI Subset
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fitness-ci-subset-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fitness-subset:
+    name: "FF-07/AIGOV + DUP-01 + 09/10/12 light"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install ripgrep
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+      - name: Run fitness CI subset script
+        run: bash salesos/scripts/fitness-ci-subset.sh
+      - name: Honesty footer
+        if: always()
+        run: |
+          echo "Subset only — not full FF catalog, not remote-proven until Actions green recorded,"
+          echo "not Audit Maturity L3, not evidence-based Production GO."

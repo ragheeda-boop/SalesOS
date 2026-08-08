@@ -1,0 +1,79 @@
+{
+  "artifact": "production-auth-rbac-readonly-audit",
+  "run": "EAB-2026-08-06-003",
+  "date": "2026-08-07",
+  "captured_at": "2026-08-07T19:24:00Z",
+  "environment": "production",
+  "base_url": "https://salesos-production-96c0.up.railway.app",
+  "mode": "READ-ONLY (GET + login only; no POST/PUT/DELETE mutations executed)",
+  "accounts_tested": {
+    "account_a": "ragheed.a@muhide.com",
+    "account_b": "ragheed.a@ratlfintech.com"
+  },
+  "account_facts": {
+    "muhide_role": "user",
+    "muhide_verified": false,
+    "muhide_tenant_id": "326e0825-1834-4399-8cca-77c2679f172b",
+    "ratlfintech_role": "admin",
+    "ratlfintech_verified": true,
+    "ratlfintech_tenant_id": "326e0825-1834-4399-8cca-77c2679f172b",
+    "same_tenant": true,
+    "note": "Roles are SWAPPED vs operator assumption: muhide.com is role=user; ratlfintech.com is role=admin. Both accounts share the SAME tenant_id, so cross-tenant isolation cannot be demonstrated between these two accounts."
+  },
+  "health": {
+    "/health": 200,
+    "graph": "connected",
+    "database": "connected",
+    "redis": "connected",
+    "kafka": "in_memory",
+    "/health/detailed": 200
+  },
+  "results": {
+    "unauthenticated_gates": { "companies_401": true, "admin_tenants_401": true, "users_me_401": true },
+    "login": { "muhide": 200, "ratlfintech": 200 },
+    "identity_users_me": { "muhide_role_user": 200, "ratlfintech_role_admin": 200 },
+    "identity_users_listing": { "admin_role": 200, "user_role": 403 },
+    "runtime_admin_rbac": {
+      "admin_metrics": { "admin_role": 200, "user_role": 403 },
+      "admin_health_full": { "admin_role": 200, "user_role": 403 },
+      "admin_dlq_stats": { "admin_role": 200, "user_role": 403 },
+      "admin_sla_report": { "admin_role": 200, "user_role": 403 }
+    },
+    "owner_platform_admin_routes": {
+      "admin_tenants_users_roles_permissions_plans_feature_flags_audit_logs_health_detailed": "401 for BOTH roles",
+      "root_cause": "owner-audience token (salesos-owner-platform) required; /owner/login NOT deployed on prod (404 confirmed on /api/v1/identity/owner/login, /owner-auth/login, /owner-login). openapi.json exposes 72 /api/v1/admin/* paths but NO owner login path. Production runs commit 4750038c baseline (alembic d1a8c35e7f09) — owner-login feature is in local code but not yet deployed."
+    },
+    "csrf_enforcement": {
+      "graphql_no_csrf": 403,
+      "graphql_with_csrf_and_mismatched_tenant": 403,
+      "owner_login_no_csrf": 403,
+      "csrf_token_endpoint": 200,
+      "note": "CsrfEnforcementMiddleware active on prod; state-changing requests require X-CSRF-Token matching csrf_token cookie."
+    },
+    "tenant_isolation": {
+      "cross_tenant_test": "INCONCLUSIVE — both accounts are in the SAME tenant 326e0825; header injection of another tenant_id returned 200 but was same-tenant, not cross-tenant",
+      "verified_mechanisms": "get_current_tenant_id from JWT + RLS (row2/3 evidence RLS forced 4/4); /identity/users lists users scoped to caller tenant"
+    }
+  },
+  "pass": 38,
+  "fail": 18,
+  "total": 56,
+  "fail_breakdown": {
+    "owner_login_not_deployed": 1,
+    "owner_admin_routes_401_no_owner_token": 8,
+    "owner_admin_routes_401_tenant_token": 8,
+    "tenant_isolation_inconclusive_same_tenant": 1
+  },
+  "conclusions": {
+    "authn": "PASS — login works; unauthenticated gates 401; JWT RS256 valid (aud salesos-api); CSRF enforced",
+    "authz_rbac": "PASS — runtime admin routes correctly gated (admin 200 / user 403); identity/users listing gated by role",
+    "critical_observation": "Owner Platform admin API (tenants/users/roles/plans/feature-flags/audit-log) is DEPLOYED but UNREACHABLE because owner-login endpoint is not deployed. This is a functional/ops gap, NOT a security bypass (denied by 401, no unauthorized access).",
+    "data_exposure": "No unauthorized data access observed; no mutation executed; all probes read-only",
+    "recommended_actions": [
+      "Confirm intended roles: muhide.com shows role=user; ratlfintech.com role=admin — operator assumed the reverse",
+      "Decide whether both accounts should share tenant 326e0825 or need separate tenants",
+      "Deploy owner-login (or schedule with maintenance window) so Owner Platform admin routes become usable",
+      "Verify is_verified=false for muhide.com (email verification pending)"
+    ]
+  }
+}
