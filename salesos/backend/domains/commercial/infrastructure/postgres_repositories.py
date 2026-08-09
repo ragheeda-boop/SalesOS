@@ -1098,10 +1098,10 @@ class PostgresOpportunityContactRepository(OpportunityContactRepository):
 
     def _to_domain(self, model: OpportunityContactModel) -> OpportunityContact:
         return OpportunityContact(
-            id=uuid.UUID(model.id),
-            tenant_id=uuid.UUID(model.tenant_id),
+            id=uuid.UUID(str(model.id)),
+            tenant_id=uuid.UUID(str(model.tenant_id)),
             opportunity_id=model.opportunity_id,
-            contact_id=uuid.UUID(model.contact_id),
+            contact_id=uuid.UUID(str(model.contact_id)),
             role=model.role,
             is_primary=model.is_primary,
             created_at=model.created_at,
