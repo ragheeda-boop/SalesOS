@@ -42,6 +42,7 @@ ALL_TENANT_TABLES: list[str] = [
     "emails",
     "commercial_recommendations",
     "opportunity_contacts",
+    "activity_attributions",
     # ── Revenue ──
     "opportunities",
     "tasks",
