@@ -7,6 +7,7 @@ Uses PostgresOpportunityContactRepository via FastAPI dependency injection.
 from __future__ import annotations
 
 import logging
+import uuid
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -62,7 +63,7 @@ async def create_opportunity_contact(
     repo: PostgresOpportunityContactRepository = Depends(_get_repo),
 ):
     oc = OpportunityContact(
-        id=UUID(int=0),  # Will be replaced by DB-generated UUID
+        id=uuid.uuid4(),
         tenant_id=UUID(tenant_id),
         opportunity_id=body.opportunity_id,
         contact_id=body.contact_id,
