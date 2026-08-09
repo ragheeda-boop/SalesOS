@@ -61,7 +61,7 @@ def setup_middleware(app: FastAPI) -> None:
     cors_origins = [o.strip() for o in settings.allowed_hosts.split(",") if o.strip()]
     # Include "test" — httpx AsyncClient fixtures use base_url="http://test"
     # (Starlette TestClient historically used "testserver").
-    trusted_hosts: set[str] = {"localhost", "127.0.0.1", "testserver", "test", "backend", "healthcheck.railway.app"}
+    trusted_hosts: set[str] = {"localhost", "127.0.0.1", "testserver", "test", "backend", "healthcheck.railway.app", "salesos-staging.up.railway.app"}
     for origin in cors_origins:
         host = origin
         if "://" in host:
