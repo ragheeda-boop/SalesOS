@@ -695,28 +695,28 @@ def _make_trusted_scope(host: str) -> dict:
 
 class TestTrustedHostMiddleware:
     @pytest.mark.asyncio
-    async def test_railway_internal_accepted(self):
+    async def test_healthcheck_railway_accepted(self):
         from starlette.middleware.trustedhost import TrustedHostMiddleware
 
         collected = []
         mw = TrustedHostMiddleware(
             lambda s, r, send: _collecting_app(collected, s, r, send),
-            allowed_hosts=["localhost", "*.railway.internal"],
+            allowed_hosts=["localhost", "healthcheck.railway.app"],
         )
-        scope = _make_trusted_scope("salesos.railway.internal")
+        scope = _make_trusted_scope("healthcheck.railway.app")
         await mw(scope, AsyncMock(), AsyncMock())
         assert len(collected) == 1
 
     @pytest.mark.asyncio
-    async def test_railway_internal_with_port_accepted(self):
+    async def test_healthcheck_railway_with_port_accepted(self):
         from starlette.middleware.trustedhost import TrustedHostMiddleware
 
         collected = []
         mw = TrustedHostMiddleware(
             lambda s, r, send: _collecting_app(collected, s, r, send),
-            allowed_hosts=["localhost", "*.railway.internal"],
+            allowed_hosts=["localhost", "healthcheck.railway.app"],
         )
-        scope = _make_trusted_scope("salesos.railway.internal:8080")
+        scope = _make_trusted_scope("healthcheck.railway.app:8080")
         await mw(scope, AsyncMock(), AsyncMock())
         assert len(collected) == 1
 
@@ -732,7 +732,7 @@ class TestTrustedHostMiddleware:
 
         mw = TrustedHostMiddleware(
             lambda s, r, send: _collecting_app(collected, s, r, send),
-            allowed_hosts=["localhost", "*.railway.internal"],
+            allowed_hosts=["localhost", "healthcheck.railway.app"],
         )
         scope = _make_trusted_scope("evil.example.com")
         await mw(scope, AsyncMock(), _capture_send)
@@ -746,7 +746,7 @@ class TestTrustedHostMiddleware:
         collected = []
         mw = TrustedHostMiddleware(
             lambda s, r, send: _collecting_app(collected, s, r, send),
-            allowed_hosts=["localhost", "*.railway.internal"],
+            allowed_hosts=["localhost", "healthcheck.railway.app"],
         )
         scope = _make_trusted_scope("localhost")
         await mw(scope, AsyncMock(), AsyncMock())
