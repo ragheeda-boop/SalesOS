@@ -538,33 +538,40 @@ export default function Company360Page() {
                   </Link>
                 </div>
               </CardHeader>
-              <CardContent>
-                {showSampleData ? (
-                  <div className="space-y-3">
-                    {[
-                      { name: "أحمد محمد", role: "المدير التنفيذي", email: "ahmed@example.com" },
-                      { name: "سارة عبدالله", role: "مديرة المشتريات", email: "sara@example.com" },
-                      { name: "خالد العتيبي", role: "مدير تقنية المعلومات", email: "khaled@example.com" },
-                    ].map((c) => (
-                      <div key={c.email} className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-default)]">
-                        <div className="w-10 h-10 rounded-full bg-[var(--muhide-orange)]/20 flex items-center justify-center text-[var(--muhide-orange)] font-semibold">
-                          {c.name.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-[var(--text-primary)]">{c.name}</div>
-                          <div className="text-sm text-[var(--text-secondary)]">{c.role}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{c.email}</div>
-                        </div>
+               <CardContent>
+                {(() => {
+                  const contacts = asArray<{ id?: string; name?: string; position?: string; email?: string; phone?: string }>(company360?.contacts);
+                  if (contacts.length > 0) {
+                    return (
+                      <div className="space-y-3">
+                        {contacts.map((c) => (
+                          <Link
+                            key={c.id || c.email || Math.random()}
+                            href={`/contacts/${c.id}`}
+                            className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-default)] hover:bg-[var(--bg-secondary)] transition-colors"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-[var(--muhide-orange)]/20 flex items-center justify-center text-[var(--muhide-orange)] font-semibold shrink-0">
+                              {(c.name || "?")[0]}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-[var(--text-primary)] truncate">{c.name || "—"}</div>
+                              {c.position && <div className="text-sm text-[var(--text-secondary)]">{c.position}</div>}
+                              {c.email && <div className="text-xs text-[var(--text-muted)] truncate">{c.email}</div>}
+                              {c.phone && <div className="text-xs text-[var(--text-muted)]">{c.phone}</div>}
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={<Users className="h-10 w-10" />}
-                    title="لا توجد جهات اتصال"
-                    description="ستظهر جهات الاتصال المرتبطة بالشركة هنا"
-                  />
-                )}
+                    );
+                  }
+                  return (
+                    <EmptyState
+                      icon={<Users className="h-10 w-10" />}
+                      title="لا توجد جهات اتصال"
+                      description="ستظهر جهات الاتصال المرتبطة بالشركة هنا"
+                    />
+                  );
+                })()}
               </CardContent>
             </Card>
             {hierarchySections.length > 0 ? (
@@ -652,34 +659,57 @@ export default function Company360Page() {
                     </Link>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  {showSampleData ? (
-                    <div className="space-y-3">
-                      {[
-                        { name: "عقد خدمات استشارية", value: "450,000 ر.س", stage: "تفاوض", probability: "65%" },
-                        { name: "ترخيص منصة رقمية", value: "280,000 ر.س", stage: "عرض سعر", probability: "40%" },
-                        { name: "خدمات سحابية سنوية", value: "120,000 ر.س", stage: "مغلق-مكسب", probability: "100%" },
-                      ].map((d) => (
-                        <div key={d.name} className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-default)]">
-                          <div>
-                            <div className="font-medium text-[var(--text-primary)]">{d.name}</div>
-                            <div className="text-sm text-[var(--text-secondary)]">{d.stage}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-[var(--text-primary)]">{d.value}</div>
-                            <div className="text-xs text-[var(--muhide-orange)]">{d.probability}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
+              <CardContent>
+                {(() => {
+                  const deals = asArray<{ id?: string; name?: string; value?: number; stage?: string; probability?: number; status?: string }>(opportunities);
+                  if (deals.length > 0) {
+                    return (
+                      <div className="space-y-3">
+                        {deals.map((d) => (
+                          <Link
+                            key={d.id || Math.random()}
+                            href={`/opportunities/${d.id}`}
+                            className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-default)] hover:bg-[var(--bg-secondary)] transition-colors"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-[var(--text-primary)] truncate">{d.name || "—"}</div>
+                              <div className="text-sm text-[var(--text-secondary)]">
+                                {d.stage && (() => {
+                                  const stageMap: Record<string, string> = {
+                                    prospecting: "استكشاف", qualification: "تأهيل",
+                                    proposal: "عرض سعر", negotiation: "تفاوض",
+                                    closed_won: "مغلق-مكسب", closed_lost: "مغلق-خسارة"
+                                  };
+                                  return stageMap[d.stage] || d.stage;
+                                })()}
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 ml-3">
+                              {d.value != null && (
+                                <div className="font-semibold text-[var(--text-primary)]">
+                                  {typeof d.value === "number" ? `${(d.value / 1000).toFixed(0)}K ر.س` : String(d.value)}
+                                </div>
+                              )}
+                              {d.probability != null && (
+                                <div className="text-xs text-[var(--muhide-orange)]">
+                                  {Math.round(typeof d.probability === "number" ? d.probability * 100 : Number(d.probability) * 100)}%
+                                </div>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return (
                     <EmptyState
                       icon={<Handshake className="h-10 w-10" />}
                       title="لا توجد صفقات نشطة"
                       description="ستظهر الصفقات النشطة والمغلقة هنا"
                     />
-                  )}
-                </CardContent>
+                  );
+                })()}
+              </CardContent>
               </Card>
               <Card>
                 <CardHeader>
@@ -811,35 +841,46 @@ export default function Company360Page() {
                 <div className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-[var(--text-muted)]" />
                   <span className="text-sm font-semibold text-[var(--text-primary)]">الإشارات</span>
+                  {company360?.signals?.total > 0 && (
+                    <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
+                      {company360.signals.total}
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                {showSampleData ? (
-                  <div className="space-y-3">
-                    {[
-                      { title: "توسع إقليمي متوقع", description: "الشركة تخطط لفتح فروع جديدة في الرياض وجدة", type: "توسع" },
-                      { title: "مشروع تحول رقمي", description: "إعلان عن مناقصة للتحول الرقمي بقيمة 50 مليون ر.س", type: "فرصة" },
-                      { title: "تغيير إداري", description: "تعيين رئيس تنفيذي جديد للشركة", type: "تحديث" },
-                    ].map((signal) => (
-                      <div key={signal.title} className="p-3 rounded-lg border border-[var(--border-default)]">
-                        <div className="flex items-start justify-between">
-                          <Bell className="h-4 w-4 text-[var(--muhide-orange)] mt-0.5" />
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-muted)]">
-                            {signal.type}
-                          </span>
-                        </div>
-                        <div className="mt-1 font-medium text-[var(--text-primary)]">{signal.title}</div>
-                        <div className="mt-0.5 text-sm text-[var(--text-secondary)]">{signal.description}</div>
+                {(() => {
+                  const signalItems = asArray<{ title?: string; description?: string; type?: string; severity?: string }>(company360?.signals?.items);
+                  if (signalItems.length > 0) {
+                    return (
+                      <div className="space-y-3">
+                        {signalItems.map((signal, i) => (
+                          <div key={i} className="p-3 rounded-lg border border-[var(--border-default)]">
+                            <div className="flex items-start justify-between">
+                              <Bell className="h-4 w-4 text-[var(--muhide-orange)] mt-0.5" />
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-muted)]">
+                                {signal.type || signal.severity || "إشارة"}
+                              </span>
+                            </div>
+                            {signal.title && (
+                              <div className="mt-1 font-medium text-[var(--text-primary)]">{signal.title}</div>
+                            )}
+                            {signal.description && (
+                              <div className="mt-0.5 text-sm text-[var(--text-secondary)]">{signal.description}</div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={<Bell className="h-10 w-10" />}
-                    title="لا توجد إشارات"
-                    description="لم يتم العثور على إشارات لهذه الشركة"
-                  />
-                )}
+                    );
+                  }
+                  return (
+                    <EmptyState
+                      icon={<Bell className="h-10 w-10" />}
+                      title="لا توجد إشارات"
+                      description="لم يتم العثور على إشارات لهذه الشركة"
+                    />
+                  );
+                })()}
               </CardContent>
             </Card>
             <Card>
