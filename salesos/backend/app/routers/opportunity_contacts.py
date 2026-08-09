@@ -32,6 +32,11 @@ class OpportunityContactCreateBody(BaseModel):
     is_primary: bool = False
 
 
+class OpportunityContactUpdateBody(BaseModel):
+    role: str | None = Field(None, max_length=50)
+    is_primary: bool | None = None
+
+
 class OpportunityContactResponse(BaseModel):
     id: UUID
     tenant_id: UUID
@@ -77,6 +82,8 @@ async def create_opportunity_contact(
         detail = str(e).lower()
         if "unique" in detail or "duplicate" in detail:
             raise HTTPException(status_code=409, detail="This contact is already associated with this opportunity.")
+        if "foreign" in detail or "violates foreign key" in detail:
+            raise HTTPException(status_code=422, detail="Referenced contact or opportunity does not exist.")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -117,6 +124,43 @@ async def list_opportunity_contacts(
         page=result.page,
         page_size=result.page_size,
     )
+
+
+@router.patch("/opportunity-contacts/{oc_id}", response_model=OpportunityContactResponse)
+async def update_opportunity_contact(
+    oc_id: UUID,
+    body: OpportunityContactUpdateBody,
+    tenant_id: str = Depends(get_current_tenant_id),
+    repo: PostgresOpportunityContactRepository = Depends(_get_repo),
+):
+    existing = await repo.get(oc_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Not found.")
+    if str(existing.tenant_id) != tenant_id:
+        raise HTTPException(status_code=404, detail="Not found.")
+
+    updates = {}
+    if body.role is not None:
+        updates["role"] = body.role
+    if body.is_primary is not None:
+        updates["is_primary"] = body.is_primary
+
+    if not updates:
+        return _to_response(existing)
+
+    from sqlalchemy import update as sa_update
+    from domains.commercial.infrastructure.models import OpportunityContactModel
+
+    async with repo.session.begin():
+        stmt = (
+            sa_update(OpportunityContactModel)
+            .where(OpportunityContactModel.id == str(oc_id))
+            .values(**updates)
+        )
+        await repo.session.execute(stmt)
+
+    result = await repo.get(oc_id)
+    return _to_response(result)
 
 
 @router.delete("/opportunity-contacts/{oc_id}", status_code=204)
