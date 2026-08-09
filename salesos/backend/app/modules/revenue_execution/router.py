@@ -127,6 +127,37 @@ async def complete_task(
     return result
 
 
+@router.patch(
+    "/tasks/{task_id}",
+    response_model=TaskResponse,
+    dependencies=[Depends(require_permission_dep("task", PermissionAction.UPDATE))],
+)
+async def update_task(
+    task_id: str,
+    body: TaskCreate,
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: RevenueService = Depends(get_service),
+):
+    from fastapi import HTTPException
+    from app.modules.revenue_execution.models import Task
+    from sqlalchemy import update
+
+    result = await service.db.execute(
+        update(Task)
+        .where(Task.id == task_id, Task.tenant_id == tenant_id)
+        .values(
+            title=body.title,
+            priority=body.priority,
+            due_date=str(body.due_date) if body.due_date else None,
+        )
+    )
+    await service.db.commit()
+    if result.rowcount == 0:
+        raise HTTPException(404, "Task not found")
+    task = await service.db.get(Task, task_id)
+    return task
+
+
 @router.get(
     "/pipeline",
     response_model=PipelineResponse,
