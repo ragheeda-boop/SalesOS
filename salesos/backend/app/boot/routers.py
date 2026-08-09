@@ -131,6 +131,10 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(
         contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth
     )
+    from app.routers.opportunity_contacts import router as opportunity_contacts_router
+    app.include_router(
+        opportunity_contacts_router, prefix="/api/v1", tags=["Opportunity Contacts"], dependencies=_auth
+    )
     app.include_router(activity_router, prefix="/api/v1", tags=["Activity"], dependencies=_auth)
 
     from intelligence.activity_intelligence.api.router import router as activity_intelligence_router

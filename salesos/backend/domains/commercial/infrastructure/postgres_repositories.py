@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import date, datetime, timezone
 from typing import Any, Optional
 
@@ -38,12 +39,19 @@ from domains.commercial.meeting.repository import MeetingRepository
 from domains.commercial.email import Email
 from domains.commercial.email.repository import EmailRepository
 
+from domains.commercial.opportunity.contracts.opportunity_contact_repository import (
+    OpportunityContact,
+    OpportunityContactQuery,
+    OpportunityContactRepository,
+    OpportunityContactResult,
+)
+
 from .models import (
     ActivityModel, ActivitySessionModel, AnalyticsSnapshotModel,
     ContractModel, DecisionContextModel, EmailModel, ForecastSnapshotModel,
-    MeetingModel, OpportunityModel, PipelineDefinitionModel, PolicyModel,
-    ProposalModel, QuoteLineModel, QuoteModel, RecommendationModel,
-    StageEntryModel,
+    MeetingModel, OpportunityContactModel, OpportunityModel,
+    PipelineDefinitionModel, PolicyModel, ProposalModel, QuoteLineModel,
+    QuoteModel, RecommendationModel, StageEntryModel,
 )
 
 
@@ -121,6 +129,12 @@ class PostgresOpportunityRepository(OpportunityRepository):
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
         if model:
+            from sqlalchemy import delete as sa_delete
+            await self.session.execute(
+                sa_delete(OpportunityContactModel).where(
+                    OpportunityContactModel.opportunity_id == opportunity_id
+                )
+            )
             await self.session.delete(model)
             await self.session.flush()
 
@@ -983,3 +997,113 @@ class PostgresEmailRepository(EmailRepository):
             await self.session.flush()
             return True
         return False
+
+
+class PostgresOpportunityContactRepository(OpportunityContactRepository):
+    """ADR-030: PostgreSQL implementation of OpportunityContactRepository."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, oc: OpportunityContact) -> OpportunityContact:
+        model = OpportunityContactModel(
+            id=str(oc.id),
+            tenant_id=str(oc.tenant_id),
+            opportunity_id=oc.opportunity_id,
+            contact_id=str(oc.contact_id),
+            role=oc.role,
+            is_primary=oc.is_primary,
+        )
+        self.session.add(model)
+        await self.session.flush()
+        await self.session.refresh(model)
+        return self._to_domain(model)
+
+    async def get(self, oc_id: uuid.UUID) -> OpportunityContact | None:
+        stmt = select(OpportunityContactModel).where(OpportunityContactModel.id == str(oc_id))
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
+
+    async def get_by_opportunity(
+        self, opportunity_id: str, tenant_id: str,
+    ) -> list[OpportunityContact]:
+        stmt = (
+            select(OpportunityContactModel)
+            .where(
+                OpportunityContactModel.opportunity_id == opportunity_id,
+                OpportunityContactModel.tenant_id == str(tenant_id),
+            )
+            .order_by(OpportunityContactModel.is_primary.desc())
+        )
+        result = await self.session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def get_by_contact(
+        self, contact_id: uuid.UUID, tenant_id: str,
+    ) -> list[OpportunityContact]:
+        stmt = (
+            select(OpportunityContactModel)
+            .where(
+                OpportunityContactModel.contact_id == str(contact_id),
+                OpportunityContactModel.tenant_id == str(tenant_id),
+            )
+            .order_by(OpportunityContactModel.updated_at.desc())
+        )
+        result = await self.session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def query(self, query: OpportunityContactQuery) -> OpportunityContactResult:
+        conditions = [OpportunityContactModel.tenant_id == str(query.tenant_id)]
+        if query.opportunity_id:
+            conditions.append(OpportunityContactModel.opportunity_id == query.opportunity_id)
+        if query.contact_id:
+            conditions.append(OpportunityContactModel.contact_id == query.contact_id)
+
+        count_stmt = select(func.count()).select_from(OpportunityContactModel).where(and_(*conditions))
+        total_result = await self.session.execute(count_stmt)
+        total = total_result.scalar() or 0
+
+        stmt = (
+            select(OpportunityContactModel)
+            .where(and_(*conditions))
+            .order_by(OpportunityContactModel.is_primary.desc(), OpportunityContactModel.created_at.desc())
+            .offset((query.page - 1) * query.page_size)
+            .limit(query.page_size)
+        )
+        result = await self.session.execute(stmt)
+        items = [self._to_domain(m) for m in result.scalars().all()]
+
+        return OpportunityContactResult(items=items, total=total, page=query.page, page_size=query.page_size)
+
+    async def delete(self, oc_id: uuid.UUID) -> bool:
+        stmt = select(OpportunityContactModel).where(OpportunityContactModel.id == str(oc_id))
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model:
+            await self.session.delete(model)
+            await self.session.flush()
+            return True
+        return False
+
+    async def delete_by_opportunity(self, opportunity_id: str) -> int:
+        from sqlalchemy import delete as sa_delete
+        result = await self.session.execute(
+            sa_delete(OpportunityContactModel).where(
+                OpportunityContactModel.opportunity_id == opportunity_id
+            )
+        )
+        await self.session.flush()
+        return result.rowcount
+
+    def _to_domain(self, model: OpportunityContactModel) -> OpportunityContact:
+        return OpportunityContact(
+            id=uuid.UUID(model.id),
+            tenant_id=uuid.UUID(model.tenant_id),
+            opportunity_id=model.opportunity_id,
+            contact_id=uuid.UUID(model.contact_id),
+            role=model.role,
+            is_primary=model.is_primary,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+        )

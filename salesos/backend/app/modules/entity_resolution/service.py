@@ -603,7 +603,7 @@ class EntityResolutionService:
         for license_row in (await self.db.execute(license_stmt)).scalars().all():
             license_row.company_id = target.id
 
-        # Move opportunities
+        # Move opportunities (legacy)
         opps_moved = False
         try:
             from app.modules.revenue_execution.models import Opportunity
@@ -612,11 +612,25 @@ class EntityResolutionService:
                 opp_stmt = select(Opportunity).where(Opportunity.company_id == source.id)
                 opps = (await self.db.execute(opp_stmt)).scalars().all()
                 for opp in opps:
-                    # Opportunity.company_id is classic Column (not Mapped)
                     setattr(opp, "company_id", target.id)  # noqa: B010
                 opps_moved = len(opps) > 0
         except Exception:
             opps_moved = False
+
+        # Move commercial_opportunities (ADR-029 DEF-003 fix)
+        commercial_opps_moved = False
+        try:
+            from domains.commercial.infrastructure.models import OpportunityModel
+
+            co_stmt = select(OpportunityModel).where(
+                OpportunityModel.company_id == str(source.id)
+            )
+            co_rows = (await self.db.execute(co_stmt)).scalars().all()
+            for co in co_rows:
+                setattr(co, "company_id", str(target.id))  # noqa: B010
+            commercial_opps_moved = len(co_rows) > 0
+        except Exception:
+            commercial_opps_moved = False
 
         # Merge source IDs
         if source.source_ids:
@@ -660,6 +674,7 @@ class EntityResolutionService:
                 "branches": True,
                 "licenses": True,
                 "opportunities": opps_moved,
+                "commercial_opportunities": commercial_opps_moved,
                 "source_ids": True,
             },
         }

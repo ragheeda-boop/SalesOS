@@ -107,6 +107,19 @@ class BusinessObject:
         REGISTERED_ENTITY_TYPES[cls.__name__] = cls
         return cls
 
+    AGENT_IMMUTABLE_FIELDS: frozenset[str] = frozenset({
+        "id", "tenant_id", "cr_number", "created_at", "updated_at",
+        "is_golden_record", "parent_company_id", "source_ids", "embedding",
+    })
+
+    @classmethod
+    def is_agent_updatable(cls, field_name: str) -> bool:
+        if field_name in cls.AGENT_IMMUTABLE_FIELDS:
+            return False
+        if field_name not in cls.__table__.columns:
+            return False
+        return True
+
 
 # ── Concrete entity models inheriting from BusinessObject ─────
 

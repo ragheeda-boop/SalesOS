@@ -433,6 +433,18 @@ async def _init_backend_sdk(app: FastAPI, logger: StructuredLogger) -> None:
         logger.exception("  backend sdk init failed")
 
 
+async def _init_agent_runtime(app: FastAPI, logger: StructuredLogger) -> None:
+    from runtime.agent_runtime import AgentRuntime
+
+    try:
+        ar = AgentRuntime(session_factory=async_session)
+        app.state.agent_runtime = ar
+        logger.info("  agent runtime: ok")
+    except Exception:
+        logger.exception("  agent runtime init failed")
+        app.state.agent_runtime = None
+
+
 # ── Phase 4: Data fabric, search, timeline ───────────────────────────────────
 
 
@@ -672,6 +684,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         _init_recommendation_engine(app, logger),
         _init_context_builder(app, logger),
         _init_backend_sdk(app, logger),
+        _init_agent_runtime(app, logger),
         return_exceptions=True,
     )
     await asyncio.gather(

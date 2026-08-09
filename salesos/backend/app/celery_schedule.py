@@ -71,4 +71,10 @@ BEAT_SCHEDULE = {
         "schedule": crontab(hour=2, minute=30),
         "options": {"expires": 600},
     },
+    # ── Agent Runtime Dispatch ───────────────────────────────────
+    "agent-dispatch-every-1m": {
+        "task": "agent_dispatch_all",
+        "schedule": timedelta(minutes=1),
+        "options": {"expires": 120},
+    },
 }

@@ -74,6 +74,9 @@ class AIDeclaration:
     copilot: bool = False
     rag: bool = False
     classification: bool = False
+    agent_available: bool = False
+    agent_tool_name: str | None = None
+    agent_sensitive: bool = False
 
 
 @dataclass

@@ -26,245 +26,26 @@ from __future__ import annotations
 import argparse
 import sys
 
-SESSION_VAR = "app.tenant_id"
-
-# Sprint 03 full inventory: tenant-scoped tables with existing migrations.
-# Tables with tenant_id but NO migration yet (12 tracked in RISK_REGISTER.md
-# R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
-# Tables without a tenant_id column (keyed via parent FK) are excluded from
-# ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
-# B1–B7 join children use generate_join_policy_sql() /
-# CATEGORY_B1_JOIN_TABLES … CATEGORY_B7_JOIN_TABLES (DEC-110).
-ALL_TENANT_TABLES: list[str] = [
-    # ── Identity / Auth ──
-    "users",                      # app/modules/identity/models.py — uuid
-    "device_sessions",            # app/modules/identity/models.py — uuid
-    "api_keys",                   # app/modules/api_keys/models.py — uuid
-    # ── Company / Contact ──
-    "companies",                  # app/modules/company/models.py — uuid
-    "contacts",                   # app/modules/contact/models.py — uuid
-    "company_features",           # runtime/feature_store — String(36); CREATE TABLE in 0002_feature_store
-    # ── Commercial ──
-    "commercial_opportunities",   # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_stage_entries",   # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_pipeline_definitions",  # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_activity_sessions",    # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_quotes",          # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_proposals",       # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_contracts",       # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_forecast_snapshots",  # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_analytics_snapshots", # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_decision_contexts",   # domains/commercial/infrastructure/models.py — String(36)
-    "commercial_policies",        # domains/commercial/infrastructure/models.py — String(36)
-    "meetings",                   # domains/commercial/infrastructure/models.py — UUID (DEC-121)
-    "emails",                     # domains/commercial/infrastructure/models.py — UUID (DEC-121)
-    "commercial_recommendations", # domains/commercial/infrastructure/models.py — String(36)
-    # ── Revenue ──
-    "opportunities",              # app/modules/revenue_execution/models.py — uuid
-    "tasks",                      # app/modules/revenue_execution/models.py — uuid
-    # ── Workflow (migrated tables only) ──
-    "workflow_definitions",       # domains/workflow/db_models.py — String(64)
-    "workflow_executions",        # domains/workflow/db_models.py — String(64)
-    "scheduled_jobs",             # domains/workflow/db_models.py — String(64)
-    "job_executions",             # domains/workflow/db_models.py — String(64)
-    # ── Analytics ──
-    "analytics_reports",          # domains/analytics/infrastructure/models.py — String(36)
-    "analytics_scheduled_reports", # domains/analytics/infrastructure/models.py — String(36)
-    # ── Entity Resolution ──
-    "golden_records",             # app/modules/entity_resolution/models.py — uuid
-    "entity_resolution_conflicts", # app/modules/entity_resolution/models.py — uuid
-    "entity_resolution_log",      # app/modules/entity_resolution/models.py — uuid
-    "dead_letter_queue",          # app/modules/entity_resolution/models.py — uuid
-    # ── Admin (migrated tables only) ──
-    "tenant_configs",             # app/modules/admin/db_models.py — String(64)
-    "admin_roles",                # app/modules/admin/db_models.py — String(64), nullable
-    # ── Employee ──
-    "employee_signals",           # domains/employee/db_models.py — uuid
-    "employee_scores",            # domains/employee/db_models.py — uuid
-    "employee_calendar_events",   # domains/employee/intelligence_models.py — uuid
-    "employee_email_events",      # domains/employee/intelligence_models.py — uuid
-    "employee_oauth_tokens",      # domains/employee/oauth_service.py — uuid
-    # ── Communication Hub ──
-    "google_accounts",            # app/modules/communication_hub/models.py — uuid
-    # ── Audit / Telemetry / Notifications ──
-    "audit_logs",                 # app/modules/audit/models.py — String(64), schema=audit
-    "telemetry_events",           # app/modules/telemetry/models.py — String(64)
-    "notifications",              # domains/notifications/db_models.py — String(64)
-    # ── Decision Center ──
-    "decision_center_decisions",  # domains/decision_center/postgres_repo.py — String
-    "decision_center_templates",  # domains/decision_center/postgres_repo.py — String, nullable
-    # ── Timeline ──
-    "timeline_entries",           # domains/timeline/models.py — String(36), nullable
-    # ── Webhooks (migrated tables only) ──
-    "webhook_subscriptions",      # app/modules/webhooks/repository.py — runtime table
-]
-
-# DEC-110 Slice B1 (S04-CATB-01): company children — no tenant_id; isolate via companies.
-# Do NOT fold into ALL_TENANT_TABLES (Category A stays 47 / DEC-044).
-CATEGORY_B1_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("branches", "companies", "company_id"),
-    ("licenses", "companies", "company_id"),
-]
-
-# DEC-110 Slice B2 (S04-CATB-02): commercial children — no tenant_id; isolate via
-# commercial_activity_sessions / commercial_quotes (both Category A).
-CATEGORY_B2_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("commercial_activities", "commercial_activity_sessions", "session_id"),
-    ("commercial_quote_lines", "commercial_quotes", "quote_id"),
-]
-
-# DEC-110 Slice B3 (S04-CATB-03): analytics children — no tenant_id; isolate via
-# analytics_reports (Category A).
-CATEGORY_B3_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("analytics_report_executions", "analytics_reports", "report_id"),
-    ("analytics_report_shares", "analytics_reports", "report_id"),
-]
-
-# DEC-110 Slice B4 (S04-CATB-04): decision-center children — no tenant_id; isolate
-# via decision_center_decisions (Category A). Parent PK is UUID; child FK is
-# varchar — join uses p.id::text (same cast as postgres_repo feedback join).
-CATEGORY_B4_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("decision_center_audits", "decision_center_decisions", "decision_id"),
-    ("decision_center_feedback", "decision_center_decisions", "decision_id"),
-]
-
-# DEC-110 Slice B5 (S04-CATB-05): identity token children — no tenant_id; isolate
-# via users (Category A). Both FKs are UUID matching users.id (0012 / ORM).
-# Auth paths that set app.tenant_id (JWT refresh) see own-tenant rows; unset GUC
-# fails closed — do not add permissive exceptions (would weaken tenant isolation).
-CATEGORY_B5_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("password_reset_tokens", "users", "user_id"),
-    ("refresh_token_families", "users", "user_id"),
-]
-
-# DEC-110 Slice B6 (S04-CATB-06): webhook deliveries — no tenant_id; isolate via
-# webhook_subscriptions (Category A). FK is String(36)=String(36) (0039 / ORM).
-# Distinct from deferred-8 webhook_endpoints (DB-05 CREATE; RLS = Slice 4 / 7.5).
-CATEGORY_B6_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("webhook_deliveries", "webhook_subscriptions", "subscription_id"),
-]
-
-# DEC-110 Slice B7 (S04-CATB-07): admin role-permissions — no tenant_id; isolate
-# via admin_roles (Category A; nullable tenant_id). FK is String(100)=String(100)
-# (0037 / ORM). Match parent Category A fail-closed equality — do NOT add
-# `OR p.tenant_id IS NULL` (would leak global/owner role permission maps to
-# every tenant session). NULL-tenant parent roles stay invisible under tenant
-# GUC, same as admin_roles itself.
-CATEGORY_B7_JOIN_TABLES: list[tuple[str, str, str]] = [
-    # (child_table, parent_table, child_fk_column)
-    ("admin_role_permissions", "admin_roles", "role_id"),
-]
-
-# DEC-110 deferred-8 / DB-05 Slice 4 (Phase 0 criterion 7.5): Category A tables
-# that received CREATE in DEC-113 but had no ENABLE RLS. Same tenant_id policy
-# template as ALL_TENANT_TABLES — do NOT fold into ALL_TENANT_TABLES (DEC-044
-# Category A count 47 stays intact; these are additive governed handoff).
-# Nullable tenant_id (admin_ai_costs, admin_jobs): fail-closed equality only —
-# no OR IS NULL (NULL-tenant rows invisible under tenant GUC).
-DB05_DEFERRED_8_TENANT_TABLES: list[str] = [
-    "admin_licenses",
-    "admin_invoices",
-    "admin_transactions",
-    "admin_ai_costs",
-    "admin_jobs",
-    "webhook_endpoints",
-    "scoring_scorecards",
-    "revenue_analytics_snapshots",
-]
-
-
-def generate_join_policy_sql(
-    child_table: str,
-    parent_table: str,
-    fk_column: str,
-    parent_tenant_column: str = "tenant_id",
-    parent_pk_column: str = "id",
-    session_var: str = SESSION_VAR,
-    policy_name: str | None = None,
-    cast_parent_pk_to_text: bool = False,
-) -> str:
-    """Return DDL that enables join/parent-FK RLS on a Category B child table.
-
-    Same FORCE / fail-closed / USING+WITH CHECK rationale as generate_policy_sql().
-    Predicate: EXISTS parent row whose tenant_id matches app.tenant_id GUC.
-
-    When cast_parent_pk_to_text=True (B4 decision-center children), compare
-    p.<pk>::text to the varchar FK — parent id is UUID, child decision_id is
-    String(64) (0038 / BaseModel).
-    """
-    policy_name = policy_name or f"tenant_isolation_{child_table}"
-    parent_pk_expr = (
-        f"p.{parent_pk_column}::text"
-        if cast_parent_pk_to_text
-        else f"p.{parent_pk_column}"
-    )
-    exists_pred = (
-        f"EXISTS (\n"
-        f'        SELECT 1 FROM "{parent_table}" p\n'
-        f'        WHERE {parent_pk_expr} = "{child_table}".{fk_column}\n'
-        f"          AND p.{parent_tenant_column}::text = "
-        f"current_setting('{session_var}', true)\n"
-        f"    )"
-    )
-    return (
-        f'ALTER TABLE "{child_table}" ENABLE ROW LEVEL SECURITY;\n'
-        f'ALTER TABLE "{child_table}" FORCE ROW LEVEL SECURITY;\n'
-        f'DROP POLICY IF EXISTS "{policy_name}" ON "{child_table}";\n'
-        f'CREATE POLICY "{policy_name}" ON "{child_table}"\n'
-        f"    FOR ALL\n"
-        f"    USING ({exists_pred})\n"
-        f"    WITH CHECK ({exists_pred});\n"
-    )
-
-
-def generate_policy_sql(
-    table: str,
-    tenant_column: str = "tenant_id",
-    session_var: str = SESSION_VAR,
-    policy_name: str | None = None,
-) -> str:
-    """Return the DDL that enables and enforces tenant-isolation RLS on `table`.
-
-    Design notes — read before changing:
-
-    - `FORCE ROW LEVEL SECURITY` is not optional. Plain `ENABLE ROW LEVEL
-      SECURITY` exempts the table's OWNER from every policy, and the
-      application connects as the owning role — so without FORCE, this would
-      look correct in a naive test (run as a non-owner) while doing nothing
-      at all for real application traffic.
-    - `current_setting(session_var, true)` passes missing_ok=true, so any
-      session that never sets the variable (a stray maintenance connection,
-      a forgotten code path) gets NULL back instead of an error, and the
-      comparison then evaluates to NULL/false — fail-closed (denied), not
-      fail-open. This is deliberate: an unset tenant context must never
-      default to "show everything."
-    - Both `USING` (governs SELECT/UPDATE/DELETE visibility) and `WITH CHECK`
-      (governs INSERT/UPDATE legality) carry the identical predicate. A
-      USING-only policy would still let a session write a row stamped with
-      someone else's tenant_id — that closes the read half of the IDOR class
-      but not the write half.
-    - Both sides of the comparison are cast to `::text`. tenant_id is a
-      native `uuid` column on some tables (companies, contacts, users,
-      admin_invoices) and `varchar` on others (commercial_*,
-      decision_center_*, and every workflow-domain table) — casting avoids
-      maintaining two policy templates for otherwise identical logic.
-    """
-    policy_name = policy_name or f"tenant_isolation_{table}"
-    return (
-        f'ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY;\n'
-        f'ALTER TABLE "{table}" FORCE ROW LEVEL SECURITY;\n'
-        f'DROP POLICY IF EXISTS "{policy_name}" ON "{table}";\n'
-        f'CREATE POLICY "{policy_name}" ON "{table}"\n'
-        f"    FOR ALL\n"
-        f"    USING ({tenant_column}::text = current_setting('{session_var}', true))\n"
-        f"    WITH CHECK ({tenant_column}::text = current_setting('{session_var}', true));\n"
-    )
+# ---------------------------------------------------------------------------
+# Canonical implementation lives in app.alembic.lib.rls.
+# Re-export everything so this module stays backward-compatible for
+# development/CLI usage and existing ``from scripts.generate_rls_policies
+# import ...`` statements outside of Alembic migrations.
+# ---------------------------------------------------------------------------
+from app.alembic.lib.rls import (  # noqa: F401
+    ALL_TENANT_TABLES,
+    CATEGORY_B1_JOIN_TABLES,
+    CATEGORY_B2_JOIN_TABLES,
+    CATEGORY_B3_JOIN_TABLES,
+    CATEGORY_B4_JOIN_TABLES,
+    CATEGORY_B5_JOIN_TABLES,
+    CATEGORY_B6_JOIN_TABLES,
+    CATEGORY_B7_JOIN_TABLES,
+    DB05_DEFERRED_8_TENANT_TABLES,
+    SESSION_VAR,
+    generate_join_policy_sql,
+    generate_policy_sql,
+)
 
 
 def generate_all_sql(tables: list[str] | None = None) -> str:

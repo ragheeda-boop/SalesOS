@@ -310,6 +310,34 @@ class AgentMemoryUpdated(DomainEvent):
     event_type: str = "agent.memory_updated"
 
 
+# ── Agent Runtime Phase 1 ───────────────────────────────────────────────────
+
+
+@dataclass
+class AgentTaskClaimed(DomainEvent):
+    event_type: str = "agent.task_claimed"
+
+
+@dataclass
+class AgentRunStarted(DomainEvent):
+    event_type: str = "agent.run_started"
+
+
+@dataclass
+class AgentRunCompleted(DomainEvent):
+    event_type: str = "agent.run_completed"
+
+
+@dataclass
+class AgentRunFailed(DomainEvent):
+    event_type: str = "agent.run_failed"
+
+
+@dataclass
+class AgentTaskExhausted(DomainEvent):
+    event_type: str = "agent.task_exhausted"
+
+
 # ── Registry ───────────────────────────────────────────────────────────────
 
 EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
@@ -380,5 +408,10 @@ EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
         AgentTaskCompleted,
         AgentTaskFailed,
         AgentMemoryUpdated,
+        AgentTaskClaimed,
+        AgentRunStarted,
+        AgentRunCompleted,
+        AgentRunFailed,
+        AgentTaskExhausted,
     ]
 }

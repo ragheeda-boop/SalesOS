@@ -332,3 +332,28 @@ class RecommendationModel(Base, TimestampMixin):
         # Live legacy name (0007) — keep twin (DEC-130g; no DROP)
         Index("ix_recommendations_target", "target_id", "target_type"),
     )
+
+
+class OpportunityContactModel(Base, TimestampMixin):
+    """ADR-030: Canonical Opportunity <-> Contact junction table.
+
+    opportunity_id is String(36) referencing commercial_opportunities.id.
+    FK is deferred — String(36) vs UUID type mismatch (ADR-030 readiness check Gate 5).
+    Application-level orphan cleanup in PostgresOpportunityRepository.delete().
+    """
+
+    __tablename__ = "opportunity_contacts"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=lambda: str(__import__("uuid").uuid4()))
+    tenant_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    opportunity_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    contact_id: Mapped[str] = mapped_column(UUID(as_uuid=True), ForeignKey("contacts.id", ondelete="CASCADE"), nullable=False, index=True)
+    role: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        Index("ix_opportunity_contacts_lookup", "tenant_id", "opportunity_id", "contact_id", unique=True),
+        Index("ix_oc_tenant_opp", "tenant_id", "opportunity_id"),
+    )
