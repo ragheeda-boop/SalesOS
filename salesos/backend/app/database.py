@@ -345,7 +345,12 @@ async def init_db():
 
 
 async def _verify_tenants_deleted_at() -> None:
-    """Warn (and attempt migrate) if tenants.deleted_at missing — register flush hang risk."""
+    """Warn if tenants.deleted_at missing — register flush hang risk.
+
+    B03-B remediation: this function no longer triggers automatic migration.
+    If the column is missing the operator must run ``alembic upgrade head``
+    manually before restarting the application.
+    """
     import logging
 
     from sqlalchemy import text as sa_text
@@ -365,19 +370,25 @@ async def _verify_tenants_deleted_at() -> None:
             log.info("Schema check: tenants.deleted_at present")
             return
         log.error(
-            "Schema check: tenants.deleted_at MISSING — register may hang. "
-            "Running alembic upgrade head (d4b0e23f5a91)."
+            "Schema check: tenants.deleted_at MISSING — register flush "
+            "hang risk. Run `alembic upgrade head` manually before "
+            "restarting the application."
         )
-        from app.alembic.env import run_async_migrations
-
-        await run_async_migrations()
-        log.info("Alembic upgrade after deleted_at miss complete")
     except Exception as exc:
         log.error("tenants.deleted_at verification failed (%s)", exc)
 
 
 async def _run_migrations_if_needed() -> None:
-    """Skip Alembic entirely when database is already at head revision."""
+    """Detect schema drift; never execute migrations automatically.
+
+    B03-B remediation: the application must distinguish genuine drift from
+    Alembic/packaging/infrastructure failures and NEVER interpret a head-check
+    failure as "therefore run migrations."
+
+    On success the caller learns whether the DB is at head or behind.  On any
+    failure the function returns without executing migrations; the startup
+    continues in degraded mode (existing behavior from init_db's except clause).
+    """
     import logging
     import os as _os
 
@@ -386,28 +397,64 @@ async def _run_migrations_if_needed() -> None:
     from sqlalchemy import column, select, table
 
     log = logging.getLogger("salesos.db")
+
+    # ── Step 1: Load Alembic script directory (discovery) ──────────────
     try:
-        _cfg = AlembicConfig(_os.path.join(_os.path.dirname(__file__), "..", "alembic.ini"))
+        _cfg = AlembicConfig(
+            _os.path.join(_os.path.dirname(__file__), "..", "alembic.ini")
+        )
         _cfg.set_main_option("sqlalchemy.url", settings.resolved_database_url)
         _script = ScriptDirectory.from_config(_cfg)
         _head = _script.get_current_head()
+    except (ModuleNotFoundError, ImportError) as exc:
+        # B03-C: migration dependency (e.g. scripts/) missing from image.
+        log.error(
+            "Alembic script discovery failed (%s) — migration dependency "
+            "missing. Cannot verify schema. App starts with degraded schema.",
+            exc,
+        )
+        return
+    except Exception as exc:
+        # B03-B: Alembic configuration corrupted or inaccessible.
+        log.error(
+            "Alembic configuration failed (%s) — cannot determine head "
+            "revision. App starts with degraded schema.",
+            exc,
+        )
+        return
+
+    # ── Step 2: Query database current revision ────────────────────────
+    try:
         _alembic_version = table("alembic_version", column("version_num"))
         async with owner_engine.connect() as conn:
-            _result = await conn.execute(select(_alembic_version.c.version_num).limit(1))
+            _result = await conn.execute(
+                select(_alembic_version.c.version_num).limit(1)
+            )
             _row = _result.fetchone()
         current = _row[0] if _row is not None else None
-        log.info("Alembic current=%s head=%s", current, _head)
-        if current is not None and current == _head:
-            return
     except Exception as exc:
-        log.warning("Alembic head check failed (%s) — running migrations", exc)
+        # B03-A: database unreachable.
+        log.error(
+            "Cannot query alembic_version (%s) — database unreachable. "
+            "App starts with degraded schema.",
+            exc,
+        )
+        return
 
-    # Import only when an upgrade is required (avoids env.py side-effects on hot path).
-    from app.alembic.env import run_async_migrations
+    log.info("Alembic current=%s head=%s", current, _head)
 
-    log.info("Running Alembic migrations to head…")
-    await run_async_migrations()
-    log.info("Alembic migrations complete")
+    # ── Step 3: Already at head — fast path, nothing to do ─────────────
+    if current is not None and current == _head:
+        return
+
+    # ── Step 4: Schema drift detected — report but do NOT migrate ──────
+    log.error(
+        "Schema drift detected: database=%s repository=%s. "
+        "Automatic migration is disabled (B03-B). "
+        "Run migrations manually.",
+        current,
+        _head,
+    )
 
 
 async def probe_login_tenant_id(email: str) -> str | None:

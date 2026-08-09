@@ -23,7 +23,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-from scripts.generate_rls_policies import (
+from app.alembic.lib.rls import (
     DB05_DEFERRED_8_TENANT_TABLES,
     generate_policy_sql,
 )

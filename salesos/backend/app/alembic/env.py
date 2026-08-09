@@ -5,6 +5,7 @@ programmatic invocation from init_db().
 """
 
 import asyncio
+import logging
 from logging.config import fileConfig
 
 from alembic import context
@@ -41,6 +42,25 @@ target_metadata = Base.metadata
 # KEEP live indexes; exclude from autogenerate/check. No blind DROP.
 _KEEP_EXPRESSION_INDEXES = frozenset({"ix_graph_nodes_search"})
 
+# ── B03 Phase 3: migration operation timeouts ────────────────────────────
+# These values bound the migration engine so no database connection or
+# migration operation can block startup indefinitely.
+#
+# Connection timeout (connect_timeout=10): asyncpg default is 60s.
+# Railway health check is 30s start period + 30s interval.  10s matches
+# the existing command_timeout=10 on the application engine.
+#
+# Command timeout (command_timeout=30): migration DDL (CREATE TABLE,
+# ALTER TABLE, CREATE INDEX) can be slow but must not block indefinitely.
+# 30s is generous for DDL while preventing indefinite hangs.
+#
+# Overall timeout (asyncio.wait_for, 60s): safety net for the entire
+# operation (connect + migrate + dispose).  If individual statements hit
+# the command_timeout first, this is the backstop for the full cycle.
+_MIGRATION_CONNECT_TIMEOUT = 10  # seconds — TCP connection establishment
+_MIGRATION_COMMAND_TIMEOUT = 30  # seconds — per-statement execution
+_MIGRATION_OVERALL_TIMEOUT = 60  # seconds — entire run_async_migrations call
+
 
 def include_object(_object, name, type_, _reflected, _compare_to):
     # Alembic include_object callback arity; unused args are protocol-required.
@@ -72,17 +92,58 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
+async def _run_migrations_with_timeout() -> None:
+    """Run migrations with bounded connection and operation timeouts.
+
+    Engine is always disposed — on success and on failure.
+    """
+    connectable = None
+    try:
+        configuration = config.get_section(config.config_ini_section, {})
+        configuration["sqlalchemy.url"] = settings.resolved_database_url
+        connectable = async_engine_from_config(
+            configuration,
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+            connect_args={
+                "timeout": _MIGRATION_CONNECT_TIMEOUT,
+                "command_timeout": _MIGRATION_COMMAND_TIMEOUT,
+            },
+        )
+        async with connectable.connect() as connection:
+            await connection.run_sync(do_run_migrations)
+    finally:
+        if connectable is not None:
+            await connectable.dispose()
+
+
 async def run_async_migrations() -> None:
-    configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.resolved_database_url
-    connectable = async_engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
-    await connectable.dispose()
+    """Run Alembic migrations with bounded timeouts.
+
+    This function is NOT called automatically by application startup.
+    It is invoked explicitly by operators or by ``run_migrations_online()``
+    when Alembic CLI is used.
+
+    Timeout layers:
+      1. connect_timeout (10s) — asyncpg TCP connection establishment
+      2. command_timeout (30s) — per-statement execution
+      3. asyncio.wait_for (60s) — overall operation backstop
+    """
+    log = logging.getLogger("salesos.alembic")
+    try:
+        await asyncio.wait_for(
+            _run_migrations_with_timeout(),
+            timeout=_MIGRATION_OVERALL_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        log.error(
+            "Migration operation timed out after %ds — aborting",
+            _MIGRATION_OVERALL_TIMEOUT,
+        )
+        raise
+    except Exception:
+        log.error("Migration operation failed", exc_info=True)
+        raise
 
 
 def run_migrations_online() -> None:

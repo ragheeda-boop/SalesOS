@@ -25,7 +25,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-from scripts.generate_rls_policies import (
+from app.alembic.lib.rls import (
     CATEGORY_B1_JOIN_TABLES,
     generate_join_policy_sql,
 )

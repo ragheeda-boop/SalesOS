@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-from scripts.generate_rls_policies import generate_policy_sql
+from app.alembic.lib.rls import generate_policy_sql
 
 revision: str = "e1a7b68c2d05"
 down_revision: str | None = "d0f6e89b1a37"

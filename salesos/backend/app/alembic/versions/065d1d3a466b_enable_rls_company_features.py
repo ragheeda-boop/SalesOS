@@ -20,7 +20,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-from scripts.generate_rls_policies import generate_policy_sql
+from app.alembic.lib.rls import generate_policy_sql
 
 revision: str = "065d1d3a466b"
 down_revision: Union[str, None] = "07e3ec4084fc"
