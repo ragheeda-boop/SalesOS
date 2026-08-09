@@ -6,7 +6,8 @@ import Link from "next/link";
 import { cn, Card, CardContent, CardHeader, Skeleton, Badge } from "@salesos/ui";
 import { NBAWidget } from "../widgets/nba-widget/NBAWidget";
 import {
-  Building2, Users, TrendingUp, Target, Calendar, Clock, CheckCircle, AlertTriangle, XCircle
+  Building2, Users, TrendingUp, Target, Calendar, Clock, CheckCircle, AlertTriangle,
+  XCircle, Activity, ShieldCheck
 } from "lucide-react";
 
 interface Opportunity {
@@ -56,6 +57,8 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
   const [contacts, setContacts] = useState<OpportunityContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [contactsLoaded, setContactsLoaded] = useState(false);
+  const [attributions, setAttributions] = useState<Record<string, unknown>[]>([]);
+  const [attributionsLoaded, setAttributionsLoaded] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -107,6 +110,20 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
       finally { setContactsLoaded(true); }
     };
     if (opportunity) loadContacts();
+  }, [opportunityId, opportunity]);
+
+  // Load ADR-031 attributions for this opportunity
+  useEffect(() => {
+    const loadAttr = async () => {
+      try {
+        const { data } = await api.get("/api/v1/attributions", {
+          params: { opportunity_id: opportunityId, limit: 10 }
+        });
+        setAttributions(data.items || data || []);
+      } catch { /* optional */ }
+      finally { setAttributionsLoaded(true); }
+    };
+    if (opportunity) loadAttr();
   }, [opportunityId, opportunity]);
 
   if (loading) return <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />;
@@ -205,11 +222,65 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
             </CardContent>
           </Card>
 
-          {/* Activity Timeline placeholder */}
-          <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">النشاطات</h3>
-            <p className="text-sm text-[var(--text-muted)]">سيتم عرض النشاطات عند توفرها في Activity Runtime</p>
-          </section>
+          {/* ADR-031 Attribution Activity */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-[var(--text-muted)]" />
+                <span className="text-sm font-semibold text-[var(--text-primary)]">النشاطات المنسوبة</span>
+                {attributions.length > 0 && (
+                  <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{attributions.length}</span>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {attributions.length > 0 ? (
+                <div className="space-y-2">
+                  {attributions.map((a: Record<string, unknown>, i: number) => {
+                    const methodLabels: Record<string, string> = {
+                      explicit_reference: "مرجع مباشر", contact_match: "تطابق جهة اتصال",
+                      company_match: "تطابق شركة", domain_match: "تطابق نطاق",
+                    };
+                    const stateColors: Record<string, string> = {
+                      confirmed: "text-success-600 bg-success-50",
+                      candidate: "text-warning-600 bg-warning-50",
+                      ambiguous: "text-warning-600 bg-warning-50",
+                      unresolved: "text-[var(--text-muted)] bg-[var(--bg-tertiary)]",
+                    };
+                    return (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border-default)]">
+                        <ShieldCheck className="h-4 w-4 mt-0.5 text-[var(--muhide-orange)]/70 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-[var(--text-primary)]">
+                            {String(a.activity_type || "").replace("_", " ")}
+                            <span className="text-[var(--text-muted)] mx-1">·</span>
+                            {methodLabels[String(a.resolution_method)] || String(a.resolution_method)}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <span className={cn("text-[10px] px-1.5 py-0.5 rounded", stateColors[String(a.resolution_state)] || "bg-[var(--bg-tertiary)]")}>
+                              {String(a.resolution_state)}
+                            </span>
+                            {a.confidence != null && (
+                              <span className="text-[10px] text-[var(--text-muted)]">
+                                {(Number(a.confidence) * 100).toFixed(0)}%
+                              </span>
+                            )}
+                            {a.algorithm_version && (
+                              <span className="text-[10px] text-[var(--text-muted)]">{String(a.algorithm_version)}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : attributionsLoaded ? (
+                <p className="text-sm text-[var(--text-muted)] py-4 text-center">لا توجد نشاطات منسوبة لهذه الفرصة</p>
+              ) : (
+                <div className="space-y-2">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right: Company Snapshot + Deal Health */}
