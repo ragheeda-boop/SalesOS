@@ -13,6 +13,8 @@ from app.modules.identity.models import User
 from .schemas import (
     ActivityIntelligence,
     AICoachAction,
+    AttributionOpportunitySummary,
+    AttributionSummary,
     CalendarIntelligence,
     EmailIntelligence,
     Employee360Response,
@@ -97,6 +99,9 @@ class Employee360Service:
 
         ai_coach = self._generate_coach_actions(portfolio, kpis, performance)
 
+        # ── ADR-031 Shadow Attribution (Employee 360 integration) ──
+        attribution = await self._get_attribution_summary(user_id, tenant_id)
+
         # ── ADR-012 Activity Intelligence Integration (employee-scoped events) ──
         calendar_intelligence = CalendarIntelligence()
         email_intelligence = EmailIntelligence()
@@ -150,6 +155,7 @@ class Employee360Service:
             signals=_to_employee_signals(signal_data),
             timeline=timeline,
             performance=performance,
+            attribution=attribution,
         )
 
     async def _get_profile(self, user_id: str, tenant_id: str) -> EmployeeProfile:
@@ -450,6 +456,88 @@ class Employee360Service:
         except Exception:
             await self._recover_session()
             return PerformanceInsights()
+
+    async def _get_attribution_summary(
+        self, user_id: str, tenant_id: str
+    ) -> AttributionSummary | None:
+        """Query ADR-031 activity_attributions for this employee's email events.
+
+        Shadow mode: attribution is observable but does NOT affect scoring.
+        """
+        try:
+            from sqlalchemy import text
+
+            r = await self.db.execute(text("""
+                SELECT
+                    count(*) as total_attributed,
+                    count(*) FILTER (WHERE aa.resolution_state = 'confirmed') as confirmed_count,
+                    count(*) FILTER (WHERE aa.resolution_state = 'candidate') as candidate_count,
+                    count(*) FILTER (WHERE aa.resolution_state = 'unresolved') as unresolved_count,
+                    count(*) FILTER (WHERE aa.resolution_state = 'ambiguous') as ambiguous_count,
+                    max(aa.algorithm_version) as algorithm_version
+                FROM activity_attributions aa
+                JOIN employee_email_events eee
+                    ON aa.activity_id = eee.id
+                    AND aa.activity_type = 'email'
+                    AND aa.tenant_id = eee.tenant_id
+                WHERE eee.employee_id = :uid
+                AND eee.tenant_id = :tid
+            """), {"uid": user_id, "tid": tenant_id})
+
+            row = r.fetchone()
+            if not row or row.total_attributed == 0:
+                return None
+
+            # Top opportunities for this employee
+            r2 = await self.db.execute(text("""
+                SELECT
+                    aa.opportunity_id,
+                    co.name as opportunity_name,
+                    count(*) as activity_count,
+                    count(*) FILTER (WHERE aa.resolution_state = 'confirmed') as resolved_count,
+                    count(*) FILTER (WHERE aa.resolution_state = 'unresolved') as unresolved_count,
+                    mode() WITHIN GROUP (ORDER BY aa.resolution_method) as top_method,
+                    avg(aa.confidence)::float as avg_confidence
+                FROM activity_attributions aa
+                JOIN employee_email_events eee
+                    ON aa.activity_id = eee.id
+                    AND aa.activity_type = 'email'
+                    AND aa.tenant_id = eee.tenant_id
+                LEFT JOIN commercial_opportunities co
+                    ON aa.opportunity_id = co.id
+                WHERE eee.employee_id = :uid
+                AND eee.tenant_id = :tid
+                AND aa.opportunity_id != ''
+                GROUP BY aa.opportunity_id, co.name
+                ORDER BY resolved_count DESC, avg_confidence DESC
+                LIMIT 5
+            """), {"uid": user_id, "tid": tenant_id})
+
+            top_opps = [
+                AttributionOpportunitySummary(
+                    opportunity_id=r2_row.opportunity_id,
+                    opportunity_name=r2_row.opportunity_name,
+                    total_activities=r2_row.activity_count,
+                    resolved_count=r2_row.resolved_count,
+                    unresolved_count=r2_row.unresolved_count,
+                    top_method=r2_row.top_method,
+                    avg_confidence=round(float(r2_row.avg_confidence), 3) if r2_row.avg_confidence else 0.0,
+                )
+                for r2_row in r2.fetchall()
+            ]
+
+            return AttributionSummary(
+                total_attributed=row.total_attributed,
+                confirmed_count=row.confirmed_count,
+                candidate_count=row.candidate_count,
+                unresolved_count=row.unresolved_count,
+                ambiguous_count=row.ambiguous_count,
+                top_opportunities=top_opps,
+                algorithm_version=row.algorithm_version,
+            )
+        except Exception:
+            await self._recover_session()
+            return None
 
     def _generate_coach_actions(
         self,

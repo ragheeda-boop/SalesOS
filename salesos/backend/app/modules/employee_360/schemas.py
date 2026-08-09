@@ -147,6 +147,26 @@ class AICoachAction(BaseModel):
     target_type: str | None = None
 
 
+class AttributionOpportunitySummary(BaseModel):
+    opportunity_id: str
+    opportunity_name: str | None = None
+    total_activities: int = 0
+    resolved_count: int = 0
+    unresolved_count: int = 0
+    top_method: str | None = None
+    avg_confidence: float = 0.0
+
+
+class AttributionSummary(BaseModel):
+    total_attributed: int = 0
+    confirmed_count: int = 0
+    candidate_count: int = 0
+    unresolved_count: int = 0
+    ambiguous_count: int = 0
+    top_opportunities: list[AttributionOpportunitySummary] = []
+    algorithm_version: str | None = None
+
+
 class Employee360Response(BaseModel):
     profile: EmployeeProfile
     portfolio: EmployeePortfolio = EmployeePortfolio()
@@ -158,3 +178,4 @@ class Employee360Response(BaseModel):
     signals: EmployeeSignals = EmployeeSignals()
     timeline: EmployeeTimeline = EmployeeTimeline()
     performance: PerformanceInsights = PerformanceInsights()
+    attribution: AttributionSummary | None = None
