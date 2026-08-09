@@ -43,6 +43,7 @@ ALL_TENANT_TABLES: list[str] = [
     "commercial_recommendations",
     "opportunity_contacts",
     "activity_attributions",
+    "odoo_external_ids",
     # ── Revenue ──
     "opportunities",
     "tasks",
