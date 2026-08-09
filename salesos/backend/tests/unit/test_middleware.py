@@ -679,3 +679,75 @@ class TestTenantContextMiddleware:
         app = TenantContextMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         await app({"type": "websocket"}, AsyncMock(), AsyncMock())
         assert len(collected) == 1
+
+
+# ── TrustedHostMiddleware (Starlette 1.6.0) ──────────────────────────────
+
+
+def _make_trusted_scope(host: str) -> dict:
+    return {
+        "type": "http",
+        "method": "GET",
+        "path": "/health",
+        "headers": [(b"host", host.encode())],
+    }
+
+
+class TestTrustedHostMiddleware:
+    @pytest.mark.asyncio
+    async def test_railway_internal_accepted(self):
+        from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+        collected = []
+        mw = TrustedHostMiddleware(
+            lambda s, r, send: _collecting_app(collected, s, r, send),
+            allowed_hosts=["localhost", "*.railway.internal"],
+        )
+        scope = _make_trusted_scope("salesos.railway.internal")
+        await mw(scope, AsyncMock(), AsyncMock())
+        assert len(collected) == 1
+
+    @pytest.mark.asyncio
+    async def test_railway_internal_with_port_accepted(self):
+        from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+        collected = []
+        mw = TrustedHostMiddleware(
+            lambda s, r, send: _collecting_app(collected, s, r, send),
+            allowed_hosts=["localhost", "*.railway.internal"],
+        )
+        scope = _make_trusted_scope("salesos.railway.internal:8080")
+        await mw(scope, AsyncMock(), AsyncMock())
+        assert len(collected) == 1
+
+    @pytest.mark.asyncio
+    async def test_external_host_rejected(self):
+        from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+        collected = []
+        captured_status = []
+        async def _capture_send(msg):
+            if msg["type"] == "http.response.start":
+                captured_status.append(msg["status"])
+
+        mw = TrustedHostMiddleware(
+            lambda s, r, send: _collecting_app(collected, s, r, send),
+            allowed_hosts=["localhost", "*.railway.internal"],
+        )
+        scope = _make_trusted_scope("evil.example.com")
+        await mw(scope, AsyncMock(), _capture_send)
+        assert len(collected) == 0
+        assert 400 in captured_status
+
+    @pytest.mark.asyncio
+    async def test_localhost_still_accepted(self):
+        from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+        collected = []
+        mw = TrustedHostMiddleware(
+            lambda s, r, send: _collecting_app(collected, s, r, send),
+            allowed_hosts=["localhost", "*.railway.internal"],
+        )
+        scope = _make_trusted_scope("localhost")
+        await mw(scope, AsyncMock(), AsyncMock())
+        assert len(collected) == 1
