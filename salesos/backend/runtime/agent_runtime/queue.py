@@ -261,8 +261,8 @@ async def schedule_task(
     row = existing.fetchone()
     if row:
         await session.execute(
-            text("UPDATE agent_tasks SET due_at = :due, input_data = input_data || :data, updated_at = :now WHERE id = :id"),
-            {"due": due, "data": f'{{"reason": "{reason}"}}', "now": now, "id": row.id},
+            text("UPDATE agent_tasks SET due_at = :due, updated_at = :now WHERE id = :id"),
+            {"due": due, "now": now, "id": row.id},
         )
         return await session.get(AgentTask, row.id)
 
