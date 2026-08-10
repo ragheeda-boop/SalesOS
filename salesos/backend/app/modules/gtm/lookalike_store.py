@@ -13,7 +13,6 @@ from app.modules.gtm.lookalike import (
 )
 from app.modules.gtm.lookalike_engine import (
     MemOpportunityHistory,
-    build_demo_opportunity_history,
     rank_lookalikes,
 )
 
@@ -24,7 +23,7 @@ class MemLookalikeStore:
 
     _by_id: dict[str, LookalikeModel] = field(default_factory=dict)
     _history: MemOpportunityHistory = field(
-        default_factory=lambda: build_demo_opportunity_history(tenant_id="")
+        default_factory=MemOpportunityHistory
     )
 
     def bind_history(self, history: MemOpportunityHistory) -> None:
