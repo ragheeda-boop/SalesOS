@@ -1,7 +1,7 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-10 (AI Foundation F1 Complete)  
+> **Last updated:** 2026-08-10 (AI Foundation F2 Complete)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
 
 ---
@@ -14,6 +14,7 @@
 | M2 — P1 Batch | COMPLETE | `ba5a2d6` | 6/6 investigated, 3 fixes, 2 false positives, 1 schema-only |
 | M3 — AI Foundation Audit | COMPLETE | read-only | 8 audit areas scored, recommendation: BUILD FOUNDATION |
 | M4 — AI Foundation F1 | COMPLETE | `64f512d` | Reliability + Security, 167/167 tests pass |
+| M5 — AI Foundation F2 | COMPLETE | `4e1592f` | Cost + Budget, 220/220 tests pass |
 
 ### P1 Batch details (commit `ba5a2d6`)
 - P1-01: Deleted dead `routers/opportunities.py` (181 lines), cleaned `boot/routers.py`
@@ -39,8 +40,23 @@
 - `salesos/backend/intelligence/providers/policy_gate.py` — `PolicyGate`, `PolicyGateResult`, `ProviderModelPolicy`, `DataClassRule`, `get_model_tier`
 - `salesos/backend/tests/unit/test_ai_foundation_f1.py` — 43 tests
 
-### Gap (F2/F3 — not yet implemented)
-- Cost consolidation (persist CostTracker, Alembic migration, pre-call budget check)
+### AI Foundation F2 details (commit `4e1592f`)
+- F2-1: Replaced in-memory `CostTracker` with DB-backed async API
+- F2-2: Single accounting path — removed duplicate tracking from all providers
+- F2-3: Pre-call budget enforcement via `SELECT FOR UPDATE`
+- F2-4: Concurrency safety — transaction-level atomic budget check
+- F2-5: Deterministic monthly billing period with auto-reset
+- F2-6: Provider/model attribution preserved on every record
+- F2-7: All LLM paths tracked: chat, chat_stream, embed
+- Alembic: `f8b3d4e5f6a7` (llm_cost_entries + tenant_llm_budgets)
+- Fixed: `c1d2e3f4a5b6` multi-statement RLS for asyncpg compat
+- Tests: 27/27 F2 + 193/193 regression = 220/220 passing
+
+### New files this session (F2)
+- `salesos/backend/app/alembic/versions/f8b3d4e5f6a7_ai_foundation_f2_cost_tracking.py`
+- `salesos/backend/tests/unit/test_ai_foundation_f2.py` — 27 tests
+
+### Gap (F3 — not yet implemented)
 - Observability (request_id propagation, Prometheus metrics, structured logging)
 
 ---
