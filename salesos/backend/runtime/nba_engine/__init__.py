@@ -87,12 +87,14 @@ class NBAEngine:
         event_runtime: Any = None,
         logger: Any = None,
         llm_service: Any = None,
+        signal_engine: Any = None,
     ):
         self._session_factory = session_factory
         self._feature_store = feature_store
         self._event_runtime = event_runtime
         self._logger = logger
         self._llm_service = llm_service
+        self._signal_engine = signal_engine
         self._reasoner = None
         if llm_service:
             from runtime.nba_engine.engine.ai.reasoner import NBAReasoner

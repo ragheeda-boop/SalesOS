@@ -266,10 +266,20 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         enrichment_service=enrichment_service,
         db_session_factory=async_session,
         feature_store=feature_store,
+        decision_center=dc_service,
     )
     app.state.company_intelligence_engine = company_engine
     app.state.signal_engine = signal_engine
     app.state.revenue_brain = revenue_brain
+
+    # ── IL-1B: Signal Marketplace → SignalEngine Bridge ──────────
+    from intelligence.signals.marketplace_bridge import create_bridge
+    from modules.signal_marketplace.service import SignalMarketplaceService
+
+    signal_marketplace_svc = SignalMarketplaceService()
+    signal_bridge = create_bridge(signal_marketplace_svc, signal_engine)
+    app.state.signal_marketplace_service = signal_marketplace_svc
+    app.state.signal_bridge = signal_bridge
 
     # ── IL-1A: AgentRuntime ─────────────────────────────────────
     from runtime.agent_runtime import AgentRuntime

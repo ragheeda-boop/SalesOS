@@ -77,7 +77,8 @@ class RevenueBrain:
                  graph_service: RelationshipGraphService,
                  enrichment_service: EnrichmentService,
                  db_session_factory: Optional[Callable] = None,
-                 feature_store: Any = None):
+                 feature_store: Any = None,
+                 decision_center: Any = None):
         self.company_engine = company_engine
         self.signal_engine = signal_engine
         self.market_engine = market_engine
@@ -85,6 +86,7 @@ class RevenueBrain:
         self.enrichment_service = enrichment_service
         self._db_session_factory = db_session_factory
         self._feature_store = feature_store
+        self._decision_center = decision_center
         self._decisions: list[ExecutiveDecision] = []
         self._forecasts: dict[ForecastHorizon, list[Forecast]] = {
             h: [] for h in ForecastHorizon
@@ -97,6 +99,34 @@ class RevenueBrain:
 
         decisions = await self._generate_decisions()
         self._decisions.extend(decisions)
+
+        # ── IL-1B: Persist decisions via DecisionCenter ──────────
+        if self._decision_center:
+            for dec in decisions:
+                try:
+                    await self._decision_center.create_decision(
+                        domain="revenue",
+                        decision_type=dec.category.value,
+                        entity_id=dec.id,
+                        entity_type="executive_decision",
+                        decision=dec.title,
+                        confidence=dec.confidence,
+                        reasoning=dec.description,
+                        provider="revenue_brain",
+                        tenant_id="__system__",
+                        alternatives=[
+                            {"action": alt, "confidence": dec.confidence}
+                            for alt in dec.alternatives
+                        ],
+                        metadata={
+                            "revenue_brain_decisions": len(self._decisions),
+                            "supporting_signals": dec.supporting_signals,
+                            "expected_impact": dec.expected_impact,
+                            "priority": dec.priority.value,
+                        },
+                    )
+                except Exception:
+                    pass
 
         forecasts = await self._generate_forecasts()
         for h, f in forecasts.items():
