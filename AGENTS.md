@@ -1,8 +1,47 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-07 (STAR Audit Complete)  
+> **Last updated:** 2026-08-10 (AI Foundation F1 Complete)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
+
+---
+
+## 11. Session Summary (2026-08-07 to 2026-08-10)
+
+| Milestone | Status | Commit | Key Evidence |
+|-----------|:------:|--------|-------------|
+| M1 — P0 Closure | COMPLETE | `934e3b3` | P0-01 FIXED, P0-02 FALSE POSITIVE |
+| M2 — P1 Batch | COMPLETE | `ba5a2d6` | 6/6 investigated, 3 fixes, 2 false positives, 1 schema-only |
+| M3 — AI Foundation Audit | COMPLETE | read-only | 8 audit areas scored, recommendation: BUILD FOUNDATION |
+| M4 — AI Foundation F1 | COMPLETE | `64f512d` | Reliability + Security, 167/167 tests pass |
+
+### P1 Batch details (commit `ba5a2d6`)
+- P1-01: Deleted dead `routers/opportunities.py` (181 lines), cleaned `boot/routers.py`
+- P1-06: Swapped Steps 3/4 (company_match before domain_match), aligned confidence to ADR-031 (1.0/0.9/0.6/0.3), `ALGORITHM_VERSION` → v1.1.1-shadow
+- P1-04: Removed `_render_pdf_stub()`, replaced with `ValueError("PDF export not implemented")`
+- P1-02: FALSE POSITIVE (dual flags different scopes)
+- P1-03: ALREADY FIXED
+- P1-05: SCHEMA ONLY (DEC-130b pattern)
+- Tests: analytics + signal marketplace + feature store all passing
+
+### AI Foundation F1 details (commit `64f512d` → `9426e36`)
+- F1-1: Fixed broken cross-provider failover `await` in `factory.py`
+- F1-2: Added configurable provider timeouts (30s default) via `ReliabilityConfig`
+- F1-3: Added retry/backoff with error classification (3 retries, exponential backoff)
+- F1-4: Wired `CircuitBreaker` to provider call path via `ReliableProvider` wrapper
+- F1-5: Closed PII enforcement bypasses: RAG query path, agent prompt guard (`self._llm.client` → `self._llm`), chat_stream path
+- F1-6: Enforced `DataClassRule`/max_model_tier at LLM call boundary via `PolicyGate`
+- F1-7: Added provider/model allowlist policy via `ProviderModelPolicy`
+- Tests: 43/43 F1 tests + 124/124 regression tests = 167/167 passing
+
+### New files this session
+- `salesos/backend/intelligence/providers/reliability.py` — `ReliableProvider`, `ReliabilityConfig`, `CircuitBreaker`, `classify_error`
+- `salesos/backend/intelligence/providers/policy_gate.py` — `PolicyGate`, `PolicyGateResult`, `ProviderModelPolicy`, `DataClassRule`, `get_model_tier`
+- `salesos/backend/tests/unit/test_ai_foundation_f1.py` — 43 tests
+
+### Gap (F2/F3 — not yet implemented)
+- Cost consolidation (persist CostTracker, Alembic migration, pre-call budget check)
+- Observability (request_id propagation, Prometheus metrics, structured logging)
 
 ---
 
