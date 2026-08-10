@@ -20,6 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import estimate_cost
+from .observability import ai_observability, format_extra
 
 logger = logging.getLogger(__name__)
 
@@ -224,6 +225,19 @@ class CostTracker:
                     and budget_cents > 0
                     and (period_spend_cents + estimated_cost_cents) > budget_cents
                 )
+
+                if would_exceed:
+                    ai_observability.record_budget_rejection(tenant_id)
+                    logger.warning(
+                        "LLM budget exceeded",
+                        extra=format_extra(
+                            event="budget_exceeded",
+                            tenant_id=tenant_id,
+                            spend=current_spend,
+                            budget=monthly_budget,
+                            estimated_cost=estimated_cost,
+                        ),
+                    )
 
                 return BudgetCheckResult(
                     allowed=not would_exceed,

@@ -10,6 +10,7 @@ atomically (SELECT FOR UPDATE) before provider invocation.
 """
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator
@@ -31,6 +32,9 @@ from intelligence.providers import (
 from intelligence.providers.reliability import ReliableProvider, ReliabilityConfig
 from intelligence.providers.policy_gate import PolicyGate, PolicyGateResult
 from intelligence.providers.base import estimate_cost
+from intelligence.providers.observability import ai_observability, format_extra
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -107,6 +111,7 @@ class LLMService:
         tenant_id: str | None = None,
         user_id: str | None = None,
         data_class: str = "internal",
+        request_id: str | None = None,
     ) -> LLMResponse:
         provider = self._get_provider()
         resolved_model = model or self._model_override or provider.model_name
@@ -150,6 +155,7 @@ class LLMService:
             response_format=response_format,
             tools=tools,
             tenant_id=tenant_id,
+            request_id=request_id,
         )
 
         # ── F2: Pre-call budget check ─────────────────────────────
@@ -188,6 +194,26 @@ class LLMService:
                     latency_ms=round(elapsed, 2),
                 )
                 await self._cost_tracker.deduct_budget(tenant_id, response.cost)
+
+                # ── F3: Record observability metrics ──────────────
+                ai_observability.record_llm_call(
+                    provider=provider.provider_name,
+                    model=response.model,
+                    operation="chat",
+                    status="success",
+                    latency_ms=round(elapsed, 2),
+                )
+                ai_observability.record_tokens(
+                    provider=provider.provider_name,
+                    model=response.model,
+                    prompt_tokens=response.usage.get("prompt_tokens", 0),
+                    completion_tokens=response.usage.get("completion_tokens", 0),
+                )
+                ai_observability.record_cost(
+                    provider=provider.provider_name,
+                    model=response.model,
+                    cost=response.cost,
+                )
             except Exception:
                 pass
 
@@ -226,6 +252,7 @@ class LLMService:
         data_class: str = "internal",
         tenant_id: str | None = None,
         user_id: str | None = None,
+        request_id: str | None = None,
     ) -> AsyncIterator[StreamEvent]:
         provider = self._get_provider()
         resolved_model = model or self._model_override or provider.model_name
@@ -263,6 +290,7 @@ class LLMService:
             max_tokens=max_tokens,
             model=resolved_model,
             stream=True,
+            request_id=request_id,
         )
 
         total_content = ""
@@ -287,14 +315,22 @@ class LLMService:
                             latency_ms=round(elapsed, 2),
                         )
                         await self._cost_tracker.deduct_budget(tenant_id, est)
+                        # ── F3: Record observability metrics ──────
+                        ai_observability.record_llm_call(
+                            provider=provider.provider_name,
+                            model=resolved_model,
+                            operation="chat_stream",
+                            status="success",
+                            latency_ms=round(elapsed, 2),
+                        )
                     except Exception:
                         pass
             yield event
 
-    async def embed(self, text: str, model: str | None = None, tenant_id: str | None = None) -> list[float]:
+    async def embed(self, text: str, model: str | None = None, tenant_id: str | None = None, request_id: str | None = None) -> list[float]:
         from intelligence.providers import EmbeddingRequest
         provider = self._get_provider()
-        request = EmbeddingRequest(text=text, model=model)
+        request = EmbeddingRequest(text=text, model=model, request_id=request_id)
 
         # ── F2: Pre-call budget check for embeddings ──────────────
         resolved_model = model or provider.model_name
@@ -323,6 +359,14 @@ class LLMService:
                     latency_ms=round(elapsed, 2),
                 )
                 await self._cost_tracker.deduct_budget(tenant_id, response.cost)
+                # ── F3: Record observability metrics ──────────────
+                ai_observability.record_llm_call(
+                    provider=provider.provider_name,
+                    model=response.model,
+                    operation="embed",
+                    status="success",
+                    latency_ms=round(elapsed, 2),
+                )
             except Exception:
                 pass
 

@@ -17,6 +17,7 @@ from intelligence.guardrails import (
     sanitize_input,
     scrub_pii_for_rag,
 )
+from .observability import ai_observability, format_extra
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +147,15 @@ class PolicyGate:
             result.allowed = False
             result.blocked_reason = "harmful_input_detected"
             result.findings.append("harmful_input_blocked")
+            ai_observability.record_policy_block("harmful_input")
+            logger.warning(
+                "Policy gate blocked harmful input",
+                extra=format_extra(
+                    event="policy_block",
+                    reason="harmful_input",
+                    data_class=data_class,
+                ),
+            )
             return result
 
         # 3. PII scrubbing
@@ -174,6 +184,18 @@ class PolicyGate:
                         f"model_tier_{requested_tier}_exceeds_ceiling_{rule.max_model_tier}_for_{data_class}"
                     )
                     result.findings.append(result.blocked_reason)
+                    ai_observability.record_policy_block("model_tier")
+                    logger.warning(
+                        "Policy gate blocked model tier",
+                        extra=format_extra(
+                            event="policy_block",
+                            reason="model_tier",
+                            data_class=data_class,
+                            model=model,
+                            requested_tier=requested_tier,
+                            ceiling=rule.max_model_tier,
+                        ),
+                    )
                     return result
 
         # 5. Provider/model allowlist
@@ -182,11 +204,29 @@ class PolicyGate:
                 result.allowed = False
                 result.blocked_reason = f"provider_{provider}_not_allowed"
                 result.findings.append(result.blocked_reason)
+                ai_observability.record_policy_block("provider_denied")
+                logger.warning(
+                    "Policy gate blocked provider",
+                    extra=format_extra(
+                        event="policy_block",
+                        reason="provider_denied",
+                        provider=provider,
+                    ),
+                )
                 return result
             if model and not self._policy.is_model_allowed(model):
                 result.allowed = False
                 result.blocked_reason = f"model_{model}_not_allowed"
                 result.findings.append(result.blocked_reason)
+                ai_observability.record_policy_block("model_denied")
+                logger.warning(
+                    "Policy gate blocked model",
+                    extra=format_extra(
+                        event="policy_block",
+                        reason="model_denied",
+                        model=model,
+                    ),
+                )
                 return result
 
         return result

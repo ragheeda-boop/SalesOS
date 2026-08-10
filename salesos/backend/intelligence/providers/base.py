@@ -25,6 +25,7 @@ class ChatRequest:
     tools: list[dict[str, Any]] | None = None
     stop: list[str] | None = None
     tenant_id: str | None = None
+    request_id: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -53,6 +54,7 @@ class StreamEvent:
 class EmbeddingRequest:
     text: str | list[str]
     model: str | None = None
+    request_id: str | None = None
 
 
 @dataclass

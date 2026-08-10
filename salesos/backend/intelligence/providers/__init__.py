@@ -31,6 +31,13 @@ from .cost_tracker import (
 from .reliability import ReliableProvider, ReliabilityConfig, CircuitBreaker
 from .policy_gate import PolicyGate, PolicyGateResult, ProviderModelPolicy, DataClassRule
 
+from .observability import (
+    AIObservability,
+    ai_observability,
+    format_extra,
+    log_context,
+)
+
 ProviderFactory.register("openai", OpenAIProvider)
 ProviderFactory.register("anthropic", AnthropicProvider)
 ProviderFactory.register("gemini", GeminiProvider)
@@ -74,4 +81,8 @@ __all__ = [
     "PolicyGateResult",
     "ProviderModelPolicy",
     "DataClassRule",
+    "AIObservability",
+    "ai_observability",
+    "format_extra",
+    "log_context",
 ]

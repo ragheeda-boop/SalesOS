@@ -16,6 +16,7 @@ from app.common.metrics import metrics
 from app.dependencies import require_role_dep, verify_token
 from app.metrics.collector import collector
 from app.metrics.sla_monitor import sla_monitor
+from intelligence.providers.observability import ai_observability
 
 # Scrape path /metrics has no user-JWT dependency (PROD-W5-004).
 # Protect via network policy / internal scrape; admin/app metrics stay auth'd.
@@ -92,7 +93,8 @@ async def prometheus_metrics():
     """
     common = metrics.generate()
     app = collector.generate()
-    return PlainTextResponse(common + "\n" + app)
+    ai = ai_observability.generate()
+    return PlainTextResponse(common + "\n" + app + "\n" + ai)
 
 
 @router.get("/metrics/pool", dependencies=_auth_deps)

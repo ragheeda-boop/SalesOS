@@ -15,6 +15,7 @@ from typing import Any
 
 from .base import ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, FinishReason, StreamEvent
 from .protocol import LLMProvider
+from .observability import ai_observability, format_extra
 
 logger = logging.getLogger(__name__)
 
@@ -82,30 +83,44 @@ class CircuitBreaker:
     _state: str = field(default="closed", init=False)
     _half_open_attempts: int = field(default=0, init=False)
 
-    def record_success(self) -> None:
+    def record_success(self, provider: str = "") -> None:
         self._failure_count = 0
         self._half_open_attempts = 0
+        if self._state != "closed":
+            ai_observability.record_circuit_breaker(provider, "closed")
         self._state = "closed"
 
-    def record_failure(self) -> None:
+    def record_failure(self, provider: str = "") -> None:
         self._failure_count += 1
         self._last_failure_time = time.monotonic()
         if self._failure_count >= self.max_failures:
             self._state = "open"
+            ai_observability.record_circuit_breaker(provider, "open")
             logger.warning(
-                "Circuit breaker OPEN after %d failures (reset in %.0fs)",
-                self._failure_count,
-                self.reset_timeout_seconds,
+                "Circuit breaker OPEN",
+                extra=format_extra(
+                    event="circuit_breaker_open",
+                    provider=provider,
+                    failures=self._failure_count,
+                    reset_seconds=self.reset_timeout_seconds,
+                ),
             )
 
-    def allow_request(self) -> bool:
+    def allow_request(self, provider: str = "") -> bool:
         if self._state == "closed":
             return True
         if self._state == "open":
             if time.monotonic() - self._last_failure_time > self.reset_timeout_seconds:
                 self._state = "half_open"
                 self._half_open_attempts = 0
-                logger.info("Circuit breaker -> half_open (probe allowed)")
+                ai_observability.record_circuit_breaker(provider, "half_open")
+                logger.info(
+                    "Circuit breaker -> half_open",
+                    extra=format_extra(
+                        event="circuit_breaker_half_open",
+                        provider=provider,
+                    ),
+                )
             else:
                 return False
         if self._state == "half_open":
@@ -167,10 +182,15 @@ class ReliableProvider:
         return self._circuit
 
     async def chat(self, request: ChatRequest) -> ChatResponse:
-        if not self._circuit.allow_request():
+        rid = request.request_id
+        if not self._circuit.allow_request(self._provider.provider_name):
             logger.warning(
-                "Circuit breaker OPEN for %s — rejecting request",
-                self._provider.provider_name,
+                "Circuit breaker OPEN — rejecting request",
+                extra=format_extra(
+                    event="circuit_breaker_reject",
+                    provider=self._provider.provider_name,
+                    request_id=rid,
+                ),
             )
             return ChatResponse(
                 content="",
@@ -191,7 +211,7 @@ class ReliableProvider:
 
                 error_class = classify_error(None, response)
                 if error_class == ErrorClass.PERMANENT:
-                    self._circuit.record_failure()
+                    self._circuit.record_failure(self._provider.provider_name)
                     return response
 
                 if response.finish_reason == FinishReason.ERROR and not response.content:
@@ -200,18 +220,22 @@ class ReliableProvider:
                     if error_class == ErrorClass.RETRYABLE and attempt < self._config.max_retries - 1:
                         delay = self._backoff(attempt)
                         logger.warning(
-                            "Retryable error from %s (attempt %d/%d), waiting %.1fs",
-                            self._provider.provider_name,
-                            attempt + 1,
-                            self._config.max_retries,
-                            delay,
+                            "Retryable error from provider",
+                            extra=format_extra(
+                                event="provider_retryable_error",
+                                provider=self._provider.provider_name,
+                                attempt=attempt + 1,
+                                max_retries=self._config.max_retries,
+                                delay=delay,
+                                request_id=rid,
+                            ),
                         )
                         await asyncio.sleep(delay)
                         continue
-                    self._circuit.record_failure()
+                    self._circuit.record_failure(self._provider.provider_name)
                     return response
 
-                self._circuit.record_success()
+                self._circuit.record_success(self._provider.provider_name)
                 return response
 
             except asyncio.TimeoutError as exc:
@@ -220,11 +244,15 @@ class ReliableProvider:
                 if attempt < self._config.max_retries - 1:
                     delay = self._backoff(attempt)
                     logger.warning(
-                        "Timeout from %s (attempt %d/%d), waiting %.1fs",
-                        self._provider.provider_name,
-                        attempt + 1,
-                        self._config.max_retries,
-                        delay,
+                        "Timeout from provider",
+                        extra=format_extra(
+                            event="provider_timeout",
+                            provider=self._provider.provider_name,
+                            attempt=attempt + 1,
+                            max_retries=self._config.max_retries,
+                            delay=delay,
+                            request_id=rid,
+                        ),
                     )
                     await asyncio.sleep(delay)
                     continue
@@ -233,7 +261,7 @@ class ReliableProvider:
                 last_exc = exc
                 error_class = classify_error(exc)
                 if error_class == ErrorClass.PERMANENT:
-                    self._circuit.record_failure()
+                    self._circuit.record_failure(self._provider.provider_name)
                     return ChatResponse(
                         content="",
                         model=self._provider.model_name,
@@ -243,17 +271,21 @@ class ReliableProvider:
                 if attempt < self._config.max_retries - 1:
                     delay = self._backoff(attempt)
                     logger.warning(
-                        "Retryable error from %s (attempt %d/%d): %s, waiting %.1fs",
-                        self._provider.provider_name,
-                        attempt + 1,
-                        self._config.max_retries,
-                        exc,
-                        delay,
+                        "Retryable exception from provider",
+                        extra=format_extra(
+                            event="provider_retryable_exception",
+                            provider=self._provider.provider_name,
+                            attempt=attempt + 1,
+                            max_retries=self._config.max_retries,
+                            error=str(exc),
+                            delay=delay,
+                            request_id=rid,
+                        ),
                     )
                     await asyncio.sleep(delay)
                     continue
 
-        self._circuit.record_failure()
+        self._circuit.record_failure(self._provider.provider_name)
         if last_response is not None:
             return last_response
         return ChatResponse(
@@ -264,20 +296,20 @@ class ReliableProvider:
         )
 
     async def chat_stream(self, request: ChatRequest) -> AsyncIterator[StreamEvent]:
-        if not self._circuit.allow_request():
+        if not self._circuit.allow_request(self._provider.provider_name):
             yield StreamEvent(type="error", error="Circuit breaker open")
             return
 
         try:
             async for event in self._provider.chat_stream(request):
                 yield event
-            self._circuit.record_success()
+            self._circuit.record_success(self._provider.provider_name)
         except Exception as exc:
-            self._circuit.record_failure()
+            self._circuit.record_failure(self._provider.provider_name)
             yield StreamEvent(type="error", error=str(exc))
 
     async def embed(self, request: EmbeddingRequest) -> EmbeddingResponse:
-        if not self._circuit.allow_request():
+        if not self._circuit.allow_request(self._provider.provider_name):
             return EmbeddingResponse(
                 embedding=[] if isinstance(request.text, str) else [[]],
                 model=request.model or self._provider.model_name,
@@ -290,20 +322,20 @@ class ReliableProvider:
                     self._provider.embed(request),
                     timeout=self._config.timeout_seconds,
                 )
-                self._circuit.record_success()
+                self._circuit.record_success(self._provider.provider_name)
                 return response
             except Exception as exc:
                 last_exc = exc
                 error_class = classify_error(exc)
                 if error_class == ErrorClass.PERMANENT:
-                    self._circuit.record_failure()
+                    self._circuit.record_failure(self._provider.provider_name)
                     break
                 if attempt < self._config.max_retries - 1:
                     delay = self._backoff(attempt)
                     await asyncio.sleep(delay)
                     continue
 
-        self._circuit.record_failure()
+        self._circuit.record_failure(self._provider.provider_name)
         model = request.model or self._provider.model_name
         return EmbeddingResponse(
             embedding=[] if isinstance(request.text, str) else [[]],
