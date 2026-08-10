@@ -290,6 +290,10 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     agent_runtime = AgentRuntime(session_factory=async_session)
     app.state.agent_runtime = agent_runtime
 
+    # ── IL-2A: Signal → AgentTask Trigger ───────────────────────────
+    from runtime.agent_runtime.triggers import SignalTaskMapper, trigger_tasks_from_decisions
+    app.state.signal_task_mapper = SignalTaskMapper()
+
     timeline_runtime = TimelineRuntime(
         session_factory=async_session,
         logger=app.state.logger,
