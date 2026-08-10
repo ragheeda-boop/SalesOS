@@ -49,7 +49,7 @@ class GroundedBaseAgent(BaseAgent):
             system = self._system_prompt(context)
             user = self._user_prompt(task, context)
 
-            if self._llm and self._llm.client:
+            if self._llm:
                 user = sanitize_input(user)
                 if add_input_moderation(user):
                     result = AgentResult(

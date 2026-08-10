@@ -18,6 +18,8 @@ from .ollama_provider import OllamaProvider
 from .factory import ProviderFactory, get_provider
 from .router import QueryRouter, ComplexityLevel, RoutingDecision
 from .cost_tracker import CostTracker, CostRecord, BudgetEnforcement, get_cost_tracker
+from .reliability import ReliableProvider, ReliabilityConfig, CircuitBreaker
+from .policy_gate import PolicyGate, PolicyGateResult, ProviderModelPolicy, DataClassRule
 
 ProviderFactory.register("openai", OpenAIProvider)
 ProviderFactory.register("anthropic", AnthropicProvider)
@@ -50,4 +52,11 @@ __all__ = [
     "CostRecord",
     "BudgetEnforcement",
     "get_cost_tracker",
+    "ReliableProvider",
+    "ReliabilityConfig",
+    "CircuitBreaker",
+    "PolicyGate",
+    "PolicyGateResult",
+    "ProviderModelPolicy",
+    "DataClassRule",
 ]

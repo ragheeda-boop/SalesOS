@@ -62,7 +62,7 @@ class ProviderFactory:
         return cls.create(ptype, **config_fn())
 
     @classmethod
-    def chat_with_failover(
+    async def chat_with_failover(
         cls,
         request: ChatRequest,
         primary: str | None = None,
@@ -76,7 +76,7 @@ class ProviderFactory:
         for provider_type in providers_to_try:
             try:
                 provider = cls.create_from_settings(provider_type=provider_type)
-                response = provider.chat(request)
+                response = await provider.chat(request)
                 if response.finish_reason != FinishReason.ERROR and response.content:
                     return response
                 last_error = f"{provider_type}: empty response"

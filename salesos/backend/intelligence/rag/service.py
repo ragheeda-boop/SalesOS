@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from domains.rag.models import Document, RagAnswer
+from intelligence.guardrails import sanitize_input
 from intelligence.rag.embeddings import EmbeddingService
 from intelligence.rag.retrieval import RetrievalService
 
@@ -35,7 +36,8 @@ class RagService:
         top_k: int = 5,
         min_score: float = 0.7,
     ) -> RagAnswer:
-        query_embedding = await self.embeddings.embed_text(question)
+        sanitized_question = sanitize_input(question)
+        query_embedding = await self.embeddings.embed_text(sanitized_question)
         if not query_embedding:
             return RagAnswer(answer="", citations=[], chunks_used=0, confidence=0.0)
 
@@ -76,7 +78,7 @@ class RagService:
             "إذا كانت المعلومات غير كافية، قل أنك لا تملك معلومات كافية. "
             "قم بتضمين المصادر المستخدمة في الإجابة كلما أمكن."
         )
-        user_prompt = f"المعلومات المتاحة:\n\n{context}\n\nالسؤال: {question}"
+        user_prompt = f"المعلومات المتاحة:\n\n{context}\n\nالسؤال: {sanitized_question}"
 
         try:
             response = await self.llm.chat(system=system_prompt, messages=[{"role": "user", "content": user_prompt}])
