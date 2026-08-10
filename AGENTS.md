@@ -1,7 +1,7 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-10 (AI Foundation F2 Complete)  
+> **Last updated:** 2026-08-10 (AI Foundation F3 Complete)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
 
 ---
@@ -15,6 +15,7 @@
 | M3 — AI Foundation Audit | COMPLETE | read-only | 8 audit areas scored, recommendation: BUILD FOUNDATION |
 | M4 — AI Foundation F1 | COMPLETE | `64f512d` | Reliability + Security, 167/167 tests pass |
 | M5 — AI Foundation F2 | COMPLETE | `4e1592f` | Cost + Budget, 220/220 tests pass |
+| M6 — AI Foundation F3 | COMPLETE | `4892efd` | Observability, 245/245 tests pass |
 
 ### P1 Batch details (commit `ba5a2d6`)
 - P1-01: Deleted dead `routers/opportunities.py` (181 lines), cleaned `boot/routers.py`
@@ -56,8 +57,17 @@
 - `salesos/backend/app/alembic/versions/f8b3d4e5f6a7_ai_foundation_f2_cost_tracking.py`
 - `salesos/backend/tests/unit/test_ai_foundation_f2.py` — 27 tests
 
-### Gap (F3 — not yet implemented)
-- Observability (request_id propagation, Prometheus metrics, structured logging)
+### AI Foundation F3 details (commit `4892efd`)
+- F3-1: `AIObservability` — in-memory metrics (calls, latency, tokens, cost, policy blocks, budget rejections, CB transitions)
+- F3-2: Prometheus text output wired to `GET /metrics` endpoint
+- F3-3: `request_id` propagated through `ChatRequest` → `ReliableProvider` → individual providers
+- F3-4: Structured logging: 6 reliability.py, 4 policy_gate.py, 1 cost_tracker.py log calls converted to `extra={}`
+- F3-5: Circuit breaker state transitions now observable via `record_circuit_breaker()`
+- Tests: 25/25 F3 + 220/220 regression = 245/245 passing
+
+### New files this session (F3)
+- `salesos/backend/intelligence/providers/observability.py` — `AIObservability`, `ai_observability`, `format_extra`, `log_context`
+- `salesos/backend/tests/unit/test_ai_foundation_f3.py` — 25 tests
 
 ---
 
