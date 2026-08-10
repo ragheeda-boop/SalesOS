@@ -6,8 +6,8 @@ scoring or user-visible decisions. Runs in shadow mode until validated.
 Resolution chain (priority descending):
   1. explicit_reference — tagged deal ID in subject/body
   2. contact_match — contact → opportunity_contacts → opportunity
-  3. domain_match — email domain → company → opportunities
-  4. company_match — related_company_ids → company → opportunities
+  3. company_match — related_company_ids → company → opportunities
+  4. domain_match — email domain → company → opportunities
   5. ai_match — LLM-based (deferred)
 """
 from __future__ import annotations
@@ -29,12 +29,12 @@ from sdk.database import Base
 
 logger = logging.getLogger(__name__)
 
-ALGORITHM_VERSION = "v1.1.0-shadow"
+ALGORITHM_VERSION = "v1.1.1-shadow"
 
 _CONFIDENCE = {
     "explicit_reference": 1.0,
-    "contact_match": 0.80,
-    "company_match": 0.40,
+    "contact_match": 0.90,
+    "company_match": 0.60,
     "domain_match": 0.30,
     "opportunity_contact_bonus": 0.90,
 }
@@ -116,8 +116,8 @@ class AttributionEngine:
     Resolves activities through a priority chain:
       1. explicit_reference — tagged deal ID
       2. contact_match — contact → opportunity_contacts → opportunity
-      3. domain_match — email domain → company → opportunity
-      4. company_match — related_company_ids → company → opportunities
+      3. company_match — related_company_ids → company → opportunities
+      4. domain_match — email domain → company → opportunity
 
     Writes to activity_attributions. Shadow mode: does NOT affect scoring.
     """
@@ -205,7 +205,35 @@ class AttributionEngine:
                     if results:
                         return results
 
-        # ── Step 3: domain_match + Company → Opportunities ──
+        # ── Step 3: company_match via related_company_ids ──
+        if related_company_ids:
+            async with self._session_factory() as session:
+                from sqlalchemy import select, text
+                cids = ",".join(f"'{cid}'" for cid in related_company_ids[:5])
+                r = await session.execute(
+                    select(text("id, name, stage, value"))
+                    .select_from(text("commercial_opportunities"))
+                    .where(text(f"company_id IN ({cids}) AND status = 'open'"))
+                    .order_by(text("created_at DESC"))
+                    .limit(3)
+                )
+                opps = r.fetchall()
+                if opps:
+                    results.append(AttributionResult(
+                        activity_type="email",
+                        activity_id=email_event.get("id"),
+                        activity_source_table="employee_email_events",
+                        opportunity_id=opps[0][0],
+                        resolution_method="company_match",
+                        evidence={"related_company_ids": related_company_ids[:5]},
+                        confidence=_CONFIDENCE["company_match"],
+                        confidence_breakdown={"company_match": _CONFIDENCE["company_match"]},
+                        resolution_state="confirmed",
+                        resolution_chain=[{"step": "company_match", "company_ids": related_company_ids[:5]}],
+                    ))
+                    return results
+
+        # ── Step 4: domain_match + Company → Opportunities ──
         if domain:
             async with self._session_factory() as session:
                 from sqlalchemy import select, text
@@ -227,7 +255,6 @@ class AttributionEngine:
                     )
                     opps = r2.fetchall()
                     if opps:
-                        # Ranked: primary is best match, alternatives stored
                         primary = opps[0]
                         alternatives = []
                         for alt in opps[1:]:
@@ -259,34 +286,6 @@ class AttributionEngine:
                             alternative_candidates=alternatives if alternatives else None,
                         ))
                         return results
-
-        # ── Step 4: company_match via related_company_ids ──
-        if related_company_ids:
-            async with self._session_factory() as session:
-                from sqlalchemy import select, text
-                cids = ",".join(f"'{cid}'" for cid in related_company_ids[:5])
-                r = await session.execute(
-                    select(text("id, name, stage, value"))
-                    .select_from(text("commercial_opportunities"))
-                    .where(text(f"company_id IN ({cids}) AND status = 'open'"))
-                    .order_by(text("created_at DESC"))
-                    .limit(3)
-                )
-                opps = r.fetchall()
-                if opps:
-                    results.append(AttributionResult(
-                        activity_type="email",
-                        activity_id=email_event.get("id"),
-                        activity_source_table="employee_email_events",
-                        opportunity_id=opps[0][0],
-                        resolution_method="company_match",
-                        evidence={"related_company_ids": related_company_ids[:5]},
-                        confidence=_CONFIDENCE["company_match"],
-                        confidence_breakdown={"company_match": _CONFIDENCE["company_match"]},
-                        resolution_state="confirmed",
-                        resolution_chain=[{"step": "company_match", "company_ids": related_company_ids[:5]}],
-                    ))
-                    return results
 
         # ── Fallthrough: unresolved ──
         results.append(AttributionResult(

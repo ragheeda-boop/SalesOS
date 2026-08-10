@@ -216,13 +216,9 @@ class TestExportEngine:
         assert csv == ""
 
     @pytest.mark.asyncio
-    async def test_pdf_render_stub(self, engine):
-        data = [{"x": 1}]
-        pdf = engine._render_pdf_stub(data, "Test Title")
-        parsed = json.loads(pdf)
-        assert parsed["title"] == "Test Title"
-        assert parsed["format"] == "pdf"
-        assert parsed["total_rows"] == 1
+    async def test_pdf_not_implemented(self, engine, csv_report, pipeline_cube_with_rows):
+        with pytest.raises(ValueError, match="PDF export not implemented"):
+            await engine.export_report(csv_report.id, "t-1", OutputFormat.PDF)
 
     @pytest.mark.asyncio
     async def test_export_report_csv(self, engine, csv_report, pipeline_cube_with_rows):
@@ -242,10 +238,8 @@ class TestExportEngine:
 
     @pytest.mark.asyncio
     async def test_export_report_pdf(self, engine, sample_report):
-        result = await engine.export_report(sample_report.id, "t-1", OutputFormat.PDF)
-        assert result["format"] == "pdf"
-        parsed = json.loads(result["content"])
-        assert parsed["format"] == "pdf"
+        with pytest.raises(ValueError, match="PDF export not implemented"):
+            await engine.export_report(sample_report.id, "t-1", OutputFormat.PDF)
 
     @pytest.mark.asyncio
     async def test_export_nonexistent_report(self, engine):

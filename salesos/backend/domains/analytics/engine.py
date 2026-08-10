@@ -142,7 +142,7 @@ class ReportEngine:
             if output_format == OutputFormat.CSV:
                 output_data = self._render_csv(raw_data)
             elif output_format == OutputFormat.PDF:
-                output_data = self._render_pdf_stub(raw_data, report.name)
+                raise ValueError("PDF export not implemented")
             else:
                 output_data = json.dumps(raw_data, indent=2, default=str)
 
@@ -176,20 +176,6 @@ class ReportEngine:
         writer.writerows(data)
         return buf.getvalue()
 
-    def _render_pdf_stub(self, data: list[dict], title: str = "Report") -> str:
-        """Render PDF content as structured JSON for downstream PDF generation."""
-        return json.dumps(
-            {
-                "title": title,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "total_rows": len(data),
-                "data": data,
-                "format": "pdf",
-                "render_engine": "charts+tables",
-            },
-            indent=2,
-            default=str,
-        )
 
     async def export(
         self,

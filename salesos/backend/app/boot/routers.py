@@ -525,8 +525,6 @@ def register_routers(app: FastAPI) -> None:
     from runtime.pipeline_analytics.router import router as pipeline_analytics_router
 
     # B.1: commercial.py owns all `/api/v1/opportunities*` (list/create/get/mutate).
-    # `routers/opportunities.py` unmounted — same table via `_get_opp`; do not remount
-    # without a distinct prefix (would shadow commercial).
     app.include_router(
         meetings_router, prefix="/api/v1", tags=["Meeting Intelligence"], dependencies=_auth
     )
