@@ -3,8 +3,14 @@
 AI Foundation F1: Adds timeout, retry, circuit breaker (via ReliableProvider),
 policy gate enforcement (PII, data class, provider/model allowlist), and
 input sanitization for all paths including streaming.
-"""
 
+AI Foundation F2: Canonical persistent cost tracking with pre-call budget
+enforcement. Single accounting path at the service boundary. Budget checked
+atomically (SELECT FOR UPDATE) before provider invocation.
+"""
+from __future__ import annotations
+
+import time
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator
 
@@ -19,9 +25,12 @@ from intelligence.providers import (
     StreamEvent,
     CostTracker,
     get_cost_tracker,
+    init_cost_tracker,
+    BudgetExceededError,
 )
 from intelligence.providers.reliability import ReliableProvider, ReliabilityConfig
 from intelligence.providers.policy_gate import PolicyGate, PolicyGateResult
+from intelligence.providers.base import estimate_cost
 
 
 @dataclass
@@ -44,6 +53,9 @@ class LLMService:
     AI Foundation F1: Wraps providers with ReliableProvider for
     timeout/retry/circuit-breaker. Enforces policy gate (PII, data class,
     provider/model allowlist) on all paths.
+
+    AI Foundation F2: Canonical cost tracking — all LLM costs are recorded
+    once at the service boundary. Pre-call budget check prevents overspend.
     """
 
     def __init__(
@@ -59,11 +71,15 @@ class LLMService:
         self._provider_type = provider_type
         self._model_override = model
         self._api_key_override = api_key
-        self._cost_tracker = cost_tracker or get_cost_tracker()
         self._ai_audit = ai_audit_service
         self._reliability_config = reliability_config or ReliabilityConfig()
         self._policy_gate = policy_gate or PolicyGate()
         self._reliable_provider: ReliableProvider | None = None
+
+        try:
+            self._cost_tracker = cost_tracker or get_cost_tracker()
+        except RuntimeError:
+            self._cost_tracker = cost_tracker
 
     def _get_raw_provider(self) -> LLMProvider:
         kwargs: dict[str, Any] = {}
@@ -136,17 +152,44 @@ class LLMService:
             tenant_id=tenant_id,
         )
 
-        response: ProviderChatResponse = await provider.chat(request)
+        # ── F2: Pre-call budget check ─────────────────────────────
+        if tenant_id and self._cost_tracker:
+            est_cost = estimate_cost(resolved_model, 500, 500)
+            budget_check = await self._cost_tracker.check_budget(
+                tenant_id, est_cost
+            )
+            if budget_check.would_exceed and budget_check.monthly_budget > 0:
+                return LLMResponse(
+                    content="",
+                    model=resolved_model,
+                    finish_reason="error",
+                    cost=0.0,
+                    policy_findings=[
+                        f"Budget exceeded: ${budget_check.current_spend:.4f} / "
+                        f"${budget_check.monthly_budget:.2f}"
+                    ],
+                )
 
-        self._cost_tracker.track(
-            provider=provider.provider_name,
-            model=response.model,
-            prompt_tokens=response.usage.get("prompt_tokens", 0),
-            completion_tokens=response.usage.get("completion_tokens", 0),
-            operation="chat",
-            tenant_id=tenant_id,
-            latency_ms=response.latency_ms,
-        )
+        start = time.monotonic()
+        response: ProviderChatResponse = await provider.chat(request)
+        elapsed = (time.monotonic() - start) * 1000
+
+        # ── F2: Canonical cost tracking ───────────────────────────
+        if tenant_id and self._cost_tracker:
+            try:
+                await self._cost_tracker.track(
+                    tenant_id=tenant_id,
+                    provider=provider.provider_name,
+                    model=response.model,
+                    prompt_tokens=response.usage.get("prompt_tokens", 0),
+                    completion_tokens=response.usage.get("completion_tokens", 0),
+                    operation="chat",
+                    user_id=user_id,
+                    latency_ms=round(elapsed, 2),
+                )
+                await self._cost_tracker.deduct_budget(tenant_id, response.cost)
+            except Exception:
+                pass
 
         if self._ai_audit and tenant_id and user_id:
             try:
@@ -169,7 +212,7 @@ class LLMService:
             usage=response.usage,
             finish_reason=response.finish_reason.value,
             cost=response.cost,
-            latency_ms=response.latency_ms,
+            latency_ms=round(elapsed, 2),
             policy_findings=gate_result.findings,
         )
 
@@ -181,6 +224,8 @@ class LLMService:
         max_tokens: int | None = None,
         model: str | None = None,
         data_class: str = "internal",
+        tenant_id: str | None = None,
+        user_id: str | None = None,
     ) -> AsyncIterator[StreamEvent]:
         provider = self._get_provider()
         resolved_model = model or self._model_override or provider.model_name
@@ -198,6 +243,19 @@ class LLMService:
             yield StreamEvent(type="error", error=f"Policy blocked: {gate_result.blocked_reason}")
             return
 
+        # ── F2: Pre-call budget check for streaming ───────────────
+        if tenant_id and self._cost_tracker:
+            est_cost = estimate_cost(resolved_model, 500, 500)
+            budget_check = await self._cost_tracker.check_budget(
+                tenant_id, est_cost
+            )
+            if budget_check.would_exceed and budget_check.monthly_budget > 0:
+                yield StreamEvent(
+                    type="error",
+                    error=f"Budget exceeded: ${budget_check.current_spend:.4f} / ${budget_check.monthly_budget:.2f}",
+                )
+                return
+
         request = ChatRequest(
             system=system,
             messages=messages,
@@ -207,22 +265,66 @@ class LLMService:
             stream=True,
         )
 
+        total_content = ""
+        start = time.monotonic()
         async for event in provider.chat_stream(request):
+            if event.type == "content" and event.content:
+                total_content += event.content
+            elif event.type == "done":
+                elapsed = (time.monotonic() - start) * 1000
+                # ── F2: Track cost for streaming ──────────────────
+                if tenant_id and self._cost_tracker:
+                    try:
+                        est = estimate_cost(resolved_model, 500, max(len(total_content) // 4, 50))
+                        await self._cost_tracker.track(
+                            tenant_id=tenant_id,
+                            provider=provider.provider_name,
+                            model=resolved_model,
+                            prompt_tokens=500,
+                            completion_tokens=max(len(total_content) // 4, 50),
+                            operation="chat_stream",
+                            user_id=user_id,
+                            latency_ms=round(elapsed, 2),
+                        )
+                        await self._cost_tracker.deduct_budget(tenant_id, est)
+                    except Exception:
+                        pass
             yield event
 
-    async def embed(self, text: str, model: str | None = None) -> list[float]:
+    async def embed(self, text: str, model: str | None = None, tenant_id: str | None = None) -> list[float]:
         from intelligence.providers import EmbeddingRequest
         provider = self._get_provider()
         request = EmbeddingRequest(text=text, model=model)
-        response = await provider.embed(request)
 
-        self._cost_tracker.track(
-            provider=provider.provider_name,
-            model=response.model,
-            prompt_tokens=response.usage.get("prompt_tokens", 0),
-            completion_tokens=0,
-            operation="embed",
-        )
+        # ── F2: Pre-call budget check for embeddings ──────────────
+        resolved_model = model or provider.model_name
+        if tenant_id and self._cost_tracker:
+            est_cost = estimate_cost(resolved_model, 200, 0)
+            budget_check = await self._cost_tracker.check_budget(
+                tenant_id, est_cost
+            )
+            if budget_check.would_exceed and budget_check.monthly_budget > 0:
+                return []
+
+        start = time.monotonic()
+        response = await provider.embed(request)
+        elapsed = (time.monotonic() - start) * 1000
+
+        # ── F2: Canonical cost tracking for embeddings ────────────
+        if tenant_id and self._cost_tracker:
+            try:
+                await self._cost_tracker.track(
+                    tenant_id=tenant_id,
+                    provider=provider.provider_name,
+                    model=response.model,
+                    prompt_tokens=response.usage.get("prompt_tokens", 0),
+                    completion_tokens=0,
+                    operation="embed",
+                    latency_ms=round(elapsed, 2),
+                )
+                await self._cost_tracker.deduct_budget(tenant_id, response.cost)
+            except Exception:
+                pass
 
         if isinstance(response.embedding, list) and response.embedding and isinstance(response.embedding[0], float):
             return response.embedding

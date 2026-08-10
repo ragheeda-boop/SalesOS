@@ -14,7 +14,6 @@ from .base import (
     StreamEvent,
     estimate_cost,
 )
-from .cost_tracker import get_cost_tracker
 from .protocol import LLMProvider
 
 
@@ -68,15 +67,6 @@ class OpenAIProvider:
         cost = estimate_cost(response.model, usage["prompt_tokens"], usage["completion_tokens"])
 
         elapsed_ms = round(elapsed, 2)
-        get_cost_tracker().track(
-            provider=self.provider_name,
-            model=response.model,
-            prompt_tokens=usage["prompt_tokens"],
-            completion_tokens=usage["completion_tokens"],
-            operation="completion",
-            latency_ms=elapsed_ms,
-        )
-
         return ChatResponse(
             content=choice.message.content or "",
             model=response.model,

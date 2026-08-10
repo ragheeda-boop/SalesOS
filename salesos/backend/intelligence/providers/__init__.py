@@ -17,7 +17,17 @@ from .azure_provider import AzureOpenAIProvider
 from .ollama_provider import OllamaProvider
 from .factory import ProviderFactory, get_provider
 from .router import QueryRouter, ComplexityLevel, RoutingDecision
-from .cost_tracker import CostTracker, CostRecord, BudgetEnforcement, get_cost_tracker
+from .cost_tracker import (
+    CostTracker,
+    CostRecord,
+    BudgetConfig,
+    BudgetCheckResult,
+    BudgetExceededError,
+    PeriodSummary,
+    BillingPeriod,
+    get_cost_tracker,
+    init_cost_tracker,
+)
 from .reliability import ReliableProvider, ReliabilityConfig, CircuitBreaker
 from .policy_gate import PolicyGate, PolicyGateResult, ProviderModelPolicy, DataClassRule
 
@@ -50,8 +60,13 @@ __all__ = [
     "RoutingDecision",
     "CostTracker",
     "CostRecord",
-    "BudgetEnforcement",
+    "BudgetConfig",
+    "BudgetCheckResult",
+    "BudgetExceededError",
+    "PeriodSummary",
+    "BillingPeriod",
     "get_cost_tracker",
+    "init_cost_tracker",
     "ReliableProvider",
     "ReliabilityConfig",
     "CircuitBreaker",

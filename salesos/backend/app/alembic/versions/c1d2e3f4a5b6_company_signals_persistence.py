@@ -85,11 +85,10 @@ def upgrade() -> None:
     ))
 
     # RLS
-    op.execute(sa.text("ALTER TABLE company_signals ENABLE ROW LEVEL SECURITY"))
-    op.execute(sa.text(
-        "ALTER TABLE company_signals FORCE ROW LEVEL SECURITY"
-    ))
-    op.execute(sa.text(generate_policy_sql("company_signals")))
+    for stmt in generate_policy_sql("company_signals").strip().split(";\n"):
+        s = stmt.strip()
+        if s:
+            op.execute(sa.text(s))
 
 
 def downgrade() -> None:

@@ -12,7 +12,6 @@ from .base import (
     StreamEvent,
     estimate_cost,
 )
-from .cost_tracker import get_cost_tracker
 from .protocol import LLMProvider
 
 
@@ -93,15 +92,6 @@ class GeminiProvider:
         cost = estimate_cost(model_name, usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0))
 
         elapsed_ms = round(elapsed, 2)
-        get_cost_tracker().track(
-            provider=self.provider_name,
-            model=model_name,
-            prompt_tokens=usage.get("prompt_tokens", 0),
-            completion_tokens=usage.get("completion_tokens", 0),
-            operation="completion",
-            latency_ms=elapsed_ms,
-        )
-
         return ChatResponse(
             content=content,
             model=model_name,
