@@ -559,9 +559,33 @@ class CompanyService:
         else:
             last_activity = str(last_activity_raw)
 
+        # ── Signals: compute → persist → read from DB (fail-graceful) ──
         signals = self._detect_signals(
             company, contacts, opportunities, contracts, branches, tenant_id
         )
+
+        try:
+            from app.modules.company.signal_persistence import (
+                upsert_signals, read_signals, signals_to_response,
+            )
+            # Persist computed signals (idempotent upsert)
+            await upsert_signals(
+                session, tenant_id=tenant_id,
+                company_id=uid, signals=signals.get("items", []),
+            )
+            # Read back from DB for lifecycle-enriched view
+            persisted = await read_signals(
+                session, tenant_id=tenant_id, company_id=uid,
+            )
+            if persisted:
+                signals = signals_to_response(persisted)
+        except Exception as sig_exc:
+            # Persistence failure must not break Company 360
+            if self.logger:
+                self.logger.warning(
+                    "company_360.signal_persistence_skipped",
+                    company_id=company_id, error=str(sig_exc),
+                )
 
         enrichment = {
             "sources": company.source_ids or [],
