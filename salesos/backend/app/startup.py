@@ -257,7 +257,10 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     signal_engine = SignalEngine()
     market_engine = MarketIntelligenceEngine(company_engine=company_engine)
     graph_service = RelationshipGraphService(company_engine=company_engine)
-    enrichment_service = EnrichmentService(db_session_factory=async_session)
+    enrichment_service = EnrichmentService(
+        company_engine=company_engine,
+        db_session_factory=async_session,
+    )
     revenue_brain = RevenueBrain(
         company_engine=company_engine,
         signal_engine=signal_engine,
