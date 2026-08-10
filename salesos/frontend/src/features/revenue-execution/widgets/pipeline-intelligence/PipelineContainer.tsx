@@ -17,12 +17,12 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 const STAGE_ORDER = [
-  "identified",
-  "qualifying",
-  "developing",
-  "proposing",
-  "negotiating",
-  "closing",
+  "prospecting",
+  "qualification",
+  "proposal",
+  "negotiation",
+  "closed_won",
+  "closed_lost",
 ] as const;
 
 export const PipelineIntelligenceWidget = createWidget({

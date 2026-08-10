@@ -41,8 +41,8 @@ interface PipelineAnalytics {
 }
 
 const STAGE_ORDER = [
-  "lead",
-  "opportunity",
+  "prospecting",
+  "qualification",
   "proposal",
   "negotiation",
   "closed_won",
@@ -52,14 +52,14 @@ type StageKey = (typeof STAGE_ORDER)[number];
 
 const STAGE_CONFIG: Record<StageKey, { labelKey: string; color: string; dot: string; bg: string }> =
   {
-    lead: {
-      labelKey: "pipeline.stage.lead",
+    prospecting: {
+      labelKey: "pipeline.stage.prospecting",
       color: "bg-blue-500",
       dot: "bg-blue-500",
       bg: "border-blue-200 dark:border-blue-800",
     },
-    opportunity: {
-      labelKey: "pipeline.stage.opportunity",
+    qualification: {
+      labelKey: "pipeline.stage.qualification",
       color: "bg-indigo-500",
       dot: "bg-indigo-500",
       bg: "border-indigo-200 dark:border-indigo-800",

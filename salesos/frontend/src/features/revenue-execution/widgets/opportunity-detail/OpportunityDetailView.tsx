@@ -26,12 +26,12 @@ const RISK_S = {
   high: "text-[var(--status-danger-text)]",
 };
 const STAGE_IDS: OpportunityStage[] = [
-  "identified",
-  "qualifying",
-  "developing",
-  "proposing",
-  "negotiating",
-  "closing",
+  "prospecting",
+  "qualification",
+  "proposal",
+  "negotiation",
+  "closed_won",
+  "closed_lost",
 ];
 
 function Gauge({ label, value, color }: { label: string; value: number; color?: string }) {

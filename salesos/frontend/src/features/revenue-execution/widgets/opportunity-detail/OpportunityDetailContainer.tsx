@@ -21,7 +21,7 @@ function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
     estimatedValue: typeof amountMeta === "number" ? amountMeta : 0,
     confidence: confidenceScore,
     winProbability: confidenceScore,
-    stage: "developing",
+    stage: "prospecting",
     createdAt: new Date().toISOString().split("T")[0],
     buyingIntent: result.scores.find((s) => s.type === "intent")?.value ?? 0,
     relationshipStrength: result.scores.find((s) => s.type === "relationship")?.value ?? 0,

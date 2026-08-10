@@ -10,24 +10,21 @@ import {
 } from "@/application/revenue-execution/opportunity.dto";
 
 const STAGES: OpportunityStage[] = [
-  "identified",
-  "qualifying",
-  "developing",
-  "proposing",
-  "negotiating",
-  "closing",
+  "prospecting",
+  "qualification",
+  "proposal",
+  "negotiation",
+  "closed_won",
+  "closed_lost",
 ];
 
 const STAGE_STYLE: Record<string, string> = {
-  identified: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
-  qualifying: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
-  developing:
-    "bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--text-muted)]",
-  proposing: "bg-[var(--status-warning-bg)] text-amber-700",
-  negotiating: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
-  closing: "bg-[var(--status-danger-bg)] text-red-700",
-  won: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
-  lost: "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+  prospecting: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
+  qualification: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
+  proposal: "bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--text-muted)]",
+  negotiation: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
+  closed_won: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
+  closed_lost: "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
 };
 
 const RISK_S = {

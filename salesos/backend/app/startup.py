@@ -56,6 +56,14 @@ from sdk.events.kafka_bus import KafkaEventBus
 from sdk.telemetry import StructuredLogger, setup_telemetry
 from sdk.vector import OpenAIEmbeddingService
 
+# ── Intelligence wiring ──────────────────────────────────────────
+from intelligence.company import CompanyIntelligenceEngine
+from intelligence.enrichment import EnrichmentService
+from intelligence.graph import RelationshipGraphService
+from intelligence.market import MarketIntelligenceEngine
+from intelligence.revenue_brain import RevenueBrain
+from intelligence.signals import SignalEngine
+
 
 async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     _testing = os.environ.get("SALESOS_TESTING", "").strip().lower()
@@ -240,6 +248,34 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     dc_repo = PostgresDecisionCenterRepository(async_session())
     dc_service = DecisionCenterService(repository=dc_repo)
     app.state.decision_center_service = dc_service
+
+    # ── IL-1A: RevenueBrain ─────────────────────────────────────
+    company_engine = CompanyIntelligenceEngine(
+        db_session_factory=async_session,
+        feature_store=feature_store,
+    )
+    signal_engine = SignalEngine()
+    market_engine = MarketIntelligenceEngine(company_engine=company_engine)
+    graph_service = RelationshipGraphService(company_engine=company_engine)
+    enrichment_service = EnrichmentService(db_session_factory=async_session)
+    revenue_brain = RevenueBrain(
+        company_engine=company_engine,
+        signal_engine=signal_engine,
+        market_engine=market_engine,
+        graph_service=graph_service,
+        enrichment_service=enrichment_service,
+        db_session_factory=async_session,
+        feature_store=feature_store,
+    )
+    app.state.company_intelligence_engine = company_engine
+    app.state.signal_engine = signal_engine
+    app.state.revenue_brain = revenue_brain
+
+    # ── IL-1A: AgentRuntime ─────────────────────────────────────
+    from runtime.agent_runtime import AgentRuntime
+
+    agent_runtime = AgentRuntime(session_factory=async_session)
+    app.state.agent_runtime = agent_runtime
 
     timeline_runtime = TimelineRuntime(
         session_factory=async_session,

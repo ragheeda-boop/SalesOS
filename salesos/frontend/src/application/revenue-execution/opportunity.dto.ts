@@ -1,45 +1,39 @@
+/** Canonical opportunity stages — matches backend OpportunityStage.default_pipeline. */
 export type OpportunityStage =
-  | "identified"
-  | "qualifying"
-  | "developing"
-  | "proposing"
-  | "negotiating"
-  | "closing"
-  | "won"
-  | "lost";
+  | "prospecting"
+  | "qualification"
+  | "proposal"
+  | "negotiation"
+  | "closed_won"
+  | "closed_lost";
+
 export type OpportunitySource = "nba" | "manual" | "import" | "signal";
 
 export const STAGES: OpportunityStage[] = [
-  "identified",
-  "qualifying",
-  "developing",
-  "proposing",
-  "negotiating",
-  "closing",
-  "won",
-  "lost",
+  "prospecting",
+  "qualification",
+  "proposal",
+  "negotiation",
+  "closed_won",
+  "closed_lost",
 ];
 
 export const STAGE_LABEL: Record<OpportunityStage, string> = {
-  identified: "تم التحديد",
-  qualifying: "قيد التأهيل",
-  developing: "قيد التطوير",
-  proposing: "قيد العرض",
-  negotiating: "قيد التفاوض",
-  closing: "قيد الإغلاق",
-  won: "فوز",
-  lost: "خسارة",
+  prospecting: "استكشاف",
+  qualification: "تأهيل",
+  proposal: "عرض سعر",
+  negotiation: "تفاوض",
+  closed_won: "صفقة مغلقة",
+  closed_lost: "خسارة",
 };
 
 export const STAGE_WEIGHT: Record<OpportunityStage, number> = {
-  identified: 0.1,
-  qualifying: 0.25,
-  developing: 0.45,
-  proposing: 0.65,
-  negotiating: 0.8,
-  closing: 0.9,
-  won: 1.0,
-  lost: 0,
+  prospecting: 0.10,
+  qualification: 0.25,
+  proposal: 0.50,
+  negotiation: 0.75,
+  closed_won: 1.0,
+  closed_lost: 0,
 };
 
 export interface OpportunityNote {
