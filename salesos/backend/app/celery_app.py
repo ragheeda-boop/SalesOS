@@ -13,6 +13,7 @@ celery_app = Celery(
         "domains.employee.tasks",
         "app.modules.communication_hub.tasks",
         "runtime.agent_runtime.tasks",
+        "runtime.odoo",
     ],
 )
 

@@ -278,6 +278,12 @@ class Settings(BaseSettings):
     sso_github_client_id: str = ""
     sso_github_client_secret: str = ""
 
+    # Odoo Integration (Track E1/E2)
+    odoo_url: str = ""
+    odoo_database: str = ""
+    odoo_username: str = ""
+    odoo_api_key: str = ""
+
     # Google Workspace integration
     google_redirect_uri: str = ""
     google_encryption_key: str = ""

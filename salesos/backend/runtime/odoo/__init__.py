@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from typing import Protocol
 from uuid import uuid4
 
+from celery import shared_task
 from sqlalchemy import (
     Column, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint,
 )
@@ -357,6 +358,279 @@ class OdooSyncService:
                     )
             except Exception as exc:
                 result.failed += 1
-                result.errors.append(f"partner {odoo_id}: {exc}")
+                    result.errors.append(f"partner {odoo_id}: {exc}")
 
         return result
+
+    async def sync_contacts(
+        self, tenant_id: str, limit: int = 50,
+    ) -> SyncResult:
+        """Sync Odoo individual partners → SalesOS contacts."""
+        result = SyncResult(entity_type="contact")
+        try:
+            contacts = await self._client.search_read(
+                "res.partner",
+                [["is_company", "=", False], ["active", "=", True]],
+                ["id", "name", "email", "phone", "function", "parent_id", "write_date"],
+                limit=limit,
+            )
+        except OdooError as e:
+            result.failed = 1
+            result.errors.append(str(e))
+            return result
+
+        from uuid import uuid4
+        from sqlalchemy import select
+        from app.modules.contact.models import Contact
+
+        for contact_data in contacts:
+            odoo_id = contact_data["id"]
+            name = contact_data.get("name", "")
+            email = (contact_data.get("email") or "").lower()
+            phone = contact_data.get("phone", "")
+            position = contact_data.get("function", "")
+            parent_id = contact_data.get("parent_id")
+            write_date = contact_data.get("write_date")
+
+            if not name and not email:
+                continue
+
+            try:
+                existing_entity = await self.resolve_entity_id(
+                    tenant_id, "res.partner", odoo_id
+                )
+                async with self._session_factory() as session:
+                    if existing_entity:
+                        r = await session.execute(
+                            select(Contact).where(
+                                Contact.id == existing_entity,
+                                Contact.tenant_id == tenant_id,
+                            )
+                        )
+                        c = r.scalar_one_or_none()
+                        if c:
+                            if name and not c.name:
+                                c.name = name[:255]
+                            if position and not c.position:
+                                c.position = position[:255]
+                            c.updated_at = datetime.now(timezone.utc)
+                            await session.commit()
+                            result.updated += 1
+                            await self.upsert_mapping(
+                                tenant_id, "res.partner", odoo_id,
+                                "contact", str(c.id), write_date,
+                            )
+                            continue
+
+                    # Email dedup
+                    if email:
+                        r = await session.execute(
+                            select(Contact).where(
+                                Contact.tenant_id == tenant_id,
+                                Contact.email == email,
+                            )
+                        )
+                        dup = r.scalar_one_or_none()
+                        if dup:
+                            await self.upsert_mapping(
+                                tenant_id, "res.partner", odoo_id,
+                                "contact", str(dup.id), write_date,
+                            )
+                            result.skipped += 1
+                            continue
+
+                    # Resolve company mapping if parent_id
+                    company_id = None
+                    if parent_id:
+                        existing_company = await self.resolve_entity_id(
+                            tenant_id, "res.partner", parent_id[0] if isinstance(parent_id, list) else parent_id
+                        )
+                        company_id = existing_company
+
+                    contact_id = str(uuid4())
+                    await session.execute(
+                        Contact.__table__.insert().values(
+                            id=contact_id, tenant_id=tenant_id,
+                            name=name[:255] if name else "Odoo Contact",
+                            email=email or f"odoo-{odoo_id}@placeholder.local",
+                            phone=phone[:50] if phone else None,
+                            position=position[:255] if position else None,
+                            company_id=company_id,
+                            source="odoo_sync",
+                        )
+                    )
+                    await session.commit()
+                    result.created += 1
+                    await self.upsert_mapping(
+                        tenant_id, "res.partner", odoo_id,
+                        "contact", contact_id, write_date,
+                    )
+            except Exception as exc:
+                result.failed += 1
+                result.errors.append(f"contact {odoo_id}: {exc}")
+
+        return result
+
+    async def sync_leads(
+        self, tenant_id: str, limit: int = 50,
+    ) -> SyncResult:
+        """Sync Odoo CRM leads → SalesOS commercial opportunities."""
+        result = SyncResult(entity_type="opportunity")
+        try:
+            leads = await self._client.search_read(
+                "crm.lead",
+                [["active", "=", True]],
+                ["id", "name", "type", "stage_id", "expected_revenue",
+                 "partner_id", "description", "write_date"],
+                limit=limit,
+            )
+        except OdooError as e:
+            result.failed = 1
+            result.errors.append(str(e))
+            return result
+
+        from uuid import uuid4
+        from sqlalchemy import select
+        from domains.commercial.infrastructure.models import OpportunityModel
+
+        STAGE_MAP = {
+            "new": "prospecting", "qualified": "qualification",
+            "proposition": "proposal", "won": "closed_won",
+        }
+
+        for lead in leads:
+            odoo_id = lead["id"]
+            name = lead.get("name", "")
+            stage = STAGE_MAP.get(lead.get("type", ""), "prospecting")
+            value = float(lead.get("expected_revenue", 0))
+            partner_id = lead.get("partner_id")
+            write_date = lead.get("write_date")
+
+            if not name:
+                continue
+
+            try:
+                existing_entity = await self.resolve_entity_id(
+                    tenant_id, "crm.lead", odoo_id
+                )
+                async with self._session_factory() as session:
+                    if existing_entity:
+                        r = await session.execute(
+                            select(OpportunityModel).where(
+                                OpportunityModel.id == existing_entity,
+                                OpportunityModel.tenant_id == tenant_id,
+                            )
+                        )
+                        opp = r.scalar_one_or_none()
+                        if opp:
+                            if value and opp.value == 0.0:
+                                opp.value = value
+                            opp.updated_at = datetime.now(timezone.utc)
+                            await session.commit()
+                            result.updated += 1
+                            await self.upsert_mapping(
+                                tenant_id, "crm.lead", odoo_id,
+                                "opportunity", opp.id, write_date,
+                            )
+                            continue
+
+                    # Resolve company from partner_id
+                    company_id = ""
+                    if partner_id:
+                        if isinstance(partner_id, list):
+                            partner_id = partner_id[0]
+                        company_entity = await self.resolve_entity_id(
+                            tenant_id, "res.partner", partner_id
+                        )
+                        if company_entity:
+                            company_id = company_entity
+
+                    opp_id = str(uuid4())
+                    await session.execute(
+                        OpportunityModel.__table__.insert().values(
+                            id=opp_id, tenant_id=tenant_id,
+                            name=name[:500],
+                            company_id=company_id or "",
+                            stage=stage,
+                            value=value,
+                            status="open",
+                            probability=0.10,
+                            description=lead.get("description", ""),
+                        )
+                    )
+                    await session.commit()
+                    result.created += 1
+                    await self.upsert_mapping(
+                        tenant_id, "crm.lead", odoo_id,
+                        "opportunity", opp_id, write_date,
+                    )
+            except Exception as exc:
+                result.failed += 1
+                result.errors.append(f"lead {odoo_id}: {exc}")
+
+        return result
+
+    async def run_full_sync(self, tenant_id: str, limit: int = 100) -> dict:
+        """Run complete Odoo→SalesOS reconciliation sync."""
+        partners = await self.sync_partners(tenant_id, limit)
+        contacts = await self.sync_contacts(tenant_id, limit)
+        leads = await self.sync_leads(tenant_id, limit)
+
+        return {
+            "companies": {"created": partners.created, "updated": partners.updated,
+                          "skipped": partners.skipped, "failed": partners.failed},
+            "contacts": {"created": contacts.created, "updated": contacts.updated,
+                         "skipped": contacts.skipped, "failed": contacts.failed},
+            "opportunities": {"created": leads.created, "updated": leads.updated,
+                              "skipped": leads.skipped, "failed": leads.failed},
+            "errors": partners.errors + contacts.errors + leads.errors,
+            "algorithm_version": self._algorithm_version,
+        }
+
+
+# ── Celery Task ────────────────────────────────────────────────────────────
+
+
+def _run_odoo_sync(tenant_id: str, limit: int = 100) -> dict:
+    import asyncio
+
+    async def _sync():
+        from app.database import async_session
+
+        config = OdooConfig(
+            url=settings.odoo_url,
+            database=settings.odoo_database,
+            username=settings.odoo_username,
+            api_key=settings.odoo_api_key,
+        )
+        client = OdooJsonRpcClient(config)
+        service = OdooSyncService(client, async_session)
+        return await service.run_full_sync(tenant_id, limit)
+
+    return asyncio.run(_sync())
+
+
+@shared_task(name="odoo_sync_all")
+def odoo_sync_all() -> dict:
+    """Celery task: sync Odoo partners, contacts, and leads for all tenants."""
+    logger.info("Odoo sync task started")
+    if not settings.odoo_url:
+        logger.warning("Odoo sync skipped: ODOO_URL not configured")
+        return {"status": "skipped", "reason": "odoo_not_configured"}
+
+    from sqlalchemy import select, text
+    from app.database import owner_engine
+
+    result = {}
+    async def _run():
+        async with owner_engine.connect() as conn:
+            tenants = await conn.execute(select(text("id")).select_from(text("tenants")).limit(10))
+            for row in tenants.fetchall():
+                tid = str(row[0])
+                try:
+                    result[tid] = _run_odoo_sync(tid, limit=50)
+                except Exception as e:
+                    result[tid] = {"error": str(e)}
+        return result
+
+    return asyncio.run(_run())

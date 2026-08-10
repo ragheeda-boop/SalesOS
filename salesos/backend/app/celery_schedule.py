@@ -77,4 +77,10 @@ BEAT_SCHEDULE = {
         "schedule": timedelta(minutes=1),
         "options": {"expires": 120},
     },
+    # ── Odoo Integration Sync ───────────────────────────────────
+    "odoo-sync-every-6h": {
+        "task": "odoo_sync_all",
+        "schedule": timedelta(hours=6),
+        "options": {"expires": 1800},
+    },
 }
