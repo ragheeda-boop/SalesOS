@@ -358,7 +358,7 @@ class OdooSyncService:
                     )
             except Exception as exc:
                 result.failed += 1
-                    result.errors.append(f"partner {odoo_id}: {exc}")
+                result.errors.append(f"partner {odoo_id}: {exc}")
 
         return result
 
