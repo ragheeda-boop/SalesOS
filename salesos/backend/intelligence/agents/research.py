@@ -4,11 +4,25 @@ from sdk.config import sdk_settings
 
 
 class ResearchAgent(BaseAgent):
-    """Researches companies, markets, and topics using LLM."""
+    """Researches companies, markets, and topics using LLM.
+
+    Not live GA research AI. Runtime callers expect GroundedBaseAgent's
+    execute_grounded(task) shape; this class shims that onto execute/_run.
+    """
 
     def __init__(self, llm: LLMService | None = None):
         super().__init__("research", "2.0")
         self._llm = llm
+
+    async def execute_grounded(self, task: AgentTask, **kwargs) -> AgentResult:
+        """Shim matching GroundedBaseAgent.execute_grounded(task) call shape.
+
+        Extra kwargs are merged into task.input, then delegated to execute → _run.
+        Does not open LLM HTTP on its own; uses the existing execute path.
+        """
+        if kwargs:
+            task.input = {**task.input, **kwargs}
+        return await self.execute(task)
 
     async def _run(self, task: AgentTask) -> AgentResult:
         company_id = task.input.get("company_id", "unknown")
@@ -29,7 +43,8 @@ class ResearchAgent(BaseAgent):
 2. فرص بيع محتملة
 3. توصيات للتواصل"""
 
-        if self._llm and self._llm.client:
+        llm_client = getattr(self._llm, "client", None) if self._llm else None
+        if self._llm and llm_client:
             response = await self._llm.chat(
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_prompt}],
@@ -38,6 +53,7 @@ class ResearchAgent(BaseAgent):
             )
             return AgentResult(
                 task_id=task.id, agent_type="research",
+                success=True,
                 output={"summary": response.content, "sources": [], "research_depth": "llm"},
                 confidence=0.7,
             )
@@ -45,6 +61,7 @@ class ResearchAgent(BaseAgent):
         # Fallback if no LLM available
         return AgentResult(
             task_id=task.id, agent_type="research",
+            success=True,
             output={
                 "company_id": company_id,
                 "summary": f"معلومات عن {company_name or company_id} — يتطلب تكوين مفتاح OpenAI لتوليد تحليل كامل.",
