@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 import time
 import uuid
@@ -24,9 +26,6 @@ from runtime.decision_runtime.models import (
     RequiredAction,
 )
 from runtime.decision_runtime.events import DecisionEvent, DecisionEventType
-from sdk.events.base import DomainEvent as BaseDomainEvent
-
-
 from sdk.events.base import DomainEvent as BaseDomainEvent
 
 
@@ -173,8 +172,15 @@ class DecisionEngine:
             expires_at=datetime.now(timezone.utc) + timedelta(days=30),
         )
 
-        # 7. Persist
-        await self._save_decision(decision)
+        # 7. Persist (in-memory NBA still returned if DB persist fails)
+        try:
+            await self._save_decision(decision)
+        except Exception:
+            logger.exception(
+                "decision_engine.evaluate persist_failed decision_id=%s company_id=%s",
+                decision.decision_id,
+                company_id,
+            )
         self._evict_decisions()
         self._decisions[decision.decision_id] = decision
         self.metrics.decisions_created += 1
@@ -483,46 +489,86 @@ class DecisionEngine:
         return f"Confidence: {decision.confidence*100:.0f}%. Based on: {' + '.join(parts)}."
 
     async def _save_decision(self, decision: DecisionObject) -> None:
-        async with self._session_factory() as session:
-            from sqlalchemy import text as sa_text
-            existing = await session.execute(
-                sa_text("SELECT id FROM decisions WHERE decision_id = :did"),
-                {"did": decision.decision_id},
+        """Persist DecisionObject. JSONB must be json.dumps + CAST (asyncpg text binds)."""
+        from sqlalchemy import text as sa_text
+
+        from app.database import apply_tenant_guc
+
+        t0 = time.monotonic()
+
+        def _save_step(step: str) -> None:
+            logger.info(
+                "decision_engine._save_decision step=%s elapsed_ms=%.1f decision_id=%s",
+                step,
+                (time.monotonic() - t0) * 1000,
+                decision.decision_id,
             )
-            if existing.scalar_one_or_none():
-                return
-            await session.execute(
-                sa_text("""
-                    INSERT INTO decisions (decision_id, company_id, tenant_id, decision_type,
-                        priority, confidence, expected_revenue, expected_probability,
-                        reasoning, evidence, supporting_features, context_snapshot,
-                        status, created_at, expires_at)
-                    VALUES (:did, :cid, :tid, :dt, :pri, :conf, :rev, :prob,
-                        :reason, :evidence, :features, :ctx, :status, :created, :expires)
-                """),
-                {
-                    "did": decision.decision_id,
-                    "cid": decision.company_id,
-                    "tid": decision.tenant_id,
-                    "dt": decision.decision_type.value,
-                    "pri": decision.priority,
-                    "conf": decision.confidence,
-                    "rev": decision.expected_revenue,
-                    "prob": decision.expected_probability,
-                    "reason": decision.reasoning,
-                    "evidence": decision.evidence,
-                    "features": decision.supporting_features,
-                    "ctx": decision.context_snapshot,
-                    "status": decision.status.value,
-                    "created": decision.created_at,
-                    "expires": decision.expires_at,
-                },
+
+        async def _persist() -> None:
+            _save_step("enter")
+            async with self._session_factory() as session:
+                _save_step("checkout")
+                await apply_tenant_guc(session, decision.tenant_id)
+                _save_step("tenant_guc")
+                existing = await session.execute(
+                    sa_text("SELECT id FROM decisions WHERE decision_id = :did"),
+                    {"did": decision.decision_id},
+                )
+                if existing.scalar_one_or_none():
+                    _save_step("already_exists")
+                    return
+                _save_step("select_done")
+                # IL-2A: raw list/dict binds → asyncpg DataError ('list' has no encode);
+                # under PgBouncer that failure path can stall ~pool_timeout (30s).
+                await session.execute(
+                    sa_text("""
+                        INSERT INTO decisions (decision_id, company_id, tenant_id, decision_type,
+                            priority, confidence, expected_revenue, expected_probability,
+                            reasoning, evidence, supporting_features, context_snapshot,
+                            status, created_at, expires_at)
+                        VALUES (:did, :cid, :tid, :dt, :pri, :conf, :rev, :prob,
+                            :reason, CAST(:evidence AS jsonb), CAST(:features AS jsonb),
+                            CAST(:ctx AS jsonb), :status, :created, :expires)
+                    """),
+                    {
+                        "did": decision.decision_id,
+                        "cid": decision.company_id,
+                        "tid": decision.tenant_id,
+                        "dt": decision.decision_type.value,
+                        "pri": decision.priority,
+                        "conf": decision.confidence,
+                        "rev": decision.expected_revenue,
+                        "prob": decision.expected_probability,
+                        "reason": decision.reasoning,
+                        "evidence": json.dumps(decision.evidence),
+                        "features": json.dumps(decision.supporting_features),
+                        "ctx": json.dumps(decision.context_snapshot, default=str),
+                        "status": decision.status.value,
+                        "created": decision.created_at,
+                        "expires": decision.expires_at,
+                    },
+                )
+                _save_step("inserted")
+                await session.commit()
+                _save_step("committed")
+
+        try:
+            await asyncio.wait_for(_persist(), timeout=12.0)
+        except TimeoutError:
+            logger.error(
+                "decision_engine._save_decision timeout decision_id=%s elapsed_ms=%.1f",
+                decision.decision_id,
+                (time.monotonic() - t0) * 1000,
             )
-            await session.commit()
+            raise
 
     async def _update_status(self, decision_id: str, status: str, tenant_id: str) -> None:
+        from sqlalchemy import text as sa_text
+
+        from app.database import apply_tenant_guc
+
         async with self._session_factory() as session:
-            from sqlalchemy import text as sa_text
+            await apply_tenant_guc(session, tenant_id)
             await session.execute(
                 sa_text(
                     "UPDATE decisions SET status = :s, updated_at = NOW() "
