@@ -13,7 +13,7 @@
 |--------|------------|---------|--------|
 | **Host** | `salesos-production-96c0.up.railway.app` | `salesos-staging.up.railway.app` | Both `/health` **200** (probed) |
 | **Git branch** | `master` | **`staging` branch strategy + remote branch** | Closed (agent) — see [staging-branch-strategy.md](../ga-engineering-audit/runbooks/staging-branch-strategy.md) |
-| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | Partial — prior UUID failures; re-exercise pending success URL |
+| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | Partial — gate PASS on [run 31628153564](https://github.com/ragheeda-boop/SalesOS/actions/runs/31628153564); deploy FAIL `RAILWAY_TOKEN` Unauthorized |
 | **Parity baseline** | See EAB-003 DIFF (2026-08-07) | Same commit class at baseline freeze | Machine baseline exists; Human-Gate residuals OPEN |
 | **Business data for Decision soak** | Populated | **Seeded** muhide tenant + 5 companies (2026-08-12) | Agent closed seed gap; login round-trip **not validated** |
 | **48–72h health soak claim** | N/A | Harness finished 2026-08-10; **`soak_complete_claim=false`** | OPEN |
@@ -35,7 +35,7 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 
 ## Still OPEN / Human-Gate
 
-1. Green end-to-end `deploy-staging.yml` run URL (re-dispatch after wire)  
+1. Rotate `RAILWAY_TOKEN` for GH Environment `staging` → green `deploy-staging.yml` (gate already PASS; token Unauthorized)  
 2. Staging service `ENV=production` mislabel (`RAILWAY_ENVIRONMENT_NAME=staging`) — fix Railway var  
 3. Google OAuth staging app  
 4. WAL/PITR/offsite posture accept-or-enable  

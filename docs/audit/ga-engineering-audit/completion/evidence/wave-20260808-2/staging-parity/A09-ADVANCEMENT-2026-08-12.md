@@ -14,12 +14,13 @@
 | CI path safe wire | `.github/workflows/deploy-staging.yml` uses `--environment staging` (name) after 2026-08-09 UUID “Environment not found” failures |
 | Minimal Decision seed | Idempotent muhide tenant + 5 companies via `seed_staging_decision_minimal.py` (staging public DB only). Post-seed: `muhide_tenant=1`, muhide `companies_total=5`, staging totals `companies=22` / `tenants=18` |
 | GH Environment inventory | Environment `staging` exists; secrets `RAILWAY_*` bound; var `RAILWAY_STAGING_HEALTH_URL` set |
+| CI exercise (partial) | Run [31628153564](https://github.com/ragheeda-boop/SalesOS/actions/runs/31628153564) on `staging` ref: **gate SUCCESS** (secrets present); backend deploy **FAILED** `Unauthorized` on `RAILWAY_TOKEN` — env-name path no longer “Environment not found” |
 
 ## Still human / OPEN
 
 | Item | Notes |
 |------|-------|
-| End-to-end `deploy-staging.yml` SUCCESS | Prior runs failed (env UUID). Re-exercise after this wire; human confirms green run URL |
+| End-to-end `deploy-staging.yml` SUCCESS | Gate cleared; **rotate/replace `RAILWAY_TOKEN`** on GitHub Environment `staging` (and repo if needed) then re-dispatch. Run URL: https://github.com/ragheeda-boop/SalesOS/actions/runs/31628153564 |
 | `ENV=production` on staging service | Mislabel (`RAILWAY_ENVIRONMENT_NAME=staging` but `ENV=production`) — fix in Railway vars |
 | Google OAuth staging app | Human-Gate |
 | WAL / PITR / offsite | Human-Gate |
