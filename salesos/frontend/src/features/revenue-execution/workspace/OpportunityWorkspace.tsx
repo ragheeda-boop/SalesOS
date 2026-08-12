@@ -265,7 +265,7 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                                 {(Number(a.confidence) * 100).toFixed(0)}%
                               </span>
                             )}
-                            {a.algorithm_version && (
+                            {Boolean(a.algorithm_version) && (
                               <span className="text-[10px] text-[var(--text-muted)]">{String(a.algorithm_version)}</span>
                             )}
                           </div>
