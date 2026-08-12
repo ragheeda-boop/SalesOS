@@ -64,10 +64,14 @@ async def evaluate(
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     # IL-2A: proves handler entry (past SuspendedTenant / CSRF) when engine hangs.
+    # Railway strips message bodies — put ids/step in structured extras.
     logger.info(
-        "decision_runtime.evaluate enter company_id=%s tenant_id=%s",
-        body.company_id,
-        tenant_id,
+        "decision_runtime.evaluate",
+        extra={
+            "step": "enter",
+            "company_id": body.company_id,
+            "tenant_id": tenant_id,
+        },
     )
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:

@@ -347,7 +347,12 @@ async def on_decision_created_event(
     # handler so fan-out cannot stack on evaluate's background publish.
     logger.info(
         "IL-2A on_decision_created enter",
-        extra={"decision_id": decision_id, "tenant_id": tenant_id, "step": "enter"},
+        extra={
+            "decision_id": decision_id,
+            "tenant_id": tenant_id,
+            "event_type": event_type,
+            "step": "enter",
+        },
     )
 
     async def _handle() -> dict:

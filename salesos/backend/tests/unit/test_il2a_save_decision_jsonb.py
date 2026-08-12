@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import asyncio
+import logging
 from datetime import datetime, timezone, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -254,3 +255,60 @@ async def test_evaluate_background_tasks_queues_publish_not_inline():
     fn, args, kwargs = queued[0]
     await fn(*args, **kwargs)
     assert er.publish.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_evaluate_step_logs_use_structured_extras(caplog):
+    """Evaluate step timing must use extra= (survives Railway message strip)."""
+    from runtime.context_runtime import CompanyContext
+    from runtime.recommendation_runtime import Recommendation
+
+    ctx = CompanyContext()
+    cb = MagicMock()
+    cb.build = AsyncMock(return_value=ctx)
+    pe = MagicMock()
+    pe.evaluate = AsyncMock(return_value=[])
+    pe.metrics.snapshot.return_value = {}
+    rec = Recommendation(
+        recommendation_id="r1",
+        decision_id="d1",
+        company_id="c1",
+        tenant_id="t1",
+        title="t",
+        description="b",
+        priority=1,
+        confidence=0.5,
+    )
+    re = MagicMock()
+    re.generate = AsyncMock(return_value=rec)
+    er = MagicMock()
+    er.publish = AsyncMock()
+
+    eng = DecisionEngine(
+        session_factory=MagicMock(),
+        context_builder=cb,
+        policy_engine=pe,
+        recommendation_engine=re,
+        event_runtime=er,
+    )
+    eng._save_decision = AsyncMock()
+
+    with caplog.at_level(logging.INFO, logger="runtime.decision_runtime"):
+        result = await eng.evaluate("c1", "t1")
+
+    assert result is not None
+    step_records = [
+        r
+        for r in caplog.records
+        if r.getMessage() == "decision_engine.evaluate" and hasattr(r, "step")
+    ]
+    steps = [r.step for r in step_records]
+    assert "start" in steps
+    assert "done" in steps
+    done = next(r for r in step_records if r.step == "done")
+    assert hasattr(done, "elapsed_ms")
+    assert done.company_id == "c1"
+    assert done.tenant_id == "t1"
+    assert done.decision_id == result["decision_id"]
+    # Message must stay short — fields live in extras, not printf body.
+    assert "step=" not in done.getMessage()

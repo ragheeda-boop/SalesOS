@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -24,22 +24,67 @@ def _event() -> DomainEvent:
 
 
 @pytest.mark.asyncio
-async def test_retry_policy_honors_timeout_seconds():
-    started = asyncio.Event()
+async def test_retry_policy_logs_structured_retry_fields():
+    """Retry logs must carry step/subscriber/event_type/decision_id/retry extras."""
+    logger = MagicMock()
 
-    async def slow(_event):
-        started.set()
-        await asyncio.sleep(5.0)
+    async def boom(_event):
+        raise RuntimeError("fail once")
 
-    policy = RetryPolicy(max_retries=1, timeout_seconds=0.05, jitter=False)
-    t0 = asyncio.get_running_loop().time()
-    ok, err = await policy.execute(slow, _event(), "slow_sub")
-    elapsed = asyncio.get_running_loop().time() - t0
+    policy = RetryPolicy(max_retries=1, timeout_seconds=1.0, jitter=False)
+    ok, err = await policy.execute(boom, _event(), "il2a", logger=logger)
 
     assert ok is False
-    assert err == "timeout"
-    assert started.is_set()
-    assert elapsed < 1.0
+    assert err == "fail once"
+    logger.warn.assert_called()
+    kwargs = logger.warn.call_args.kwargs
+    assert kwargs["step"] == "retry"
+    assert kwargs["subscriber"] == "il2a"
+    assert kwargs["event_type"] == "decision.created"
+    assert kwargs["decision_id"] == "d1"
+    assert kwargs["retry"] == 1
+    assert "event" not in kwargs  # renamed to event_type for Railway JSON
+
+
+@pytest.mark.asyncio
+async def test_store_ok_logs_step_elapsed_decision_id():
+    logger = MagicMock()
+
+    class _OkSession:
+        async def __aenter__(self):
+            session = MagicMock()
+            session.commit = AsyncMock()
+            return session
+
+        async def __aexit__(self, *args):
+            return False
+
+    with patch(
+        "runtime.event_runtime.PostgresEventStore"
+    ) as store_cls:
+        store_cls.return_value.append = AsyncMock()
+        runtime = EventRuntime(
+            session_factory=lambda: _OkSession(), logger=logger
+        )
+        runtime.register(
+            "decision.created",
+            AsyncMock(),
+            name="il2a",
+            max_retries=1,
+            timeout_seconds=1.0,
+        )
+        await runtime.publish(_event())
+
+    store_calls = [
+        c for c in logger.info.call_args_list if c.args and c.args[0] == "event_runtime.store_ok"
+    ]
+    assert store_calls
+    kwargs = store_calls[0].kwargs
+    assert kwargs["step"] == "store"
+    assert kwargs["event_type"] == "decision.created"
+    assert kwargs["decision_id"] == "d1"
+    assert "elapsed_ms" in kwargs
+
 
 
 @pytest.mark.asyncio

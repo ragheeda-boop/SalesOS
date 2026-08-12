@@ -32,6 +32,13 @@ from sdk.events.store import PostgresEventStore
 from sdk.telemetry import StructuredLogger, get_tracer, trace_span
 
 
+def _event_decision_id(event: DomainEvent) -> str:
+    data = getattr(event, "data", None) or {}
+    if isinstance(data, dict):
+        return str(data.get("decision_id") or "")
+    return ""
+
+
 class SubscriberPriority(Enum):
     FIRST = 0
     EARLY = 10
@@ -157,9 +164,11 @@ class RetryPolicy:
                 if logger:
                     logger.warn(
                         "event_runtime.retry_timeout",
+                        step="retry",
                         subscriber=subscriber_name,
-                        event=event.event_type,
-                        attempt=attempt,
+                        event_type=event.event_type,
+                        decision_id=_event_decision_id(event),
+                        retry=attempt,
                         max_retries=self.max_retries,
                         timeout_seconds=self.timeout_seconds,
                     )
@@ -168,9 +177,12 @@ class RetryPolicy:
                 if logger:
                     logger.warn(
                         "event_runtime.retry_failed",
+                        step="retry",
                         subscriber=subscriber_name,
-                        event=event.event_type,
-                        attempt=attempt,
+                        event_type=event.event_type,
+                        decision_id=_event_decision_id(event),
+                        retry=attempt,
+                        max_retries=self.max_retries,
                         error=str(e),
                     )
 
@@ -369,22 +381,41 @@ class EventRuntime(EventBus):
                     await asyncio.wait_for(_store(), timeout=_STORE_BUDGET_SECONDS)
                     lifecycle.stored_ms = (time.monotonic() - store_start) * 1000
                     span.set_attribute("event.stored_ms", lifecycle.stored_ms)
+                    if self._logger:
+                        self._logger.info(
+                            "event_runtime.store_ok",
+                            step="store",
+                            event_type=event.event_type,
+                            event_id=event.event_id,
+                            decision_id=_event_decision_id(event),
+                            elapsed_ms=round(lifecycle.stored_ms, 1),
+                        )
                 except TimeoutError:
                     if self._logger:
                         self._logger.warn(
                             "event_runtime.store_timeout",
+                            step="store",
                             event_type=event.event_type,
                             event_id=event.event_id,
+                            decision_id=_event_decision_id(event),
                             timeout_s=_STORE_BUDGET_SECONDS,
+                            elapsed_ms=round(
+                                (time.monotonic() - store_start) * 1000, 1
+                            ),
                         )
                     # Continue fan-out best-effort; do not block publishers forever.
                 except Exception as e:
                     if self._logger:
                         self._logger.error(
                             "event_runtime.store_failed",
+                            step="store",
                             event_type=event.event_type,
                             event_id=event.event_id,
+                            decision_id=_event_decision_id(event),
                             error=str(e),
+                            elapsed_ms=round(
+                                (time.monotonic() - store_start) * 1000, 1
+                            ),
                         )
                     # FAIL-OPEN: durable store is best-effort. Skipping fan-out here
                     # left domain_events with 0 decision.created and zero AgentTasks.
@@ -417,11 +448,13 @@ class EventRuntime(EventBus):
                     lifecycle.subscriber_results[reg.name] = sub_duration
                     self.metrics.record_subscriber_duration(reg.name, sub_duration)
                     if self._logger:
-                        self._logger.debug(
+                        self._logger.info(
                             "event_runtime.subscriber_succeeded",
+                            step="subscriber",
                             subscriber=reg.name,
                             event_type=event.event_type,
-                            duration_ms=round(sub_duration, 2),
+                            decision_id=_event_decision_id(event),
+                            elapsed_ms=round(sub_duration, 1),
                         )
                 else:
                     lifecycle.subscriber_errors[reg.name] = error or "unknown"
@@ -438,9 +471,13 @@ class EventRuntime(EventBus):
                     if self._logger:
                         self._logger.error(
                             "event_runtime.subscriber_dead_lettered",
+                            step="subscriber",
                             subscriber=reg.name,
                             event_type=event.event_type,
+                            decision_id=_event_decision_id(event),
+                            retry=reg.max_retries,
                             error=error,
+                            elapsed_ms=round(sub_duration, 1),
                         )
 
             # 5. Finalize lifecycle

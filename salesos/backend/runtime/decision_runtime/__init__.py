@@ -222,15 +222,18 @@ class DecisionEngine:
         t0 = time.monotonic()
         self.metrics.evaluations += 1
 
-        def _step(step: str) -> None:
-            # IL-2A: identify which await hangs (no DecisionEngine errors today).
-            elapsed_ms = (time.monotonic() - t0) * 1000
-            logger.info(
-                "decision_engine.evaluate step=%s elapsed_ms=%.1f company_id=%s",
-                step,
-                elapsed_ms,
-                company_id,
-            )
+        def _step(step: str, **fields: Any) -> None:
+            # Railway strips message bodies — keep step/elapsed in extra=.
+            extra: dict[str, Any] = {
+                "step": step,
+                "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                "company_id": company_id,
+                "tenant_id": tenant_id,
+            }
+            for key, value in fields.items():
+                if value is not None and value != "":
+                    extra[key] = value
+            logger.info("decision_engine.evaluate", extra=extra)
 
         _step("start")
 
@@ -286,14 +289,18 @@ class DecisionEngine:
             await self._save_decision(decision)
         except Exception:
             logger.exception(
-                "decision_engine.evaluate persist_failed decision_id=%s company_id=%s",
-                decision.decision_id,
-                company_id,
+                "decision_engine.evaluate persist_failed",
+                extra={
+                    "decision_id": decision.decision_id,
+                    "company_id": company_id,
+                    "tenant_id": tenant_id,
+                    "step": "persist_failed",
+                },
             )
         self._evict_decisions()
         self._decisions[decision.decision_id] = decision
         self.metrics.decisions_created += 1
-        _step("decision_saved")
+        _step("decision_saved", decision_id=decision.decision_id)
 
         # 8. Generate recommendation
         rec = await self._recommendation_engine.generate(
@@ -307,10 +314,10 @@ class DecisionEngine:
             evidence=decision.evidence,
             context=context.to_dict(),
         )
-        _step("recommendation_generated")
+        _step("recommendation_generated", decision_id=decision.decision_id)
 
         # 9. Publish event AFTER response when BackgroundTasks available
-        _step("event_publish_begin")
+        _step("event_publish_begin", decision_id=decision.decision_id)
         event = DecisionEvent(
             event_type=DecisionEventType.CREATED,
             decision_id=decision.decision_id,
@@ -340,11 +347,11 @@ class DecisionEngine:
                 domain_event,
                 decision_id=decision.decision_id,
             )
-        _step("event_published")
+        _step("event_published", decision_id=decision.decision_id)
 
         elapsed = (time.monotonic() - t0) * 1000
         self.metrics.total_eval_ms += elapsed
-        _step("done")
+        _step("done", decision_id=decision.decision_id)
 
         return self._build_nba_response(decision, rec, context)
 
@@ -629,10 +636,14 @@ class DecisionEngine:
 
         def _save_step(step: str) -> None:
             logger.info(
-                "decision_engine._save_decision step=%s elapsed_ms=%.1f decision_id=%s",
-                step,
-                (time.monotonic() - t0) * 1000,
-                decision.decision_id,
+                "decision_engine._save_decision",
+                extra={
+                    "step": step,
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                    "decision_id": decision.decision_id,
+                    "company_id": decision.company_id,
+                    "tenant_id": decision.tenant_id,
+                },
             )
 
         async def _persist() -> None:
@@ -687,9 +698,14 @@ class DecisionEngine:
             await asyncio.wait_for(_persist(), timeout=12.0)
         except TimeoutError:
             logger.error(
-                "decision_engine._save_decision timeout decision_id=%s elapsed_ms=%.1f",
-                decision.decision_id,
-                (time.monotonic() - t0) * 1000,
+                "decision_engine._save_decision timeout",
+                extra={
+                    "step": "timeout",
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                    "decision_id": decision.decision_id,
+                    "company_id": decision.company_id,
+                    "tenant_id": decision.tenant_id,
+                },
             )
             raise
 
