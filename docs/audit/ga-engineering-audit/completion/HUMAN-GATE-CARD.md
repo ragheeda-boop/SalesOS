@@ -80,8 +80,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File docs\audit\ga-engineering-au
 |-------|--------|
 | Why | Code/commit parity machine-verified 2026-08-07; residuals block full “parity CLOSED” |
 | Doc | [staging-parity-checklist.md](../runbooks/staging-parity-checklist.md) · [STAGING-vs-PRODUCTION-DIFF.md](../enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) |
-| Exact actions | Google OAuth staging app; WAL/offsite decision; max_connections or acceptance; CI staging deploy; rollback tabletop |
-| Done when | Checklist P1–P6 evidence deposited (redacted) |
+| Exact actions | Google OAuth staging app ([staging-oauth-setup.md](../runbooks/staging-oauth-setup.md)); WAL/offsite decision; max_connections or acceptance; CI staging deploy; rollback tabletop ([template](./evidence/wave-20260808-2/staging-parity/A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md)) |
+| Status matrix | [A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md](./evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md) — prep DONE; ink OPEN |
+| Done when | Checklist P1–P5 evidence deposited (redacted); P6 ENV mislabel already CLOSED |
 
 ---
 

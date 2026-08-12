@@ -1,9 +1,10 @@
 # Soak Gate Checklist — OPS-01 / Wave 11
 
-**Date:** 2026-08-06 · **Honesty refresh:** 2026-08-12  
+**Date:** 2026-08-06 · **Honesty refresh:** 2026-08-13  
 **Parent:** [OPS-01-ADVANCEMENT.md](./OPS-01-ADVANCEMENT.md)  
 **Claim file:** [PROGRESS-WAVE11-SOAK-CLAIM.md](../../../PROGRESS-WAVE11-SOAK-CLAIM.md)  
-**Current `soak_complete_claim`:** **false**
+**Current `soak_complete_claim`:** **false**  
+**Unlock path (what WOULD flip claim):** [A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md](../../../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md) — U1 RCA → U2 K4 → U3 K5 → U4 accept-or-resoak → U5 human flip only
 
 ---
 

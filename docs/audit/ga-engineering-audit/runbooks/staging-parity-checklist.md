@@ -1,10 +1,12 @@
 # Staging Parity Checklist (A-09 / OPS residual)
 
-**Status:** Machine baseline exists (2026-08-07) — **residuals Human-Gate** (A-09 still OPEN)  
-**Authority:** [STAGING-vs-PRODUCTION-DIFF.md](../enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) · [A09_STAGING_PARITY.md](../../star-audit/A09_STAGING_PARITY.md) · [staging-branch-strategy.md](./staging-branch-strategy.md)  
+**Status:** Machine baseline exists (2026-08-07) — **residuals Human-Gate** (A-09 **CONDITIONAL / OPEN**)  
+**Authority:** [STAGING-vs-PRODUCTION-DIFF.md](../enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) · [A09_STAGING_PARITY.md](../../star-audit/A09_STAGING_PARITY.md) · [staging-branch-strategy.md](./staging-branch-strategy.md) · [A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md)  
 **Does not grant:** Production GO or soak complete  
 
-**2026-08-12 advancement:** Host live; `staging` branch strategy documented; Decision seed applied; `deploy-staging.yml` switched to env **name**. See [A09-ADVANCEMENT-2026-08-12.md](../completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md). Bounded **production** IL-2A soak remains separate evidence — **not** staging parity / Wave 11 claim.
+**2026-08-13:** Steps 7 / 9 / 10 documented honestly — Human-Gate prep + soak unlock criteria + final assessment **CONDITIONAL / OPEN**. Sister deploy retry still Unauthorized. See [A09-CHECKLIST-PROGRESS-2026-08-12.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-PROGRESS-2026-08-12.md).
+
+**2026-08-12 advancement:** Host live; `staging` branch strategy documented; Decision seed applied; `deploy-staging.yml` switched to env **name**. Bounded **production** IL-2A soak remains separate evidence — **not** staging parity / Wave 11 claim.
 
 ---
 
@@ -19,7 +21,7 @@
 | `/health` subsystems | SAME class |
 | Staging empty data vs prod volume | Intentional (not a parity fail) |
 
-### Added 2026-08-12 (agent)
+### Added 2026-08-12 / 13 (agent)
 
 | Item | Result |
 |------|--------|
@@ -31,7 +33,11 @@
 | Staging login (muhide seed) | **PASS** (password not in evidence) |
 | Decision-runtime evaluate smoke | **PASS** (`recommend_call`) |
 | celery-worker / celery-beat / `agent_dispatch_all` | **PASS** (light) — scheduler→worker succeed |
-| `deploy-staging.yml` end-to-end | **FAIL** — `RAILWAY_TOKEN` Unauthorized ([31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116), retry 2026-08-13); see [A09-CHECKLIST-1-5-2026-08-12.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) |
+| Neo4j / `:6432` residual | **CLOSED** (celery Postgres vars) |
+| Human-Gate step 7 prep | Status matrix + OAuth runbook + rollback template — **ink OPEN** |
+| Soak claim unlock criteria | Documented; `soak_complete_claim=false` |
+| Final parity assessment | **CONDITIONAL / OPEN** |
+| `deploy-staging.yml` end-to-end | **FAIL** — `RAILWAY_TOKEN` Unauthorized ([31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116)) |
 
 ---
 
@@ -39,13 +45,13 @@
 
 | # | Residual | Owner | Done when |
 |---|----------|-------|-----------|
-| P1 | Google OAuth staging app (`SSO_GOOGLE_CLIENT_ID/SECRET`) | Platform | Staging login round-trip evidence (no secrets in git) |
+| P1 | Google OAuth staging app (`SSO_GOOGLE_CLIENT_ID/SECRET`) | Platform | Staging login round-trip evidence (no secrets in git) — [staging-oauth-setup.md](./staging-oauth-setup.md) |
 | P2 | Staging WAL archive + offsite backup posture | DevOps | Documented decision: accept gap **or** enable + drill |
 | P3 | Postgres `max_connections` 100→500 (or accepted capacity note) | DevOps | Config evidence or signed acceptance |
-| P4 | Staging deploy via `deploy-staging.yml` green run | DevOps | Successful GH Actions run linked (UUID path failed 2026-08-09; name path re-dispatched) |
-| P5 | Staging rollback tabletop | DevOps | Dated notes under evidence |
-| P6 | Fix staging `ENV=production` mislabel | DevOps | `ENV=staging` on Railway staging service |
-| P7 | Wave 11 soak claim | TL / DevOps | Human review of 72h failures before flip |
+| P4 | Staging deploy via `deploy-staging.yml` green run | DevOps | Successful GH Actions run linked |
+| P5 | Staging rollback tabletop | DevOps | Dated notes — template [A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md](../completion/evidence/wave-20260808-2/staging-parity/A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md) |
+| P6 | Fix staging `ENV=production` mislabel | DevOps | **CLOSED** 2026-08-12 (`ENV=staging`) |
+| P7 | Wave 11 soak claim | TL / DevOps | Unlock U1–U5 — [A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md) |
 
 Deposit redacted evidence under:
 

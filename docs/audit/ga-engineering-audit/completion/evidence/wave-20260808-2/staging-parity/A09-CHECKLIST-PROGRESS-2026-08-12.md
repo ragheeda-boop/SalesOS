@@ -1,27 +1,27 @@
-# A-09 checklist progress rollup — 2026-08-12 (parallel streams)
+# A-09 checklist progress rollup — 2026-08-12/13
 
-**Validation:** **light validated** (prior stream evidence + commits; no new forge CLOSE)  
+**Validation:** **light validated** (prior stream evidence + commits + sister deploy retry; no forge CLOSE)  
 **Claims:** `staging_parity_complete=false` · `soak_complete_claim=false` · `production_go=false`  
 **Constraints:** No `feature_ai_copilot` flip · No forge CLOSE · No invented `RAILWAY_TOKEN`
 
-**Authority:** [A09_STAGING_PARITY.md](../../../../star-audit/A09_STAGING_PARITY.md) · [staging-parity-checklist.md](../../../../runbooks/staging-parity-checklist.md)
+**Authority:** [A09_STAGING_PARITY.md](../../../../star-audit/A09_STAGING_PARITY.md) · [staging-parity-checklist.md](../../../../runbooks/staging-parity-checklist.md) · [A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md](./A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md)
 
 ---
 
-## Snapshot (post parallel streams)
+## Snapshot (steps 7 / 9 / 10 advanced 2026-08-13)
 
 | # | Step | Result | Evidence / SHA |
 |---|------|:------:|----------------|
-| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — Unauthorized; **human rotate** | [A09-CHECKLIST-1-5-2026-08-12.md](./A09-CHECKLIST-1-5-2026-08-12.md) · retry [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116) (2026-08-13) |
+| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — Unauthorized; **human rotate** | [A09-CHECKLIST-1-5-2026-08-12.md](./A09-CHECKLIST-1-5-2026-08-12.md) · retry [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116) |
 | 2 | `deploy-staging.yml` SUCCESS | **FAIL** — blocked by #1 | same |
 | 3 | Staging login (muhide) | **PASS** | checklist 1–5 |
 | 4 | Decision smoke (`recommend_call`) | **PASS** | checklist 1–5 |
 | 5 | Worker + beat + dispatch | **PASS** (light) | checklist 1–5 |
-| 6 | Neo4j / `:6432` residual | **CLOSED** — was celery missing `POSTGRES_HOST/PORT/DB`; graph already connected | [A09-CHECKLIST-6-NEO4J-2026-08-12.md](./A09-CHECKLIST-6-NEO4J-2026-08-12.md) · SHA `1baae84` |
-| 7 | Human-Gate OAuth / PITR / WAL / `max_connections` / rollback | **OPEN** | Human-Gate |
-| 8 | 72h soak failure triage | **DONE** — claim **cannot** advance (97.6% fails = DB outage) | [SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](../../../enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md) · SHA `ae76dae` |
-| 9 | Wave 11 soak claim (`soak_complete_claim`) | **false** (stays false) | triage + SOAK-GATE |
-| 10 | Final staging parity | **OPEN** / not complete | this rollup |
+| 6 | Neo4j / `:6432` residual | **CLOSED** — celery Postgres misconfig | [A09-CHECKLIST-6-NEO4J-2026-08-12.md](./A09-CHECKLIST-6-NEO4J-2026-08-12.md) · `1baae84` |
+| 7 | Human-Gate OAuth / PITR / WAL / `max_connections` / rollback | **OPEN** — status matrix + prep DONE; ink OPEN | [A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md](./A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md) |
+| 8 | 72h soak failure triage | **DONE** — claim **cannot** advance | [SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](../../../enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md) · `ae76dae` |
+| 9 | Wave 11 soak claim | **false** — unlock criteria written; claim not flipped | [A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md](./A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md) |
+| 10 | Final staging parity | **CONDITIONAL / OPEN** — not complete | [A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md](./A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md) |
 
 ---
 
@@ -33,6 +33,7 @@ soak_complete_claim     = false
 production_go           = false
 feature_ai_copilot      = false (unchanged; not flipped)
 forge CLOSE             = not claimed
+A-09 recommendation     = CONDITIONAL / OPEN
 ```
 
 ---
@@ -50,21 +51,22 @@ Do **not** paste token values into chat, commits, or evidence.
 
 ### P0 — Human-Gate (step 7)
 
-- Google OAuth staging app  
+See [A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md](./A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md):
+
+- Google OAuth staging app — [staging-oauth-setup.md](../../../../runbooks/staging-oauth-setup.md)  
 - WAL / PITR / offsite posture accept-or-enable  
 - Postgres `max_connections` 100→500 or signed acceptance  
-- Rollback tabletop dated notes  
+- Rollback tabletop — [A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md](./A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md)  
 
 ### P1 — Soak claim (steps 8–9)
 
-- PO/TL review of 72h triage (`ae76dae`); RCA for ~7h DB outage window  
-- Do **not** flip `soak_complete_claim` until K4/K5 + accept-or-resoak  
+- Unlock path U1–U5 in [A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md](./A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md)  
+- Do **not** flip `soak_complete_claim` until those are met  
 
 ### Optional
 
 - Attach detached `neo4j-volume` (persistence only; not reachability)  
-- Push / reconcile tip notes in [A09_STAGING_PARITY.md](../../../../star-audit/A09_STAGING_PARITY.md) Still OPEN list  
 
 ---
 
-*A-09 remains OPEN. Evidence governs. No staging parity complete claim.*
+*A-09 remains CONDITIONAL / OPEN. Evidence governs. No staging parity complete claim.*
