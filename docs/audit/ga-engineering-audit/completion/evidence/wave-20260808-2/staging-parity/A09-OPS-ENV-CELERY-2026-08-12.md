@@ -44,7 +44,7 @@ GitHub secret `RAILWAY_STAGING_ENVIRONMENT_ID` (repo + Environment `staging`) wa
 | End-to-end `deploy-staging.yml` SUCCESS | Re-dispatch after token rotate |
 | Push A-09 SHA `6cbcf9f` to `origin/master` | Local master **ahead 1**; remote tip `3af6e656` still has uvicorn-only `railway.json` — GitHub auto-deploy of beat would regress to uvicorn until push |
 | Dashboard Config-as-Code path | Prod uses `/railway.worker.json` + `/railway.beat.json`; staging celery still `/railway.json` service-name branch (CLI up) |
-| Neo4j on staging agent_dispatch | Task succeeds with `Connect call failed …:6432` errors (pre-existing Neo4j reachability; not beat offline) |
+| Neo4j / `:6432` on staging agent_dispatch | **CLOSED 2026-08-12** — was celery missing `POSTGRES_HOST/PORT/DB` (default `:6432`), not Neo4j; see [A09-CHECKLIST-6-NEO4J-2026-08-12.md](./A09-CHECKLIST-6-NEO4J-2026-08-12.md) |
 | User-supplied env UUIDs | Confirm origin (other workspace/project?) or discard |
 | Google OAuth / WAL-PITR / rollback tabletop / Wave 11 soak | Human gates unchanged |
 

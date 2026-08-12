@@ -1,8 +1,8 @@
 # A-09: Staging Parity Assessment
 
-> **Last Updated:** 2026-08-12 (checklist steps 1–5)  
+> **Last Updated:** 2026-08-12 (checklist step 6 Neo4j/`:6432`)  
 > Classification: INFRASTRUCTURE AUDIT  
-> **Validation:** **light validated** for host + login + Decision runtime evaluate + worker/beat/dispatch; CI token still FAIL  
+> **Validation:** **light validated** for host + login + Decision runtime evaluate + worker/beat/dispatch + Postgres/Neo4j reachability on dispatch; CI token still FAIL  
 > **A-09 residual:** **OPEN** (not closed — Human-Gate `RAILWAY_TOKEN` + CI deploy success + soak claim remain)
 
 ---
@@ -16,10 +16,11 @@
 | **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | **FAIL** — gate PASS; `railway up` **Unauthorized** on [31638994692](https://github.com/ragheeda-boop/SalesOS/actions/runs/31638994692) |
 | **Parity baseline** | See EAB-003 DIFF (2026-08-07) | Same commit class at baseline freeze | Machine baseline exists; Human-Gate residuals OPEN |
 | **Business data for Decision soak** | Populated | **Seeded** muhide tenant + 5 companies (2026-08-12) | Login **PASS**; Decision-runtime evaluate **PASS** (`recommend_call`) |
-| **Worker / beat / dispatch** | Online | Online — beat `agent-dispatch-every-1m`; worker `agent_dispatch_all` succeeded | **PASS** (light) |
+| **Worker / beat / dispatch** | Online | Online — beat `agent-dispatch-every-1m`; worker `agent_dispatch_all` succeeded (`errors=[]`) | **PASS** (light) |
+| **Neo4j / graph** | Connected class | SalesOS `graph=connected`; `:6432` residual was **Postgres misconfig on celery** (closed) | **PASS** (light) |
 | **48–72h health soak claim** | N/A | Harness finished 2026-08-10; **`soak_complete_claim=false`** | OPEN |
 
-Evidence deposits: [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) · [`A09-ADVANCEMENT-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md) · [`A09-OPS-ENV-CELERY-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md)
+Evidence deposits: [`A09-CHECKLIST-6-NEO4J-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-6-NEO4J-2026-08-12.md) · [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) · [`A09-ADVANCEMENT-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md) · [`A09-OPS-ENV-CELERY-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md)
 
 Supersedes the stale “409 commits behind / no staging host” reading for **host existence**. Critical diffs and Human-Gate items in [`STAGING-vs-PRODUCTION-DIFF.md`](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) and [`staging-parity-checklist.md`](../ga-engineering-audit/runbooks/staging-parity-checklist.md) still govern **parity complete**.
 
@@ -32,12 +33,13 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 3. **Minimal Decision seed** — `seed_staging_decision_minimal.py` → muhide + 5 companies (`CONFIRM_STAGING_SEED=1`)  
 4. Confirmed `FEATURE_AI_COPILOT=false` on staging service  
 5. **`ENV=staging`** on SalesOS (mislabel closed) — CLI env `5ce7864a-…`  
-6. Staging **celery-worker** deploy `3c9de5f4` **SUCCESS** (`celery@… ready`)  
-7. Staging **celery-beat** deploy `81de263f` **SUCCESS** (`beat: Starting…` + `agent-dispatch-every-1m`)  
+6. Staging **celery-worker** deploy `3c9de5f4` → refreshed `f423f787` **SUCCESS** (`celery@… ready`)  
+7. Staging **celery-beat** deploy `81de263f` → refreshed `bb5876c1` **SUCCESS** (`beat: Starting…` + `agent-dispatch-every-1m`)  
+8. Checklist **step 6** — closed `:6432` residual (celery missing `POSTGRES_*`; Neo4j already reachable)  
 
 ---
 
-## Checklist 1–5 (2026-08-12 late pass)
+## Checklist 1–6 (2026-08-12 late pass)
 
 | # | Step | Result |
 |---|------|:------:|
@@ -46,8 +48,9 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 | 3 | Staging login (seeded muhide) | **PASS** |
 | 4 | Decision smoke (runtime evaluate) | **PASS** |
 | 5 | Worker + beat + `agent_dispatch_all` | **PASS** (light) |
+| 6 | Neo4j / `:6432` on dispatch | **PASS** — was Postgres `POSTGRES_PORT` default on celery; Neo4j Bolt OK |
 
-Full evidence: [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md).
+Evidence: [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) · [`A09-CHECKLIST-6-NEO4J-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-6-NEO4J-2026-08-12.md).
 
 ---
 
@@ -62,7 +65,7 @@ Full evidence: [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/compl
 7. Push A-09 `6cbcf9f` (branching `railway.json`) to `origin/master` so GitHub tip is not uvicorn-only  
 8. Reconcile user-supplied Railway env UUIDs (`1ef5b31a-…` / `29252eae-…`) — not in CLI workspace  
 9. Local WIP (entrypoint / Dockerfile / salesos/railway.json startCommand removal + celery_app imports) — **left uncommitted** after df5028c; see [A09-OPS-ENV-CELERY-2026-08-12.md](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md) residual  
-10. Staging Neo4j reachability (`:6432` connect failures on some dispatch paths) — separate from beat/worker online loop verified this pass  
+10. ~~Staging Neo4j / `:6432` on `agent_dispatch_all`~~ — **CLOSED** (misdiagnosed; celery missing `POSTGRES_HOST/PORT/DB`; Neo4j already `connected`). Optional human: attach detached `neo4j-volume` for persistence only. See [A09-CHECKLIST-6-NEO4J-2026-08-12.md](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-6-NEO4J-2026-08-12.md).  
 
 ---
 
