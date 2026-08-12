@@ -69,44 +69,55 @@ def _publish_decision_event_best_effort(
         t0 = time.monotonic()
         try:
             logger.info(
-                "decision_engine.event_publish start decision_id=%s event_type=%s",
-                decision_id,
-                getattr(event, "event_type", ""),
+                "decision_engine.event_publish start",
+                extra={
+                    "decision_id": decision_id,
+                    "event_type": getattr(event, "event_type", ""),
+                    "step": "start",
+                },
             )
             await asyncio.wait_for(
                 event_runtime.publish(event),
                 timeout=_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
             )
             logger.info(
-                "decision_engine.event_publish done decision_id=%s elapsed_ms=%.1f",
-                decision_id,
-                (time.monotonic() - t0) * 1000,
+                "decision_engine.event_publish done",
+                extra={
+                    "decision_id": decision_id,
+                    "step": "done",
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                },
             )
         except TimeoutError:
             logger.warning(
-                "decision_engine.event_publish safety_timeout decision_id=%s "
-                "timeout_s=%s elapsed_ms=%.1f",
-                decision_id,
-                _EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
-                (time.monotonic() - t0) * 1000,
+                "decision_engine.event_publish safety_timeout",
+                extra={
+                    "decision_id": decision_id,
+                    "step": "safety_timeout",
+                    "timeout_s": _EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                },
             )
         except Exception:
             logger.exception(
-                "decision_engine.event_publish failed decision_id=%s",
-                decision_id,
+                "decision_engine.event_publish failed",
+                extra={"decision_id": decision_id, "step": "failed"},
             )
 
     try:
         asyncio.get_running_loop().create_task(_run())
         logger.info(
-            "decision_engine.event_publish scheduled decision_id=%s event_type=%s",
-            decision_id,
-            getattr(event, "event_type", ""),
+            "decision_engine.event_publish scheduled",
+            extra={
+                "decision_id": decision_id,
+                "event_type": getattr(event, "event_type", ""),
+                "step": "scheduled",
+            },
         )
     except Exception:
         logger.exception(
-            "decision_engine.event_publish schedule_failed decision_id=%s",
-            decision_id,
+            "decision_engine.event_publish schedule_failed",
+            extra={"decision_id": decision_id, "step": "schedule_failed"},
         )
 
 

@@ -46,7 +46,7 @@ class SubscriberRegistration:
     priority: SubscriberPriority = SubscriberPriority.NORMAL
     name: str = ""
     max_retries: int = 3
-    timeout_seconds: float = 30.0
+    timeout_seconds: float = 10.0
 
 
 @dataclass
@@ -128,11 +128,13 @@ class RetryPolicy:
         base_delay: float = 0.1,
         max_delay: float = 10.0,
         jitter: bool = True,
+        timeout_seconds: float = 10.0,
     ):
         self.max_retries = max_retries
         self.base_delay = base_delay
         self.max_delay = max_delay
         self.jitter = jitter
+        self.timeout_seconds = timeout_seconds
 
     async def execute(
         self,
@@ -146,7 +148,9 @@ class RetryPolicy:
             try:
                 result = handler(event)
                 if asyncio.iscoroutine(result):
-                    result = await asyncio.wait_for(result, timeout=10.0)
+                    result = await asyncio.wait_for(
+                        result, timeout=self.timeout_seconds
+                    )
                 return True, None
             except asyncio.TimeoutError:
                 last_error = "timeout"
@@ -156,6 +160,8 @@ class RetryPolicy:
                         subscriber=subscriber_name,
                         event=event.event_type,
                         attempt=attempt,
+                        max_retries=self.max_retries,
+                        timeout_seconds=self.timeout_seconds,
                     )
             except Exception as e:
                 last_error = str(e)
@@ -279,6 +285,7 @@ class EventRuntime(EventBus):
         priority: SubscriberPriority = SubscriberPriority.NORMAL,
         name: str | None = None,
         max_retries: int = 3,
+        timeout_seconds: float = 10.0,
     ) -> None:
         """Register a handler for a specific event type."""
         if event_type not in self._subscribers:
@@ -288,6 +295,7 @@ class EventRuntime(EventBus):
             priority=priority,
             name=name or getattr(handler, "__name__", "unknown"),
             max_retries=max_retries,
+            timeout_seconds=timeout_seconds,
         )
         self._subscribers[event_type].append(reg)
         self._subscribers[event_type].sort(key=lambda r: r.priority.value)
@@ -296,6 +304,8 @@ class EventRuntime(EventBus):
                 "event_runtime.subscriber_registered",
                 event_type=event_type,
                 subscriber=reg.name,
+                max_retries=reg.max_retries,
+                timeout_seconds=reg.timeout_seconds,
             )
 
     def register_wildcard(
@@ -303,12 +313,16 @@ class EventRuntime(EventBus):
         handler: Callable[[DomainEvent], Any],
         priority: SubscriberPriority = SubscriberPriority.LAST,
         name: str | None = None,
+        max_retries: int = 3,
+        timeout_seconds: float = 10.0,
     ) -> None:
         """Register a handler for ALL event types."""
         reg = SubscriberRegistration(
             handler=handler,
             priority=priority,
             name=name or getattr(handler, "__name__", "unknown"),
+            max_retries=max_retries,
+            timeout_seconds=timeout_seconds,
         )
         self._wildcard_subscribers.append(reg)
         self._wildcard_subscribers.sort(key=lambda r: r.priority.value)
@@ -381,7 +395,10 @@ class EventRuntime(EventBus):
             # 3. Fan-out to subscribers
             for reg in handlers:
                 sub_start = time.monotonic()
-                retry_policy = RetryPolicy(max_retries=reg.max_retries)
+                retry_policy = RetryPolicy(
+                    max_retries=reg.max_retries,
+                    timeout_seconds=reg.timeout_seconds,
+                )
                 success, error = await retry_policy.execute(
                     reg.handler, event, reg.name, self._logger
                 )

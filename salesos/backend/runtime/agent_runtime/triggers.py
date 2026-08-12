@@ -315,24 +315,30 @@ async def on_decision_created_event(
     token = set_current_tenant_id(tenant_id)
     t0 = time.monotonic()
     logger.info(
-        "IL-2A on_decision_created enter decision_id=%s tenant_id=%s",
-        decision_id,
-        tenant_id,
+        "IL-2A on_decision_created enter",
+        extra={"decision_id": decision_id, "tenant_id": tenant_id, "step": "enter"},
     )
     try:
         async with session_factory() as session:
             await apply_tenant_guc(session, tenant_id)
             logger.info(
-                "IL-2A on_decision_created step=tenant_guc elapsed_ms=%.1f decision_id=%s",
-                (time.monotonic() - t0) * 1000,
-                decision_id,
+                "IL-2A on_decision_created step",
+                extra={
+                    "decision_id": decision_id,
+                    "step": "tenant_guc",
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                },
             )
 
             decision = decision_engine.get_decision(decision_id, tenant_id)
             if not decision:
                 logger.info(
-                    "IL-2A on_decision_created reason=decision_not_found decision_id=%s",
-                    decision_id,
+                    "IL-2A on_decision_created",
+                    extra={
+                        "decision_id": decision_id,
+                        "step": "decision_not_found",
+                        "reason": "decision_not_found",
+                    },
                 )
                 return {
                     "created": 0, "skipped": 0, "errors": 0,
@@ -346,8 +352,13 @@ async def on_decision_created_event(
 
             if not SignalTaskMapper.should_create_agent_task(decision_type):
                 logger.info(
-                    "IL-2A skip: decision_id=%s type=%s reason=not_task_generating",
-                    decision_id, decision_type,
+                    "IL-2A skip",
+                    extra={
+                        "decision_id": decision_id,
+                        "decision_type": decision_type,
+                        "step": "skip",
+                        "reason": "not_task_generating",
+                    },
                 )
                 return {
                     "created": 0, "skipped": 0, "errors": 0,
@@ -364,11 +375,13 @@ async def on_decision_created_event(
             intensity = min(max(priority / 100.0, 0.0), 1.0)
 
             logger.info(
-                "IL-2A on_decision_created step=schedule_begin elapsed_ms=%.1f "
-                "decision_id=%s task_kind=%s",
-                (time.monotonic() - t0) * 1000,
-                decision_id,
-                task_kind,
+                "IL-2A on_decision_created step",
+                extra={
+                    "decision_id": decision_id,
+                    "step": "schedule_begin",
+                    "task_kind": task_kind,
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                },
             )
             stats = await trigger_tasks_from_decisions(
                 session,
@@ -385,11 +398,14 @@ async def on_decision_created_event(
             )
             await session.commit()
             logger.info(
-                "IL-2A on_decision_created done elapsed_ms=%.1f decision_id=%s "
-                "created=%s reason=created",
-                (time.monotonic() - t0) * 1000,
-                decision_id,
-                stats.get("created", 0),
+                "IL-2A on_decision_created done",
+                extra={
+                    "decision_id": decision_id,
+                    "step": "done",
+                    "reason": "created",
+                    "created": stats.get("created", 0),
+                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+                },
             )
             return {
                 **stats,
@@ -399,9 +415,12 @@ async def on_decision_created_event(
             }
     except Exception:
         logger.exception(
-            "IL-2A on_decision_created failed decision_id=%s elapsed_ms=%.1f",
-            decision_id,
-            (time.monotonic() - t0) * 1000,
+            "IL-2A on_decision_created failed",
+            extra={
+                "decision_id": decision_id,
+                "step": "failed",
+                "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+            },
         )
         raise
     finally:

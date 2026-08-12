@@ -562,17 +562,16 @@ async def _init_agent_task_trigger_subscriber(app: FastAPI, logger: StructuredLo
 
         async def _on_decision_created(event: DomainEvent) -> None:
             # IL-2A: Decision → AgentTask wiring only. Claim/run is IL-2B.2.
-            # Runs under EventRuntime RetryPolicy (default 10s wait_for). Keep
-            # max_retries=1 so a hung handler cannot burn ~30s on evaluate's
-            # background publish task (HTTP no longer awaits publish).
+            # Bound retries/timeout so background publish cannot stack 30–90s.
             import time as _time
 
             t0 = _time.monotonic()
             did = (getattr(event, "data", None) or {}).get("decision_id", "")
             logger.info(
-                "IL-2A subscriber enter decision_id=%s event_type=%s",
-                did,
-                getattr(event, "event_type", ""),
+                "IL-2A subscriber enter",
+                decision_id=did,
+                event_type=getattr(event, "event_type", ""),
+                step="enter",
             )
             try:
                 await on_decision_created_event(
@@ -581,25 +580,27 @@ async def _init_agent_task_trigger_subscriber(app: FastAPI, logger: StructuredLo
                     decision_engine=getattr(app.state, "decision_engine", None),
                 )
                 logger.info(
-                    "IL-2A subscriber done decision_id=%s elapsed_ms=%.1f",
-                    did,
-                    (_time.monotonic() - t0) * 1000,
+                    "IL-2A subscriber done",
+                    decision_id=did,
+                    step="done",
+                    elapsed_ms=round((_time.monotonic() - t0) * 1000, 1),
                 )
             except Exception:
                 logger.exception(
-                    "IL-2A decision.created → AgentTask failed decision_id=%s "
-                    "elapsed_ms=%.1f",
-                    did,
-                    (_time.monotonic() - t0) * 1000,
+                    "IL-2A decision.created → AgentTask failed",
+                    decision_id=did,
+                    step="failed",
+                    elapsed_ms=round((_time.monotonic() - t0) * 1000, 1),
                 )
 
-        # Prefer register() so we can bound retries (subscribe() defaults to 3).
+        # Prefer register() so we can bound retries/timeout (subscribe defaults 3×10s).
         if hasattr(event_runtime, "register"):
             event_runtime.register(
                 "decision.created",
                 _on_decision_created,
                 name="il2a_decision_agent_task",
                 max_retries=1,
+                timeout_seconds=5.0,
             )
         else:
             event_runtime.subscribe("decision.created", _on_decision_created)
@@ -612,6 +613,7 @@ async def _init_agent_task_trigger_subscriber(app: FastAPI, logger: StructuredLo
 async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from sdk.events.base import DomainEvent
+        from runtime.event_runtime import SubscriberPriority
 
         event_runtime = getattr(app.state, "event_runtime", None)
         if event_runtime is None:
@@ -632,7 +634,18 @@ async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> N
             except Exception:
                 pass
 
-        event_runtime.subscribe("*", _on_timeline_event)
+        # Bound like IL-2A: wildcard fan-out must not stack 3×10s on decision.created.
+        if hasattr(event_runtime, "register"):
+            event_runtime.register(
+                "*",
+                _on_timeline_event,
+                priority=SubscriberPriority.LAST,
+                name="timeline_activity_wildcard",
+                max_retries=1,
+                timeout_seconds=5.0,
+            )
+        else:
+            event_runtime.subscribe("*", _on_timeline_event)
         logger.info("  timeline subscriber: ok")
     except Exception:
         logger.exception("  timeline subscriber init failed")
