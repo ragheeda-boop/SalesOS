@@ -1,10 +1,12 @@
 """PostgreSQL-backed event store implementation.
 
-CI-19 Wave 2 Core (no sqlalchemy.text)
+CI-19 Wave 2 Core — append uses CAST+dumps for asyncpg JSONB binds.
 """
 
 from __future__ import annotations
 
+import json
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
@@ -14,8 +16,8 @@ from sqlalchemy import (
     Integer,
     MetaData,
     String,
-    insert,
     select,
+    text as sa_text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,18 +58,37 @@ class PostgresEventStore(EventStore):
         self._session = session
 
     async def append(self, event: DomainEvent) -> None:
-        stmt = insert(domain_events).values(
-            event_id=event.event_id,
-            event_type=event.event_type,
-            event_version=event.event_version,
-            aggregate_id=event.aggregate_id,
-            aggregate_type=event.aggregate_type,
-            tenant_id=event.tenant_id,
-            occurred_at=event.occurred_at,
-            data=event.data,
-            metadata=event.metadata,
+        """Persist event. JSONB via CAST+dumps (same asyncpg bind class as decisions).
+
+        Explicit ``id`` avoids depending on ``uuid_generate_v4()`` being installed.
+        """
+        await self._session.execute(
+            sa_text(
+                """
+                INSERT INTO domain_events (
+                    id, event_id, event_type, event_version,
+                    aggregate_id, aggregate_type, tenant_id,
+                    occurred_at, data, metadata
+                ) VALUES (
+                    CAST(:id AS uuid), :event_id, :event_type, :event_version,
+                    :aggregate_id, :aggregate_type, :tenant_id,
+                    :occurred_at, CAST(:data AS jsonb), CAST(:metadata AS jsonb)
+                )
+                """
+            ),
+            {
+                "id": str(uuid.uuid4()),
+                "event_id": event.event_id,
+                "event_type": event.event_type,
+                "event_version": int(event.event_version),
+                "aggregate_id": event.aggregate_id,
+                "aggregate_type": event.aggregate_type,
+                "tenant_id": event.tenant_id or None,
+                "occurred_at": event.occurred_at,
+                "data": json.dumps(event.data or {}),
+                "metadata": json.dumps(event.metadata or {}),
+            },
         )
-        await self._session.execute(stmt)
 
     async def read_stream(self, aggregate_type: str, aggregate_id: str) -> list[DomainEvent]:
         stmt = (

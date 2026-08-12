@@ -52,8 +52,9 @@ _DEFAULT_DECISION_TTL_SECONDS = 3600
 # ~30s while pool shows idle. Evaluate must return decision_id first; IL-2A
 # AgentTask still runs via BackgroundTasks / deferred create_task (same class
 # of fix as app.modules.identity.service._publish_best_effort).
-# Keep safety bound short — a hung publish must not look like a 60s HTTP stall.
-_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS = 15.0
+# Keep safety bound short — hung store/fan-out must not occupy the shared
+# pool long enough to starve a parallel evaluate (HTTP 499 / txBytes=0).
+_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS = 12.0
 
 
 async def _run_decision_event_publish(

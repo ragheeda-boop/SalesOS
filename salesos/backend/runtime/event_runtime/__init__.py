@@ -348,26 +348,34 @@ class EventRuntime(EventBus):
             span.set_attribute("event.type", event.event_type)
             span.set_attribute("event.id", event.event_id)
 
-            # 1. Store the event (create session per-publish)
+            # 1. Store the event (create session per-publish).
+            # Bound checkout+write together — pool checkout was OUTSIDE the old
+            # 2s wait_for and could starve API middleware for pool_timeout (30s).
+            # On ANY store failure: fail-open to in-process fan-out (IL-2A AgentTask
+            # must not depend on durable domain_events succeeding).
             store_start = time.monotonic()
+            _STORE_BUDGET_SECONDS = 2.0
             if self._session_factory:
                 try:
-                    async with self._session_factory() as store_session:
-                        event_store = PostgresEventStore(store_session)
 
-                        async def _store() -> None:
+                    async def _store() -> None:
+                        async with self._session_factory() as store_session:
+                            event_store = PostgresEventStore(store_session)
                             await event_store.append(event)
                             await store_session.commit()
+                        # Session released BEFORE fan-out — do not hold connections
+                        # across subscriber handlers (they open their own sessions).
 
-                        await asyncio.wait_for(_store(), timeout=2.0)
-                        lifecycle.stored_ms = (time.monotonic() - store_start) * 1000
-                        span.set_attribute("event.stored_ms", lifecycle.stored_ms)
+                    await asyncio.wait_for(_store(), timeout=_STORE_BUDGET_SECONDS)
+                    lifecycle.stored_ms = (time.monotonic() - store_start) * 1000
+                    span.set_attribute("event.stored_ms", lifecycle.stored_ms)
                 except TimeoutError:
                     if self._logger:
                         self._logger.warn(
                             "event_runtime.store_timeout",
                             event_type=event.event_type,
                             event_id=event.event_id,
+                            timeout_s=_STORE_BUDGET_SECONDS,
                         )
                     # Continue fan-out best-effort; do not block publishers forever.
                 except Exception as e:
@@ -378,7 +386,8 @@ class EventRuntime(EventBus):
                             event_id=event.event_id,
                             error=str(e),
                         )
-                    return lifecycle
+                    # FAIL-OPEN: durable store is best-effort. Skipping fan-out here
+                    # left domain_events with 0 decision.created and zero AgentTasks.
 
             # 2. Collect subscribers
             handlers = list(self._subscribers.get(event.event_type, []))
@@ -389,10 +398,10 @@ class EventRuntime(EventBus):
             if not handlers:
                 self.metrics.record_published(event.event_type)
                 self.metrics.record_succeeded(event.event_type)
-                lifecycle.total_duration_ms = (time.monotonic() - time.monotonic()) + 0.001
+                lifecycle.total_duration_ms = (time.monotonic() - store_start) * 1000
                 return lifecycle
 
-            # 3. Fan-out to subscribers
+            # 3. Fan-out to subscribers (no store session held)
             for reg in handlers:
                 sub_start = time.monotonic()
                 retry_policy = RetryPolicy(
