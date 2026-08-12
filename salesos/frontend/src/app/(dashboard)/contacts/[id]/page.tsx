@@ -9,7 +9,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useTenant } from "@/lib/hooks/useTenant";
 import {
   User, Building2, Handshake, Mail, Phone, MapPin,
-  Briefcase, Calendar, ArrowLeft, Trash2, Pencil
+  Briefcase, Trash2, Pencil
 } from "lucide-react";
 
 interface ContactDetail {

@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
-import { Card, CardContent, CardHeader, Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
-import { useTranslation } from "@/lib/i18n";
+import { Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
 import { useTenant } from "@/lib/hooks/useTenant";
 import {
-  CheckCircle2, Clock, AlertCircle, Plus, Filter, RefreshCw,
+  CheckCircle2, Plus, Filter, RefreshCw,
   Building2, Handshake, Calendar
 } from "lucide-react";
 
@@ -33,7 +32,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export default function TasksPage() {
-  const { t } = useTranslation();
   const { tenantId } = useTenant();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);

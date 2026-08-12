@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn, Card, CardContent, CardHeader, Skeleton, Badge } from "@salesos/ui";
 import { NBAWidget } from "../widgets/nba-widget/NBAWidget";
 import {
-  Building2, Users, TrendingUp, Target, Calendar, Clock, CheckCircle, AlertTriangle,
+  Building2, Users, Target, CheckCircle, AlertTriangle,
   XCircle, Activity, ShieldCheck
 } from "lucide-react";
 
