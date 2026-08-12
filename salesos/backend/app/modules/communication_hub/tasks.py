@@ -18,8 +18,27 @@ logger = logging.getLogger(__name__)
 
 
 def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> dict[str, Any]:
-    """Bridge sync Celery tasks to async services via a fresh event loop."""
-    return cast(dict[str, Any], asyncio.run(coro))
+    """Bridge sync Celery tasks to async via a fresh event loop.
+
+    Dispose module-level AsyncEngine on the same loop before asyncio.run
+    returns so the next Celery tick does not hit loop-affinity errors.
+    """
+
+    async def _with_dispose() -> dict[str, Any]:
+        try:
+            return await coro
+        finally:
+            from app.database import engine
+
+            try:
+                await engine.dispose()
+            except Exception:
+                logger.warning(
+                    "communication_hub tasks engine.dispose failed",
+                    exc_info=True,
+                )
+
+    return cast(dict[str, Any], asyncio.run(_with_dispose()))
 
 
 @shared_task(name="hub_gmail_sync_all", bind=True, max_retries=3, default_retry_delay=300)

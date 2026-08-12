@@ -15,6 +15,7 @@ Schedule (Celery Beat config):
 from __future__ import annotations
 
 import asyncio
+import logging
 import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any
@@ -33,14 +34,46 @@ from domains.employee.retention import (
 )
 from app.modules.identity.models import User
 
+logger = logging.getLogger(__name__)
+
 
 _engine = None
 _engine_lock = None
 
 
+async def _dispose_engine() -> None:
+    """Drop the process-level AsyncEngine on the current loop.
+
+    asyncio.run closes the loop after each Celery tick. Reusing pooled
+    connections (or the engine object) on the next tick raises
+    'Future attached to a different loop' — seen on worker_health_ping.
+    """
+    global _engine
+    engine = _engine
+    _engine = None
+    if engine is None:
+        return
+    try:
+        await engine.dispose()
+    except Exception:
+        logger.warning("employee tasks engine.dispose failed", exc_info=True)
+
+
 def _run_async(coro):
-    """Bridge sync Celery tasks to async services via a fresh event loop."""
-    return asyncio.run(coro)
+    """Bridge sync Celery tasks to async services via a fresh event loop.
+
+    Dispose the lazy process AsyncEngine on the same loop before
+    asyncio.run returns so the next tick does not attach futures to a
+    closed loop (same class as agent_dispatch_all).
+    """
+
+    async def _with_dispose():
+        try:
+            return await coro
+        finally:
+            await _dispose_engine()
+
+    return asyncio.run(_with_dispose())
 
 
 async def _get_session() -> AsyncSession:

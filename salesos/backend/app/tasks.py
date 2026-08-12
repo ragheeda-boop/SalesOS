@@ -47,8 +47,25 @@ def _entity_table(name: str) -> Table:
 
 
 def _run_async(coro):
-    """Bridge sync Celery tasks to async services via a fresh event loop."""
-    return asyncio.run(coro)
+    """Bridge sync Celery tasks to async services via a fresh event loop.
+
+    Callers use module-level AsyncEngine (app.database.engine). Dispose it
+    on the same loop before asyncio.run returns — otherwise the next
+    Celery tick hits 'Future attached to a different loop'.
+    """
+
+    async def _with_dispose():
+        try:
+            return await coro
+        finally:
+            from app.database import engine
+
+            try:
+                await engine.dispose()
+            except Exception:
+                logger.warning("app.tasks engine.dispose failed", exc_info=True)
+
+    return asyncio.run(_with_dispose())
 
 
 # ── Helpers ─────────────────────────────────────────────────────

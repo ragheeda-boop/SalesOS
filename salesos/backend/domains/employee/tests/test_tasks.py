@@ -1,5 +1,6 @@
 """Tests for employee Celery tasks — calendar sync, email sync, scoring, cleanup."""
 
+import inspect
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime, timezone, timedelta
@@ -132,6 +133,69 @@ class TestHealthPing:
             return {"status": "ok"}
 
         assert _run_async(_ok()) == {"status": "ok"}
+
+    def test_run_async_disposes_engine_on_same_loop(self):
+        """Lazy process _engine must be disposed before asyncio.run returns."""
+        from domains.employee import tasks as tasks_mod
+
+        mock_engine = MagicMock()
+        mock_engine.dispose = AsyncMock()
+
+        async def _ok():
+            return {"status": "ok"}
+
+        tasks_mod._engine = mock_engine
+        try:
+            result = tasks_mod._run_async(_ok())
+        finally:
+            tasks_mod._engine = None
+
+        assert result == {"status": "ok"}
+        mock_engine.dispose.assert_awaited()
+        assert tasks_mod._engine is None
+
+    def test_successive_run_async_ticks_create_fresh_engine(self):
+        """Each asyncio.run tick must create+dispose — not reuse a loop-bound engine."""
+        from domains.employee import tasks as tasks_mod
+
+        engines = [MagicMock(), MagicMock()]
+        for engine in engines:
+            engine.dispose = AsyncMock()
+        mock_session = MagicMock()
+
+        tasks_mod._engine = None
+        try:
+            with (
+                patch(
+                    "domains.employee.tasks.create_async_engine",
+                    side_effect=engines,
+                ) as created,
+                patch(
+                    "domains.employee.tasks.async_sessionmaker",
+                    return_value=MagicMock(return_value=mock_session),
+                ),
+            ):
+                async def tick():
+                    await tasks_mod._get_session()
+                    return "ok"
+
+                assert tasks_mod._run_async(tick()) == "ok"
+                assert tasks_mod._run_async(tick()) == "ok"
+        finally:
+            tasks_mod._engine = None
+
+        assert created.call_count == 2
+        engines[0].dispose.assert_awaited()
+        engines[1].dispose.assert_awaited()
+        assert tasks_mod._engine is None
+
+    def test_run_async_source_disposes_engine(self):
+        from domains.employee.tasks import _run_async
+
+        source = inspect.getsource(_run_async)
+        assert "asyncio.run" in source
+        assert "asyncio.get_event_loop" not in source
+        assert "dispose" in source
 
 
 class TestTaskRetryBehavior:
