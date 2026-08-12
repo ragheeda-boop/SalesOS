@@ -131,9 +131,9 @@ else
   fail "FF-09: METADATA-ISLAND-FREEZE.md missing"
 fi
 
-# Ceiling: EAB-003 structural lowered 19→18 after MCP MetaData() → table() rewrite.
+# Ceiling: EAB-003 19→18 (MCP); 2026-08-12 18→17 (pgvector_migration MetaData→table()).
 MD_COUNT=$(rg -c "MetaData\(" salesos/backend --glob "*.py" | awk -F: '{s+=$2} END {print s+0}')
-MD_CEILING=18
+MD_CEILING=17
 if [[ "$MD_COUNT" -le "$MD_CEILING" ]]; then
   pass "FF-09: MetaData() count=$MD_COUNT <= ceiling=$MD_CEILING"
 else

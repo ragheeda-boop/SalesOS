@@ -11,7 +11,7 @@ import re
 import time
 from typing import Any, Callable
 
-from sqlalchemy import Column, Integer, MetaData, Table, column, select, table
+from sqlalchemy import column, select, table
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import bindparam
 
@@ -40,14 +40,12 @@ def _safe_derived(name: str) -> str:
     return name
 
 
-def _embedding_table(table_name: str, column_name: str, new_col: str | None = None) -> Table:
-    cols = [
-        Column("id", Integer, primary_key=True),
-        Column(column_name),
-    ]
+def _embedding_table(table_name: str, column_name: str, new_col: str | None = None):
+    """Lightweight table()/column() helper — avoids a private MetaData island (EAB-001-P1-DRIFT-01)."""
+    cols = [column("id"), column(column_name)]
     if new_col:
-        cols.append(Column(new_col))
-    return Table(table_name, MetaData(), *cols)
+        cols.append(column(new_col))
+    return table(table_name, *cols)
 
 
 class PgVectorMigration:

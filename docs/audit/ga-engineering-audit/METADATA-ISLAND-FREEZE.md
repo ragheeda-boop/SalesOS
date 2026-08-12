@@ -1,25 +1,26 @@
 # MetaData Island Freeze + KEEP Inventory Pointer
 
-**Date:** 2026-08-08 (Completion Program Stream B M1 remeasure)  
+**Date:** 2026-08-12 (pgvector helper consolidate)  
 **Finding:** EAB-001-P1-DRIFT-01  
-**Disposition:** **Partial (held)** — freeze + ceiling **18** reconfirmed; no further consolidate this wave (pgvector P1 deferred — outside Stream B code lock)  
-**Validation:** light validated (host `rg` count=18; fitness FF-09 PASS)
+**Disposition:** **Partial (narrowed)** — freeze held; ceiling **18→17** via `pgvector_migration.py` `_embedding_table` → `table()`/`column()`  
+**Validation:** light validated (host `rg` count=17; fitness FF-09 ceiling updated)
 
 ---
 
-## Remeasure (Completion Program Stream B — 2026-08-08)
+## Remeasure (2026-08-12)
 
 | Metric | Value | Method |
 |--------|------:|--------|
-| `MetaData(` matches | **18** | `rg MetaData(` under `salesos/backend` `*.py` |
-| Distinct files | **17** | same |
-| Delta vs EAB-003 structural | **0** | Freeze held; no island add/remove this wave |
+| `MetaData(` matches | **17** | `rg MetaData(` under `salesos/backend` `*.py` |
+| Distinct files | **16** | same (pgvector_migration removed from inventory) |
+| Delta vs 2026-08-08 | **−1** | `pgvector_migration.py` helper → `table()` |
 
-**Prior (EAB-003 structural):** 19→18 via MCP `resources.py` → `table()`/`column()`.
+**Prior (EAB-003 structural):** 19→18 via MCP `resources.py` → `table()`/`column()`.  
+**Prior (Stream B 2026-08-08):** 18 held.
 
-**Honesty ceiling:** Live GA islands remain. **Do not** claim Fixed. **Do not** raise FF-09 ceiling without DEC + this file update. Next measurable drop = P1 `pgvector_migration.py` helper → `table()` (Director unlock / DEC).
+**Honesty ceiling:** Live GA islands remain. **Do not** claim Fixed. **Do not** raise FF-09 ceiling without DEC + this file update. Next measurable drop = benchmarks share/`table()` (non-prod) or `admin_router.py` COUNT stubs.
 
-**FF-09 ceiling:** **18** (`salesos/scripts/fitness-ci-subset.sh` / `.ps1`).
+**FF-09 ceiling:** **17** (`salesos/scripts/fitness-ci-subset.sh` / `.ps1`).
 
 ---
 
@@ -32,7 +33,7 @@
 
 ---
 
-## Allowlist (honest inventory — 17 files / 18 matches)
+## Allowlist (honest inventory — 16 files / 17 matches)
 
 | Path | Notes |
 |------|-------|
@@ -42,7 +43,6 @@
 | `runtime/search_runtime/__init__.py` | Island |
 | `runtime/activity_runtime/__init__.py` | Island |
 | `runtime/admin_router.py` | Island |
-| `runtime/knowledge_graph_runtime/pgvector_migration.py` | Transient `MetaData()` in helper — next safe candidate |
 | `runtime/knowledge_graph_runtime/repository/sql_repository.py` | Island |
 | `domains/search/engine/postgres_repo.py` | Island |
 | `domains/search/engine/vector_store.py` | Island |
@@ -54,7 +54,8 @@
 | `benchmark/run.py` | Non-prod benchmark |
 | `benchmark/data_generator.py` | **2** matches — non-prod benchmark |
 
-**Removed from allowlist (consolidated):** `mcp_server/resources.py` — now uses `table()`/`column()`.
+**Removed from allowlist (consolidated):** `mcp_server/resources.py` — `table()`/`column()`.  
+**Removed 2026-08-12:** `runtime/knowledge_graph_runtime/pgvector_migration.py` — `_embedding_table` → `table()`/`column()`.
 
 Any **new** file or extra match beyond this list → fail FF-09 until DEC + this doc update.
 
@@ -65,8 +66,8 @@ Any **new** file or extra match beyond this list → fail FF-09 until DEC + this
 | Priority | Candidate | Est. matches saved | Risk | Exit criterion |
 |----------|-----------|-------------------:|------|-----------------|
 | **Done (EAB-003)** | MCP `resources.py` → `table()` | 1 | Safe | Ceiling 18 |
-| P1 | `pgvector_migration.py` helper → `table()` | 1 | Safe–medium | Ceiling 17 + freeze update |
-| P2 | Benchmarks share/`table()` | up to 3 | Safe (non-prod) | Ceiling drop; GA islands unchanged |
+| **Done (2026-08-12)** | `pgvector_migration.py` helper → `table()` | 1 | Safe | Ceiling 17 + freeze update |
+| P1 | Benchmarks share/`table()` | up to 3 | Safe (non-prod) | Ceiling drop; GA islands unchanged |
 | P3 | `admin_router.py` COUNT stubs | 1 | Medium | Shared Table or `table()` |
 | Later | Unify search_runtime + domains/search postgres_repo | 1–2 | Risky | DEC + CAPABILITY-DUP |
 | Later | Events / audit / activity / kg / memory → Base | many | Risky | DEC-130f follow-on sprint |

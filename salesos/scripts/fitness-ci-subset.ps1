@@ -143,7 +143,7 @@ if (Test-Path "docs\audit\ga-engineering-audit\METADATA-ISLAND-FREEZE.md") {
 } else {
   Fail "FF-09: METADATA-ISLAND-FREEZE.md missing"
 }
-$mdCeiling = 18
+$mdCeiling = 17
 $rg = Find-Rg
 if ($rg) {
   $mdOut = & $rg -c --glob "*.py" "MetaData\(" "salesos\backend" 2>$null
