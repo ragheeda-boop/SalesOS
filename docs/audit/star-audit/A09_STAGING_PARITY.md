@@ -67,7 +67,7 @@ Documented in [`docs/reports/A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md`](../../re
 | P0 | Confirm green `deploy-staging.yml` after `RAILWAY_TOKEN` rotate | DevOps |
 | P0 | Close Human-Gate (OAuth, backup posture, max_connections, rollback) | DevOps / Platform |
 | P1 | Staging login + Decision evaluate smoke on muhide seed | Backend |
-| P1 | Human review of 72h health-loop failures → Soak Report before any claim flip | TL / DevOps |
+| P1 | Human review of 72h health-loop failures → Soak Report before any claim flip | TL / DevOps — **agent triage filed** [SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md); claim still **false** |
 
 ---
 

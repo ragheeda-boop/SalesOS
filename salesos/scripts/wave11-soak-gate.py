@@ -93,6 +93,39 @@ def parse_json(body: str) -> Optional[dict[str, Any]]:
         return None
 
 
+def classify_health_detailed(
+    http_status: int, detailed_data: Optional[dict[str, Any]]
+) -> tuple[str, str]:
+    """Classify /health/detailed for soak evidence.
+
+    Never hard-fails (api.health owns hard-fail for overall readiness).
+    HTTP 200 with overall degraded/unhealthy (or DB error) must be WARN —
+    historically this check returned PASS on degraded and masked DB outages
+    in counts during the 2026-08-09 staging soak window.
+    """
+    payload = detailed_data or {}
+    overall = str(payload.get("status", "")).lower()
+    detail = f"HTTP {http_status} overall={payload.get('status')!r}"
+
+    if http_status != 200:
+        return "WARN", detail
+
+    if overall in {"degraded", "unhealthy", "error", "down", "not_ready"}:
+        return "WARN", detail
+
+    checks = payload.get("checks")
+    if isinstance(checks, dict):
+        db = checks.get("database")
+        if isinstance(db, dict):
+            db_status = str(db.get("status", "")).lower()
+            if db_status in {"error", "unavailable", "disconnected"}:
+                return "WARN", f"{detail} database={db_status!r}"
+        elif isinstance(db, str) and db.lower() in {"error", "unavailable", "disconnected"}:
+            return "WARN", f"{detail} database={db!r}"
+
+    return "PASS", detail
+
+
 def run_compose(
     compose_dir: str,
     backend_service: str,
@@ -215,12 +248,12 @@ def check_health(api: str, retries: int = 3, retry_delay: float = 2.0) -> list[C
     try:
         status, body, ms = http_get(durl, timeout=25.0)
         detailed_data = parse_json(body) or {}
-        ok = status == 200
+        check_status, classified = classify_health_detailed(status, detailed_data)
         results.append(
             CheckResult(
                 name="api.health_detailed",
-                status="PASS" if ok else "WARN",
-                detail=f"HTTP {status} in {ms:.0f}ms overall={detailed_data.get('status')!r}",
+                status=check_status,
+                detail=f"{classified} in {ms:.0f}ms",
                 evidence={
                     "url": durl,
                     "http_status": status,

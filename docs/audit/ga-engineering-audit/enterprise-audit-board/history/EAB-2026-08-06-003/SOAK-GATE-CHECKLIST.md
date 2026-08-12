@@ -13,9 +13,11 @@
 |-------|--------|
 | Window | 2026-08-07T14:10:06Z → 2026-08-10T14:10:03Z (requested 72h) |
 | Summary | [evidence/ops01-staging/loop-summary-2026-08-10T141003Z.json](./evidence/ops01-staging/loop-summary-2026-08-10T141003Z.json) — **854** iterations, **82** failures |
+| Failure triage | [SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](./SOAK-72H-FAILURE-TRIAGE-2026-08-12.md) — **97.6%** staging DB/auth outage (C1); 1 deploy blip; 1 ping flake |
 | Live harness (2026-08-12) | **none** detected (`ops01-soak-restart.ps1 -StatusOnly`) |
-| K2 continuous window ≥48–72h | **elapsed** (wall-clock) — still requires human triage of failures before K2 PASS |
-| K3–K6 | **OPEN** (triage + TL review + claim flip are human) |
+| K2 continuous window ≥48–72h | **elapsed** (wall-clock) — **PARTIAL** until human accepts/remediates C1 |
+| K3 hard-fail triage | **Agent triage DONE** — TL acknowledgment still required |
+| K4–K6 | **OPEN** (C1 = P0-class until RCA; PO review; claim flip) |
 | `soak_complete_claim` | **false** — do not invent PASS |
 
 Health-only recheck (not a soak close): [evidence/ops01-prod-health/health-recheck-2026-08-12.json](./evidence/ops01-prod-health/health-recheck-2026-08-12.json).
@@ -49,9 +51,9 @@ Runbook: [staging-soak.md](../../../runbooks/staging-soak.md)
 | # | Requirement | Status |
 |---|-------------|--------|
 | K1 | Target environment = **staging cloud** (not laptop-only) | **PASS** — Railway staging = prod baseline `4750038c`, parity verified (see 2026-08-07 UPDATE) |
-| K2 | Continuous window ≥ **48h** (prefer **72h**) with dated start/end UTC | **PARTIAL** — 72h wall-clock finished; **82** failures need human triage before PASS |
-| K3 | Evidence dir with loop summaries + hard-fail triage | **PARTIAL** — loop JSON + summary present; triage OPEN |
-| K4 | No new P0 during soak (or P0s closed before claim) | OPEN (human review of 82 failures) |
+| K2 | Continuous window ≥ **48h** (prefer **72h**) with dated start/end UTC | **PARTIAL** — 72h wall-clock finished; C1 DB/auth incident blocks PASS ([triage](./SOAK-72H-FAILURE-TRIAGE-2026-08-12.md)) |
+| K3 | Evidence dir with loop summaries + hard-fail triage | **PARTIAL** — loop JSON + summary + **agent triage filed**; TL ack OPEN |
+| K4 | No new P0 during soak (or P0s closed before claim) | OPEN — C1 P0-class until RCA (M1) |
 | K5 | Project Owner review of report before flipping claim | OPEN |
 | K6 | `soak_complete_claim: true` only after K1–K5 | **false** today |
 
