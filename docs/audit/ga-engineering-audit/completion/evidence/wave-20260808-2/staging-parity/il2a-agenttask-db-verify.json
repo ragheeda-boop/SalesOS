@@ -1,0 +1,171 @@
+{
+  "deploy_sha": "f99da41758b7e70c4c8075af9471381aa0010109",
+  "feature_ai_copilot": "false",
+  "by_company": [
+    {
+      "company_id_prefix": "2f3b1426",
+      "task_count": 1,
+      "recent": [
+        {
+          "id_prefix": "5be70b3e",
+          "kind": "research_company",
+          "status": "COMPLETED",
+          "idem_suffix": "-4b67-bef2-cefe20d0bd86:research_company",
+          "created_at": "2026-08-12 15:42:19.157774+00:00"
+        }
+      ]
+    },
+    {
+      "company_id_prefix": "9635ab0a",
+      "task_count": 1,
+      "recent": [
+        {
+          "id_prefix": "c72cdc73",
+          "kind": "research_company",
+          "status": "COMPLETED",
+          "idem_suffix": "-4fb6-bdb5-bc5d4aebef40:research_company",
+          "created_at": "2026-08-12 17:57:25.541500+00:00"
+        }
+      ]
+    },
+    {
+      "company_id_prefix": "5a0faa91",
+      "task_count": 1,
+      "recent": [
+        {
+          "id_prefix": "9c26f50e",
+          "kind": "research_company",
+          "status": "COMPLETED",
+          "idem_suffix": "-4f37-82e9-4307b2294afd:research_company",
+          "created_at": "2026-08-12 17:57:27.636005+00:00"
+        }
+      ]
+    },
+    {
+      "company_id_prefix": "821e4465",
+      "task_count": 1,
+      "recent": [
+        {
+          "id_prefix": "67002b59",
+          "kind": "research_company",
+          "status": "COMPLETED",
+          "idem_suffix": "-4571-b9f1-e0ced8d20557:research_company",
+          "created_at": "2026-08-12 17:57:29.796844+00:00"
+        }
+      ]
+    },
+    {
+      "company_id_prefix": "b14498ad",
+      "task_count": 1,
+      "recent": [
+        {
+          "id_prefix": "3e93cf22",
+          "kind": "research_company",
+          "status": "COMPLETED",
+          "idem_suffix": "-4c6c-b971-8771f5125824:research_company",
+          "created_at": "2026-08-12 17:57:31.889068+00:00"
+        }
+      ]
+    },
+    {
+      "company_id_prefix": "2412dc72",
+      "task_count": 1,
+      "recent": [
+        {
+          "id_prefix": "ee0e1f55",
+          "kind": "research_company",
+          "status": "COMPLETED",
+          "idem_suffix": "-4057-ba21-6eaf7d96bb6c:research_company",
+          "created_at": "2026-08-12 17:57:33.957798+00:00"
+        }
+      ]
+    }
+  ],
+  "tenant_id_prefix": "326e0825",
+  "isolation_cross_refs": 0,
+  "isolation_pass": true,
+  "idempotency_company0": {
+    "rows": 1,
+    "distinct_keys": 1,
+    "pass": true
+  },
+  "decisions_cols": [
+    "id",
+    "decision_id",
+    "company_id",
+    "tenant_id",
+    "decision_type",
+    "priority",
+    "confidence",
+    "expected_revenue",
+    "expected_probability",
+    "reasoning",
+    "evidence",
+    "supporting_features",
+    "context_snapshot",
+    "required_actions",
+    "blocked_by",
+    "status",
+    "created_at",
+    "updated_at",
+    "expires_at",
+    "executed_at"
+  ],
+  "recent_decisions": [
+    {
+      "id_prefix": "31",
+      "type": "recommend_call",
+      "company_prefix": "eb67ce55",
+      "created_at": "2026-08-12 17:58:46.720402+00:00"
+    },
+    {
+      "id_prefix": "30",
+      "type": "recommend_call",
+      "company_prefix": "2f3b1426",
+      "created_at": "2026-08-12 17:57:38.037780+00:00"
+    },
+    {
+      "id_prefix": "29",
+      "type": "recommend_call",
+      "company_prefix": "2f3b1426",
+      "created_at": "2026-08-12 17:57:35.980792+00:00"
+    },
+    {
+      "id_prefix": "28",
+      "type": "recommend_call",
+      "company_prefix": "2412dc72",
+      "created_at": "2026-08-12 17:57:33.920531+00:00"
+    },
+    {
+      "id_prefix": "27",
+      "type": "recommend_call",
+      "company_prefix": "b14498ad",
+      "created_at": "2026-08-12 17:57:31.849813+00:00"
+    },
+    {
+      "id_prefix": "26",
+      "type": "recommend_call",
+      "company_prefix": "821e4465",
+      "created_at": "2026-08-12 17:57:29.745291+00:00"
+    },
+    {
+      "id_prefix": "25",
+      "type": "recommend_call",
+      "company_prefix": "5a0faa91",
+      "created_at": "2026-08-12 17:57:27.597491+00:00"
+    },
+    {
+      "id_prefix": "24",
+      "type": "recommend_call",
+      "company_prefix": "9635ab0a",
+      "created_at": "2026-08-12 17:57:25.487546+00:00"
+    },
+    {
+      "id_prefix": "23",
+      "type": "recommend_call",
+      "company_prefix": "2f3b1426",
+      "created_at": "2026-08-12 17:57:23.389370+00:00"
+    }
+  ],
+  "agent_tasks_created_30m_soak_companies": 5
+}

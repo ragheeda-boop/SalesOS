@@ -1,0 +1,233 @@
+{
+  "timestamp": "2026-08-12T17:57:20Z",
+  "scope": "bounded_production_il2a_soak",
+  "api": "https://salesos-production-96c0.up.railway.app",
+  "not_staging_parity": true,
+  "soak_complete_claim": false,
+  "production_go_claim": false,
+  "feature_ai_copilot_flipped": false,
+  "alembic_upgrade_head": false,
+  "cycles": [
+    {
+      "label": "cycle-1",
+      "company_id_prefix": "2f3b1426",
+      "http_status": 200,
+      "latency_ms": 343.3,
+      "decision_id_prefix": "cab701dd",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "cycle-2",
+      "company_id_prefix": "9635ab0a",
+      "http_status": 200,
+      "latency_ms": 342.3,
+      "decision_id_prefix": "06bc64bf",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "cycle-3",
+      "company_id_prefix": "5a0faa91",
+      "http_status": 200,
+      "latency_ms": 308.2,
+      "decision_id_prefix": "891ba946",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "cycle-4",
+      "company_id_prefix": "821e4465",
+      "http_status": 200,
+      "latency_ms": 368.2,
+      "decision_id_prefix": "9a546d53",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "cycle-5",
+      "company_id_prefix": "b14498ad",
+      "http_status": 200,
+      "latency_ms": 302.3,
+      "decision_id_prefix": "3634cdd9",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "cycle-6",
+      "company_id_prefix": "2412dc72",
+      "http_status": 200,
+      "latency_ms": 315.9,
+      "decision_id_prefix": "5fd14541",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "idempotency-1",
+      "company_id_prefix": "2f3b1426",
+      "http_status": 200,
+      "latency_ms": 307.2,
+      "decision_id_prefix": "8c954e42",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    },
+    {
+      "label": "idempotency-2",
+      "company_id_prefix": "2f3b1426",
+      "http_status": 200,
+      "latency_ms": 308.1,
+      "decision_id_prefix": "d854ad73",
+      "decision_type": "recommend_call",
+      "contract_expects_agent_task": true,
+      "ok": true,
+      "body_keys": [
+        "company_id",
+        "confidence",
+        "confidence_explanation",
+        "decision_id",
+        "decision_type",
+        "evidence",
+        "expected_probability",
+        "expected_revenue",
+        "policies",
+        "priority",
+        "reasoning",
+        "recommendation"
+      ]
+    }
+  ],
+  "contract_checks": {
+    "should_create_recommend_call": true,
+    "should_create_alert": false,
+    "should_create_unknown": false,
+    "pass": true
+  },
+  "summary": {
+    "cycles_total": 8,
+    "cycles_http_200": 8,
+    "decision_types_seen": [
+      "recommend_call"
+    ],
+    "actionable_cycles": 8,
+    "non_actionable_cycles": 0,
+    "idempotency_cycles": 2,
+    "contract_checks_pass": true,
+    "validation_label": "light validated",
+    "claims": {
+      "staging_parity_complete": false,
+      "wave11_48h_soak_complete": false,
+      "production_go": false,
+      "bounded_prod_il2a_soak": true
+    }
+  },
+  "tenant_id_prefix": "326e0825",
+  "companies_source": "/api/v1/companies?limit=10",
+  "evaluate_path": "/api/v1/decision-runtime/decision/evaluate",
+  "decision_ids_count": 8,
+  "task_api_snapshots": []
+}

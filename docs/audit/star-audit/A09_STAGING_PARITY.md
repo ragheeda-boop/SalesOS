@@ -1,44 +1,53 @@
 # A-09: Staging Parity Assessment
 
-> **Last Updated:** 2026-08-07
-> Classification: INFRASTRUCTURE AUDIT
+> **Last Updated:** 2026-08-12  
+> Classification: INFRASTRUCTURE AUDIT  
+> **Validation:** **light validated** for host liveness + prior machine parity baseline; **A-09 residual OPEN** (not closed)
 
 ---
 
-## Current State
+## Current State (2026-08-12 refresh)
 
-| Metric | Production (master) | Staging | Status |
-|--------|---------------------|---------|--------|
-| **Branch** | `master` | Unknown | Needs verification |
-| **Last commit** | `2538a7d` | Unknown | Needs sync |
-| **Backend deps** | Poetry 2.4.1 | Unknown | Needs verification |
-| **DB migrations** | Alembic head 0051 | Unknown | Needs verification |
-| **Frontend** | Next.js 15 | Unknown | Needs verification |
+| Metric | Production | Staging | Status |
+|--------|------------|---------|--------|
+| **Host** | `salesos-production-96c0.up.railway.app` | `salesos-staging.up.railway.app` | Both `/health` **200** (probed) |
+| **Git branch** | `master` | **No `staging` branch** | Gap |
+| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` exists | Wiring present; full CI exercise residual |
+| **Parity baseline** | See EAB-003 DIFF (2026-08-07) | Same commit class at baseline freeze | Machine baseline exists; Human-Gate residuals OPEN |
+| **Business data for Decision soak** | Populated | Historically empty / not seeded for IL-2A | Functional soak → prod (bounded) |
+| **48–72h health soak claim** | N/A | Harness finished 2026-08-10; **`soak_complete_claim=false`** | OPEN |
 
-## Known Issues
+Supersedes the stale “409 commits behind / no staging host” reading for **host existence**. Critical diffs and Human-Gate items in [`STAGING-vs-PRODUCTION-DIFF.md`](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) and [`staging-parity-checklist.md`](../ga-engineering-audit/runbooks/staging-parity-checklist.md) still govern **parity complete**.
 
-1. **409 commits behind** — GA audit reported staging is significantly behind production
-2. **No staging branch visible** — No `staging` branch in `git branch -a`
-3. **No staging CI** — No CI workflow targeting staging environment
-4. **No staging DB** — No evidence of staging database setup
+---
+
+## Known Issues (GO gaps)
+
+1. **No `staging` git branch** — Railway env + workflow only  
+2. **Human-Gate residuals** — Google OAuth staging app; WAL/PITR/offsite; `max_connections`; rollback tabletop; GH Environment re-probe  
+3. **PROD-W11-002 soak claim** — not flipped (health-loop had failures; Decision path not part of that harness)  
+4. **Staging not seeded** for Decision→AgentTask functional parity  
+
+---
+
+## 2026-08-12 bounded prod IL-2A soak (not staging parity)
+
+Documented in [`docs/reports/A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md`](../../reports/A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md).
+
+- 8/8 evaluate **200**; AgentTask isolation/idempotency **PASS** (DB)  
+- Explicitly **not** A-09 / Wave 11 close  
+
+---
 
 ## Recommendations
 
 | Priority | Action | Owner |
 |----------|--------|-------|
-| P0 | Create `staging` branch from `master` | DevOps |
-| P0 | Set up staging CI workflow | DevOps |
-| P0 | Deploy staging environment (Railway) | DevOps |
-| P1 | Sync staging DB schema with production | Backend |
-| P1 | Add staging environment variables | DevOps |
-| P2 | Set up staging monitoring | DevOps |
-
-## Evidence
-
-- `git branch -a` — no `staging` branch found
-- GA audit: "409 commits behind"
-- No staging CI workflow in `.github/workflows/`
+| P0 | Close Human-Gate checklist items (OAuth, backup posture acceptance, CI deploy evidence) | DevOps / Platform |
+| P0 | Seed staging tenant+companies **or** accept prod-only functional soak until seed exists | DevOps / Backend |
+| P1 | Human review of 72h health-loop failures → Soak Report before any claim flip | TL / DevOps |
+| P2 | Optional `staging` branch policy if required by release process | DevOps |
 
 ---
 
-*This document tracks A-09 (Staging Parity) status. Resolution requires DevOps infrastructure setup.*
+*A-09 remains OPEN. Evidence governs.*

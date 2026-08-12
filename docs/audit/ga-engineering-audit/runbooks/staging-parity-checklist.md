@@ -2,7 +2,9 @@
 
 **Status:** Machine baseline exists (2026-08-07) — **residuals Human-Gate**  
 **Authority:** [STAGING-vs-PRODUCTION-DIFF.md](../enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) · [A09_STAGING_PARITY.md](../../star-audit/A09_STAGING_PARITY.md)  
-**Does not grant:** Production GO or soak complete
+**Does not grant:** Production GO or soak complete  
+
+**2026-08-12 note:** Staging host still live; A-09 **not closed**. Bounded **production** Decision→AgentTask soak documented in [A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md](../../../reports/A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md) — evidence only, **not** staging parity / Wave 11 claim.
 
 ---
 
