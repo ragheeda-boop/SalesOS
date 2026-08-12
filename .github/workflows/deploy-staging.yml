@@ -101,13 +101,16 @@ jobs:
         run: npm install -g @railway/cli
       - name: Railway up (salesos backend → staging)
         # Deploy from repo root so the root railway.json / Dockerfile.railway path is used.
+        # Prefer environment *name* `staging` for `railway up` — GHA runs on 2026-08-09 failed
+        # with "Environment not found" when only the UUID secret was passed (CLI 5.x).
+        # Secrets probe still requires RAILWAY_STAGING_ENVIRONMENT_ID present (inventory).
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           set -euo pipefail
           railway up --ci -y \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
-            --environment "${{ secrets.RAILWAY_STAGING_ENVIRONMENT_ID }}" \
+            --environment staging \
             --service "${{ secrets.RAILWAY_STAGING_SERVICE_ID }}"
 
   health-check:

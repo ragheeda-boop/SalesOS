@@ -1,32 +1,48 @@
 # A-09: Staging Parity Assessment
 
-> **Last Updated:** 2026-08-12  
+> **Last Updated:** 2026-08-12 (advancement pass)  
 > Classification: INFRASTRUCTURE AUDIT  
-> **Validation:** **light validated** for host liveness + prior machine parity baseline; **A-09 residual OPEN** (not closed)
+> **Validation:** **light validated** for host liveness + Decision seed + CI wire  
+> **A-09 residual:** **OPEN** (not closed — Human-Gate + CI success + soak claim remain)
 
 ---
 
-## Current State (2026-08-12 refresh)
+## Current State (2026-08-12 advancement)
 
 | Metric | Production | Staging | Status |
 |--------|------------|---------|--------|
 | **Host** | `salesos-production-96c0.up.railway.app` | `salesos-staging.up.railway.app` | Both `/health` **200** (probed) |
-| **Git branch** | `master` | **No `staging` branch** | Gap |
-| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` exists | Wiring present; full CI exercise residual |
+| **Git branch** | `master` | **`staging` branch strategy + remote branch** | Closed (agent) — see [staging-branch-strategy.md](../ga-engineering-audit/runbooks/staging-branch-strategy.md) |
+| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | Partial — prior UUID failures; re-exercise pending success URL |
 | **Parity baseline** | See EAB-003 DIFF (2026-08-07) | Same commit class at baseline freeze | Machine baseline exists; Human-Gate residuals OPEN |
-| **Business data for Decision soak** | Populated | Historically empty / not seeded for IL-2A | Functional soak → prod (bounded) |
+| **Business data for Decision soak** | Populated | **Seeded** muhide tenant + 5 companies (2026-08-12) | Agent closed seed gap; login round-trip **not validated** |
 | **48–72h health soak claim** | N/A | Harness finished 2026-08-10; **`soak_complete_claim=false`** | OPEN |
+
+Evidence deposit: [`A09-ADVANCEMENT-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md)
 
 Supersedes the stale “409 commits behind / no staging host” reading for **host existence**. Critical diffs and Human-Gate items in [`STAGING-vs-PRODUCTION-DIFF.md`](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) and [`staging-parity-checklist.md`](../ga-engineering-audit/runbooks/staging-parity-checklist.md) still govern **parity complete**.
 
 ---
 
-## Known Issues (GO gaps)
+## Closed this pass (agent)
 
-1. **No `staging` git branch** — Railway env + workflow only  
-2. **Human-Gate residuals** — Google OAuth staging app; WAL/PITR/offsite; `max_connections`; rollback tabletop; GH Environment re-probe  
-3. **PROD-W11-002 soak claim** — not flipped (health-loop had failures; Decision path not part of that harness)  
-4. **Staging not seeded** for Decision→AgentTask functional parity  
+1. **Staging branch strategy documented** + remote `staging` branch  
+2. **CI path hardened** — `deploy-staging.yml` uses Railway env **name** `staging` (UUID-only path failed 2026-08-09)  
+3. **Minimal Decision seed** — `seed_staging_decision_minimal.py` → muhide + 5 companies (`CONFIRM_STAGING_SEED=1`)  
+4. Confirmed `FEATURE_AI_COPILOT=false` on staging service  
+
+---
+
+## Still OPEN / Human-Gate
+
+1. Green end-to-end `deploy-staging.yml` run URL (re-dispatch after wire)  
+2. Staging service `ENV=production` mislabel (`RAILWAY_ENVIRONMENT_NAME=staging`) — fix Railway var  
+3. Google OAuth staging app  
+4. WAL/PITR/offsite posture accept-or-enable  
+5. Postgres `max_connections` 100→500 or signed acceptance  
+6. Rollback tabletop dated notes  
+7. Wave 11 / PROD-W11-002 soak claim flip after human review of 72h failures  
+8. Staging celery-worker deploy-failed observation  
 
 ---
 
@@ -43,11 +59,12 @@ Documented in [`docs/reports/A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md`](../../re
 
 | Priority | Action | Owner |
 |----------|--------|-------|
-| P0 | Close Human-Gate checklist items (OAuth, backup posture acceptance, CI deploy evidence) | DevOps / Platform |
-| P0 | Seed staging tenant+companies **or** accept prod-only functional soak until seed exists | DevOps / Backend |
+| P0 | Confirm green `deploy-staging.yml` after name-based env fix | DevOps |
+| P0 | Set staging `ENV=staging` (stop mislabel) | DevOps |
+| P0 | Close Human-Gate (OAuth, backup posture, max_connections, rollback) | DevOps / Platform |
+| P1 | Staging login + Decision evaluate smoke on muhide seed | Backend |
 | P1 | Human review of 72h health-loop failures → Soak Report before any claim flip | TL / DevOps |
-| P2 | Optional `staging` branch policy if required by release process | DevOps |
 
 ---
 
-*A-09 remains OPEN. Evidence governs.*
+*A-09 remains OPEN. Evidence governs. Do not claim staging parity complete.*
