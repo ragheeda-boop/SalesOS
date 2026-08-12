@@ -377,7 +377,7 @@ export function PlanManager() {
                   <p className="font-mono text-xs" data-testid="admin-plans-entitlements-summary">
                     {formatPlanEntitlementsSummary(plan.entitlements)}
                   </p>
-                  {plan.features?.length > 0 && (
+                  {(plan.features?.length ?? 0) > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {plan.features.map((f: string) => (
                         <Badge key={f} variant="default">

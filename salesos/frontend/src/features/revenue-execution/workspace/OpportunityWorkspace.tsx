@@ -260,14 +260,14 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                             <span className={cn("text-[10px] px-1.5 py-0.5 rounded", stateColors[String(a.resolution_state)] || "bg-[var(--bg-tertiary)]")}>
                               {String(a.resolution_state)}
                             </span>
-                            {a.confidence != null && (
+                            {a.confidence != null ? (
                               <span className="text-[10px] text-[var(--text-muted)]">
                                 {(Number(a.confidence) * 100).toFixed(0)}%
                               </span>
-                            )}
-                            {Boolean(a.algorithm_version) && (
+                            ) : null}
+                            {a.algorithm_version != null && a.algorithm_version !== "" ? (
                               <span className="text-[10px] text-[var(--text-muted)]">{String(a.algorithm_version)}</span>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </div>
