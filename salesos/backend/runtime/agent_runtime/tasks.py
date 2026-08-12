@@ -77,9 +77,21 @@ def agent_dispatch_all(self) -> dict:
                     except Exception as e:
                         logger.warning(f"Agent dispatch failed for tenant {tid}: {e}")
                         stats["errors"].append(str(e))
+                        try:
+                            from app.metrics.collector import collector
+
+                            collector.track_agent_dispatch_error("celery_tenant_dispatch")
+                        except Exception:
+                            pass
             except Exception as e:
                 logger.warning(f"Agent dispatch load tenants failed: {e}")
                 stats["errors"].append(str(e))
+                try:
+                    from app.metrics.collector import collector
+
+                    collector.track_agent_dispatch_error("celery_load_tenants")
+                except Exception:
+                    pass
 
             return stats
         finally:
@@ -97,4 +109,10 @@ def agent_dispatch_all(self) -> dict:
         return _run_async(_dispatch())
     except Exception as e:
         logger.exception("Agent dispatch fatal error")
+        try:
+            from app.metrics.collector import collector
+
+            collector.track_agent_dispatch_error("celery_fatal")
+        except Exception:
+            pass
         return {"error": str(e)}

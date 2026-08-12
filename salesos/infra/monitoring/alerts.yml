@@ -263,3 +263,40 @@ groups:
         annotations:
           summary: "Error budget burn rate exceeds 10x sustainable rate"
           description: "Error rate over the last 1h is burning error budget faster than 10x the acceptable rate"
+
+      # ── Wave 8 / IL-2A closed-loop SLOs (PROD-W8 residual) ──
+      - alert: DecisionEvaluateHighLatency
+        expr: histogram_quantile(0.95, rate(salesos_decision_evaluate_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Decision evaluate P95 is {{ $value }}s"
+          description: "P95 decision.evaluate wall time exceeds 2s (IL-2A hang class historically 20–60s)"
+
+      - alert: DecisionEvaluateCriticalLatency
+        expr: histogram_quantile(0.99, rate(salesos_decision_evaluate_duration_seconds_bucket[5m])) > 5
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Decision evaluate P99 is {{ $value }}s"
+          description: "P99 decision.evaluate exceeds 5s — possible pool/store hang on evaluate path"
+
+      - alert: EventFanoutFailures
+        expr: rate(salesos_event_fanout_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Event store/fan-out failures detected"
+          description: "salesos_event_fanout_failures_total is non-zero over 5m (store_timeout|store_failed|subscriber_dead_lettered)"
+
+      - alert: AgentDispatchErrors
+        expr: rate(salesos_agent_dispatch_errors_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent task schedule/dispatch errors"
+          description: "IL-2A schedule or Celery agent_dispatch errors sustained for 10m (API-process scrape; Celery-only counters need worker scrape or log alerts)"

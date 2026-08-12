@@ -35,7 +35,7 @@ On a company that already had a `research_company` task (COMPLETED), re-evaluate
 
 1. Residual **hardening** on claim/lease (beyond IL-2B.2 gate PASS) — not live ResearchAgent/LLM.
 2. Staging parity / soak evidence (PRODUCTION_PLAN Wave 11 / STAR A-09).
-3. Observability SLOs for evaluate + AgentTask fan-out (Wave 8) — only after hardening clear.
+3. Observability SLOs for evaluate + AgentTask fan-out (Wave 8) — **hooks landed** (`salesos_decision_evaluate_*`, `salesos_event_fanout_failures_total`, `salesos_agent_dispatch_errors_total` + alert rules); live Prometheus scrape / Alertmanager fire still **needs verify**.
 4. Human secret rotations — [`HUMAN-SECRET-ROTATION-CHECKLIST.md`](./HUMAN-SECRET-ROTATION-CHECKLIST.md).
 
 Program snapshot: [`PROGRAM-STATUS-2026-08-12.md`](./PROGRAM-STATUS-2026-08-12.md) (GA still **NO-GO**).

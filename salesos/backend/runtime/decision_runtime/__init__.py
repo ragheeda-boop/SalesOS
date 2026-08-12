@@ -221,6 +221,7 @@ class DecisionEngine:
         """
         t0 = time.monotonic()
         self.metrics.evaluations += 1
+        outcome = "error"
 
         def _step(step: str, **fields: Any) -> None:
             # Railway strips message bodies — keep step/elapsed in extra=.
@@ -235,125 +236,136 @@ class DecisionEngine:
                     extra[key] = value
             logger.info("decision_engine.evaluate", extra=extra)
 
-        _step("start")
-
-        # 1. Build context
-        context = await self._context_builder.build(company_id, tenant_id)
-        _step("context_built")
-
-        # 2. Evaluate policies
-        policies = await self._policy_engine.evaluate(context.to_dict(), company_id, tenant_id)
-        self.metrics.policies_checked += len(policies)
-        _step("policies_evaluated")
-
-        # 3. Check for blocks
-        blocked = [p for p in policies if p.result == PolicyResult.BLOCK]
-        if blocked:
-            _step("blocked")
-            return {
-                "decision_id": None,
-                "company_id": company_id,
-                "action": "blocked",
-                "reason": blocked[0].reason,
-                "policy": blocked[0].policy_name,
-            }
-
-        # 4. Determine decision type and confidence
-        decision_type, confidence, reasoning = await self._score_decision(context, tenant_id)
-        _step("scored")
-
-        # 5. Check existing non-expired decisions
-        existing = await self._find_active_decisions(company_id, tenant_id)
-        blocked_by = [d.decision_id for d in existing if d.status == DecisionStatus.SUGGESTED]
-
-        # 6. Create DecisionObject
-        decision = DecisionObject(
-            decision_id=str(uuid.uuid4()),
-            company_id=company_id,
-            tenant_id=tenant_id,
-            decision_type=decision_type,
-            priority=self._calc_priority(confidence, context),
-            confidence=confidence,
-            expected_revenue=self._estimate_revenue(context),
-            expected_probability=self._estimate_probability(context, decision_type),
-            reasoning=reasoning,
-            evidence=[p.reason for p in policies],
-            supporting_features=context.features,
-            context_snapshot=context.to_dict(),
-            blocked_by=blocked_by[:5],
-            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
-        )
-
-        # 7. Persist (in-memory NBA still returned if DB persist fails)
         try:
-            await self._save_decision(decision)
-        except Exception:
-            logger.exception(
-                "decision_engine.evaluate persist_failed",
-                extra={
-                    "decision_id": decision.decision_id,
+            _step("start")
+
+            # 1. Build context
+            context = await self._context_builder.build(company_id, tenant_id)
+            _step("context_built")
+
+            # 2. Evaluate policies
+            policies = await self._policy_engine.evaluate(context.to_dict(), company_id, tenant_id)
+            self.metrics.policies_checked += len(policies)
+            _step("policies_evaluated")
+
+            # 3. Check for blocks
+            blocked = [p for p in policies if p.result == PolicyResult.BLOCK]
+            if blocked:
+                outcome = "blocked"
+                _step("blocked")
+                return {
+                    "decision_id": None,
                     "company_id": company_id,
-                    "tenant_id": tenant_id,
-                    "step": "persist_failed",
-                },
+                    "action": "blocked",
+                    "reason": blocked[0].reason,
+                    "policy": blocked[0].policy_name,
+                }
+
+            # 4. Determine decision type and confidence
+            decision_type, confidence, reasoning = await self._score_decision(context, tenant_id)
+            _step("scored")
+
+            # 5. Check existing non-expired decisions
+            existing = await self._find_active_decisions(company_id, tenant_id)
+            blocked_by = [d.decision_id for d in existing if d.status == DecisionStatus.SUGGESTED]
+
+            # 6. Create DecisionObject
+            decision = DecisionObject(
+                decision_id=str(uuid.uuid4()),
+                company_id=company_id,
+                tenant_id=tenant_id,
+                decision_type=decision_type,
+                priority=self._calc_priority(confidence, context),
+                confidence=confidence,
+                expected_revenue=self._estimate_revenue(context),
+                expected_probability=self._estimate_probability(context, decision_type),
+                reasoning=reasoning,
+                evidence=[p.reason for p in policies],
+                supporting_features=context.features,
+                context_snapshot=context.to_dict(),
+                blocked_by=blocked_by[:5],
+                expires_at=datetime.now(timezone.utc) + timedelta(days=30),
             )
-        self._evict_decisions()
-        self._decisions[decision.decision_id] = decision
-        self.metrics.decisions_created += 1
-        _step("decision_saved", decision_id=decision.decision_id)
 
-        # 8. Generate recommendation
-        rec = await self._recommendation_engine.generate(
-            decision_id=decision.decision_id,
-            company_id=company_id,
-            tenant_id=tenant_id,
-            decision_type=decision.decision_type.value,
-            priority=decision.priority,
-            confidence=decision.confidence,
-            reasoning=decision.reasoning,
-            evidence=decision.evidence,
-            context=context.to_dict(),
-        )
-        _step("recommendation_generated", decision_id=decision.decision_id)
+            # 7. Persist (in-memory NBA still returned if DB persist fails)
+            try:
+                await self._save_decision(decision)
+            except Exception:
+                logger.exception(
+                    "decision_engine.evaluate persist_failed",
+                    extra={
+                        "decision_id": decision.decision_id,
+                        "company_id": company_id,
+                        "tenant_id": tenant_id,
+                        "step": "persist_failed",
+                    },
+                )
+            self._evict_decisions()
+            self._decisions[decision.decision_id] = decision
+            self.metrics.decisions_created += 1
+            _step("decision_saved", decision_id=decision.decision_id)
 
-        # 9. Publish event AFTER response when BackgroundTasks available
-        _step("event_publish_begin", decision_id=decision.decision_id)
-        event = DecisionEvent(
-            event_type=DecisionEventType.CREATED,
-            decision_id=decision.decision_id,
-            company_id=company_id,
-            tenant_id=tenant_id,
-            decision_type=decision.decision_type.value,
-        )
-        domain_event = _to_domain_event(event.to_domain_event())
-        if background_tasks is not None:
-            background_tasks.add_task(
-                _run_decision_event_publish,
-                self._event_runtime,
-                domain_event,
+            # 8. Generate recommendation
+            rec = await self._recommendation_engine.generate(
                 decision_id=decision.decision_id,
+                company_id=company_id,
+                tenant_id=tenant_id,
+                decision_type=decision.decision_type.value,
+                priority=decision.priority,
+                confidence=decision.confidence,
+                reasoning=decision.reasoning,
+                evidence=decision.evidence,
+                context=context.to_dict(),
             )
-            logger.info(
-                "decision_engine.event_publish scheduled",
-                extra={
-                    "decision_id": decision.decision_id,
-                    "event_type": domain_event.event_type,
-                    "step": "background_tasks",
-                },
-            )
-        else:
-            _publish_decision_event_best_effort(
-                self._event_runtime,
-                domain_event,
+            _step("recommendation_generated", decision_id=decision.decision_id)
+
+            # 9. Publish event AFTER response when BackgroundTasks available
+            _step("event_publish_begin", decision_id=decision.decision_id)
+            event = DecisionEvent(
+                event_type=DecisionEventType.CREATED,
                 decision_id=decision.decision_id,
+                company_id=company_id,
+                tenant_id=tenant_id,
+                decision_type=decision.decision_type.value,
             )
-        _step("event_published", decision_id=decision.decision_id)
+            domain_event = _to_domain_event(event.to_domain_event())
+            if background_tasks is not None:
+                background_tasks.add_task(
+                    _run_decision_event_publish,
+                    self._event_runtime,
+                    domain_event,
+                    decision_id=decision.decision_id,
+                )
+                logger.info(
+                    "decision_engine.event_publish scheduled",
+                    extra={
+                        "decision_id": decision.decision_id,
+                        "event_type": domain_event.event_type,
+                        "step": "background_tasks",
+                    },
+                )
+            else:
+                _publish_decision_event_best_effort(
+                    self._event_runtime,
+                    domain_event,
+                    decision_id=decision.decision_id,
+                )
+            _step("event_published", decision_id=decision.decision_id)
+            _step("done", decision_id=decision.decision_id)
+            outcome = "ok"
+            return self._build_nba_response(decision, rec, context)
+        finally:
+            elapsed_s = time.monotonic() - t0
+            self.metrics.total_eval_ms += elapsed_s * 1000
+            try:
+                from app.metrics.collector import collector
 
-        elapsed = (time.monotonic() - t0) * 1000
-        self.metrics.total_eval_ms += elapsed
-        _step("done", decision_id=decision.decision_id)
-
-        return self._build_nba_response(decision, rec, context)
+                collector.track_decision_evaluate(elapsed_s, outcome)
+            except Exception:
+                logger.debug(
+                    "decision_engine.evaluate metrics_skip",
+                    exc_info=True,
+                )
 
     async def get_next_best_action(self, company_id: str, tenant_id: str) -> Optional[dict]:
         """Return the highest-priority actionable decision for a company."""

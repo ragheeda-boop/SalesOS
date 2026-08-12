@@ -74,6 +74,8 @@ def _categorize_path(path: str) -> str | None:
         return "enrichment"
     if path.startswith("/api/v1/search"):
         return "critical_path"
+    if "decision-runtime" in path or path.startswith("/api/v1/decision"):
+        return "standard"
     if path.startswith("/api/v1/companies"):
         if path.endswith("/search"):
             return "critical_path"

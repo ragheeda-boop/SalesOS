@@ -129,3 +129,34 @@ groups:
         annotations:
           summary: "Redis exporter is DOWN"
           description: "The redis-exporter /metrics endpoint has been unreachable for 2 minutes."
+
+      # ── Wave 8 / IL-2A closed-loop SLOs ──
+      - alert: ProductionDecisionEvaluateHighLatency
+        expr: histogram_quantile(0.95, rate(salesos_decision_evaluate_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: Decision evaluate P95 is {{ $value }}s"
+          description: "P95 decision.evaluate exceeds 2s — investigate pool / fan-out hang class"
+
+      - alert: ProductionEventFanoutFailures
+        expr: rate(salesos_event_fanout_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: Event store/fan-out failures"
+          description: "Non-zero salesos_event_fanout_failures_total rate over 5m"
+
+      - alert: ProductionAgentDispatchErrors
+        expr: rate(salesos_agent_dispatch_errors_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: Agent dispatch/schedule errors"
+          description: "IL-2A or Celery agent_dispatch error counters elevated (API scrape; Celery-only residual)"

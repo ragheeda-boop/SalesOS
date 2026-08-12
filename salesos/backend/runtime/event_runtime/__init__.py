@@ -403,6 +403,14 @@ class EventRuntime(EventBus):
                                 (time.monotonic() - store_start) * 1000, 1
                             ),
                         )
+                    try:
+                        from app.metrics.collector import collector
+
+                        collector.track_event_fanout_failure(
+                            event.event_type, "store_timeout"
+                        )
+                    except Exception:
+                        pass
                     # Continue fan-out best-effort; do not block publishers forever.
                 except Exception as e:
                     if self._logger:
@@ -417,6 +425,14 @@ class EventRuntime(EventBus):
                                 (time.monotonic() - store_start) * 1000, 1
                             ),
                         )
+                    try:
+                        from app.metrics.collector import collector
+
+                        collector.track_event_fanout_failure(
+                            event.event_type, "store_failed"
+                        )
+                    except Exception:
+                        pass
                     # FAIL-OPEN: durable store is best-effort. Skipping fan-out here
                     # left domain_events with 0 decision.created and zero AgentTasks.
 
@@ -468,6 +484,14 @@ class EventRuntime(EventBus):
                     self._dlq.add(dl_entry)
                     lifecycle.dead_lettered = True
                     self.metrics.record_dead_lettered(event.event_type)
+                    try:
+                        from app.metrics.collector import collector
+
+                        collector.track_event_fanout_failure(
+                            event.event_type, "subscriber_dead_lettered"
+                        )
+                    except Exception:
+                        pass
                     if self._logger:
                         self._logger.error(
                             "event_runtime.subscriber_dead_lettered",

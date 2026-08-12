@@ -6,6 +6,8 @@ Collects:
 - Database pool utilization
 - Cache hit/miss ratio
 - NBA engine processing time
+- Decision evaluate latency (Wave 8 IL-2A SLO)
+- Event fan-out / agent-dispatch error counters (Wave 8)
 """
 
 import threading
@@ -17,7 +19,8 @@ from typing import Any
 class _Histogram:
     """Prometheus-style histogram with predefined buckets."""
 
-    BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+    # Include 30s/60s so evaluate hangs (historically 20–60s) are visible.
+    BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0]
 
     def __init__(self) -> None:
         self._buckets = {b: 0 for b in self.BUCKETS}
@@ -57,6 +60,10 @@ class ApplicationMetricsCollector:
         self._cache_hits: int = 0
         self._cache_misses: int = 0
         self._nba_duration: _Histogram = _Histogram()
+        self._decision_evaluate_duration: _Histogram = _Histogram()
+        self._decision_evaluate_total: dict[str, int] = defaultdict(int)
+        self._event_fanout_failures: dict[tuple[str, str], int] = defaultdict(int)
+        self._agent_dispatch_errors: dict[str, int] = defaultdict(int)
         self._start_time = time.time()
 
     def track_http_request(self, method: str, path: str, status: int, duration: float) -> None:
@@ -98,6 +105,28 @@ class ApplicationMetricsCollector:
     def track_nba_processing(self, duration: float) -> None:
         with self._lock:
             self._nba_duration.observe(duration)
+
+    def track_decision_evaluate(self, duration: float, outcome: str = "ok") -> None:
+        """Record decision.evaluate wall time (seconds) and outcome counter."""
+        clean = (outcome or "ok").replace('"', "").replace("\n", "")[:64] or "ok"
+        with self._lock:
+            self._decision_evaluate_duration.observe(duration)
+            self._decision_evaluate_total[clean] += 1
+            # Keep legacy NBA histogram in sync — evaluate is the NBA path.
+            self._nba_duration.observe(duration)
+
+    def track_event_fanout_failure(self, event_type: str, reason: str) -> None:
+        """Record event fan-out / store failure (API-process EventRuntime)."""
+        et = (event_type or "unknown").replace('"', "").replace("\n", "")[:96] or "unknown"
+        rs = (reason or "unknown").replace('"', "").replace("\n", "")[:64] or "unknown"
+        with self._lock:
+            self._event_fanout_failures[(et, rs)] += 1
+
+    def track_agent_dispatch_error(self, reason: str) -> None:
+        """Record agent task schedule/dispatch error (IL-2A or Celery)."""
+        rs = (reason or "unknown").replace('"', "").replace("\n", "")[:64] or "unknown"
+        with self._lock:
+            self._agent_dispatch_errors[rs] += 1
 
     def generate(self) -> str:
         lines: list[str] = []
@@ -198,6 +227,48 @@ class ApplicationMetricsCollector:
             _line(f'{nba_base}_bucket{{le="+Inf"}} {nba_snap["count"]}')
             _line(f"{nba_base}_count {nba_snap['count']}")
             _line(f"{nba_base}_sum {nba_snap['sum']:.6f}")
+
+            # ── Decision evaluate (Wave 8 SLO) ──
+            _line("")
+            _line(
+                "# HELP salesos_decision_evaluate_duration_seconds Decision evaluate duration histogram"  # noqa: E501
+            )
+            _line("# TYPE salesos_decision_evaluate_duration_seconds histogram")
+            de_snap = self._decision_evaluate_duration.snapshot()
+            de_base = "salesos_decision_evaluate_duration_seconds"
+            for bucket, count in sorted(de_snap["buckets"].items()):
+                _line(f'{de_base}_bucket{{le="{bucket}"}} {count}')
+            _line(f'{de_base}_bucket{{le="+Inf"}} {de_snap["count"]}')
+            _line(f"{de_base}_count {de_snap['count']}")
+            _line(f"{de_base}_sum {de_snap['sum']:.6f}")
+
+            _line("")
+            _line(
+                "# HELP salesos_decision_evaluate_total Decision evaluate completions by outcome"
+            )
+            _line("# TYPE salesos_decision_evaluate_total counter")
+            for outcome, count in sorted(self._decision_evaluate_total.items()):
+                _line(f'salesos_decision_evaluate_total{{outcome="{outcome}"}} {count}')
+
+            # ── Event fan-out failures (Wave 8 SLO) ──
+            _line("")
+            _line(
+                "# HELP salesos_event_fanout_failures_total Event store/fan-out failures by type and reason"  # noqa: E501
+            )
+            _line("# TYPE salesos_event_fanout_failures_total counter")
+            for (etype, reason), count in sorted(self._event_fanout_failures.items()):
+                _line(
+                    f'salesos_event_fanout_failures_total{{event_type="{etype}",reason="{reason}"}} {count}'  # noqa: E501
+                )
+
+            # ── Agent dispatch / IL-2A schedule errors (Wave 8 SLO) ──
+            _line("")
+            _line(
+                "# HELP salesos_agent_dispatch_errors_total Agent task schedule/dispatch errors by reason"  # noqa: E501
+            )
+            _line("# TYPE salesos_agent_dispatch_errors_total counter")
+            for reason, count in sorted(self._agent_dispatch_errors.items()):
+                _line(f'salesos_agent_dispatch_errors_total{{reason="{reason}"}} {count}')
 
             # ── Uptime ──
             _line("")

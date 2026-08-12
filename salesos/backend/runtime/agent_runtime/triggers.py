@@ -444,6 +444,13 @@ async def on_decision_created_event(
                 outcome_reason = "error"
             else:
                 outcome_reason = "noop"
+            if stats.get("errors", 0):
+                try:
+                    from app.metrics.collector import collector
+
+                    collector.track_agent_dispatch_error("il2a_schedule_error")
+                except Exception:
+                    pass
             logger.info(
                 "IL-2A on_decision_created done",
                 extra={
@@ -475,6 +482,12 @@ async def on_decision_created_event(
                 "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
             },
         )
+        try:
+            from app.metrics.collector import collector
+
+            collector.track_agent_dispatch_error("il2a_handler_timeout")
+        except Exception:
+            pass
         return {
             "created": 0,
             "skipped": 0,
@@ -490,6 +503,12 @@ async def on_decision_created_event(
                 "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
             },
         )
+        try:
+            from app.metrics.collector import collector
+
+            collector.track_agent_dispatch_error("il2a_handler_failed")
+        except Exception:
+            pass
         raise
     finally:
         reset_current_tenant_id(token)
