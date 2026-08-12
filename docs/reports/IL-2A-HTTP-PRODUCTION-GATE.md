@@ -33,8 +33,11 @@ On a company that already had a `research_company` task (COMPLETED), re-evaluate
 
 ## Next (do not start without approval)
 
-1. **IL-2B.2** claim/run hardening (dispatcher/lease) — not live ResearchAgent/LLM.
+1. Residual **hardening** on claim/lease (beyond IL-2B.2 gate PASS) — not live ResearchAgent/LLM.
 2. Staging parity / soak evidence (PRODUCTION_PLAN Wave 11 / STAR A-09).
-3. Observability SLOs for evaluate + AgentTask fan-out (Wave 8) — only after IL-2B.2 is clear.
+3. Observability SLOs for evaluate + AgentTask fan-out (Wave 8) — only after hardening clear.
+4. Human secret rotations — [`HUMAN-SECRET-ROTATION-CHECKLIST.md`](./HUMAN-SECRET-ROTATION-CHECKLIST.md).
+
+Program snapshot: [`PROGRAM-STATUS-2026-08-12.md`](./PROGRAM-STATUS-2026-08-12.md) (GA still **NO-GO**).
 
 **Not started here:** ResearchAgent live LLM path, `feature_ai_copilot=True`.
