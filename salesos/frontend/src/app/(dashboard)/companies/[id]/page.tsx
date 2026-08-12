@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CompanyWorkspace } from "@/components/company-workspace";
 import { DecisionProvider } from "@/features/revenue-execution/_providers/DecisionProvider";
 import { useCompany } from "@/lib/hooks/companyQueries";
 import { useUpdateCompany, useDeleteCompany, useAddContact } from "@/lib/hooks/mutationHooks";
+import { useCreateOpportunity } from "@/lib/hooks/opportunityQueries";
 import {
   Button,
   Modal,
@@ -17,15 +18,24 @@ import {
   ModalFooter,
   Input,
 } from "@salesos/ui";
-import { Pencil, Trash2, UserPlus, ArrowRight, Loader2, BarChart3 } from "lucide-react";
+import { Pencil, Trash2, UserPlus, ArrowRight, Loader2, BarChart3, Handshake } from "lucide-react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
 import { useTranslation } from "@/lib/i18n";
 import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
+/** Company 360 quick-action query keys (REMAINING_GAPS U03 / UX_ARCH V1.5). */
+const ACTIVITY_ACTIONS = new Set([
+  "add-note",
+  "schedule-meeting",
+  "send-email",
+  "log-call",
+]);
+
 export default function CompanyPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
   const { t } = useTranslation();
 
@@ -33,10 +43,12 @@ export default function CompanyPage() {
   const updateCompany = useUpdateCompany();
   const deleteCompany = useDeleteCompany();
   const addContact = useAddContact();
+  const createOpportunity = useCreateOpportunity();
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [dealOpen, setDealOpen] = useState(false);
 
   const [editForm, setEditForm] = useState({
     name_ar: "",
@@ -50,6 +62,34 @@ export default function CompanyPage() {
     email: "",
     phone: "",
   });
+  const [dealForm, setDealForm] = useState({ name: "", value: "" });
+
+  const clearActionParam = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (!next.has("action")) return;
+    next.delete("action");
+    const qs = next.toString();
+    router.replace(qs ? `/companies/${id}?${qs}` : `/companies/${id}`, { scroll: false });
+  }, [id, router, searchParams]);
+
+  // Wire 360 quick-action deep links (?action=…) — previously href-only / no-op.
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+    if (action === "add-contact") {
+      setContactOpen(true);
+      clearActionParam();
+      return;
+    }
+    if (action === "new-deal") {
+      setDealOpen(true);
+      clearActionParam();
+      return;
+    }
+    if (ACTIVITY_ACTIONS.has(action)) {
+      router.replace(`/activities?company_id=${encodeURIComponent(id)}&action=${encodeURIComponent(action)}`);
+    }
+  }, [searchParams, clearActionParam, id, router]);
 
   const handleEditOpen = useCallback(() => {
     if (company) {
@@ -80,6 +120,18 @@ export default function CompanyPage() {
     setContactOpen(false);
     setContactForm({ name: "", position: "", email: "", phone: "" });
   }, [id, contactForm, addContact]);
+
+  const handleCreateDeal = useCallback(async () => {
+    if (!dealForm.name.trim()) return;
+    const value = Number(dealForm.value) || 0;
+    await createOpportunity.mutateAsync({
+      companyId: id,
+      name: dealForm.name.trim(),
+      value,
+    });
+    setDealOpen(false);
+    setDealForm({ name: "", value: "" });
+  }, [id, dealForm, createOpportunity]);
 
   return (
     <div>
@@ -178,6 +230,58 @@ export default function CompanyPage() {
                   }
                 >
                   {addContact.isPending ? t("common.saving") : t("common.save")}
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          <Modal open={dealOpen} onOpenChange={setDealOpen}>
+            <ModalTrigger>
+              <Button variant="outline" size="sm" leftIcon={<Handshake className="h-4 w-4" />}>
+                {t("opportunities.new")}
+              </Button>
+            </ModalTrigger>
+            <ModalContent>
+              <ModalHeader>{t("opportunities.create_title")}</ModalHeader>
+              <ModalBody>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                      {t("labels.name")} *
+                    </label>
+                    <Input
+                      value={dealForm.name}
+                      onChange={(e) => setDealForm({ ...dealForm, name: e.target.value })}
+                      placeholder={t("opportunities.name_placeholder") || "New opportunity"}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                      {t("opportunities.value") || "Value"}
+                    </label>
+                    <Input
+                      type="number"
+                      value={dealForm.value}
+                      onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="outline" onClick={() => setDealOpen(false)}>
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  onClick={handleCreateDeal}
+                  disabled={!dealForm.name.trim() || createOpportunity.isPending}
+                  leftIcon={
+                    createOpportunity.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : undefined
+                  }
+                >
+                  {createOpportunity.isPending ? t("common.creating") : t("common.create")}
                 </Button>
               </ModalFooter>
             </ModalContent>
