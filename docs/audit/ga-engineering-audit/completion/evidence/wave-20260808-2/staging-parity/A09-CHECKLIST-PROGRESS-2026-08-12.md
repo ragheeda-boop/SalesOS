@@ -8,12 +8,12 @@
 
 ---
 
-## Snapshot (steps 7 / 9 / 10 advanced 2026-08-13)
+## Snapshot (steps 1–2 CI SUCCESS 2026-08-13)
 
 | # | Step | Result | Evidence / SHA |
 |---|------|:------:|----------------|
-| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — still Unauthorized after «تم التدوير»; **GH `updatedAt` proves Environment `staging` token not updated since 2026-08-09** | [A09-TOKEN-DIAGNOSIS-2026-08-13.md](./A09-TOKEN-DIAGNOSIS-2026-08-13.md) · [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) |
-| 2 | `deploy-staging.yml` SUCCESS | **FAIL** — blocked by #1 | same |
+| 1 | Verify/rotate `RAILWAY_TOKEN` | **PASS** — Environment `staging` token accepted | [A09-DEPLOY-STAGING-SUCCESS-2026-08-13.md](./A09-DEPLOY-STAGING-SUCCESS-2026-08-13.md) · [31649846410](https://github.com/ragheeda-boop/SalesOS/actions/runs/31649846410) |
+| 2 | `deploy-staging.yml` SUCCESS | **PASS** | same |
 | 3 | Staging login (muhide) | **PASS** | checklist 1–5 |
 | 4 | Decision smoke (`recommend_call`) | **PASS** | checklist 1–5 |
 | 5 | Worker + beat + dispatch | **PASS** (light) | checklist 1–5 |
@@ -40,17 +40,9 @@ A-09 recommendation     = CONDITIONAL / OPEN
 
 ## Remaining human actions (priority)
 
-### P0 — Step 1 (blocks CI deploy)
+### P0 — Steps 1–2 (CI deploy) — **CLOSED**
 
-Post-rotate re-dispatch [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) still **Unauthorized**. **Diagnosis (2026-08-13):** Environment `staging` `RAILWAY_TOKEN` `updatedAt` is still **2026-08-09** — rotate did not land in GitHub where the workflow reads it. See [A09-TOKEN-DIAGNOSIS-2026-08-13.md](./A09-TOKEN-DIAGNOSIS-2026-08-13.md).
-
-1. Railway → Tokens → **Project Token** for `responsible-comfort` with env **staging** (`5ce7864a-…`) — not a production-only project token.
-2. GitHub → Environments → **staging** → Environment secret `RAILWAY_TOKEN` (full paste); confirm `gh secret list --env staging` shows a **new** `updatedAt`.
-3. Re-dispatch Deploy Staging; expect Gate → Backend → Health SUCCESS.
-3. Re-run **Deploy Staging** on ref `staging` with `confirm_staging=CONFIRM-STAGING-DEPLOY`.
-4. Expect gate + `railway up` SUCCESS + staging health **200**.
-
-Do **not** paste token values into chat, commits, or evidence.
+[31649846410](https://github.com/ragheeda-boop/SalesOS/actions/runs/31649846410) **SUCCESS** (`railway up` + health gate). Evidence: [A09-DEPLOY-STAGING-SUCCESS-2026-08-13.md](./A09-DEPLOY-STAGING-SUCCESS-2026-08-13.md).
 
 ### P0 — Human-Gate (step 7)
 
