@@ -3,7 +3,7 @@
 **Verdict:** **CONDITIONAL / OPEN** — **not** parity complete  
 **Claims:** `staging_parity_complete=false` · `soak_complete_claim=false` · `production_go=false`  
 **Validation:** **light validated** for PASS rows; **not validated** for Human-Gate close  
-**Sister deploy fold-in:** [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116) — gate PASS · `railway up` **Unauthorized** · **failure**
+**Sister deploy fold-in:** [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) — post «تم التدوير» · gate PASS · `railway up` **Unauthorized** · **failure**
 
 **Authority:** [A09_STAGING_PARITY.md](../../../../../star-audit/A09_STAGING_PARITY.md) · [staging-parity-checklist.md](../../../../runbooks/staging-parity-checklist.md) · rollup [A09-CHECKLIST-PROGRESS-2026-08-12.md](./A09-CHECKLIST-PROGRESS-2026-08-12.md)
 
@@ -13,7 +13,7 @@
 
 | # | Step | Result | Notes |
 |---|------|:------:|-------|
-| 1 | `RAILWAY_TOKEN` verify/rotate | **BLOCKED** | Unauthorized; human rotate — retries incl. 31647956116 |
+| 1 | `RAILWAY_TOKEN` verify/rotate | **BLOCKED** | Still Unauthorized after «تم التدوير» — [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) |
 | 2 | `deploy-staging.yml` SUCCESS | **BLOCKED** | Blocked by #1 |
 | 3 | Staging login (muhide) | **PASS** | Password login 200 |
 | 4 | Decision smoke | **PASS** | `recommend_call` |

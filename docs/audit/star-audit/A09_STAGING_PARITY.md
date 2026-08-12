@@ -15,7 +15,7 @@
 |--------|------------|---------|--------|
 | **Host** | `salesos-production-96c0.up.railway.app` | `salesos-staging.up.railway.app` | Both `/health` **200** (probed) |
 | **Git branch** | `master` | **`staging` branch strategy + remote branch** | Closed (agent) — see [staging-branch-strategy.md](../ga-engineering-audit/runbooks/staging-branch-strategy.md) |
-| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | **FAIL** — gate PASS; `railway up` **Unauthorized** on [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116) (retry; same class as 31638994692) |
+| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | **FAIL** — gate PASS; `railway up` **Unauthorized** on [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) (post «تم التدوير»; same class) |
 | **Parity baseline** | See EAB-003 DIFF (2026-08-07) | Same commit class at baseline freeze | Machine baseline exists; Human-Gate residuals OPEN |
 | **Business data for Decision soak** | Populated | **Seeded** muhide tenant + 5 companies (2026-08-12) | Login **PASS**; Decision-runtime evaluate **PASS** (`recommend_call`) |
 | **Worker / beat / dispatch** | Online | Online — beat `agent-dispatch-every-1m`; worker `agent_dispatch_all` succeeded (`errors=[]`) | **PASS** (light) |
@@ -53,7 +53,7 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 
 | # | Step | Result |
 |---|------|:------:|
-| 1 | Verify/rotate `RAILWAY_TOKEN` via deploy attempt | **FAIL** — Unauthorized; **human rotate required** (retry 31647956116) |
+| 1 | Verify/rotate `RAILWAY_TOKEN` via deploy attempt | **FAIL** — still Unauthorized after «تم التدوير» ([31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919)) |
 | 2 | `deploy-staging.yml` SUCCESS | **FAIL** — blocked by #1 |
 | 3 | Staging login (seeded muhide) | **PASS** |
 | 4 | Decision smoke (runtime evaluate) | **PASS** (`recommend_call`) |
@@ -70,7 +70,7 @@ Evidence: [`A09-CHECKLIST-PROGRESS-2026-08-12.md`](../ga-engineering-audit/compl
 
 ## Still OPEN / Human-Gate
 
-1. **Rotate `RAILWAY_TOKEN`** for GH Environment `staging` → green `deploy-staging.yml` (gate PASS; token Unauthorized on [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116)) — **P0 / step 1**  
+1. **Re-verify `RAILWAY_TOKEN`** for GH Environment `staging` → green `deploy-staging.yml` (post-rotate still Unauthorized on [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919)) — **P0 / step 1**  
 2. Google OAuth staging app — [staging-oauth-setup.md](../ga-engineering-audit/runbooks/staging-oauth-setup.md)  
 3. WAL/PITR/offsite posture accept-or-enable  
 4. Postgres `max_connections` 100→500 or signed acceptance  

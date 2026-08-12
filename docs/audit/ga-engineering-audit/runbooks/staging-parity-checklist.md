@@ -4,7 +4,7 @@
 **Authority:** [STAGING-vs-PRODUCTION-DIFF.md](../enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) · [A09_STAGING_PARITY.md](../../star-audit/A09_STAGING_PARITY.md) · [staging-branch-strategy.md](./staging-branch-strategy.md) · [A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-10-FINAL-PARITY-2026-08-13.md)  
 **Does not grant:** Production GO or soak complete  
 
-**2026-08-13:** Steps 7 / 9 / 10 documented honestly — Human-Gate prep + soak unlock criteria + final assessment **CONDITIONAL / OPEN**. Sister deploy retry still Unauthorized. See [A09-CHECKLIST-PROGRESS-2026-08-12.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-PROGRESS-2026-08-12.md).
+**2026-08-13:** Steps 7 / 9 / 10 documented honestly — Human-Gate prep + soak unlock criteria + final assessment **CONDITIONAL / OPEN**. Post-«تم التدوير» deploy still Unauthorized ([31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919)). See [A09-CHECKLIST-PROGRESS-2026-08-12.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-PROGRESS-2026-08-12.md).
 
 **2026-08-12 advancement:** Host live; `staging` branch strategy documented; Decision seed applied; `deploy-staging.yml` switched to env **name**. Bounded **production** IL-2A soak remains separate evidence — **not** staging parity / Wave 11 claim.
 
@@ -37,7 +37,7 @@
 | Human-Gate step 7 prep | Status matrix + OAuth runbook + rollback template — **ink OPEN** |
 | Soak claim unlock criteria | Documented; `soak_complete_claim=false` |
 | Final parity assessment | **CONDITIONAL / OPEN** |
-| `deploy-staging.yml` end-to-end | **FAIL** — `RAILWAY_TOKEN` Unauthorized ([31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116)) |
+| `deploy-staging.yml` end-to-end | **FAIL** — `RAILWAY_TOKEN` Unauthorized ([31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) post-rotate) |
 
 ---
 

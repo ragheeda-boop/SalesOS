@@ -10,7 +10,8 @@
 | [`A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md`](./A09-CHECKLIST-7-HUMAN-GATE-2026-08-13.md) | Step 7 Human-Gate status matrix + agent prep |
 | [`A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md`](./A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md) | Step 9 — what WOULD unlock soak claim |
 | [`A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md`](./A09-STAGING-ROLLBACK-TABLETOP-TEMPLATE.md) | Unsigned rollback tabletop template |
-| [`A09-CHECKLIST-1-5-2026-08-12.md`](./A09-CHECKLIST-1-5-2026-08-12.md) | Steps 1–5: token FAIL (retry folded); login/decision/worker PASS |
+| [`A09-CHECKLIST-1-5-2026-08-12.md`](./A09-CHECKLIST-1-5-2026-08-12.md) | Steps 1–5: token FAIL (post-rotate [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919)); login/decision/worker PASS |
+| [`A09-RETRY-1-2-2026-08-13.md`](./A09-RETRY-1-2-2026-08-13.md) | Steps 1–2 post-«تم التدوير» re-dispatch — FAIL Unauthorized |
 | [`A09-CHECKLIST-6-NEO4J-2026-08-12.md`](./A09-CHECKLIST-6-NEO4J-2026-08-12.md) | Step 6 CLOSED — celery Postgres misconfig (`1baae84`) |
 | [`A09-ADVANCEMENT-2026-08-12.md`](./A09-ADVANCEMENT-2026-08-12.md) | Agent-closed gaps (branch strategy, CI wire, Decision seed) vs Human-Gate |
 | [`A09-OPS-ENV-CELERY-2026-08-12.md`](./A09-OPS-ENV-CELERY-2026-08-12.md) | Celery/env ops residual notes |
