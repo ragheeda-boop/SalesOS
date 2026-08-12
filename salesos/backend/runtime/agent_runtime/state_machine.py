@@ -9,12 +9,12 @@ Enforces:
 from __future__ import annotations
 
 VALID_TRANSITIONS: dict[str, set[str]] = {
-    "PENDING":            {"CLAIMED"},
+    # Duplicate "PENDING" key previously overwrote CLAIMED with EXHAUSTED only.
+    "PENDING":            {"CLAIMED", "EXHAUSTED"},
     "CLAIMED":            {"RUNNING", "PENDING"},
     "RUNNING":            {"COMPLETED", "FAILED", "REQUIRES_APPROVAL", "PENDING"},
     "REQUIRES_APPROVAL":  {"PENDING"},
     "FAILED":             {"PENDING", "EXHAUSTED"},
-    "PENDING":            {"EXHAUSTED"},
 }
 
 TERMINAL_STATUSES = frozenset({"COMPLETED", "EXHAUSTED"})

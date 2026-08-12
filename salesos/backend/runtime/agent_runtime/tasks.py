@@ -13,9 +13,9 @@ from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
-# Tenant has never had a `status` column (0001 baseline: is_active boolean;
+# Tenant has never had a status column (0001 baseline: is_active boolean;
 # STORY-04-01: provisioning_status; STORY-04-04: deleted_at). Owner Platform
-# maps API filter status=active → Tenant.is_active, not tenants.status.
+# maps API filter status=active → Tenant.is_active (do not SELECT status).
 ACTIVE_TENANT_IDS_SQL = (
     "SELECT id FROM tenants "
     "WHERE is_active IS TRUE "

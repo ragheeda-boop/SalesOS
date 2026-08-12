@@ -75,7 +75,9 @@ BEAT_SCHEDULE = {
     "agent-dispatch-every-1m": {
         "task": "agent_dispatch_all",
         "schedule": timedelta(minutes=1),
-        "options": {"expires": 120},
+        # expires < schedule so overlapping Beat ticks drop instead of stacking
+        # under soft_time_limit=110 (IL-2B.2 dispatcher pile-up).
+        "options": {"expires": 55},
     },
     # ── Odoo Integration Sync ───────────────────────────────────
     "odoo-sync-every-6h": {

@@ -88,7 +88,7 @@ async def _dispatch_all_internal(tenant_id: str) -> dict:
             await apply_tenant_guc(session, tenant_id)
             research_tasks = await _claim_due(
                 session, tenant_id, limit=RESEARCH_BATCH,
-                kinds_exclude=list(FAST_KINDS), lease_ms=LEASE_MS_RESEARCH,
+                kinds_include=list(RESEARCH_KINDS), lease_ms=LEASE_MS_RESEARCH,
             )
             await session.commit()
             stats["claimed_research"] = len(research_tasks)

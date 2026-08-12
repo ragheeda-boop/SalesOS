@@ -62,9 +62,15 @@ class AgentRuntime:
         tenant_id: str,
     ) -> dict:
         token = set_current_tenant_id(tenant_id)
-        gen = task.lease_generation if hasattr(task, 'lease_generation') else None
+        gen = getattr(task, "lease_generation", None)
         try:
-            return await self._run_task_internal(session, task, tenant_id, gen)
+            if gen is None:
+                logger.error(
+                    "run_task refused: missing lease_generation task_id=%s",
+                    getattr(task, "id", None),
+                )
+                return {"status": "FAILED", "error": "missing lease_generation"}
+            return await self._run_task_internal(session, task, tenant_id, int(gen))
         finally:
             reset_current_tenant_id(token)
 
@@ -73,7 +79,7 @@ class AgentRuntime:
         session: AsyncSession,
         task: AgentTask,
         tenant_id: str,
-        lease_generation: int | None,
+        lease_generation: int,
     ) -> dict:
         task_id = str(task.id)
         kind = getattr(task, 'kind', 'unknown')
@@ -89,17 +95,32 @@ class AgentRuntime:
         )
         session.add(run)
 
-        await session.execute(
+        transition = await session.execute(
             text("""
                 UPDATE agent_tasks SET status = 'RUNNING', session_id = :sid, updated_at = :now
                 WHERE id = :tid AND status = 'CLAIMED'
-                {and_fence}
-            """.format(and_fence="AND lease_generation = :gen" if lease_generation else "")),
-            {k: v for k, v in {
-                "tid": task_id, "sid": str(run.id), "now": datetime.now(timezone.utc),
+                AND lease_generation = :gen
+            """),
+            {
+                "tid": task_id,
+                "sid": str(run.id),
+                "now": datetime.now(timezone.utc),
                 "gen": lease_generation,
-            }.items() if v is not None},
+            },
         )
+        if transition.rowcount == 0:
+            # Stale lease / recover raced us — never execute the agent.
+            run.status = "FAILED"
+            run.completed_at = datetime.now(timezone.utc)
+            run.result_summary = "CLAIMED→RUNNING fence rejected"
+            await session.commit()
+            logger.warning(
+                "CLAIMED→RUNNING fence rejected task_id=%s gen=%s",
+                task_id,
+                lease_generation,
+            )
+            return {"status": "STALE", "error": "CLAIMED→RUNNING fence rejected"}
+
         await session.commit()
         await apply_tenant_guc(session, tenant_id)
 
@@ -179,7 +200,11 @@ class AgentRuntime:
 
         from app.database import async_session as asf
 
-        grounding = GroundingService(db_session_factory=asf)
+        # Nested Grounding sessions must pin GUC; ContextVar alone is not enough
+        # under FORCE RLS (IL-2B.2 tenant isolation).
+        grounding = GroundingService(
+            db_session_factory=_tenant_scoped_session_factory(asf, tenant_id),
+        )
         llm = LLMService()
 
         agent = ResearchAgent(llm=llm)
@@ -209,3 +234,32 @@ class AgentRuntime:
 
     async def close(self) -> None:
         pass
+
+
+class _TenantScopedSessionFactory:
+    """Wrap async_session so every nested session applies tenant GUC."""
+
+    def __init__(self, base_factory, tenant_id: str):
+        self._base = base_factory
+        self._tenant_id = tenant_id
+
+    def __call__(self):
+        return _TenantScopedSessionCM(self._base(), self._tenant_id)
+
+
+class _TenantScopedSessionCM:
+    def __init__(self, inner_cm, tenant_id: str):
+        self._inner = inner_cm
+        self._tenant_id = tenant_id
+
+    async def __aenter__(self):
+        session = await self._inner.__aenter__()
+        await apply_tenant_guc(session, self._tenant_id)
+        return session
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return await self._inner.__aexit__(exc_type, exc, tb)
+
+
+def _tenant_scoped_session_factory(base_factory, tenant_id: str):
+    return _TenantScopedSessionFactory(base_factory, tenant_id)

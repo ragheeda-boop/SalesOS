@@ -17,8 +17,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.agent_runtime.models import AgentTask, AgentRun
 
-LEASE_MS_FAST = 2 * 60_000
-LEASE_MS_RESEARCH = 30 * 60_000
+# Align leases with agent_dispatch_all soft_time_limit=110 / time_limit=120.
+# A 30m research lease left soft-killed CLAIMED/RUNNING rows unreclaimable for
+# ~28m and burned attempts. Fast lane was similarly longer than the kill window.
+LEASE_MS_FAST = 90_000
+LEASE_MS_RESEARCH = 100_000
 
 # asyncpg adapts Python lists as PG arrays when the bind is typed ARRAY(String).
 # Do not use inline CAST(:kinds AS text[]) / ::text[] — IL-2B.1 showed inline
@@ -100,26 +103,50 @@ async def recover_expired_leases(
     session: AsyncSession,
     tenant_id: str,
 ) -> int:
+    """Return expired CLAIMED/RUNNING tasks to PENDING.
+
+    IL-2B.2 hardening:
+      - Bump ``lease_generation`` so a stale worker's fenced complete/fail/spend
+        cannot mutate after recover (ADR-0112 ownership).
+      - Fail orphan ``agent_runs`` still marked RUNNING so ``uq_agent_runs_active``
+        does not block the next ``run_task`` insert after re-claim.
+    """
     now = datetime.now(timezone.utc)
 
     query = text("""
-        UPDATE agent_tasks
-        SET status = 'PENDING',
-            leased_until = NULL,
-            leased_by = NULL,
-            updated_at = :now
-        WHERE tenant_id = :tenant_id
-          AND status IN ('CLAIMED', 'RUNNING')
-          AND leased_until IS NOT NULL
-          AND leased_until < :now
-          AND attempts < max_attempts
+        WITH recovered AS (
+            UPDATE agent_tasks
+            SET status = 'PENDING',
+                leased_until = NULL,
+                leased_by = NULL,
+                lease_generation = COALESCE(lease_generation, 0) + 1,
+                updated_at = :now
+            WHERE tenant_id = :tenant_id
+              AND status IN ('CLAIMED', 'RUNNING')
+              AND leased_until IS NOT NULL
+              AND leased_until < :now
+              AND attempts < max_attempts
+            RETURNING id
+        ),
+        orphan_runs AS (
+            UPDATE agent_runs
+            SET status = 'FAILED',
+                completed_at = COALESCE(completed_at, :now),
+                result_summary = 'Lease expired; recovered for retry'
+            WHERE task_id IN (SELECT id FROM recovered)
+              AND status = 'RUNNING'
+            RETURNING id
+        )
+        SELECT
+            (SELECT COUNT(*)::int FROM recovered) AS recovered_count
     """)
 
     result = await session.execute(query, {
         "tenant_id": tenant_id,
         "now": now,
     })
-    return result.rowcount
+    row = result.fetchone()
+    return int(row.recovered_count) if row and row.recovered_count is not None else 0
 
 
 async def retire_exhausted(

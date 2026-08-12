@@ -87,9 +87,11 @@ async def test_guc_applied_on_run_sessions_per_claimed_task():
         guc_tenants.append(tenant_id)
 
     async def fake_claim(_session, _tenant_id, **kwargs):
-        if kwargs.get("kinds_include") is not None:
+        if kwargs.get("kinds_include") is not None and "brand" in (kwargs.get("kinds_include") or []):
             return list(fast)
-        return list(research)
+        if kwargs.get("kinds_include") is not None:
+            return list(research)
+        return []
 
     FakeRuntime.executed = []
 
@@ -121,9 +123,12 @@ async def test_claimed_tasks_are_executed_without_second_claim():
 
     async def fake_claim(_session, tenant_id, **kwargs):
         claim_calls.append({"tenant_id": tenant_id, **kwargs})
-        if kwargs.get("kinds_include") is not None:
+        kinds = kwargs.get("kinds_include") or []
+        if "brand" in kinds:
             return list(fast)
-        return list(research)
+        if "identify" in kinds or "research_company" in kinds:
+            return list(research)
+        return []
 
     FakeRuntime.executed = []
 
@@ -139,7 +144,8 @@ async def test_claimed_tasks_are_executed_without_second_claim():
 
     assert len(claim_calls) == 2, "handlers must not call claim_due a second time"
     assert claim_calls[0]["kinds_include"] is not None
-    assert claim_calls[1]["kinds_exclude"] is not None
+    assert claim_calls[1]["kinds_include"] is not None
+    assert claim_calls[1].get("kinds_exclude") is None
     executed_ids = {t.id for _, t, _ in FakeRuntime.executed}
     assert executed_ids == {"f1", "f2", "r1"}
     assert all(tid == TID for _, _, tid in FakeRuntime.executed)
@@ -154,7 +160,8 @@ async def test_handlers_do_not_discard_first_claim_when_batch_exceeds_concurrenc
     fast = [_task(f"f{i}", "brand") for i in range(8)]
 
     async def fake_claim(_session, _tenant_id, **kwargs):
-        if kwargs.get("kinds_include") is not None:
+        kinds = kwargs.get("kinds_include") or []
+        if "brand" in kinds:
             return list(fast)
         return []
 
@@ -194,24 +201,31 @@ def test_run_task_repins_guc_after_commit():
     assert src.count("apply_tenant_guc") >= 2
 
 
-def test_running_update_sql_uses_named_and_fence():
-    """{:and_fence} is a format spec, not a field name.
-
-    Live Handler failed with: Replacement index 0 out of range for positional
-    args tuple -- claim succeeded, run never started.
-    """
+def test_running_update_sql_always_fences_generation():
+    """CLAIMED→RUNNING must always fence on lease_generation (IL-2B.2)."""
     import inspect
     from runtime.agent_runtime import AgentRuntime
 
     src = inspect.getsource(AgentRuntime._run_task_internal)
+    assert "AND lease_generation = :gen" in src
+    assert "rowcount" in src
+    assert "{and_fence}" not in src
     assert "{:and_fence}" not in src
-    assert "{and_fence}" in src
 
-    sql = (
-        "UPDATE agent_tasks SET status = 'RUNNING', session_id = :sid, updated_at = :now\n"
-        "WHERE id = :tid AND status = 'CLAIMED'\n"
-        "{and_fence}"
-    ).format(and_fence="AND lease_generation = :gen")
-    assert "AND lease_generation = :gen" in sql
-    assert ":sid" in sql
-    assert ":tid" in sql
+
+def test_beat_dispatch_expires_under_schedule():
+    """Overlapping Beat messages should expire before the next minute tick."""
+    from app.celery_schedule import BEAT_SCHEDULE
+
+    opts = BEAT_SCHEDULE["agent-dispatch-every-1m"]["options"]
+    assert opts["expires"] < 60
+
+
+def test_lease_ms_aligned_to_soft_time_limit():
+    from runtime.agent_runtime.queue import LEASE_MS_FAST, LEASE_MS_RESEARCH
+    from runtime.agent_runtime.tasks import agent_dispatch_all
+
+    soft = agent_dispatch_all.soft_time_limit
+    assert LEASE_MS_FAST <= soft * 1000
+    assert LEASE_MS_RESEARCH <= soft * 1000
+    assert LEASE_MS_RESEARCH < 5 * 60_000  # no multi-minute stuck CLAIMED window
