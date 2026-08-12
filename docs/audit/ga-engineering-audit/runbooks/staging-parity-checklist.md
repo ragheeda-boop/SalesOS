@@ -28,6 +28,10 @@
 | Minimal Decision seed (muhide + 5 companies) | Applied (`companies=22` / `muhide_tenant=1`) |
 | GH Environment `staging` | Exists; Railway secrets bound; health URL var set |
 | `FEATURE_AI_COPILOT` on staging | `false` |
+| Staging login (muhide seed) | **PASS** (password not in evidence) |
+| Decision-runtime evaluate smoke | **PASS** (`recommend_call`) |
+| celery-worker / celery-beat / `agent_dispatch_all` | **PASS** (light) — scheduler→worker succeed |
+| `deploy-staging.yml` end-to-end | **FAIL** — `RAILWAY_TOKEN` Unauthorized ([31638994692](https://github.com/ragheeda-boop/SalesOS/actions/runs/31638994692)); see [A09-CHECKLIST-1-5-2026-08-12.md](../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) |
 
 ---
 
