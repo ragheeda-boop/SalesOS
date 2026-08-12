@@ -1,7 +1,9 @@
 # Deploy Staging — DEC-149 / OPS-01 Row 4 (staging provisioned 2026-08-06)
 # Staging Railway env + RAILWAY_STAGING_* secrets present (SERVICE 668122aa-...,
-# ENV 5ce7864a-...). Manual dispatch only (no auto-run on push — avoids
+# ENV 5ce7864a-27c5-43c7-847d-667aecfbf773 — CLI-authoritative for
+# responsible-comfort). Manual dispatch only (no auto-run on push — avoids
 # dual-fire with deploy.yml on master). Raises when staging secrets absent.
+# Prefer --environment staging (name). Do not substitute unverified UUIDs.
 # Frontend → Vercel (Git primary; optional CLI). No GHCR/SSH.
 # CI Stage 6 GHCR publish (ci.yml) quarantined under DEC-150 Option B — not Phase 0 required.
 

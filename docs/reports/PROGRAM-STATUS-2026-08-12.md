@@ -25,22 +25,23 @@
 |-------|--------|----------|
 | **Secrets rotation** | Human **claimed**; runtime **healthy**; SSO browser + provider revoke **not independently verified** | SHA `529b772` · [`HUMAN-SECRET-ROTATION-CHECKLIST.md`](./HUMAN-SECRET-ROTATION-CHECKLIST.md) |
 | **OPS-01 / DR gate** | Agent-side **advanced**; CLOSE / PITR / soak **claim still human** | SHA `5badbf4` · [`OPS01-DR-GATE-2026-08-12.md`](./OPS01-DR-GATE-2026-08-12.md) |
-| **A-09 staging parity** | **OPEN** (advanced) — branch + seed + CI gate **PASS**; deploy **FAIL** | SHA `47cf7a0` · [`A09-ADVANCEMENT-2026-08-12.md`](../audit/ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md) |
+| **A-09 staging parity** | **OPEN** (advanced) — ENV + celery-worker **fixed**; CI gate **PASS**; deploy still **FAIL** (token) | [`A09-OPS-ENV-CELERY-2026-08-12.md`](../audit/ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md) |
 
 ### A-09 detail (honest)
 
 - Staging branch strategy + Decision minimal seed + CI path wire: **done** (agent)
-- CI gate (secrets present): **PASS**; backend deploy: **FAIL** (`Unauthorized` — rotate `RAILWAY_TOKEN`)
-- Staging `ENV=production` mislabel: **OPEN** (human Railway vars)
+- Staging `ENV=staging` mislabel: **FIXED** (CLI env `5ce7864a-…`; user UUIDs `1ef5b31a-…` / `29252eae-…` **not found** in workspace)
+- Staging celery-worker: deploy `3c9de5f4` **SUCCESS** (`celery@… ready`) via `railway.json` service-name branch
+- CI gate (secrets present): **PASS**; backend deploy: **FAIL** — re-dispatch [31630383949](https://github.com/ragheeda-boop/SalesOS/actions/runs/31630383949) still `Unauthorized` on `RAILWAY_TOKEN`
 - OAuth / WAL / PITR / rollback tabletop / Wave 11 soak claim: **human** — do not flip
 
 ## Remaining human actions
 
 1. **Rotate `RAILWAY_TOKEN`** on GitHub Environment `staging` (and repo if needed); re-dispatch `deploy-staging.yml` until end-to-end SUCCESS
-2. **Fix staging `ENV` mislabel** (`ENV=production` while `RAILWAY_ENVIRONMENT_NAME=staging`)
-3. **SSO browser login + provider revoke** — independently verify (secrets claimed only at `529b772`)
-4. **OPS-01 / DR:** ink CLOSE (or DEFER) on DR rows 1–3 packet; enable managed backup schedule + native PITR (or accept residual); TL triage soak failures before any `soak_complete_claim`; signed RPO/RTO acceptance
-5. **A-09 human gates:** Google OAuth staging app; WAL/PITR/offsite; rollback tabletop notes; staging celery-worker deploy health
+2. **SSO browser login + provider revoke** — independently verify (secrets claimed only at `529b772`)
+3. **OPS-01 / DR:** ink CLOSE (or DEFER) on DR rows 1–3 packet; enable managed backup schedule + native PITR (or accept residual); TL triage soak failures before any `soak_complete_claim`; signed RPO/RTO acceptance
+4. **A-09 human gates:** Google OAuth staging app; WAL/PITR/offsite; rollback tabletop notes; staging celery-beat (still offline)
+5. Confirm or discard user-supplied Railway env UUIDs (not in CLI workspace)
 6. Do **not** flip `feature_ai_copilot` or claim Production **GO**
 
 ## Explicit non-claims
