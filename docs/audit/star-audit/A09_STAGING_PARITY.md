@@ -1,6 +1,6 @@
 # A-09: Staging Parity Assessment
 
-> **Last Updated:** 2026-08-12 (parallel-stream checklist rollup)  
+> **Last Updated:** 2026-08-13 (steps 1–2 retry — still FAIL Unauthorized)  
 > Classification: INFRASTRUCTURE AUDIT  
 > **Validation:** **light validated** for host + login + Decision runtime evaluate + worker/beat/dispatch + Postgres/Neo4j reachability on dispatch; CI token still FAIL  
 > **A-09 residual:** **OPEN** (not closed — Human-Gate `RAILWAY_TOKEN` + CI deploy success + Human-Gate ops + soak claim remain)  
@@ -14,7 +14,7 @@
 |--------|------------|---------|--------|
 | **Host** | `salesos-production-96c0.up.railway.app` | `salesos-staging.up.railway.app` | Both `/health` **200** (probed) |
 | **Git branch** | `master` | **`staging` branch strategy + remote branch** | Closed (agent) — see [staging-branch-strategy.md](../ga-engineering-audit/runbooks/staging-branch-strategy.md) |
-| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | **FAIL** — gate PASS; `railway up` **Unauthorized** on [31638994692](https://github.com/ragheeda-boop/SalesOS/actions/runs/31638994692) |
+| **CI deploy workflow** | `deploy.yml` / `deploy-production.yml` | `deploy-staging.yml` wired with `--environment staging` (name) | **FAIL** — gate PASS; `railway up` **Unauthorized** on [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116) (retry 2026-08-13; prior [31638994692](https://github.com/ragheeda-boop/SalesOS/actions/runs/31638994692)) |
 | **Parity baseline** | See EAB-003 DIFF (2026-08-07) | Same commit class at baseline freeze | Machine baseline exists; Human-Gate residuals OPEN |
 | **Business data for Decision soak** | Populated | **Seeded** muhide tenant + 5 companies (2026-08-12) | Login **PASS**; Decision-runtime evaluate **PASS** (`recommend_call`) |
 | **Worker / beat / dispatch** | Online | Online — beat `agent-dispatch-every-1m`; worker `agent_dispatch_all` succeeded (`errors=[]`) | **PASS** (light) |
@@ -24,7 +24,7 @@
 
 Progress rollup: [`A09-CHECKLIST-PROGRESS-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-PROGRESS-2026-08-12.md)
 
-Evidence deposits: [`A09-CHECKLIST-6-NEO4J-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-6-NEO4J-2026-08-12.md) · [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) · [`A09-ADVANCEMENT-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md) · [`A09-OPS-ENV-CELERY-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md) · [`SOAK-72H-FAILURE-TRIAGE-2026-08-12.md`](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md)
+Evidence deposits: [`A09-RETRY-1-2-2026-08-13.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-RETRY-1-2-2026-08-13.md) · [`A09-CHECKLIST-6-NEO4J-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-6-NEO4J-2026-08-12.md) · [`A09-CHECKLIST-1-5-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-1-5-2026-08-12.md) · [`A09-ADVANCEMENT-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-ADVANCEMENT-2026-08-12.md) · [`A09-OPS-ENV-CELERY-2026-08-12.md`](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md) · [`SOAK-72H-FAILURE-TRIAGE-2026-08-12.md`](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md)
 
 Supersedes the stale “409 commits behind / no staging host” reading for **host existence**. Critical diffs and Human-Gate items in [`STAGING-vs-PRODUCTION-DIFF.md`](../ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/STAGING-vs-PRODUCTION-DIFF.md) and [`staging-parity-checklist.md`](../ga-engineering-audit/runbooks/staging-parity-checklist.md) still govern **parity complete**.
 
@@ -65,7 +65,7 @@ Evidence: [`A09-CHECKLIST-PROGRESS-2026-08-12.md`](../ga-engineering-audit/compl
 
 ## Still OPEN / Human-Gate
 
-1. **Rotate `RAILWAY_TOKEN`** for GH Environment `staging` → green `deploy-staging.yml` (gate PASS; token Unauthorized on [31638994692](https://github.com/ragheeda-boop/SalesOS/actions/runs/31638994692)) — **P0 / step 1**  
+1. **Rotate `RAILWAY_TOKEN`** for GH Environment `staging` → green `deploy-staging.yml` (gate PASS; token Unauthorized on [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116)) — **P0 / step 1**  
 2. Google OAuth staging app  
 3. WAL/PITR/offsite posture accept-or-enable  
 4. Postgres `max_connections` 100→500 or signed acceptance  

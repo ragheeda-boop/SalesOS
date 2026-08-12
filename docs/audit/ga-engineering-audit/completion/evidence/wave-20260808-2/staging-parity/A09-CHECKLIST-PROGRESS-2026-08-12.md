@@ -12,7 +12,7 @@
 
 | # | Step | Result | Evidence / SHA |
 |---|------|:------:|----------------|
-| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — Unauthorized; **human rotate** | [A09-CHECKLIST-1-5-2026-08-12.md](./A09-CHECKLIST-1-5-2026-08-12.md) · run [31638994692](https://github.com/ragheeda-boop/SalesOS/actions/runs/31638994692) |
+| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — Unauthorized; **human rotate** | [A09-CHECKLIST-1-5-2026-08-12.md](./A09-CHECKLIST-1-5-2026-08-12.md) · retry [31647956116](https://github.com/ragheeda-boop/SalesOS/actions/runs/31647956116) (2026-08-13) |
 | 2 | `deploy-staging.yml` SUCCESS | **FAIL** — blocked by #1 | same |
 | 3 | Staging login (muhide) | **PASS** | checklist 1–5 |
 | 4 | Decision smoke (`recommend_call`) | **PASS** | checklist 1–5 |
