@@ -19,7 +19,7 @@
 | Residual | Notes |
 |----------|--------|
 | **A-09 staging parity** | Still **OPEN** (bounded prod soak ≠ staging parity) |
-| **Human secrets** | [`HUMAN-SECRET-ROTATION-CHECKLIST.md`](./HUMAN-SECRET-ROTATION-CHECKLIST.md) — `SSO_GOOGLE_CLIENT_SECRET` rotate; `RAILWAY_API_TOKEN` revoke; `GH_TOKEN` revoke |
+| **Human secrets** | Human claimed done; runtime health **light validated** (`/health` 200, worker/beat Online, dispatch + `worker_health_ping` OK). SSO browser + provider revoke **not independently verified** — see [`HUMAN-SECRET-ROTATION-CHECKLIST.md`](./HUMAN-SECRET-ROTATION-CHECKLIST.md) |
 
 ## Explicit non-claims
 
