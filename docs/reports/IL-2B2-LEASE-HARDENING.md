@@ -1,6 +1,7 @@
 # IL-2B.2 Claim / Lease / Dispatcher Hardening
 
 **Date:** 2026-08-12  
+**SHA:** `46d5fe3` (pushed to `master`)  
 **Verdict:** **PASS** (unit/build-validated; Railway light check below)  
 **Scope:** claim/run / dispatcher lease hardening — not live ResearchAgent/LLM, no `feature_ai_copilot` flip, no Alembic.
 
