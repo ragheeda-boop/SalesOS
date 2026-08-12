@@ -12,7 +12,7 @@
 
 | # | Step | Result | Evidence / SHA |
 |---|------|:------:|----------------|
-| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — still Unauthorized after «تم التدوير» | [A09-RETRY-1-2-2026-08-13.md](./A09-RETRY-1-2-2026-08-13.md) · [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) |
+| 1 | Verify/rotate `RAILWAY_TOKEN` | **FAIL** — still Unauthorized after «تم التدوير»; **GH `updatedAt` proves Environment `staging` token not updated since 2026-08-09** | [A09-TOKEN-DIAGNOSIS-2026-08-13.md](./A09-TOKEN-DIAGNOSIS-2026-08-13.md) · [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) |
 | 2 | `deploy-staging.yml` SUCCESS | **FAIL** — blocked by #1 | same |
 | 3 | Staging login (muhide) | **PASS** | checklist 1–5 |
 | 4 | Decision smoke (`recommend_call`) | **PASS** | checklist 1–5 |
@@ -42,10 +42,11 @@ A-09 recommendation     = CONDITIONAL / OPEN
 
 ### P0 — Step 1 (blocks CI deploy)
 
-Post-rotate re-dispatch [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) still **Unauthorized**. Re-verify:
+Post-rotate re-dispatch [31648777919](https://github.com/ragheeda-boop/SalesOS/actions/runs/31648777919) still **Unauthorized**. **Diagnosis (2026-08-13):** Environment `staging` `RAILWAY_TOKEN` `updatedAt` is still **2026-08-09** — rotate did not land in GitHub where the workflow reads it. See [A09-TOKEN-DIAGNOSIS-2026-08-13.md](./A09-TOKEN-DIAGNOSIS-2026-08-13.md).
 
-1. Railway → Tokens → **Project Token** for `responsible-comfort` with env **staging** (`5ce7864a-…`) — not an under-scoped account token.
-2. GitHub → Environments → **staging** → Environment secret `RAILWAY_TOKEN` (full paste; also check repo-level if wrong secret was updated).
+1. Railway → Tokens → **Project Token** for `responsible-comfort` with env **staging** (`5ce7864a-…`) — not a production-only project token.
+2. GitHub → Environments → **staging** → Environment secret `RAILWAY_TOKEN` (full paste); confirm `gh secret list --env staging` shows a **new** `updatedAt`.
+3. Re-dispatch Deploy Staging; expect Gate → Backend → Health SUCCESS.
 3. Re-run **Deploy Staging** on ref `staging` with `confirm_staging=CONFIRM-STAGING-DEPLOY`.
 4. Expect gate + `railway up` SUCCESS + staging health **200**.
 
