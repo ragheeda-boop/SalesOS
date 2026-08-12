@@ -1,9 +1,9 @@
-# A-09 ops pass — 2026-08-12 (ENV mislabel + celery-worker)
+# A-09 ops pass — 2026-08-12 (ENV mislabel + celery-worker + celery-beat)
 
-**Validation:** **light validated** (Railway CLI + live staging `/health` + worker logs)  
+**Validation:** **light validated** (Railway CLI + live staging `/health` + worker/beat logs)  
 **Claims:** `staging_parity_complete=false` · `soak_complete_claim=false` · `production_go=false`  
 **AI flag:** `feature_ai_copilot` / `FEATURE_AI_COPILOT` remain **false**  
-**No prod alembic head.**
+**No prod alembic head.** · **No `RAILWAY_TOKEN` invent.**
 
 ---
 
@@ -30,6 +30,11 @@ GitHub secret `RAILWAY_STAGING_ENVIRONMENT_ID` (repo + Environment `staging`) wa
 | Worker start path | `railway.json` startCommand branches on `RAILWAY_SERVICE_NAME` (`*celery-worker*` / `*celery-beat*` → `app.railway_celery_service`) |
 | Worker redeploy | Deploy `3c9de5f4` **SUCCESS**; logs: `celery@… ready` + `worker_health_ping` |
 | Staging host health | `GET https://salesos-staging.up.railway.app/health` → **200** |
+| Staging celery-beat offline | Root cause: **no GitHub source** + missing `APP_POSTGRES_*` + GitHub tip `3af6e656` `railway.json` still uvicorn-only (overwrote beat startCommand) |
+| Beat source + `APP_POSTGRES_*` | Connected `ragheeda-boop/SalesOS` `@master`; `APP_POSTGRES_USER=salesos_app` + password via `${{SalesOS.APP_POSTGRES_PASSWORD}}` (presence only) |
+| Beat redeploy | CLI `railway up` with local branching `railway.json` → deploy `81de263f` **SUCCESS** |
+| Beat scheduler | Logs: `beat: Starting…` + `Scheduler: Sending due task agent-dispatch-every-1m (agent_dispatch_all)` |
+| Worker still healthy after beat | Deploy `3c9de5f4` still **SUCCESS**; receives `agent_dispatch_all` |
 
 ## Still blocked / human
 
@@ -37,10 +42,11 @@ GitHub secret `RAILWAY_STAGING_ENVIRONMENT_ID` (repo + Environment `staging`) wa
 |------|-------|
 | Rotate `RAILWAY_TOKEN` for GH Environment `staging` | Prior run Unauthorized; no token available in agent env to invent/update |
 | End-to-end `deploy-staging.yml` SUCCESS | Re-dispatch after token rotate |
-| Dashboard Config-as-Code path | Prod worker uses `/railway.worker.json`; staging still `/railway.json` with service-name branch workaround |
+| Push A-09 SHA `6cbcf9f` to `origin/master` | Local master **ahead 1**; remote tip `3af6e656` still has uvicorn-only `railway.json` — GitHub auto-deploy of beat would regress to uvicorn until push |
+| Dashboard Config-as-Code path | Prod uses `/railway.worker.json` + `/railway.beat.json`; staging celery still `/railway.json` service-name branch (CLI up) |
+| Neo4j on staging agent_dispatch | Task succeeds with `Connect call failed …:6432` errors (pre-existing Neo4j reachability; not beat offline) |
 | User-supplied env UUIDs | Confirm origin (other workspace/project?) or discard |
 | Google OAuth / WAL-PITR / rollback tabletop / Wave 11 soak | Human gates unchanged |
-| Staging `celery-beat (Copy 5338)` | Still **NO DEPLOYMENT** / Offline — separate follow-up |
 
 ## Rotate `RAILWAY_TOKEN` (exact steps)
 

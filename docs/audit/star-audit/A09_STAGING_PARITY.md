@@ -1,8 +1,8 @@
 # A-09: Staging Parity Assessment
 
-> **Last Updated:** 2026-08-12 (ENV + celery-worker ops)  
+> **Last Updated:** 2026-08-12 (ENV + celery-worker + celery-beat ops)  
 > Classification: INFRASTRUCTURE AUDIT  
-> **Validation:** **light validated** for host liveness + Decision seed + CI wire + ENV/worker fix  
+> **Validation:** **light validated** for host liveness + Decision seed + CI wire + ENV/worker/beat fix  
 > **A-09 residual:** **OPEN** (not closed — Human-Gate + CI deploy success + soak claim remain)
 
 ---
@@ -32,6 +32,7 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 4. Confirmed `FEATURE_AI_COPILOT=false` on staging service  
 5. **`ENV=staging`** on SalesOS (mislabel closed) — CLI env `5ce7864a-…`  
 6. Staging **celery-worker** deploy `3c9de5f4` **SUCCESS** (`celery@… ready`)  
+7. Staging **celery-beat** deploy `81de263f` **SUCCESS** (`beat: Starting…` + `agent-dispatch-every-1m`)  
 
 ---
 
@@ -43,8 +44,9 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 4. Postgres `max_connections` 100→500 or signed acceptance  
 5. Rollback tabletop dated notes  
 6. Wave 11 / PROD-W11-002 soak claim flip after human review of 72h failures  
-7. Staging celery-beat still offline / no deployment  
+7. Push A-09 `6cbcf9f` (branching `railway.json`) to `origin/master` so GitHub tip is not uvicorn-only  
 8. Reconcile user-supplied Railway env UUIDs (`1ef5b31a-…` / `29252eae-…`) — not in CLI workspace  
+9. Staging Neo4j reachability (`:6432` connect failures on `agent_dispatch_all`) — separate from beat online  
 
 ---
 
