@@ -841,9 +841,9 @@ export default function Company360Page() {
                 <div className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-[var(--text-muted)]" />
                   <span className="text-sm font-semibold text-[var(--text-primary)]">الإشارات</span>
-                  {company360?.signals?.total > 0 && (
+                  {(company360?.signals?.total ?? 0) > 0 && (
                     <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
-                      {company360.signals.total}
+                      {company360?.signals?.total ?? 0}
                     </span>
                   )}
                 </div>
