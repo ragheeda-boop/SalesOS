@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
@@ -237,6 +238,41 @@ class TestGetFeatures:
         results = await feature_store.get_features("co-1", "t-1")
         assert len(results) == 1  # Only dummy_score is registered
 
+    async def test_get_features_serializes_shared_session(
+        self, mock_session_factory, event_runtime
+    ):
+        """Regression: must not asyncio.gather computes on one AsyncSession."""
+        concurrent = 0
+        max_concurrent = 0
+
+        class TrackingComputer(FeatureComputer):
+            def __init__(self, name: str):
+                self.name = name
+
+            async def compute(self, company, session):
+                nonlocal concurrent, max_concurrent
+                concurrent += 1
+                max_concurrent = max(max_concurrent, concurrent)
+                await asyncio.sleep(0.02)
+                concurrent -= 1
+                return FeatureResult(
+                    score=1.0,
+                    version=1,
+                    computed_at=datetime.now(UTC),
+                    confidence=1.0,
+                    contributing_signals={},
+                    explanation=self.name,
+                )
+
+        store = FeatureStore(
+            session_factory=mock_session_factory,
+            event_runtime=event_runtime,
+            computers=[TrackingComputer("feat_a"), TrackingComputer("feat_b")],
+        )
+        results = await store.get_features("co-1", "t-1")
+        assert set(results) == {"feat_a", "feat_b"}
+        assert max_concurrent == 1
+
 
 # ── Tests: FeatureStore.recompute ────────────────────────────────────────────
 
@@ -256,6 +292,41 @@ class TestRecompute:
         before_hits = feature_store.metrics.cache_hits
         await feature_store.recompute("co-1", "t-1")
         assert feature_store.metrics.cache_hits == before_hits  # recompute bypasses cache
+
+    async def test_recompute_serializes_shared_session(
+        self, mock_session_factory, event_runtime
+    ):
+        """Regression: must not asyncio.gather recomputes on one AsyncSession."""
+        concurrent = 0
+        max_concurrent = 0
+
+        class TrackingComputer(FeatureComputer):
+            def __init__(self, name: str):
+                self.name = name
+
+            async def compute(self, company, session):
+                nonlocal concurrent, max_concurrent
+                concurrent += 1
+                max_concurrent = max(max_concurrent, concurrent)
+                await asyncio.sleep(0.02)
+                concurrent -= 1
+                return FeatureResult(
+                    score=1.0,
+                    version=1,
+                    computed_at=datetime.now(UTC),
+                    confidence=1.0,
+                    contributing_signals={},
+                    explanation=self.name,
+                )
+
+        store = FeatureStore(
+            session_factory=mock_session_factory,
+            event_runtime=event_runtime,
+            computers=[TrackingComputer("feat_a"), TrackingComputer("feat_b")],
+        )
+        results = await store.recompute("co-1", "t-1")
+        assert set(results) == {"feat_a", "feat_b"}
+        assert max_concurrent == 1
 
 
 # ── Tests: FeatureComputer Base ──────────────────────────────────────────────

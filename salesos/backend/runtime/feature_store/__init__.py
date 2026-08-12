@@ -169,7 +169,8 @@ class FeatureStore:
     ) -> dict[str, FeatureResult]:
         """Return multiple features for a company.
 
-        Cached features load instantly; uncached features are computed in parallel.
+        Cached features load instantly; uncached features are computed
+        sequentially on the shared AsyncSession (not concurrent-safe).
         Tries Redis cache first (if configured), then DB-level cache, then compute.
         """
         names = feature_names or list(self._computers.keys())
@@ -212,39 +213,36 @@ class FeatureStore:
                     continue
                 still_needs.append(name)
 
-            if still_needs:
-                import asyncio
-                async def _compute_one(feature_name: str):
-                    computer = self._computers[feature_name]
+            # Serialize: AsyncSession must not be shared across concurrent tasks.
+            for feature_name in still_needs:
+                computer = self._computers[feature_name]
+                try:
                     fresult = await self._compute_and_store(
                         session, computer, company, tenant_id, company_id,
                     )
                     await self._redis_set_feature(company_id, tenant_id, feature_name, fresult)
-                    return feature_name, fresult
-                tasks = [_compute_one(n) for n in still_needs]
-                computed = await asyncio.gather(*tasks, return_exceptions=True)
-                for item in computed:
-                    if isinstance(item, Exception):
-                        continue
-                    fname, fresult = item
-                    results[fname] = fresult
+                    results[feature_name] = fresult
+                except Exception:
+                    continue
         return results
 
     async def recompute(self, company_id: str, tenant_id: str) -> dict[str, FeatureResult]:
         """Force recompute ALL features for a company.
 
-        All feature computers run in parallel since they are independent.
+        Feature computers run sequentially on the shared AsyncSession
+        (SQLAlchemy AsyncSession is not concurrent-safe).
         Results are stored in a single bulk UPSERT with one commit
         instead of 7 individual SELECT → INSERT/UPDATE → COMMIT round-trips.
         """
-        import asyncio
         from datetime import datetime, timezone
 
         results: dict[str, FeatureResult] = {}
         async with self._session_factory() as session:
             company = await self._load_company(session, tenant_id, company_id)
 
-            async def _recompute_one(feature_name: str):
+            # Serialize: one AsyncSession cannot safely run concurrent computes.
+            computed: list[tuple[str, Optional[FeatureResult]]] = []
+            for feature_name in self._computers:
                 computer = self._computers[feature_name]
                 t0 = time.monotonic()
                 try:
@@ -252,7 +250,7 @@ class FeatureStore:
                     elapsed = (time.monotonic() - t0) * 1000
                     self.metrics.computations += 1
                     self.metrics.total_compute_ms += elapsed
-                    return feature_name, result
+                    computed.append((feature_name, result))
                 except Exception as exc:
                     elapsed = (time.monotonic() - t0) * 1000
                     self.metrics.errors += 1
@@ -261,18 +259,12 @@ class FeatureStore:
                             "Feature compute error: %s on %s/%s: %s",
                             computer.name, tenant_id, company_id, exc,
                         )
-                    return feature_name, None
-
-            tasks = [_recompute_one(n) for n in self._computers]
-            computed = await asyncio.gather(*tasks, return_exceptions=True)
+                    computed.append((feature_name, None))
 
             # Bulk UPSERT — single round-trip, single commit
             now = datetime.now(timezone.utc)
             upsert_rows = []
-            for item in computed:
-                if isinstance(item, Exception):
-                    continue
-                fname, fresult = item
+            for fname, fresult in computed:
                 if fresult is None:
                     continue
                 results[fname] = fresult
