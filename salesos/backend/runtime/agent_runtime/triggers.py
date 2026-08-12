@@ -8,6 +8,17 @@ Design:
   - trigger_tasks(): batch-creates tasks from decision records
   - Idempotency: {tenant_id}:decision:{entity_type}:{entity_id}:{task_kind}
   - Does NOT replace or redesign AgentRuntime — uses existing schedule_task() API
+
+IL-2A Decision → AgentTask contract:
+  - Eligibility and task-kind mapping are SEPARATE decisions.
+  - should_create_agent_task(): only DecisionTypes with a defined execution
+    contract (recommend_* → research_company, the sole kind with a real
+    ResearchAgent handler) are task-generating.
+  - alert / task_suggested / workflow_suggested / crm_update are intelligence
+    or metadata outputs, NOT research requests — no AgentTask (fail-closed).
+  - Unknown DecisionTypes are fail-closed (no task).
+  - decision.created handler loads the canonical Decision via get_decision();
+    event payload is routing only (decision_id / tenant_id).
 """
 from __future__ import annotations
 
@@ -37,6 +48,25 @@ SIGNAL_TO_TASK_KIND: dict[str, str] = {
 }
 
 DEFAULT_TASK_KIND = "research_company"
+
+# IL-2A: DecisionType → task kind contract. Single source of truth for BOTH
+# eligibility and mapping. Only types present here generate AgentTasks.
+DECISION_TYPE_TO_TASK_KIND: dict[str, str] = {
+    "recommend_demo": "research_company",
+    "recommend_call": "research_company",
+    "recommend_proposal": "research_company",
+    "recommend_sequence": "research_company",
+    "recommend_outreach": "research_company",
+    "recommend_campaign": "research_company",
+    "recommend_escalate": "research_company",
+}
+
+# Documented non-task-generating DecisionTypes (intelligence/metadata outputs,
+# not research requests). Eligibility is decided by DECISION_TYPE_TO_TASK_KIND
+# membership — NOT by absence from this set.
+NON_TASK_GENERATING_DECISION_TYPES: frozenset[str] = frozenset({
+    "alert", "task_suggested", "workflow_suggested", "crm_update",
+})
 
 
 class SignalTaskMapper:
@@ -76,6 +106,22 @@ class SignalTaskMapper:
             return 5
         return 0
 
+    @staticmethod
+    def should_create_agent_task(decision_type: str) -> bool:
+        """Return True only for DecisionTypes with a defined AgentTask contract.
+
+        Fail-closed: unknown types are not task-generating. The mapping dict
+        is the single eligibility source — non-actionable types
+        (alert, task_suggested, workflow_suggested, crm_update) are simply
+        absent from it.
+        """
+        return (decision_type or "").lower() in DECISION_TYPE_TO_TASK_KIND
+
+    @staticmethod
+    def task_kind_for_decision_type(decision_type: str) -> str | None:
+        """Map an actionable DecisionType → task kind. None when no contract."""
+        return DECISION_TYPE_TO_TASK_KIND.get((decision_type or "").lower())
+
 
 async def trigger_tasks_from_decisions(
     session: AsyncSession,
@@ -109,7 +155,7 @@ async def trigger_tasks_from_decisions(
                 stats["skipped"] += 1
                 continue
 
-            task_kind = SignalTaskMapper.task_kind_for_decision(category)
+            task_kind = dec.get("task_kind") or SignalTaskMapper.task_kind_for_decision(category)
             priority = SignalTaskMapper.priority_for_signal_intensity(intensity)
             idem_key = SignalTaskMapper.build_idempotency_key(
                 tenant_id, entity_type, entity_id, task_kind,
@@ -210,3 +256,120 @@ async def trigger_tasks_from_signals(
             )
 
     return stats
+
+
+async def on_decision_created_event(
+    session_factory,
+    event: Any,
+    decision_engine: Any = None,
+) -> dict:
+    """Handle a ``decision.created`` event → create one AgentTask.
+
+    Flow (canonical-first — event payload is routing only):
+      event.tenant_id + decision_id
+        → set_current_tenant_id()
+        → apply_tenant_guc(session)
+        → get_decision(decision_id)
+        → eligibility (should_create_agent_task)
+        → task_kind_for_decision_type
+        → trigger_tasks_from_decisions
+        → commit
+        → finally: reset_current_tenant_id
+
+    Eligibility and mapping are SEPARATE. Non-actionable DecisionTypes
+    (alert, task_suggested, …) return reason ``not_task_generating`` and
+    create no AgentTask.
+
+    Args:
+        session_factory: AsyncSession factory (e.g. app.database.async_session)
+        event: DomainEvent with event_type='decision.created' and data carrying
+            at least ``decision_id``. ``decision_type`` / ``company_id`` on the
+            event are NOT used for eligibility or entity binding.
+        decision_engine: DecisionEngine with get_decision(decision_id, tenant_id).
+            Required — without a canonical Decision we fail closed.
+
+    Returns:
+        Stats dict plus ``task_kind`` and a ``reason`` for non-creating paths.
+    """
+    event_type = getattr(event, "event_type", "")
+    tenant_id = getattr(event, "tenant_id", "")
+    data = getattr(event, "data", {}) or {}
+
+    if event_type != "decision.created" or not tenant_id:
+        return {"created": 0, "skipped": 0, "errors": 0, "reason": "not_decision_created"}
+
+    decision_id = data.get("decision_id", "")
+    if not decision_id:
+        return {"created": 0, "skipped": 0, "errors": 0, "reason": "no_decision_id"}
+
+    if decision_engine is None:
+        return {"created": 0, "skipped": 0, "errors": 0, "reason": "no_decision_engine"}
+
+    from app.database import (
+        apply_tenant_guc,
+        reset_current_tenant_id,
+        set_current_tenant_id,
+    )
+
+    token = set_current_tenant_id(tenant_id)
+    session = session_factory()
+    try:
+        await apply_tenant_guc(session, tenant_id)
+
+        decision = decision_engine.get_decision(decision_id, tenant_id)
+        if not decision:
+            return {
+                "created": 0, "skipped": 0, "errors": 0,
+                "reason": "decision_not_found",
+            }
+
+        decision_type = (decision.get("decision_type") or "").lower()
+        company_id = decision.get("company_id") or ""
+        if not company_id:
+            return {"created": 0, "skipped": 0, "errors": 0, "reason": "no_company_id"}
+
+        if not SignalTaskMapper.should_create_agent_task(decision_type):
+            logger.info(
+                "IL-2A skip: decision_id=%s type=%s reason=not_task_generating",
+                decision_id, decision_type,
+            )
+            return {
+                "created": 0, "skipped": 0, "errors": 0,
+                "reason": "not_task_generating",
+                "decision_type": decision_type,
+            }
+
+        task_kind = SignalTaskMapper.task_kind_for_decision_type(decision_type)
+        confidence = float(decision.get("confidence") or 0.5)
+        priority = int(decision.get("priority") or 0)
+        reasoning = str(
+            decision.get("reasoning") or f"Decision {decision_type}"
+        )[:200]
+        intensity = min(max(priority / 100.0, 0.0), 1.0)
+
+        stats = await trigger_tasks_from_decisions(
+            session,
+            [{
+                "category": decision_type,
+                "task_kind": task_kind,
+                "entity_type": "company",
+                "entity_id": company_id,
+                "intensity": intensity,
+                "confidence": confidence,
+                "title": reasoning,
+            }],
+            tenant_id,
+        )
+        await session.commit()
+        return {
+            **stats,
+            "task_kind": task_kind,
+            "decision_type": decision_type,
+            "reason": "created",
+        }
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
+        reset_current_tenant_id(token)

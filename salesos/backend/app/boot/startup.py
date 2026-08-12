@@ -550,6 +550,34 @@ async def _init_workflow_subscriber(app: FastAPI, logger: StructuredLogger) -> N
         logger.exception("  workflow subscriber init failed")
 
 
+async def _init_agent_task_trigger_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
+    try:
+        from sdk.events.base import DomainEvent
+        from runtime.agent_runtime.triggers import on_decision_created_event
+
+        event_runtime = getattr(app.state, "event_runtime", None)
+        if event_runtime is None:
+            logger.warning("  agent task trigger subscriber: skipped (no event_runtime)")
+            return
+
+        async def _on_decision_created(event: DomainEvent) -> None:
+            # IL-2A: Decision → AgentTask wiring only. Claim/run is IL-2B.2.
+            try:
+                await on_decision_created_event(
+                    getattr(app.state, "db_session_factory", None) or async_session,
+                    event,
+                    decision_engine=getattr(app.state, "decision_engine", None),
+                )
+            except Exception:
+                logger.exception("IL-2A decision.created → AgentTask failed")
+
+        event_runtime.subscribe("decision.created", _on_decision_created)
+        app.state.agent_task_trigger_subscriber = _on_decision_created
+        logger.info("  agent task trigger subscriber: ok")
+    except Exception:
+        logger.exception("  agent task trigger subscriber init failed")
+
+
 async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from sdk.events.base import DomainEvent
@@ -707,6 +735,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     )
     await _init_timeline_subscriber(app, logger)
     await _init_workflow_subscriber(app, logger)
+    await _init_agent_task_trigger_subscriber(app, logger)
     logger.info(f"Phase 4 complete (+{time.monotonic() - p4_start:.1f}s)")
 
     # ── Phase 5: Background tasks ────────────────────────────────────────
