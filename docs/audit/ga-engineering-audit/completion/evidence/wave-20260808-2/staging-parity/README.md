@@ -14,6 +14,7 @@
 | [`A09-RETRY-1-2-2026-08-13.md`](./A09-RETRY-1-2-2026-08-13.md) | Steps 1–2 post-«تم التدوير» re-dispatch — FAIL Unauthorized |
 | [`A09-TOKEN-DIAGNOSIS-2026-08-13.md`](./A09-TOKEN-DIAGNOSIS-2026-08-13.md) | Unauthorized root-cause: Environment `staging` `RAILWAY_TOKEN` `updatedAt` still 2026-08-09 (rotate never landed); human checklist |
 | [`A09-USER-UUID-SET-2026-08-13.md`](./A09-USER-UUID-SET-2026-08-13.md) | User «ضيفهم انت» UUIDs set in GH; CLI **not found**; prod ID restored to `652c450a`; re-dispatch still Unauthorized |
+| [`A09-UUID-RESTORE-2026-08-13.md`](./A09-UUID-RESTORE-2026-08-13.md) | Discard user UUIDs; restore live staging `5ce7864a` (repo + Env staging); confirm prod `652c450a`; token Env staging still 2026-08-09 |
 | [`A09-CHECKLIST-6-NEO4J-2026-08-12.md`](./A09-CHECKLIST-6-NEO4J-2026-08-12.md) | Step 6 CLOSED — celery Postgres misconfig (`1baae84`) |
 | [`A09-ADVANCEMENT-2026-08-12.md`](./A09-ADVANCEMENT-2026-08-12.md) | Agent-closed gaps (branch strategy, CI wire, Decision seed) vs Human-Gate |
 | [`A09-OPS-ENV-CELERY-2026-08-12.md`](./A09-OPS-ENV-CELERY-2026-08-12.md) | Celery/env ops residual notes |
