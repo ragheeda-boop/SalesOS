@@ -29,8 +29,25 @@ notify() {
 }
 
 healthcheck() {
+  # If HEALTHCHECK_URL is set, require HTTP success — silent swallow hid DR schedule failures.
   if [ -n "$HEALTHCHECK_URL" ]; then
-    curl -sf "$HEALTHCHECK_URL" 2>/dev/null || true
+    if curl -sf "$HEALTHCHECK_URL" >/dev/null; then
+      log "Healthcheck OK: ${HEALTHCHECK_URL}"
+    else
+      log "ERROR: Healthcheck failed: ${HEALTHCHECK_URL}"
+      notify "Backup Healthcheck Failed" "${DB_NAME} healthcheck failed after backup on $(hostname)"
+      return 1
+    fi
+  fi
+}
+
+write_checksum() {
+  if command -v sha256sum &>/dev/null; then
+    sha256sum "$BACKUP_FILE" | tee "${BACKUP_FILE}.sha256" | tee -a "$LOG_FILE"
+  elif command -v shasum &>/dev/null; then
+    shasum -a 256 "$BACKUP_FILE" | tee "${BACKUP_FILE}.sha256" | tee -a "$LOG_FILE"
+  else
+    log "WARN: no sha256sum/shasum — checksum file not written"
   fi
 }
 
@@ -69,9 +86,10 @@ main() {
 
   if [ -f "$BACKUP_FILE" ] && [ "$FILE_SIZE" -gt 0 ]; then
     log "Backup complete: $(basename "$BACKUP_FILE") (${FILE_SIZE_MB}MB, ${DURATION_MS}ms)"
+    write_checksum
     cleanup_old
     backup_s3
-    healthcheck
+    healthcheck || exit 1
   else
     log "ERROR: Backup file is empty or missing!"
     notify "Backup Failed" "${DB_NAME} backup failed on $(hostname) — empty output"

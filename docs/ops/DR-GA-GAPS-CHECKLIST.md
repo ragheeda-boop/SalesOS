@@ -1,6 +1,6 @@
 # DR / GA Gaps Checklist — REQUIRED before any cutover
 
-**Date:** 2026-08-06 (honesty refresh **2026-08-08** — Completion Program Stream F)  
+**Date:** 2026-08-06 (honesty refresh **2026-08-12** — CLOSE packet + HG-04 runbook linked; cutover still Human-Gate)  
 **Finding:** EAB-001-P0-OPS-01  
 **Decision:** Cutover gate remains **OPEN / Human-Gate** until human CLOSE ink — even when machine drill JSON exists.  
 **Do NOT claim:** DR cutover CLOSED, soak complete, or **evidence-based** production GO from agent docs alone.
@@ -13,7 +13,9 @@
 
 Cross-links:
 
-- [DR_RUNBOOK.md](./DR_RUNBOOK.md) — procedure spine (documents known gaps)
+- [DR_RUNBOOK.md](./DR_RUNBOOK.md) — procedure spine (RPO honesty refreshed 2026-08-12)
+- [DR-ROWS-1-3-CLOSE-PACKET.md](./DR-ROWS-1-3-CLOSE-PACKET.md) — **unsigned** Project Owner CLOSE packet (RC-01 Option A) — ink here / there; agents do not forge
+- [railway-managed-backup-schedule.md](../audit/ga-engineering-audit/runbooks/railway-managed-backup-schedule.md) — HG-04 managed schedule + native PITR human runbook
 - [PROGRESS-WAVE10-DR-GAPS.md](../audit/ga-engineering-audit/PROGRESS-WAVE10-DR-GAPS.md) — local Wave 10 residual
 - [go-live-checklist.md](../audit/ga-engineering-audit/runbooks/go-live-checklist.md) — prepare-only
 - [SIGN_HERE.md](../audit/ga-engineering-audit/SIGN_HERE.md) — human-declared GO 2026-08-08 (ink ≠ evidence close)

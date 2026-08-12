@@ -1,0 +1,41 @@
+﻿{
+    "captured_at_utc":  "2026-08-12T18:29:47.3638181Z",
+    "purpose":  "OPS-01 DR gate health recheck 2026-08-12",
+    "soak_complete_claim":  false,
+    "production_go_claim":  false,
+    "staging":  {
+                    "body":  {
+                                 "status":  "ok",
+                                 "version":  "5.1.0-rc1",
+                                 "database":  "connected",
+                                 "cache":  "connected",
+                                 "graph":  "connected",
+                                 "kafka":  "in_memory",
+                                 "redis":  "connected",
+                                 "rate_limiter":  "active",
+                                 "uptime_seconds":  214.32394289970398
+                             },
+                    "url":  "https://salesos-staging.up.railway.app/health",
+                    "http_status":  200
+                },
+    "production":  {
+                       "body":  {
+                                    "status":  "ok",
+                                    "version":  "5.1.0-rc1",
+                                    "database":  "connected",
+                                    "cache":  "connected",
+                                    "graph":  "connected",
+                                    "kafka":  "in_memory",
+                                    "redis":  "connected",
+                                    "rate_limiter":  "active",
+                                    "uptime_seconds":  218.81707954406738
+                                },
+                       "url":  "https://salesos-production-96c0.up.railway.app/health",
+                       "http_status":  200
+                   },
+    "notes":  [
+                  "Both hosts returned HTTP 200",
+                  "Low uptime_seconds observed (~20s) may indicate recent restart — not a soak PASS",
+                  "Managed Railway backup schedule / native PITR still BLOCKED-HUMAN"
+              ]
+}

@@ -1,6 +1,9 @@
 # OPS-01 Row 4 — Staging Soak Status + Final Verdict
 
-**Run:** EAB-2026-08-06-003 · **Update:** 2026-08-07 · **Mode:** EXECUTE + VERIFY
+> **SUPERSEDED wording (2026-08-12):** §§1–2 “soak not yet run / not started” and mid-window “IN PROGRESS” are **Incorrect-as-current**.  
+> **Current:** 72h wall-clock **finished** 2026-08-10 (`loop-summary-2026-08-10T141003Z.json`, 854 iters / 82 failures). Row 4 remains **OPEN** (`soak_complete_claim=false`) pending TL triage + K2–K6. See [SOAK-GATE-CHECKLIST.md](./SOAK-GATE-CHECKLIST.md) · [OPS01-DR-GATE-2026-08-12.md](../../../../../reports/OPS01-DR-GATE-2026-08-12.md).
+
+**Run:** EAB-2026-08-06-003 · **Update:** 2026-08-07 (banner 2026-08-12) · **Mode:** EXECUTE + VERIFY
 **Parent:** [OPS-01-CHECKLIST.md](./OPS-01-CHECKLIST.md) · [OPS-01-ADVANCEMENT.md](./OPS-01-ADVANCEMENT.md)
 
 ---

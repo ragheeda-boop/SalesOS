@@ -1,13 +1,14 @@
 # SalesOS Disaster Recovery Runbook
 
 > **Audience**: On-call SRE / DevOps responding to disaster scenarios.
-> **Last updated**: 2026-08-06 (honesty banner + OPS-01 cross-links; procedure body still documents known gaps)
-> **Version**: 1.0
+> **Last updated**: 2026-08-12 (RPO/PITR honesty aligned to EAB-003 DONE\* drills; cutover gate still Human-Gate)
+> **Version**: 1.1
 
-> **GA / cutover gate:** [DR-GA-GAPS-CHECKLIST.md](./DR-GA-GAPS-CHECKLIST.md) — rows 1–5 **OPEN** → **no Production GO**.  
+> **GA / cutover gate:** [DR-GA-GAPS-CHECKLIST.md](./DR-GA-GAPS-CHECKLIST.md) — human CLOSE still **OPEN** for rows 1–3; soak (row 4) **OPEN** → **no evidence-based Production GO**.  
+> **Rows 1–3 CLOSE packet (unsigned):** [DR-ROWS-1-3-CLOSE-PACKET.md](./DR-ROWS-1-3-CLOSE-PACKET.md)  
 > **OPS-01 pack (EAB-003):** [../audit/ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/OPS-01-ADVANCEMENT.md](../audit/ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/OPS-01-ADVANCEMENT.md)  
-> **Local drills:** Wave 10 + 2026-08-06 disposable restore — **≠** offsite / WAL / staging soak.  
-> **Compose SoT:** [COMPOSE-SOURCE-OF-TRUTH.md](./COMPOSE-SOURCE-OF-TRUTH.md) (`salesos/docker-compose.yml`).
+> **Machine facts:** Offsite + WAL + PITR drills **DONE\*** (2026-08-06/07). Managed schedule / native `volumeInstancePITRRestore` = **BLOCKED-HUMAN** — [railway-managed-backup-schedule.md](../audit/ga-engineering-audit/runbooks/railway-managed-backup-schedule.md).  
+> **Compose SoT:** [COMPOSE-SOURCE-OF-TRUTH.md](./COMPOSE-SOURCE-OF-TRUTH.md) (`salesos/docker-compose.yml`). Compose-local `archive_mode` often **off** — do not cite as prod denial.
 
 ---
 
@@ -26,17 +27,18 @@
 
 ## 1. RPO and RTO Targets
 
-| Metric | Target | Current Capability | Gap |
-|--------|--------|-------------------|-----|
-| **RPO** (Data loss tolerance) | < 1 hour | Up to 24 hours (daily snapshot) | WAL archiving needed |
-| **RTO** (Time to restore) | < 4 hours | ~2 hours (restore from S3) | None |
-| **Backup window** | 02:00-04:00 UTC | Daily full backup | None |
-| **DR failover** | < 30 minutes | Not implemented | Multi-region needed |
+| Metric | Target | Current Capability (honest) | Gap / residual |
+|--------|--------|------------------------------|----------------|
+| **RPO** (Data loss tolerance) | < 1 hour | **Minutes-class** on production path when WAL archive healthy (`archive_mode=on`, pgBackRest → `salesos-pitr-*`; reverify 2026-08-07 `failed_count=0`). Snapshot-only fallback still ~24h if WAL path unavailable. | **Human:** RPO acceptance ink (OPS01-08) UNSIGNED; managed backup **schedule** BLOCKED-HUMAN |
+| **RTO** (Time to restore) | < 4 hours | **~5–10 min** measured for pgBackRest PITR drill (Row 3); logical `pg_dump`→S3→disposable restore also proven (Row 1, ~minutes–tens of minutes) | Native Railway `volumeInstancePITRRestore` **Not Authorized** (use drill-proven pgBackRest path until HG-04) |
+| **Backup window** | 02:00-04:00 UTC | Continuous WAL + proven offsite dump; recurring Railway volume schedule **not** agent-enabled | Enable schedule via [HG-04 runbook](../audit/ga-engineering-audit/runbooks/railway-managed-backup-schedule.md) |
+| **DR failover** | < 30 minutes | Not implemented (single-region) | Multi-region needed |
 
 ### Current Limitations
 
-1. **No PITR**: Without WAL archiving, recovery is limited to the last daily snapshot (up to 24h data loss).
-2. **Single-region**: All backups and infrastructure are in a single AWS region (me-south-1). Region failure = total data loss.
+1. **PITR is drill-proven (DONE\*), not “absent”:** Production WAL archive + restore-to-timestamp evidenced under EAB-003 `evidence/ops01-pitr/`. Do **not** claim “No PITR.” Residual = managed schedule + native Railway PITR UI (**BLOCKED-HUMAN**), not missing recoverability.
+2. **Cutover gate ≠ machine facts:** Checklist CLOSE and Production GO require human ink + soak — see [DR-GA-GAPS-CHECKLIST.md](./DR-GA-GAPS-CHECKLIST.md).
+3. **Single-region:** Backups/infra primarily single-region; region failure remains a residual risk.
 
 ---
 

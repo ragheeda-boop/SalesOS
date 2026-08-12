@@ -1,31 +1,33 @@
 # HUMAN-GATE-CARD — Exact Actions for Project Owner / Ops
 
-**Date:** 2026-08-08 (refreshed WAVE-20260808-5)  
+**Date:** 2026-08-12 (OPS-01 / DR gate agent refresh)  
 **Program:** [COMPLETION-PROGRAM.md](../COMPLETION-PROGRAM.md)  
 **Stream:** A (OPS Launch) + D pointers  
 **Principle:** Agents prepare cards; humans execute field/cloud/ink. Do not forge evidence.
 
 **Already recorded:** SIGN_HERE Decision=**GO** (رغيد المدني, CTO+TL dual-role, 2026-08-08) — **human-declared**. Engineering residuals below remain.
 
-**Live soak note:** Staging 72h harness **IN PROGRESS** (PID **16044**; **264** loop JSON @ 2026-08-08T12:21Z, last `gate_pass=True`). **`soak_complete_claim` stays false.** Do **not** invent 48h PASS.
+**Soak note (2026-08-12):** Staging 72h harness **FINISHED** window (`loop-summary-2026-08-10T141003Z.json`: **854** iters, **82** failures, `soak_complete_claim=false`). **LIVE_HARNESS: none** on this host. **`soak_complete_claim` stays false** until K2–K6 + TL review — do **not** invent PASS. Health recheck 2026-08-12: staging+prod `/health` **200** (`evidence/ops01-prod-health/health-recheck-2026-08-12.json`).
+
+**Agent-prepared (unsigned):** [DR-ROWS-1-3-CLOSE-PACKET.md](../../../ops/DR-ROWS-1-3-CLOSE-PACKET.md) · [railway-managed-backup-schedule.md](../runbooks/railway-managed-backup-schedule.md)
 
 ---
 
 ## Do these 3 next
 
-1. **Keep soak harness** (PID 16044 — do not start a second loop) through ≥48–72h; then TL review SOAK-GATE-CHECKLIST **K2–K6** before any claim flip. Session closeout still lists “72h soak” — that clock is **already running**.  
-2. **`workflow_dispatch` `deploy-staging.yml`** only if you need a **new** staging bake (HG-01). Do not reset soak evidence without intent.  
-3. After soak window: staging Neo4j restore + Redis/Postgres rotation (HG-06) · SSRF pentest (HG-05) · RPO ink (HG-07)  
+1. **TL review soak evidence** (K2–K6) — window elapsed; triage **82** failures before any claim flip. Do **not** start a second 72h loop unless intentionally re-running.  
+2. **Ink RC-01 CLOSE** on [DR-ROWS-1-3-CLOSE-PACKET.md](../../../ops/DR-ROWS-1-3-CLOSE-PACKET.md) (or DEFER) — facts already DONE\*; agents do not forge.  
+3. **HG-04** enable Railway managed backup schedule + native PITR per [railway-managed-backup-schedule.md](../runbooks/railway-managed-backup-schedule.md) **or** accept residual on RC-04.  
 
 ---
 
 ## Priority order
 
-1. Keep soak harness healthy through ≥48–72h; TL review before claim  
-2. Staging parity residuals (Google OAuth, WAL/offsite decision, max_connections, CI deploy)  
-3. GH Environments re-probe / secrets hygiene if needed  
-4. Human CLOSE on DR checklist rows 1–3 (facts already DONE\*)  
-5. Railway managed backup schedule + native PITR (API Not Authorized class)  
+1. TL review finished soak window + failure triage (claim stays false until then)  
+2. Human CLOSE on DR checklist rows 1–3 via CLOSE packet (facts already DONE\*)  
+3. Railway managed backup schedule + native PITR (API Not Authorized class) — HG-04  
+4. Staging parity residuals (Google OAuth, WAL/offsite decision, max_connections, CI deploy)  
+5. GH Environments re-probe / secrets hygiene if needed  
 6. Staging SSRF/KG pentest execute  
 7. Credential rotation (field) using evidence template  
 8. RPO/RTO signed acceptance  
@@ -88,7 +90,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File docs\audit\ga-engineering-au
 | Field | Value |
 |-------|--------|
 | Why | RC-P0-01: facts DONE\* but gate CLOSED? still OPEN |
-| Exact actions | 1) Read OPS-01 row1–3 evidence JSON 2) Ink human CLOSE on [DR-GA-GAPS-CHECKLIST.md](../../../ops/DR-GA-GAPS-CHECKLIST.md) rows 1–3 **or** explicit CLOSE packet 3) Note automation residuals remain BLOCKED-HUMAN if schedule not enabled |
+| Exact actions | 1) Read OPS-01 row1–3 evidence JSON 2) Ink [DR-ROWS-1-3-CLOSE-PACKET.md](../../../ops/DR-ROWS-1-3-CLOSE-PACKET.md) (RC-01 Option A) **or** CLOSE on [DR-GA-GAPS-CHECKLIST.md](../../../ops/DR-GA-GAPS-CHECKLIST.md) rows 1–3 3) Note automation residuals remain BLOCKED-HUMAN if schedule not enabled |
 | Agent cannot | Forge CLOSE ink |
 | Done when | Checklist rows show human CLOSE with name/date |
 
@@ -99,7 +101,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File docs\audit\ga-engineering-au
 | Field | Value |
 |-------|--------|
 | Why | OPS01 automation BLOCKED-HUMAN (API Not Authorized class) |
-| Exact actions | Enable managed backup cadence; enable native PITR restore path; capture screenshots/API evidence |
+| Exact actions | Follow [railway-managed-backup-schedule.md](../runbooks/railway-managed-backup-schedule.md): enable managed backup cadence; enable native PITR restore path; capture screenshots/API evidence + `failed_count` policy |
 | Agent cannot | Authorize Railway account scopes |
 | Done when | Schedule evidence + failed_count policy linked |
 
@@ -164,12 +166,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File docs\audit\ga-engineering-au
 
 - Published exact gate list with links  
 - Distinguished HUMAN-GO-INK vs engineering OPEN  
-- Documented **live** soak mid-window (claim false)  
+- Documented soak window **finished** 2026-08-10 (claim false; 82 failures; harness not live)  
+- Prepared unsigned DR rows 1–3 CLOSE packet + HG-04 Railway schedule runbook (2026-08-12)  
+- Health recheck evidence deposited (`health-recheck-2026-08-12.json`)  
 - Soak status/restart script + staging parity residual checklist  
 - SSRF+KG checklist + cred rotation evidence template  
 
-**Validation:** **not validated** for cloud/field execution (by design). Soak inventory **light validated**.
+**Validation:** **not validated** for cloud/field execution (by design). Soak inventory + health recheck **light validated**.
 
 ---
 
-*HUMAN-GATE-CARD — Stream A (+D pointers) — Completion Program — 2026-08-08 — no secrets — no forged PASS*
+*HUMAN-GATE-CARD — Stream A (+D pointers) — Completion Program — 2026-08-12 — no secrets — no forged PASS*
