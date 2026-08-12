@@ -15,7 +15,9 @@
 | **Observability** structured extras | **PASS** (light prod validate) | SHA `c4ae96c` live; structured extras survive Railway |
 | **Bounded prod soak** (IL-2A) | **8/8 PASS** | [`A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md`](./A09-BOUNDED-PROD-IL2A-SOAK-2026-08-12.md) |
 | **Wave 8 SLO hooks** | **PASS** (code + live `/metrics`) | Code `3d0fdb9`; live on prod tip `ff4a1ee` (PASS deploy) — evaluate / fan-out / agent-dispatch counters + alert rules |
-| **P1 closures** (agent-closable) | **PASS** (narrow) | SHAs `ee50a55`, `63b7840`, `ff4a1ee` · [`P1-CLOSURES-2026-08-12.md`](./P1-CLOSURES-2026-08-12.md) |
+| **P1 closures** (agent-closable) | **PASS** (narrow) | SHAs `ee50a55`, `63b7840`, `ff4a1ee` + evening DUP-01/DRIFT/isolation advance · [`P1-CLOSURES-2026-08-12.md`](./P1-CLOSURES-2026-08-12.md) |
+| **DUP-01** (HTTP remount + FE Center ledger + Platform explain tenant-scope) | **Partial (narrowed)** — engines kept | SoT + fitness FF-DUP-01 extended; not Fixed |
+| **Cross-tenant automated** (app-layer) | **PASS** (narrow unit) | Platform engine + CompanyService harness; **not** live prod multi-tenant |
 
 ## Advanced OPEN (not closed)
 

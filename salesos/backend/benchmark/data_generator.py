@@ -160,47 +160,43 @@ class DataGenerator:
         return out
 
     @staticmethod
-    def seed_database(db_session, companies: list[dict[str, Any]]) -> None:
-        """Sync seed — for use with sync engines."""
-        from sqlalchemy import (
-            Boolean,
-            Column,
-            DateTime,
-            Float,
-            Integer,
-            MetaData,
-            String,
-            Table,
-            insert,
+    def _companies_seed_table():
+        """Lightweight seed table — avoids MetaData island (EAB-001-P1-DRIFT-01)."""
+        from sqlalchemy import column, table
+
+        return table(
+            "companies",
+            column("id"),
+            column("tenant_id"),
+            column("name_ar"),
+            column("name_en"),
+            column("cr_number"),
+            column("cr_type"),
+            column("status"),
+            column("city"),
+            column("region"),
+            column("phone"),
+            column("email"),
+            column("address"),
+            column("activity_description"),
+            column("activity_code"),
+            column("legal_form"),
+            column("capital"),
+            column("employees_count"),
+            column("is_active"),
+            column("confidence_score"),
+            column("latitude"),
+            column("longitude"),
+            column("created_at"),
+            column("updated_at"),
         )
 
-        companies_t = Table(
-            "companies",
-            MetaData(),
-            Column("id", String, primary_key=True),
-            Column("tenant_id", String),
-            Column("name_ar", String),
-            Column("name_en", String),
-            Column("cr_number", String),
-            Column("cr_type", String),
-            Column("status", String),
-            Column("city", String),
-            Column("region", String),
-            Column("phone", String),
-            Column("email", String),
-            Column("address", String),
-            Column("activity_description", String),
-            Column("activity_code", String),
-            Column("legal_form", String),
-            Column("capital", Float),
-            Column("employees_count", Integer),
-            Column("is_active", Boolean),
-            Column("confidence_score", Float),
-            Column("latitude", Float),
-            Column("longitude", Float),
-            Column("created_at", DateTime),
-            Column("updated_at", DateTime),
-        )
+    @staticmethod
+    def seed_database(db_session, companies: list[dict[str, Any]]) -> None:
+        """Sync seed — for use with sync engines."""
+        from sqlalchemy import insert
+
+        companies_t = DataGenerator._companies_seed_table()
         for c in companies:
             db_session.execute(insert(companies_t).values(**DataGenerator._serialize(c)))
         db_session.commit()
@@ -208,45 +204,9 @@ class DataGenerator:
     @staticmethod
     async def async_seed_database(db_session, companies: list[dict[str, Any]]) -> None:
         """Async seed — bulk insert for speed."""
-        from sqlalchemy import (
-            Boolean,
-            Column,
-            DateTime,
-            Float,
-            Integer,
-            MetaData,
-            String,
-            Table,
-            insert,
-        )
+        from sqlalchemy import insert
 
-        companies_t = Table(
-            "companies",
-            MetaData(),
-            Column("id", String, primary_key=True),
-            Column("tenant_id", String),
-            Column("name_ar", String),
-            Column("name_en", String),
-            Column("cr_number", String),
-            Column("cr_type", String),
-            Column("status", String),
-            Column("city", String),
-            Column("region", String),
-            Column("phone", String),
-            Column("email", String),
-            Column("address", String),
-            Column("activity_description", String),
-            Column("activity_code", String),
-            Column("legal_form", String),
-            Column("capital", Float),
-            Column("employees_count", Integer),
-            Column("is_active", Boolean),
-            Column("confidence_score", Float),
-            Column("latitude", Float),
-            Column("longitude", Float),
-            Column("created_at", DateTime),
-            Column("updated_at", DateTime),
-        )
+        companies_t = DataGenerator._companies_seed_table()
         serialized = [DataGenerator._serialize(c) for c in companies]
         conn = await db_session.connection()
         await conn.execute(insert(companies_t), serialized)

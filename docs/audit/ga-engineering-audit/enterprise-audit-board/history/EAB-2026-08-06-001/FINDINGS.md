@@ -104,12 +104,13 @@ evidence:
 validation_label: light validated
 recommendation: "Pick one client SoT API; deprecate/shadow others behind flags; remove FE package name collision"
 owner: architecture
-status: partial (Wave 2 HTTP SoT + remount; engines/twin residual)
+status: partial (Wave 2 HTTP SoT + remount; engines/twin residual; 2026-08-12 FE Center ledger + Platform explain tenant-scoped)
 related_ids: [EAB-001-P1-AIGOV-01]
 economics_band: Extreme
 drift_metric_ids: [DM-04, DM-08]
 # Stream C 2026-08-06: Runtime remounted to /api/v1/decision-runtime; SoT doc DECISION-API-SOT.md.
 # Residual: three engines + FE twin package name. HTTP collisions fixed; engines not deleted.
+# 2026-08-12: FE /decisions Center-only feedback; Platform explain/feedback tenant-scoped; engines retained.
 ```
 
 ### EAB-001-P0-OPS-01 ? DR / WAL / offsite / staging parity incomplete for GA cutover
@@ -157,10 +158,11 @@ evidence:
 validation_label: light validated
 recommendation: "Continue DEC-130f consolidation; freeze new private MetaData; migrate KEEP inventory"
 owner: backend-data
-status: partial (Wave 3 freeze + KEEP pointer; islands not migrated)
+status: partial (Wave 3 freeze + KEEP pointer; islands not migrated; ceiling 13)
 related_ids: []
 economics_band: High
 drift_metric_ids: [DM-06]
+# 2026-08-12b: MetaData ceiling 17â†’13 (benchmark + admin COUNT stubs â†’ table()).
 ```
 
 ### EAB-001-P1-OPS-02 ? Dual compose / multi-stack ambiguity
@@ -405,8 +407,8 @@ drift_metric_ids: []
 
 | Severity | Count (this run) | After Waves 1?3 |
 |----------|-----------------:|-----------------|
-| P0 | **5** | 3 Fixed · 1 Partial · 1 Deferred |
-| P1 | **9** | 6 Fixed · 3 Partial |
+| P0 | **5** | 3 Fixed ï¿½ 1 Partial ï¿½ 1 Deferred |
+| P1 | **9** | 6 Fixed ï¿½ 3 Partial |
 | P2 | **2** | 2 Deferred/mitigated |
 | **Total** | **16** | **0 Open undispositioned** |
 

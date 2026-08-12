@@ -594,11 +594,19 @@ class DecisionEngine:
     def evaluate_batch(self, contexts: list[DecisionContext]) -> list[DecisionResult]:
         return [self.evaluate(ctx) for ctx in contexts]
 
-    def explain(self, decision_id: str) -> Explainability | None:
+    def explain(self, decision_id: str, tenant_id: str) -> Explainability | None:
+        """Return explainability only when the decision belongs to ``tenant_id``.
+
+        Tenant-scoped to close cross-tenant explain IDOR on the Platform
+        alternate surface (EAB DUP-01 / isolation residual). Missing or
+        foreign-tenant ids both return None (404 at HTTP — no existence leak).
+        """
         result = self._history.get(decision_id)
-        if result:
-            return result.explainability
-        return None
+        if result is None:
+            return None
+        if result.context.tenant_id != tenant_id:
+            return None
+        return result.explainability
 
     def get_history(
         self,
@@ -693,6 +701,10 @@ class DecisionEngine:
     def submit_feedback(self, feedback: Feedback) -> tuple[str, bool]:
         problems = self._validate_feedback(feedback)
         if problems:
+            return "", False
+
+        owned = self._history.get(feedback.decision_id)
+        if owned is None or owned.context.tenant_id != feedback.tenant_id:
             return "", False
 
         fb_id = _generate_id()

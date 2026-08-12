@@ -97,6 +97,24 @@ if rg -n -U '(?s)include_router\(\s*decision_router,\s*prefix="/api/v1/decision-
 else
   fail "FF-DUP-01: decision_router must include at prefix=/api/v1/decision-runtime"
 fi
+# FE /decisions ledger: Center feedback only — no Runtime accept/dismiss hybrid
+DECISIONS_PAGE="salesos/frontend/src/app/(dashboard)/decisions/page.tsx"
+if [[ -f "$DECISIONS_PAGE" ]] \
+  && ! rg -n 'decision-runtime' "$DECISIONS_PAGE" >/dev/null \
+  && rg -n '/api/v1/decisions/\$\{id\}/feedback' "$DECISIONS_PAGE" >/dev/null; then
+  pass "FF-DUP-01: FE /decisions uses Center feedback; no decision-runtime"
+else
+  fail "FF-DUP-01: FE /decisions must use Center /feedback and not call decision-runtime"
+fi
+# Platform explain must stay tenant-scoped (signature guard)
+if rg -n 'def explain\(self, decision_id: str, tenant_id: str\)' \
+  salesos/backend/app/modules/decision/engine.py >/dev/null \
+  && rg -n 'engine\.explain\(decision_id, tenant_id\)' \
+  salesos/backend/app/modules/decision/router.py >/dev/null; then
+  pass "FF-DUP-01: Platform explain is tenant-scoped"
+else
+  fail "FF-DUP-01: Platform explain must take and pass tenant_id"
+fi
 
 # ── FF-DUP-02 (light): search + prompt dual-registry quarantine ────────────
 echo ""
@@ -131,9 +149,9 @@ else
   fail "FF-09: METADATA-ISLAND-FREEZE.md missing"
 fi
 
-# Ceiling: EAB-003 19→18 (MCP); 2026-08-12 18→17 (pgvector_migration MetaData→table()).
+# Ceiling: EAB-003 19→18 (MCP); 2026-08-12 18→17 (pgvector); 2026-08-12b 17→13 (benchmark+admin table()).
 MD_COUNT=$(rg -c "MetaData\(" salesos/backend --glob "*.py" | awk -F: '{s+=$2} END {print s+0}')
-MD_CEILING=17
+MD_CEILING=13
 if [[ "$MD_COUNT" -le "$MD_CEILING" ]]; then
   pass "FF-09: MetaData() count=$MD_COUNT <= ceiling=$MD_CEILING"
 else

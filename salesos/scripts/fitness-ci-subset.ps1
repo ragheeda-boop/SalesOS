@@ -108,6 +108,26 @@ if ($boot -match '(?s)include_router\(\s*decision_router,\s*prefix="/api/v1/deci
 } else {
   Fail "FF-DUP-01: decision_router must include at prefix=/api/v1/decision-runtime"
 }
+$decisionsPage = "salesos\frontend\src\app\(dashboard)\decisions\page.tsx"
+if (
+  (Test-Path $decisionsPage) -and
+  -not (Select-String -Path $decisionsPage -Pattern "decision-runtime" -Quiet) -and
+  (Select-String -Path $decisionsPage -Pattern '/api/v1/decisions/\$\{id\}/feedback' -Quiet)
+) {
+  Pass "FF-DUP-01: FE /decisions uses Center feedback; no decision-runtime"
+} else {
+  Fail "FF-DUP-01: FE /decisions must use Center /feedback and not call decision-runtime"
+}
+$enginePy = Get-Content "salesos\backend\app\modules\decision\engine.py" -Raw
+$routerPy = Get-Content "salesos\backend\app\modules\decision\router.py" -Raw
+if (
+  $enginePy -match 'def explain\(self, decision_id: str, tenant_id: str\)' -and
+  $routerPy -match 'engine\.explain\(decision_id, tenant_id\)'
+) {
+  Pass "FF-DUP-01: Platform explain is tenant-scoped"
+} else {
+  Fail "FF-DUP-01: Platform explain must take and pass tenant_id"
+}
 
 # FF-DUP-02 (light)
 Write-Host ""
@@ -143,7 +163,7 @@ if (Test-Path "docs\audit\ga-engineering-audit\METADATA-ISLAND-FREEZE.md") {
 } else {
   Fail "FF-09: METADATA-ISLAND-FREEZE.md missing"
 }
-$mdCeiling = 17
+$mdCeiling = 13
 $rg = Find-Rg
 if ($rg) {
   $mdOut = & $rg -c --glob "*.py" "MetaData\(" "salesos\backend" 2>$null

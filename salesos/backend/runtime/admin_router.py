@@ -4,7 +4,7 @@ import time
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
-from sqlalchemy import Column, MetaData, String, Table, func, literal, select
+from sqlalchemy import column, func, literal, select, table
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -14,20 +14,18 @@ from app.dependencies import get_current_tenant_id, get_db_session, require_role
 
 router = APIRouter(prefix="/api/v1/admin")
 
-_admin_metadata = MetaData()
-_companies = Table("companies", _admin_metadata, Column("id", String, primary_key=True))
-_golden_records = Table("golden_records", _admin_metadata, Column("id", String, primary_key=True))
-_conflicts = Table(
+# Lightweight table()/column() — avoid private MetaData island (EAB-001-P1-DRIFT-01).
+_companies = table("companies", column("id"))
+_golden_records = table("golden_records", column("id"))
+_conflicts = table(
     "entity_resolution_conflicts",
-    _admin_metadata,
-    Column("id", String, primary_key=True),
-    Column("status", String),
+    column("id"),
+    column("status"),
 )
-_dlq = Table(
+_dlq = table(
     "dead_letter_queue",
-    _admin_metadata,
-    Column("id", String, primary_key=True),
-    Column("status", String),
+    column("id"),
+    column("status"),
 )
 
 

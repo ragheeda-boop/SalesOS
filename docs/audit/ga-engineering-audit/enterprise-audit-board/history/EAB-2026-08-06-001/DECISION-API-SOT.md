@@ -5,6 +5,12 @@
 **Validation:** **light validated** (router Read + mount change; no pytest / Docker boot this wave)  
 **Verdict:** Does **not** change Production GA **NO-GO**. Engines retained; HTTP collisions removed. No commit.
 
+> **2026-08-12 agent advance:** FE `/decisions` ledger list + accept/dismiss
+> use Decision Center only (no Runtime hybrid). Platform `explain` +
+> `submit_feedback` now tenant-scoped (cross-tenant IDOR closed on alternate
+> surface). FF-DUP-01 extended (FE + explain signature). Engines **still
+> retained** — disposition remains **Partial (narrowed)**. Not Production GO.
+>
 > **Completion Program Stream B M1 (2026-08-08):** OpenAPI operation summaries/descriptions
 > strengthened on Platform + Runtime routers; Platform engine quarantine docstring;
 > fitness **FF-DUP-01** light remount guard. Disposition remains **Partial (narrowed)** —
@@ -87,11 +93,12 @@
 | Runtime `GET /api/v1/decisions/history` vs Center `{id}` | **Fixed** |
 | Three BE engines still in codebase | **Residual (honest)** — not deleted; HTTP SoT documented |
 | FE STUB vs lab twin | **Narrowed** — lab renamed `@salesos/decision-platform-lab`; FE STUB remains resolve target |
+| FE `/decisions` Center list + Runtime accept hybrid | **Narrowed (2026-08-12)** — accept/dismiss → Center `/feedback` only; FF-DUP-01 guards no `decision-runtime` on page |
+| Platform `explain` without tenant scope | **Fixed (2026-08-12)** — `explain(decision_id, tenant_id)` + feedback ownership check |
 
 **Remaining collisions:** none on Decision HTTP mounts after remount (spot-check via routers.py). OpenAPI may still list three tags — expected.
 
-**FE residual:** `/decisions` dashboard lists Platform history (`/api/v1/decision/history`) but accept/dismiss call Runtime under `/api/v1/decision-runtime/...` — cross-engine ID mismatch risk remains (pre-existing hybrid UI; not fixed this wave beyond path remount).
-
+**FE residual (honest):** Evaluate/scores/history hooks in `decisionQueries.ts` still call Platform `/api/v1/decision/*` (alternate). Ledger page `/decisions` is Center-SoT for list + feedback. Cross-engine ID mismatch risk reduced on the ledger page; Platform alternate surface remains.
 ---
 
 ## FE package honesty (AIGOV-01 partial)
@@ -126,11 +133,11 @@ No remount for search/webhooks/prompts in EAB-001 Stream C or EAB-002 post-verif
 
 ## Finding status
 
-| ID | Stream C | EAB-002 post-verify | Stream B M1 (2026-08-08) |
-|----|----------|---------------------|--------------------------|
-| **EAB-001-P0-DUP-01** | **partial** — HTTP SoT + remount; engines + FE twin residual | **Partial + residual** — SoT docs + Platform deprecation docstring; engines **not** deleted | **Partial (narrowed)** — OpenAPI SoT descriptions + FF-DUP-01; engines **not** deleted |
-| **EAB-001-P1-AIGOV-01** | **partial** — SoT + FE package labels | **Partial + residual** — AI_HONESTY cross-links; twin name residual | See AI_HONESTY / STREAM-B-M1 (Arabic gated) |
-| **EAB-001-P1-DUP-02** | **partial (doc only)** | **Partial + residual** — dedicated CAPABILITY-DUP-REGISTER; no code remount | Prompt dual-registry quarantine strengthened |
+| ID | Stream C | EAB-002 post-verify | Stream B M1 (2026-08-08) | 2026-08-12 agent |
+|----|----------|---------------------|--------------------------|------------------|
+| **EAB-001-P0-DUP-01** | **partial** — HTTP SoT + remount; engines + FE twin residual | **Partial + residual** — SoT docs + Platform deprecation docstring; engines **not** deleted | **Partial (narrowed)** — OpenAPI SoT descriptions + FF-DUP-01; engines **not** deleted | **Partial (narrowed further)** — FE ledger Center-only; Platform explain/feedback tenant-scoped; engines **not** deleted |
+| **EAB-001-P1-AIGOV-01** | **partial** — SoT + FE package labels | **Partial + residual** — AI_HONESTY cross-links; twin name residual | See AI_HONESTY / STREAM-B-M1 (Arabic gated) | unchanged (flag still False) |
+| **EAB-001-P1-DUP-02** | **partial (doc only)** | **Partial + residual** — dedicated CAPABILITY-DUP-REGISTER; no code remount | Prompt dual-registry quarantine strengthened | unchanged |
 
 ---
 

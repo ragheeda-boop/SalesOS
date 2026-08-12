@@ -297,7 +297,7 @@ async def explain_decision(
     _token: dict = Depends(verify_token),
 ):
     engine = _engine()
-    explainability = engine.explain(decision_id)
+    explainability = engine.explain(decision_id, tenant_id)
     if explainability is None:
         raise HTTPException(status_code=404, detail="Decision not found")
 

@@ -27,7 +27,7 @@ from pathlib import Path
 # Ensure backend is on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import Column, MetaData, String, Table, func, select
+from sqlalchemy import column, func, select, table
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from benchmark.data_generator import DataGenerator
@@ -112,11 +112,8 @@ _BENCHMARK_INDEXES = (
     "ON companies USING GIN (city gin_trgm_ops)",
 )
 
-_companies_count = Table(
-    "companies",
-    MetaData(),
-    Column("id", String, primary_key=True),
-)
+# table()/column() — avoid MetaData island (EAB-001-P1-DRIFT-01).
+_companies_count = table("companies", column("id"))
 
 
 async def ensure_tables(db: AsyncSession, engine_is_pg: bool = False) -> None:
