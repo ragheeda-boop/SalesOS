@@ -193,8 +193,64 @@ async def test_evaluate_returns_before_slow_event_publish():
     assert result is not None
     assert result.get("decision_id")
     assert elapsed < 1.0, f"evaluate blocked on publish: {elapsed:.2f}s"
+    # call_soon defers create_task until after current coroutine yields
+    await asyncio.sleep(0)
     await asyncio.wait_for(publish_started.wait(), timeout=1.0)
     assert er.publish.await_count == 1
     publish_release.set()
     # Let the background task finish cleanly.
     await asyncio.sleep(0.05)
+
+
+@pytest.mark.asyncio
+async def test_evaluate_background_tasks_queues_publish_not_inline():
+    """Starlette BackgroundTasks path must not start publish during evaluate."""
+    from runtime.context_runtime import CompanyContext
+    from runtime.recommendation_runtime import Recommendation
+
+    ctx = CompanyContext()
+    cb = MagicMock()
+    cb.build = AsyncMock(return_value=ctx)
+    pe = MagicMock()
+    pe.evaluate = AsyncMock(return_value=[])
+    pe.metrics.snapshot.return_value = {}
+    rec = Recommendation(
+        recommendation_id="r1",
+        decision_id="d1",
+        company_id="c1",
+        tenant_id="t1",
+        title="t",
+        description="b",
+        priority=1,
+        confidence=0.5,
+    )
+    re = MagicMock()
+    re.generate = AsyncMock(return_value=rec)
+    er = MagicMock()
+    er.publish = AsyncMock()
+
+    queued: list = []
+
+    class _BG:
+        def add_task(self, fn, *args, **kwargs):
+            queued.append((fn, args, kwargs))
+
+    eng = DecisionEngine(
+        session_factory=MagicMock(),
+        context_builder=cb,
+        policy_engine=pe,
+        recommendation_engine=re,
+        event_runtime=er,
+    )
+    eng._save_decision = AsyncMock()
+
+    result = await eng.evaluate("c1", "t1", background_tasks=_BG())
+    await asyncio.sleep(0)
+
+    assert result is not None
+    assert result.get("decision_id")
+    assert er.publish.await_count == 0
+    assert len(queued) == 1
+    fn, args, kwargs = queued[0]
+    await fn(*args, **kwargs)
+    assert er.publish.await_count == 1

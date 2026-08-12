@@ -543,7 +543,17 @@ async def _init_workflow_subscriber(app: FastAPI, logger: StructuredLogger) -> N
             event_bus=event_runtime,
             engine=engine,
         )
-        await subscriber.start()
+        # Prefer bounded register over subscribe defaults (3×10s) for wildcards.
+        if hasattr(event_runtime, "register"):
+            event_runtime.register(
+                "*",
+                subscriber._handle_event,
+                name="workflow_event_wildcard",
+                max_retries=1,
+                timeout_seconds=5.0,
+            )
+        else:
+            await subscriber.start()
         app.state.workflow_subscriber = subscriber
         logger.info("  workflow subscriber: ok")
     except Exception:

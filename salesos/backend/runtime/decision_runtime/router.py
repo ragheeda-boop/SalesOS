@@ -24,7 +24,7 @@ Active remount paths are **not** OpenAPI-deprecated (clients may use them for NB
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from app.dependencies import get_current_tenant_id, verify_token
@@ -60,6 +60,7 @@ class FeedbackRequest(BaseModel):
 async def evaluate(
     body: EvaluateRequest,
     request: Request,
+    background_tasks: BackgroundTasks,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     # IL-2A: proves handler entry (past SuspendedTenant / CSRF) when engine hangs.
@@ -71,7 +72,13 @@ async def evaluate(
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         raise HTTPException(status_code=503, detail="Decision Engine not initialized")
-    result = await engine.evaluate(body.company_id, tenant_id)
+    # BackgroundTasks: decision.created (→ AgentTask) runs after response body
+    # is sent — create_task alone still raced AuditMiddleware DB + pool stalls.
+    result = await engine.evaluate(
+        body.company_id,
+        tenant_id,
+        background_tasks=background_tasks,
+    )
     return result
 
 

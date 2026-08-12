@@ -22,6 +22,7 @@ IL-2A Decision → AgentTask contract:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime, timezone, timedelta
@@ -30,6 +31,9 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
+
+# Bound decision.created → AgentTask so idle-DB checkout cannot hang fan-out.
+_IL2A_HANDLER_TIMEOUT_SECONDS = 8.0
 
 # ── Signal → Task Kind Mapping ─────────────────────────────────────
 
@@ -314,11 +318,14 @@ async def on_decision_created_event(
 
     token = set_current_tenant_id(tenant_id)
     t0 = time.monotonic()
+    # Idle-DB / PgBouncer can sit 5–10s with checked_out=0; bound the whole
+    # handler so fan-out cannot stack on evaluate's background publish.
     logger.info(
         "IL-2A on_decision_created enter",
         extra={"decision_id": decision_id, "tenant_id": tenant_id, "step": "enter"},
     )
-    try:
+
+    async def _handle() -> dict:
         async with session_factory() as session:
             await apply_tenant_guc(session, tenant_id)
             logger.info(
@@ -413,6 +420,25 @@ async def on_decision_created_event(
                 "decision_type": decision_type,
                 "reason": "created",
             }
+
+    try:
+        return await asyncio.wait_for(_handle(), timeout=_IL2A_HANDLER_TIMEOUT_SECONDS)
+    except TimeoutError:
+        logger.warning(
+            "IL-2A on_decision_created handler_timeout",
+            extra={
+                "decision_id": decision_id,
+                "step": "handler_timeout",
+                "timeout_s": _IL2A_HANDLER_TIMEOUT_SECONDS,
+                "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+            },
+        )
+        return {
+            "created": 0,
+            "skipped": 0,
+            "errors": 1,
+            "reason": "handler_timeout",
+        }
     except Exception:
         logger.exception(
             "IL-2A on_decision_created failed",

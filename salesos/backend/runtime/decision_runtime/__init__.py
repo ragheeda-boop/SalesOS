@@ -50,9 +50,58 @@ _DEFAULT_DECISION_TTL_SECONDS = 3600
 # Identity register already hit this: EventRuntime store + subscriber fan-out
 # (RetryPolicy 3× asyncio.wait_for(..., 10) per handler) blocks the awaiter
 # ~30s while pool shows idle. Evaluate must return decision_id first; IL-2A
-# AgentTask still runs via create_task fan-out (same pattern as
-# app.modules.identity.service._publish_best_effort).
-_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS = 60.0
+# AgentTask still runs via BackgroundTasks / deferred create_task (same class
+# of fix as app.modules.identity.service._publish_best_effort).
+# Keep safety bound short — a hung publish must not look like a 60s HTTP stall.
+_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS = 15.0
+
+
+async def _run_decision_event_publish(
+    event_runtime: Any,
+    event: BaseDomainEvent,
+    *,
+    decision_id: str = "",
+) -> None:
+    """Awaitable publish with safety timeout (Starlette BackgroundTasks)."""
+    if event_runtime is None:
+        return
+    t0 = time.monotonic()
+    try:
+        logger.info(
+            "decision_engine.event_publish start",
+            extra={
+                "decision_id": decision_id,
+                "event_type": getattr(event, "event_type", ""),
+                "step": "start",
+            },
+        )
+        await asyncio.wait_for(
+            event_runtime.publish(event),
+            timeout=_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
+        )
+        logger.info(
+            "decision_engine.event_publish done",
+            extra={
+                "decision_id": decision_id,
+                "step": "done",
+                "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+            },
+        )
+    except TimeoutError:
+        logger.warning(
+            "decision_engine.event_publish safety_timeout",
+            extra={
+                "decision_id": decision_id,
+                "step": "safety_timeout",
+                "timeout_s": _EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
+                "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
+            },
+        )
+    except Exception:
+        logger.exception(
+            "decision_engine.event_publish failed",
+            extra={"decision_id": decision_id, "step": "failed"},
+        )
 
 
 def _publish_decision_event_best_effort(
@@ -61,51 +110,26 @@ def _publish_decision_event_best_effort(
     *,
     decision_id: str = "",
 ) -> None:
-    """Schedule EventRuntime.publish off the HTTP critical path."""
+    """Schedule EventRuntime.publish off the HTTP critical path.
+
+    Uses ``call_soon`` so the publish task cannot start until the current
+    coroutine yields — letting FastAPI flush ``decision_id`` first. Prefer
+    Starlette BackgroundTasks from the evaluate router when available.
+    """
     if event_runtime is None:
         return
 
-    async def _run() -> None:
-        t0 = time.monotonic()
-        try:
-            logger.info(
-                "decision_engine.event_publish start",
-                extra={
-                    "decision_id": decision_id,
-                    "event_type": getattr(event, "event_type", ""),
-                    "step": "start",
-                },
-            )
-            await asyncio.wait_for(
-                event_runtime.publish(event),
-                timeout=_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
-            )
-            logger.info(
-                "decision_engine.event_publish done",
-                extra={
-                    "decision_id": decision_id,
-                    "step": "done",
-                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
-                },
-            )
-        except TimeoutError:
-            logger.warning(
-                "decision_engine.event_publish safety_timeout",
-                extra={
-                    "decision_id": decision_id,
-                    "step": "safety_timeout",
-                    "timeout_s": _EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
-                    "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
-                },
-            )
-        except Exception:
-            logger.exception(
-                "decision_engine.event_publish failed",
-                extra={"decision_id": decision_id, "step": "failed"},
+    try:
+        loop = asyncio.get_running_loop()
+
+        def _schedule() -> None:
+            loop.create_task(
+                _run_decision_event_publish(
+                    event_runtime, event, decision_id=decision_id
+                )
             )
 
-    try:
-        asyncio.get_running_loop().create_task(_run())
+        loop.call_soon(_schedule)
         logger.info(
             "decision_engine.event_publish scheduled",
             extra={
@@ -181,8 +205,19 @@ class DecisionEngine:
         self._max_decisions = _DEFAULT_MAX_DECISIONS
         self._decision_ttl = _DEFAULT_DECISION_TTL_SECONDS
 
-    async def evaluate(self, company_id: str, tenant_id: str) -> Optional[dict]:
-        """Evaluate company and return Next Best Action."""
+    async def evaluate(
+        self,
+        company_id: str,
+        tenant_id: str,
+        *,
+        background_tasks: Any = None,
+    ) -> Optional[dict]:
+        """Evaluate company and return Next Best Action.
+
+        When ``background_tasks`` (Starlette BackgroundTasks) is provided,
+        ``decision.created`` is queued to run *after* the HTTP response is
+        sent — stronger guarantee than concurrent ``create_task``.
+        """
         t0 = time.monotonic()
         self.metrics.evaluations += 1
 
@@ -273,7 +308,7 @@ class DecisionEngine:
         )
         _step("recommendation_generated")
 
-        # 9. Publish event (non-blocking — fan-out must not stall NBA HTTP)
+        # 9. Publish event AFTER response when BackgroundTasks available
         _step("event_publish_begin")
         event = DecisionEvent(
             event_type=DecisionEventType.CREATED,
@@ -282,11 +317,28 @@ class DecisionEngine:
             tenant_id=tenant_id,
             decision_type=decision.decision_type.value,
         )
-        _publish_decision_event_best_effort(
-            self._event_runtime,
-            _to_domain_event(event.to_domain_event()),
-            decision_id=decision.decision_id,
-        )
+        domain_event = _to_domain_event(event.to_domain_event())
+        if background_tasks is not None:
+            background_tasks.add_task(
+                _run_decision_event_publish,
+                self._event_runtime,
+                domain_event,
+                decision_id=decision.decision_id,
+            )
+            logger.info(
+                "decision_engine.event_publish scheduled",
+                extra={
+                    "decision_id": decision.decision_id,
+                    "event_type": domain_event.event_type,
+                    "step": "background_tasks",
+                },
+            )
+        else:
+            _publish_decision_event_best_effort(
+                self._event_runtime,
+                domain_event,
+                decision_id=decision.decision_id,
+            )
         _step("event_published")
 
         elapsed = (time.monotonic() - t0) * 1000

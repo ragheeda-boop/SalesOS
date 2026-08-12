@@ -496,6 +496,34 @@ class TestOnDecisionCreatedEvent:
         session.close.assert_awaited_once()
         assert get_current_tenant_id_context() == baseline
 
+    def test_handler_timeout_returns_reason(self, monkeypatch):
+        async def fake_trigger(session, decisions, tenant_id):
+            await asyncio.sleep(5.0)
+            return {"created": 1, "skipped": 0, "errors": 0}
+
+        monkeypatch.setattr(
+            "runtime.agent_runtime.triggers.trigger_tasks_from_decisions", fake_trigger
+        )
+        monkeypatch.setattr(
+            "runtime.agent_runtime.triggers._IL2A_HANDLER_TIMEOUT_SECONDS",
+            0.05,
+        )
+
+        engine = _FakeDecisionEngine(
+            decision={
+                "decision_type": "recommend_demo",
+                "company_id": "C1",
+                "confidence": 0.5,
+                "priority": 0,
+                "reasoning": "x",
+            }
+        )
+        result = asyncio.run(
+            on_decision_created_event(_FakeSessionFactory(), _FakeEvent(), engine)
+        )
+        assert result["reason"] == "handler_timeout"
+        assert result["errors"] == 1
+
     def test_idempotency_delegated_to_schedule_task(self, monkeypatch):
         """Current contract: schedule_task dedupes unfinished (tenant, kind, entity).
 

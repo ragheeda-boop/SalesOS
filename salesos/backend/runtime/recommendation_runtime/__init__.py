@@ -234,7 +234,6 @@ class RecommendationEngine:
             "name": "General Recommendation",
             "description": "Standard recommendation based on available data",
             "decision_type": decision_type,
-            "priority": priority,
             "actions": [
                 {"order": 1, "action_type": "call", "description": "Reach out to key contacts"},
                 {"order": 2, "action_type": "follow_up", "description": "Follow up with relevant content"},
