@@ -46,7 +46,8 @@ import {
   Eye,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
-import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import api, { getCurrentUser } from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { ExperimentalAiBadge } from "@/components/ai/ExperimentalAiBadge";
 
@@ -402,6 +403,15 @@ export default function DecisionCenterPage() {
 
   const tenantId = getTenantId();
 
+  // CTO window P1 (2026-08-08): honesty banners admin/owner only — not end-user chrome.
+  const { data: currentUser } = useQuery({
+    queryKey: ["profile", "me"],
+    queryFn: getCurrentUser,
+    staleTime: 5 * 60 * 1000,
+  });
+  const showHonestyBanner =
+    currentUser?.role === "admin" || currentUser?.role === "owner";
+
   const { data, isLoading, isError, error, refetch } = useDecisionCenterList(50);
 
   const feedbackStats = useDecisionFeedbackStats();
@@ -677,14 +687,17 @@ export default function DecisionCenterPage() {
             <ExperimentalAiBadge />
           </div>
           <p className="mt-1 text-sm text-[var(--text-muted)]">{t("decisions.subtitle")}</p>
-          <p
-            className="mt-1 text-xs text-[var(--text-muted)]"
-            data-testid="decisions-honesty-banner"
-          >
-            Ledger list = Decision Center /api/v1/decisions. Accept/dismiss =
-            Center feedback (up→accepted, down→rejected). Evaluate/scores stay
-            on Platform /api/v1/decision/*. Not FE STUB; not AI-native GA.
-          </p>
+          {showHonestyBanner ? (
+            <p
+              className="mt-1 text-xs text-[var(--text-muted)]"
+              data-testid="decisions-honesty-banner"
+            >
+              Ledger list = Decision Center /api/v1/decisions. Accept/dismiss =
+              Center feedback (up→accepted, down→rejected). Evaluate/scores stay
+              on Platform /api/v1/decision/*. Not FE STUB; not AI-native GA.
+              Not Production GO / RAG GO.
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
           <Link href="/decisions/templates">
