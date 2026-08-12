@@ -136,3 +136,65 @@ async def test_evaluate_continues_when_persist_fails():
     assert result is not None
     assert result["company_id"] == "c1"
     assert eng.metrics.decisions_created == 1
+
+
+@pytest.mark.asyncio
+async def test_evaluate_returns_before_slow_event_publish():
+    """HTTP evaluate must not await EventRuntime fan-out (RetryPolicy ~30s).
+
+    Same class of stall as identity register: publish store + subscribers
+    with 3×10s wait_for blocks the response even when decision is persisted.
+    """
+    from runtime.context_runtime import CompanyContext
+    from runtime.recommendation_runtime import Recommendation
+
+    ctx = CompanyContext()
+    cb = MagicMock()
+    cb.build = AsyncMock(return_value=ctx)
+    pe = MagicMock()
+    pe.evaluate = AsyncMock(return_value=[])
+    pe.metrics.snapshot.return_value = {}
+    rec = Recommendation(
+        recommendation_id="r1",
+        decision_id="d1",
+        company_id="c1",
+        tenant_id="t1",
+        title="t",
+        description="b",
+        priority=1,
+        confidence=0.5,
+    )
+    re = MagicMock()
+    re.generate = AsyncMock(return_value=rec)
+
+    publish_started = asyncio.Event()
+    publish_release = asyncio.Event()
+
+    async def _slow_publish(_event):
+        publish_started.set()
+        await publish_release.wait()
+
+    er = MagicMock()
+    er.publish = AsyncMock(side_effect=_slow_publish)
+
+    eng = DecisionEngine(
+        session_factory=MagicMock(),
+        context_builder=cb,
+        policy_engine=pe,
+        recommendation_engine=re,
+        event_runtime=er,
+    )
+    eng._save_decision = AsyncMock()
+
+    t0 = asyncio.get_running_loop().time()
+    result = await eng.evaluate("c1", "t1")
+    elapsed = asyncio.get_running_loop().time() - t0
+
+    assert result is not None
+    assert result.get("decision_id")
+    assert elapsed < 1.0, f"evaluate blocked on publish: {elapsed:.2f}s"
+    await asyncio.wait_for(publish_started.wait(), timeout=1.0)
+    assert er.publish.await_count == 1
+    publish_release.set()
+    # Let the background task finish cleanly.
+    await asyncio.sleep(0.05)

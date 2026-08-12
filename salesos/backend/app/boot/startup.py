@@ -562,16 +562,47 @@ async def _init_agent_task_trigger_subscriber(app: FastAPI, logger: StructuredLo
 
         async def _on_decision_created(event: DomainEvent) -> None:
             # IL-2A: Decision → AgentTask wiring only. Claim/run is IL-2B.2.
+            # Runs under EventRuntime RetryPolicy (default 10s wait_for). Keep
+            # max_retries=1 so a hung handler cannot burn ~30s on evaluate's
+            # background publish task (HTTP no longer awaits publish).
+            import time as _time
+
+            t0 = _time.monotonic()
+            did = (getattr(event, "data", None) or {}).get("decision_id", "")
+            logger.info(
+                "IL-2A subscriber enter decision_id=%s event_type=%s",
+                did,
+                getattr(event, "event_type", ""),
+            )
             try:
                 await on_decision_created_event(
                     getattr(app.state, "db_session_factory", None) or async_session,
                     event,
                     decision_engine=getattr(app.state, "decision_engine", None),
                 )
+                logger.info(
+                    "IL-2A subscriber done decision_id=%s elapsed_ms=%.1f",
+                    did,
+                    (_time.monotonic() - t0) * 1000,
+                )
             except Exception:
-                logger.exception("IL-2A decision.created → AgentTask failed")
+                logger.exception(
+                    "IL-2A decision.created → AgentTask failed decision_id=%s "
+                    "elapsed_ms=%.1f",
+                    did,
+                    (_time.monotonic() - t0) * 1000,
+                )
 
-        event_runtime.subscribe("decision.created", _on_decision_created)
+        # Prefer register() so we can bound retries (subscribe() defaults to 3).
+        if hasattr(event_runtime, "register"):
+            event_runtime.register(
+                "decision.created",
+                _on_decision_created,
+                name="il2a_decision_agent_task",
+                max_retries=1,
+            )
+        else:
+            event_runtime.subscribe("decision.created", _on_decision_created)
         app.state.agent_task_trigger_subscriber = _on_decision_created
         logger.info("  agent task trigger subscriber: ok")
     except Exception:

@@ -47,6 +47,68 @@ logger = logging.getLogger(__name__)
 _DEFAULT_MAX_DECISIONS = 10000
 _DEFAULT_DECISION_TTL_SECONDS = 3600
 
+# Identity register already hit this: EventRuntime store + subscriber fan-out
+# (RetryPolicy 3× asyncio.wait_for(..., 10) per handler) blocks the awaiter
+# ~30s while pool shows idle. Evaluate must return decision_id first; IL-2A
+# AgentTask still runs via create_task fan-out (same pattern as
+# app.modules.identity.service._publish_best_effort).
+_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS = 60.0
+
+
+def _publish_decision_event_best_effort(
+    event_runtime: Any,
+    event: BaseDomainEvent,
+    *,
+    decision_id: str = "",
+) -> None:
+    """Schedule EventRuntime.publish off the HTTP critical path."""
+    if event_runtime is None:
+        return
+
+    async def _run() -> None:
+        t0 = time.monotonic()
+        try:
+            logger.info(
+                "decision_engine.event_publish start decision_id=%s event_type=%s",
+                decision_id,
+                getattr(event, "event_type", ""),
+            )
+            await asyncio.wait_for(
+                event_runtime.publish(event),
+                timeout=_EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
+            )
+            logger.info(
+                "decision_engine.event_publish done decision_id=%s elapsed_ms=%.1f",
+                decision_id,
+                (time.monotonic() - t0) * 1000,
+            )
+        except TimeoutError:
+            logger.warning(
+                "decision_engine.event_publish safety_timeout decision_id=%s "
+                "timeout_s=%s elapsed_ms=%.1f",
+                decision_id,
+                _EVENT_PUBLISH_SAFETY_TIMEOUT_SECONDS,
+                (time.monotonic() - t0) * 1000,
+            )
+        except Exception:
+            logger.exception(
+                "decision_engine.event_publish failed decision_id=%s",
+                decision_id,
+            )
+
+    try:
+        asyncio.get_running_loop().create_task(_run())
+        logger.info(
+            "decision_engine.event_publish scheduled decision_id=%s event_type=%s",
+            decision_id,
+            getattr(event, "event_type", ""),
+        )
+    except Exception:
+        logger.exception(
+            "decision_engine.event_publish schedule_failed decision_id=%s",
+            decision_id,
+        )
+
 
 @dataclass
 class DecisionEngineMetrics:
@@ -200,18 +262,20 @@ class DecisionEngine:
         )
         _step("recommendation_generated")
 
-        # 9. Publish event
-        try:
-            event = DecisionEvent(
-                event_type=DecisionEventType.CREATED,
-                decision_id=decision.decision_id,
-                company_id=company_id,
-                tenant_id=tenant_id,
-                decision_type=decision.decision_type.value,
-            )
-            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
-        except Exception:
-            pass
+        # 9. Publish event (non-blocking — fan-out must not stall NBA HTTP)
+        _step("event_publish_begin")
+        event = DecisionEvent(
+            event_type=DecisionEventType.CREATED,
+            decision_id=decision.decision_id,
+            company_id=company_id,
+            tenant_id=tenant_id,
+            decision_type=decision.decision_type.value,
+        )
+        _publish_decision_event_best_effort(
+            self._event_runtime,
+            _to_domain_event(event.to_domain_event()),
+            decision_id=decision.decision_id,
+        )
         _step("event_published")
 
         elapsed = (time.monotonic() - t0) * 1000
@@ -240,18 +304,19 @@ class DecisionEngine:
         decision.status = DecisionStatus.ACCEPTED
         self.metrics.decisions_accepted += 1
         await self._update_status(decision_id, "accepted", tenant_id)
-        try:
-            event = DecisionEvent(
-                event_type=DecisionEventType.ACCEPTED,
-                decision_id=decision_id,
-                company_id=decision.company_id,
-                tenant_id=decision.tenant_id,
-                decision_type=decision.decision_type.value,
-                new_status="accepted",
-            )
-            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
-        except Exception:
-            pass
+        event = DecisionEvent(
+            event_type=DecisionEventType.ACCEPTED,
+            decision_id=decision_id,
+            company_id=decision.company_id,
+            tenant_id=decision.tenant_id,
+            decision_type=decision.decision_type.value,
+            new_status="accepted",
+        )
+        _publish_decision_event_best_effort(
+            self._event_runtime,
+            _to_domain_event(event.to_domain_event()),
+            decision_id=decision_id,
+        )
         return True
 
     async def execute_decision(self, decision_id: str, tenant_id: str, user_id: Optional[str] = None) -> bool:
@@ -262,18 +327,19 @@ class DecisionEngine:
         decision.executed_at = datetime.now(timezone.utc)
         self.metrics.decisions_executed += 1
         await self._update_status(decision_id, "executed", tenant_id)
-        try:
-            event = DecisionEvent(
-                event_type=DecisionEventType.EXECUTED,
-                decision_id=decision_id,
-                company_id=decision.company_id,
-                tenant_id=decision.tenant_id,
-                decision_type=decision.decision_type.value,
-                new_status="executed",
-            )
-            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
-        except Exception:
-            pass
+        event = DecisionEvent(
+            event_type=DecisionEventType.EXECUTED,
+            decision_id=decision_id,
+            company_id=decision.company_id,
+            tenant_id=decision.tenant_id,
+            decision_type=decision.decision_type.value,
+            new_status="executed",
+        )
+        _publish_decision_event_best_effort(
+            self._event_runtime,
+            _to_domain_event(event.to_domain_event()),
+            decision_id=decision_id,
+        )
         return True
 
     async def submit_feedback(
@@ -299,18 +365,19 @@ class DecisionEngine:
             notes=notes,
             user_id=user_id,
         )
-        try:
-            event = DecisionEvent(
-                event_type=DecisionEventType.FEEDBACK_RECEIVED,
-                decision_id=decision_id,
-                company_id=decision.company_id,
-                tenant_id=decision.tenant_id,
-                decision_type=decision.decision_type.value,
-                feedback=vars(decision.feedback),
-            )
-            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
-        except Exception:
-            pass
+        event = DecisionEvent(
+            event_type=DecisionEventType.FEEDBACK_RECEIVED,
+            decision_id=decision_id,
+            company_id=decision.company_id,
+            tenant_id=decision.tenant_id,
+            decision_type=decision.decision_type.value,
+            feedback=vars(decision.feedback),
+        )
+        _publish_decision_event_best_effort(
+            self._event_runtime,
+            _to_domain_event(event.to_domain_event()),
+            decision_id=decision_id,
+        )
         return True
 
     def get_decision(self, decision_id: str, tenant_id: str) -> Optional[dict]:

@@ -23,6 +23,7 @@ IL-2A Decision → AgentTask contract:
 from __future__ import annotations
 
 import logging
+import time
 from datetime import datetime, timezone, timedelta
 from typing import Any
 
@@ -312,64 +313,96 @@ async def on_decision_created_event(
     )
 
     token = set_current_tenant_id(tenant_id)
-    session = session_factory()
+    t0 = time.monotonic()
+    logger.info(
+        "IL-2A on_decision_created enter decision_id=%s tenant_id=%s",
+        decision_id,
+        tenant_id,
+    )
     try:
-        await apply_tenant_guc(session, tenant_id)
-
-        decision = decision_engine.get_decision(decision_id, tenant_id)
-        if not decision:
-            return {
-                "created": 0, "skipped": 0, "errors": 0,
-                "reason": "decision_not_found",
-            }
-
-        decision_type = (decision.get("decision_type") or "").lower()
-        company_id = decision.get("company_id") or ""
-        if not company_id:
-            return {"created": 0, "skipped": 0, "errors": 0, "reason": "no_company_id"}
-
-        if not SignalTaskMapper.should_create_agent_task(decision_type):
+        async with session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             logger.info(
-                "IL-2A skip: decision_id=%s type=%s reason=not_task_generating",
-                decision_id, decision_type,
+                "IL-2A on_decision_created step=tenant_guc elapsed_ms=%.1f decision_id=%s",
+                (time.monotonic() - t0) * 1000,
+                decision_id,
+            )
+
+            decision = decision_engine.get_decision(decision_id, tenant_id)
+            if not decision:
+                logger.info(
+                    "IL-2A on_decision_created reason=decision_not_found decision_id=%s",
+                    decision_id,
+                )
+                return {
+                    "created": 0, "skipped": 0, "errors": 0,
+                    "reason": "decision_not_found",
+                }
+
+            decision_type = (decision.get("decision_type") or "").lower()
+            company_id = decision.get("company_id") or ""
+            if not company_id:
+                return {"created": 0, "skipped": 0, "errors": 0, "reason": "no_company_id"}
+
+            if not SignalTaskMapper.should_create_agent_task(decision_type):
+                logger.info(
+                    "IL-2A skip: decision_id=%s type=%s reason=not_task_generating",
+                    decision_id, decision_type,
+                )
+                return {
+                    "created": 0, "skipped": 0, "errors": 0,
+                    "reason": "not_task_generating",
+                    "decision_type": decision_type,
+                }
+
+            task_kind = SignalTaskMapper.task_kind_for_decision_type(decision_type)
+            confidence = float(decision.get("confidence") or 0.5)
+            priority = int(decision.get("priority") or 0)
+            reasoning = str(
+                decision.get("reasoning") or f"Decision {decision_type}"
+            )[:200]
+            intensity = min(max(priority / 100.0, 0.0), 1.0)
+
+            logger.info(
+                "IL-2A on_decision_created step=schedule_begin elapsed_ms=%.1f "
+                "decision_id=%s task_kind=%s",
+                (time.monotonic() - t0) * 1000,
+                decision_id,
+                task_kind,
+            )
+            stats = await trigger_tasks_from_decisions(
+                session,
+                [{
+                    "category": decision_type,
+                    "task_kind": task_kind,
+                    "entity_type": "company",
+                    "entity_id": company_id,
+                    "intensity": intensity,
+                    "confidence": confidence,
+                    "title": reasoning,
+                }],
+                tenant_id,
+            )
+            await session.commit()
+            logger.info(
+                "IL-2A on_decision_created done elapsed_ms=%.1f decision_id=%s "
+                "created=%s reason=created",
+                (time.monotonic() - t0) * 1000,
+                decision_id,
+                stats.get("created", 0),
             )
             return {
-                "created": 0, "skipped": 0, "errors": 0,
-                "reason": "not_task_generating",
-                "decision_type": decision_type,
-            }
-
-        task_kind = SignalTaskMapper.task_kind_for_decision_type(decision_type)
-        confidence = float(decision.get("confidence") or 0.5)
-        priority = int(decision.get("priority") or 0)
-        reasoning = str(
-            decision.get("reasoning") or f"Decision {decision_type}"
-        )[:200]
-        intensity = min(max(priority / 100.0, 0.0), 1.0)
-
-        stats = await trigger_tasks_from_decisions(
-            session,
-            [{
-                "category": decision_type,
+                **stats,
                 "task_kind": task_kind,
-                "entity_type": "company",
-                "entity_id": company_id,
-                "intensity": intensity,
-                "confidence": confidence,
-                "title": reasoning,
-            }],
-            tenant_id,
-        )
-        await session.commit()
-        return {
-            **stats,
-            "task_kind": task_kind,
-            "decision_type": decision_type,
-            "reason": "created",
-        }
+                "decision_type": decision_type,
+                "reason": "created",
+            }
     except Exception:
-        await session.rollback()
+        logger.exception(
+            "IL-2A on_decision_created failed decision_id=%s elapsed_ms=%.1f",
+            decision_id,
+            (time.monotonic() - t0) * 1000,
+        )
         raise
     finally:
-        await session.close()
         reset_current_tenant_id(token)

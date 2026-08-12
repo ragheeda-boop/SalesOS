@@ -7,6 +7,7 @@ and idempotent task scheduling.
 """
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -286,13 +287,14 @@ async def schedule_task(
         text("""
             INSERT INTO agent_tasks (tenant_id, kind, entity_type, entity_id,
                 priority, due_at, budget, input_data, idempotency_key)
-            VALUES (:tid, :kind, :etype, :eid, :pri, :due, :budget, :data, :idem)
+            VALUES (:tid, :kind, :etype, :eid, :pri, :due, :budget,
+                CAST(:data AS jsonb), :idem)
             RETURNING *
         """),
         {
             "tid": tenant_id, "kind": kind, "etype": entity_type, "eid": entity_id,
             "pri": priority, "due": due, "budget": budget,
-            "data": f'{{"reason": "{reason}"}}', "idem": idempotency_key,
+            "data": json.dumps({"reason": reason}), "idem": idempotency_key,
         },
     )
     row = result.fetchone()
