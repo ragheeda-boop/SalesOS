@@ -192,3 +192,26 @@ def test_run_task_repins_guc_after_commit():
 
     src = inspect.getsource(AgentRuntime._run_task_internal)
     assert src.count("apply_tenant_guc") >= 2
+
+
+def test_running_update_sql_uses_named_and_fence():
+    """{:and_fence} is a format spec, not a field name.
+
+    Live Handler failed with: Replacement index 0 out of range for positional
+    args tuple -- claim succeeded, run never started.
+    """
+    import inspect
+    from runtime.agent_runtime import AgentRuntime
+
+    src = inspect.getsource(AgentRuntime._run_task_internal)
+    assert "{:and_fence}" not in src
+    assert "{and_fence}" in src
+
+    sql = (
+        "UPDATE agent_tasks SET status = 'RUNNING', session_id = :sid, updated_at = :now\n"
+        "WHERE id = :tid AND status = 'CLAIMED'\n"
+        "{and_fence}"
+    ).format(and_fence="AND lease_generation = :gen")
+    assert "AND lease_generation = :gen" in sql
+    assert ":sid" in sql
+    assert ":tid" in sql

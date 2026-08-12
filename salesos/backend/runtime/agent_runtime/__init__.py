@@ -93,7 +93,7 @@ class AgentRuntime:
             text("""
                 UPDATE agent_tasks SET status = 'RUNNING', session_id = :sid, updated_at = :now
                 WHERE id = :tid AND status = 'CLAIMED'
-                {:and_fence}
+                {and_fence}
             """.format(and_fence="AND lease_generation = :gen" if lease_generation else "")),
             {k: v for k, v in {
                 "tid": task_id, "sid": str(run.id), "now": datetime.now(timezone.utc),
