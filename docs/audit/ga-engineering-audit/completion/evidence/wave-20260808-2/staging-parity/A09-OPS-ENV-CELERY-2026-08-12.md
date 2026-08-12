@@ -57,3 +57,22 @@ GitHub secret `RAILWAY_STAGING_ENVIRONMENT_ID` (repo + Environment `staging`) wa
 5. Expect: gate SUCCESS → Railway up SUCCESS → health gate HTTP 200.
 
 Do **not** paste token values into chat, commits, or evidence docs.
+
+---
+
+## Residual local WIP (left uncommitted) — after push df5028c
+
+**Decision:** **left uncommitted** (not required for current staging celery health; incomplete cutover).
+
+Dirty paths reviewed 2026-08-12:
+
+| Path | Intent | Risk |
+|------|--------|------|
+| salesos/backend/docker-entrypoint.sh | Role switch via arg / SERVICE_ROLE (pi / worker / eat) | #!/bin/bash + duplicate set -euo; drops RUN_MIGRATIONS + exec "$@" passthrough; role names ≠ RAILWAY_SERVICE_NAME (celery-worker / celery-beat) |
+| salesos/backend/Dockerfile | Copy entrypoint; ENTRYPOINT + CMD ["api"]; removes image HEALTHCHECK | API healthcheck regression unless Railway health covers it; workers sharing this image need startCommand / SERVICE_ROLE |
+| salesos/railway.json | Removes RAILWAY_SERVICE_NAME branching startCommand | **High** — staging celery currently depends on that branch (ops evidence above). Without dashboard startCommand / SERVICE_ROLE, all services fall through to Dockerfile pi |
+| salesos/backend/app/celery_app.py | Explicit task module imports + utodiscover_tasks() | Likely good alone, but bundled with incomplete entrypoint cutover — do not land piecemeal without deploy plan |
+
+**Keep live path:** pushed salesos/railway.json startCommand branching on RAILWAY_SERVICE_NAME (plus root 
+ailway.worker.json / 
+ailway.beat.json for prod-style CaC). Revisit entrypoint cutover only with coordinated Railway service start commands and a staging redeploy check.

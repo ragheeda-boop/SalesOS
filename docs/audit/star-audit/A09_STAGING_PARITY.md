@@ -46,7 +46,8 @@ Supersedes the stale “409 commits behind / no staging host” reading for **ho
 6. Wave 11 / PROD-W11-002 soak claim flip after human review of 72h failures  
 7. Push A-09 `6cbcf9f` (branching `railway.json`) to `origin/master` so GitHub tip is not uvicorn-only  
 8. Reconcile user-supplied Railway env UUIDs (`1ef5b31a-…` / `29252eae-…`) — not in CLI workspace  
-9. Staging Neo4j reachability (`:6432` connect failures on `agent_dispatch_all`) — separate from beat online  
+9. Local WIP (entrypoint / Dockerfile / salesos/railway.json startCommand removal + celery_app imports) — **left uncommitted** after df5028c; see [A09-OPS-ENV-CELERY-2026-08-12.md](../ga-engineering-audit/completion/evidence/wave-20260808-2/staging-parity/A09-OPS-ENV-CELERY-2026-08-12.md) residual
+10. Staging Neo4j reachability (`:6432` connect failures on `agent_dispatch_all`) — separate from beat online  
 
 ---
 
