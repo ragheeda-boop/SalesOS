@@ -29,7 +29,7 @@ Related probes: [`IL-2A-SAVE-DECISION-DB-PROBE.md`](./IL-2A-SAVE-DECISION-DB-PRO
 
 On a company that already had a `research_company` task (COMPLETED), re-evaluate hit `UniqueViolation` on `idempotency_key`, then logging used reserved LogRecord key `created` → **`KeyError: 'created'`**.
 
-**Fix:** idempotency-key pre-check + IntegrityError savepoint fallback in `schedule_task`; triggers treat finished/UniqueViolation as **skipped**; log field renamed to `tasks_created` (see commit after this gate note).
+**Fix:** idempotency-key pre-check + IntegrityError savepoint fallback in `schedule_task`; triggers treat finished/UniqueViolation as **skipped**; log field renamed to `tasks_created` — commit `6a069d23`.
 
 ## Next (do not start without approval)
 
