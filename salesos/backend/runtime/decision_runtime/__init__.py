@@ -114,16 +114,31 @@ class DecisionEngine:
         t0 = time.monotonic()
         self.metrics.evaluations += 1
 
+        def _step(step: str) -> None:
+            # IL-2A: identify which await hangs (no DecisionEngine errors today).
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            logger.info(
+                "decision_engine.evaluate step=%s elapsed_ms=%.1f company_id=%s",
+                step,
+                elapsed_ms,
+                company_id,
+            )
+
+        _step("start")
+
         # 1. Build context
         context = await self._context_builder.build(company_id, tenant_id)
+        _step("context_built")
 
         # 2. Evaluate policies
         policies = await self._policy_engine.evaluate(context.to_dict(), company_id, tenant_id)
         self.metrics.policies_checked += len(policies)
+        _step("policies_evaluated")
 
         # 3. Check for blocks
         blocked = [p for p in policies if p.result == PolicyResult.BLOCK]
         if blocked:
+            _step("blocked")
             return {
                 "decision_id": None,
                 "company_id": company_id,
@@ -134,6 +149,7 @@ class DecisionEngine:
 
         # 4. Determine decision type and confidence
         decision_type, confidence, reasoning = await self._score_decision(context, tenant_id)
+        _step("scored")
 
         # 5. Check existing non-expired decisions
         existing = await self._find_active_decisions(company_id, tenant_id)
@@ -162,6 +178,7 @@ class DecisionEngine:
         self._evict_decisions()
         self._decisions[decision.decision_id] = decision
         self.metrics.decisions_created += 1
+        _step("decision_saved")
 
         # 8. Generate recommendation
         rec = await self._recommendation_engine.generate(
@@ -175,6 +192,7 @@ class DecisionEngine:
             evidence=decision.evidence,
             context=context.to_dict(),
         )
+        _step("recommendation_generated")
 
         # 9. Publish event
         try:
@@ -188,9 +206,11 @@ class DecisionEngine:
             await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
         except Exception:
             pass
+        _step("event_published")
 
         elapsed = (time.monotonic() - t0) * 1000
         self.metrics.total_eval_ms += elapsed
+        _step("done")
 
         return self._build_nba_response(decision, rec, context)
 

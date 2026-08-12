@@ -21,12 +21,15 @@ Deprecated aliases (do not use): former ``/api/v1/decision/*`` and
 Active remount paths are **not** OpenAPI-deprecated (clients may use them for NBA).
 """
 
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from app.dependencies import get_current_tenant_id, verify_token
+
+logger = logging.getLogger(__name__)
 
 _RUNTIME_DESC = (
     "Decision Runtime DIE at /api/v1/decision-runtime — not Decision Center SoT. "
@@ -59,6 +62,12 @@ async def evaluate(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
+    # IL-2A: proves handler entry (past SuspendedTenant / CSRF) when engine hangs.
+    logger.info(
+        "decision_runtime.evaluate enter company_id=%s tenant_id=%s",
+        body.company_id,
+        tenant_id,
+    )
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         raise HTTPException(status_code=503, detail="Decision Engine not initialized")
