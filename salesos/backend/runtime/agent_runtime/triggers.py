@@ -146,6 +146,7 @@ async def trigger_tasks_from_decisions(
     """
     stats: dict[str, int] = {"created": 0, "skipped": 0, "errors": 0}
 
+    from sqlalchemy.exc import IntegrityError
     from runtime.agent_runtime.queue import schedule_task  # lazy to avoid DB init at import
 
     for dec in decisions:
@@ -169,7 +170,7 @@ async def trigger_tasks_from_decisions(
             due_at = datetime.now(timezone.utc) + timedelta(seconds=5)
             reason = dec.get("title", f"Decision: {category}")[:200]
 
-            await schedule_task(
+            task = await schedule_task(
                 session=session,
                 tenant_id=tenant_id,
                 kind=task_kind,
@@ -181,13 +182,27 @@ async def trigger_tasks_from_decisions(
                 budget=4,
                 idempotency_key=idem_key,
             )
-            stats["created"] += 1
+            # Finished row returned via idempotency_key → skip (not a new task).
+            if task is not None and getattr(task, "finished_at", None) is not None:
+                stats["skipped"] += 1
+                logger.info(
+                    "AgentTask idempotent skip: kind=%s entity=%s/%s tenant=%s",
+                    task_kind, entity_type, entity_id, tenant_id,
+                )
+            else:
+                stats["created"] += 1
+                logger.info(
+                    "AgentTask triggered: kind=%s entity=%s/%s tenant=%s priority=%d",
+                    task_kind, entity_type, entity_id, tenant_id, priority,
+                )
 
+        except IntegrityError:
+            # Defensive: schedule_task should absorb UniqueViolation; if not, skip.
+            stats["skipped"] += 1
             logger.info(
-                "AgentTask triggered: kind=%s entity=%s/%s tenant=%s priority=%d",
-                task_kind, entity_type, entity_id, tenant_id, priority,
+                "AgentTask idempotent UniqueViolation skip: %s",
+                dec.get("title", "unknown"),
             )
-
         except Exception:
             stats["errors"] += 1
             logger.exception(
@@ -216,6 +231,7 @@ async def trigger_tasks_from_signals(
     """
     stats: dict[str, int] = {"created": 0, "skipped": 0, "errors": 0}
 
+    from sqlalchemy.exc import IntegrityError
     from runtime.agent_runtime.queue import schedule_task  # lazy to avoid DB init at import
 
     for sig in signals:
@@ -239,7 +255,7 @@ async def trigger_tasks_from_signals(
             due_at = datetime.now(timezone.utc) + timedelta(seconds=5)
             reason = sig.get("title", f"Signal: {signal_type}")[:200]
 
-            await schedule_task(
+            task = await schedule_task(
                 session=session,
                 tenant_id=sig_tenant,
                 kind=task_kind,
@@ -251,8 +267,17 @@ async def trigger_tasks_from_signals(
                 budget=4,
                 idempotency_key=idem_key,
             )
-            stats["created"] += 1
+            if task is not None and getattr(task, "finished_at", None) is not None:
+                stats["skipped"] += 1
+            else:
+                stats["created"] += 1
 
+        except IntegrityError:
+            stats["skipped"] += 1
+            logger.info(
+                "AgentTask idempotent UniqueViolation skip (signal): %s",
+                sig.get("title", "unknown"),
+            )
         except Exception:
             stats["errors"] += 1
             logger.exception(
@@ -404,13 +429,25 @@ async def on_decision_created_event(
                 tenant_id,
             )
             await session.commit()
+            # Do not put "created" in LogRecord extra — it is a reserved attribute
+            # (KeyError on UniqueViolation/idempotent residual path after stats return).
+            if stats.get("created", 0):
+                outcome_reason = "created"
+            elif stats.get("skipped", 0):
+                outcome_reason = "skipped"
+            elif stats.get("errors", 0):
+                outcome_reason = "error"
+            else:
+                outcome_reason = "noop"
             logger.info(
                 "IL-2A on_decision_created done",
                 extra={
                     "decision_id": decision_id,
                     "step": "done",
-                    "reason": "created",
-                    "created": stats.get("created", 0),
+                    "reason": outcome_reason,
+                    "tasks_created": stats.get("created", 0),
+                    "tasks_skipped": stats.get("skipped", 0),
+                    "tasks_errors": stats.get("errors", 0),
                     "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
                 },
             )
@@ -418,7 +455,7 @@ async def on_decision_created_event(
                 **stats,
                 "task_kind": task_kind,
                 "decision_type": decision_type,
-                "reason": "created",
+                "reason": outcome_reason,
             }
 
     try:

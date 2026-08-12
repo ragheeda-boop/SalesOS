@@ -261,6 +261,15 @@ async def schedule_task(
     budget: int = 4,
     idempotency_key: str | None = None,
 ) -> AgentTask:
+    """Schedule a task, merging unfinished work and honoring idempotency_key.
+
+    Idempotency: unfinished (tenant, kind, entity) bumps ``due_at``. If an
+    ``idempotency_key`` already exists (including COMPLETED tasks), return that
+    row — do not raise UniqueViolation. Concurrent insert races use a savepoint
+    and fall back to key lookup.
+    """
+    from sqlalchemy.exc import IntegrityError
+
     now = datetime.now(timezone.utc)
     due = due_at or now
 
@@ -283,19 +292,50 @@ async def schedule_task(
         )
         return await session.get(AgentTask, row.id)
 
-    result = await session.execute(
-        text("""
-            INSERT INTO agent_tasks (tenant_id, kind, entity_type, entity_id,
-                priority, due_at, budget, input_data, idempotency_key)
-            VALUES (:tid, :kind, :etype, :eid, :pri, :due, :budget,
-                CAST(:data AS jsonb), :idem)
-            RETURNING *
-        """),
-        {
-            "tid": tenant_id, "kind": kind, "etype": entity_type, "eid": entity_id,
-            "pri": priority, "due": due, "budget": budget,
-            "data": json.dumps({"reason": reason}), "idem": idempotency_key,
-        },
-    )
-    row = result.fetchone()
-    return AgentTask(**dict(row._mapping)) if row else None
+    # COMPLETED (or any prior) row with same key — IL-2A residual UniqueViolation path.
+    if idempotency_key:
+        by_key = await session.execute(
+            text("""
+                SELECT id FROM agent_tasks
+                WHERE tenant_id = :tid AND idempotency_key = :idem
+                LIMIT 1
+            """),
+            {"tid": tenant_id, "idem": idempotency_key},
+        )
+        key_row = by_key.fetchone()
+        if key_row:
+            return await session.get(AgentTask, key_row.id)
+
+    try:
+        async with session.begin_nested():
+            result = await session.execute(
+                text("""
+                    INSERT INTO agent_tasks (tenant_id, kind, entity_type, entity_id,
+                        priority, due_at, budget, input_data, idempotency_key)
+                    VALUES (:tid, :kind, :etype, :eid, :pri, :due, :budget,
+                        CAST(:data AS jsonb), :idem)
+                    RETURNING *
+                """),
+                {
+                    "tid": tenant_id, "kind": kind, "etype": entity_type, "eid": entity_id,
+                    "pri": priority, "due": due, "budget": budget,
+                    "data": json.dumps({"reason": reason}), "idem": idempotency_key,
+                },
+            )
+            row = result.fetchone()
+            return AgentTask(**dict(row._mapping)) if row else None
+    except IntegrityError:
+        if not idempotency_key:
+            raise
+        by_key = await session.execute(
+            text("""
+                SELECT id FROM agent_tasks
+                WHERE tenant_id = :tid AND idempotency_key = :idem
+                LIMIT 1
+            """),
+            {"tid": tenant_id, "idem": idempotency_key},
+        )
+        key_row = by_key.fetchone()
+        if key_row:
+            return await session.get(AgentTask, key_row.id)
+        raise

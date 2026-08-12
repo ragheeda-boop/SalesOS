@@ -126,7 +126,7 @@ class TestTriggerTasksFromDecisions:
 
     def test_creates_task_for_valid_decision(self, monkeypatch):
         session = AsyncMock()
-        schedule = AsyncMock(return_value=MagicMock())
+        schedule = AsyncMock(return_value=MagicMock(finished_at=None))
         monkeypatch.setattr("runtime.agent_runtime.queue.schedule_task", schedule)
         stats = asyncio.run(trigger_tasks_from_decisions(
             session,
@@ -139,7 +139,7 @@ class TestTriggerTasksFromDecisions:
 
     def test_handles_multiple_decisions(self, monkeypatch):
         session = AsyncMock()
-        schedule = AsyncMock(return_value=MagicMock())
+        schedule = AsyncMock(return_value=MagicMock(finished_at=None))
         monkeypatch.setattr("runtime.agent_runtime.queue.schedule_task", schedule)
         decisions = [
             {"category": "revenue", "entity_type": "company", "entity_id": "C1", "intensity": 0.9, "title": "D1"},
@@ -150,6 +150,43 @@ class TestTriggerTasksFromDecisions:
         assert stats["created"] == 3
         assert schedule.await_count == 3
 
+    def test_unique_violation_counts_as_skipped_not_error(self, monkeypatch):
+        """IL-2A residual: UniqueViolation on existing idempotency_key ? skip."""
+        from sqlalchemy.exc import IntegrityError
+
+        session = AsyncMock()
+        schedule = AsyncMock(
+            side_effect=IntegrityError("UNIQUE", {}, Exception("UniqueViolation"))
+        )
+        monkeypatch.setattr("runtime.agent_runtime.queue.schedule_task", schedule)
+        stats = asyncio.run(trigger_tasks_from_decisions(
+            session,
+            [{"category": "opportunity", "entity_type": "company", "entity_id": "C123",
+              "intensity": 0.9, "title": "Dup"}],
+            "T1",
+        ))
+        assert stats["skipped"] == 1
+        assert stats["created"] == 0
+        assert stats["errors"] == 0
+
+    def test_finished_task_return_counts_as_skipped(self, monkeypatch):
+        """schedule_task returns COMPLETED row via idempotency_key ? skipped."""
+        from datetime import datetime, timezone
+
+        session = AsyncMock()
+        finished = MagicMock()
+        finished.finished_at = datetime.now(timezone.utc)
+        schedule = AsyncMock(return_value=finished)
+        monkeypatch.setattr("runtime.agent_runtime.queue.schedule_task", schedule)
+        stats = asyncio.run(trigger_tasks_from_decisions(
+            session,
+            [{"category": "opportunity", "entity_type": "company", "entity_id": "C123",
+              "intensity": 0.9, "title": "Already done"}],
+            "T1",
+        ))
+        assert stats["skipped"] == 1
+        assert stats["created"] == 0
+        assert stats["errors"] == 0
 
 class TestTriggerTasksFromSignals:
     def test_empty_signals(self):
@@ -159,7 +196,7 @@ class TestTriggerTasksFromSignals:
 
     def test_creates_task_for_funding_signal(self, monkeypatch):
         session = AsyncMock()
-        schedule = AsyncMock(return_value=MagicMock())
+        schedule = AsyncMock(return_value=MagicMock(finished_at=None))
         monkeypatch.setattr("runtime.agent_runtime.queue.schedule_task", schedule)
         stats = asyncio.run(trigger_tasks_from_signals(
             session,
@@ -175,7 +212,7 @@ class TestTriggerTasksFromSignals:
 
         async def capture_schedule(**kwargs):
             kinds.append(kwargs.get("kind"))
-            return MagicMock()
+            return MagicMock(finished_at=None)
 
         monkeypatch.setattr("runtime.agent_runtime.queue.schedule_task", capture_schedule)
         signals = [
@@ -425,6 +462,41 @@ class TestOnDecisionCreatedEvent:
         assert guc_calls == ["T1"]
         session.commit.assert_awaited_once()
         session.close.assert_awaited_once()
+
+    def test_idempotent_skip_reason_and_no_logrecord_created_key(self, monkeypatch):
+        """Skipped path must not put reserved LogRecord key 'created' in extra."""
+        import logging
+
+        async def fake_trigger(session, decisions, tenant_id):
+            return {"created": 0, "skipped": 1, "errors": 0}
+
+        monkeypatch.setattr(
+            "runtime.agent_runtime.triggers.trigger_tasks_from_decisions", fake_trigger
+        )
+
+        engine = _FakeDecisionEngine(
+            decision={
+                "decision_type": "recommend_call",
+                "company_id": "C1",
+                "confidence": 0.8,
+                "priority": 50,
+                "reasoning": "r",
+            }
+        )
+        # Reserved LogRecord attribute — makeRecord raises if extra uses 'created'.
+        probe = logging.getLogger("il2a_probe")
+        with pytest.raises(KeyError):
+            probe.makeRecord(
+                probe.name, logging.INFO, __file__, 0, "probe", (), None,
+                extra={"created": 0, "decision_id": "D1"},
+            )
+
+        result = asyncio.run(
+            on_decision_created_event(_FakeSessionFactory(), _FakeEvent(), engine)
+        )
+        assert result["reason"] == "skipped"
+        assert result["skipped"] == 1
+        assert result["created"] == 0
 
     def test_looks_up_canonical_decision_before_trigger(self, monkeypatch):
         async def fake_trigger(session, decisions, tenant_id):
