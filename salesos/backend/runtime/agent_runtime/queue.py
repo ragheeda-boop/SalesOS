@@ -10,13 +10,35 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import text
+from sqlalchemy import String, bindparam, text
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.agent_runtime.models import AgentTask, AgentRun
 
 LEASE_MS_FAST = 2 * 60_000
 LEASE_MS_RESEARCH = 30 * 60_000
+
+# asyncpg adapts Python lists as PG arrays when the bind is typed ARRAY(String).
+# Do not use inline CAST(:kinds AS text[]) / ::text[] — IL-2B.1 showed inline
+# type casts on bound params break the asyncpg binary protocol.
+_KIND_TEXT_ARRAY = ARRAY(String)
+
+
+def _claim_kind_clause(
+    kinds_include: list[str] | None,
+    kinds_exclude: list[str] | None,
+) -> tuple[str, dict]:
+    """SQL fragment + params for claim_due kind filtering.
+
+    Qualifies ``agent_tasks.kind`` — the candidates CTE has no ``t2`` alias.
+    Live dispatcher always passes kinds; a dangling ``t2`` makes claim SQL invalid.
+    """
+    if kinds_include is not None:
+        return "agent_tasks.kind = ANY(:kinds)", {"kinds": list(kinds_include)}
+    if kinds_exclude is not None:
+        return "agent_tasks.kind != ALL(:kinds)", {"kinds": list(kinds_exclude)}
+    return "TRUE", {}
 
 
 async def claim_due(
@@ -31,15 +53,7 @@ async def claim_due(
     lease_until = now + timedelta(milliseconds=lease_ms)
     worker_id = f"celery@{uuid.uuid4().hex[:8]}"
 
-    if kinds_include is not None:
-        kind_clause = "t2.kind = ANY(:kinds)"
-        kind_params = {"kinds": kinds_include}
-    elif kinds_exclude is not None:
-        kind_clause = "t2.kind != ALL(:kinds)"
-        kind_params = {"kinds": kinds_exclude}
-    else:
-        kind_clause = "TRUE"
-        kind_params = {}
+    kind_clause, kind_params = _claim_kind_clause(kinds_include, kinds_exclude)
 
     query = text(f"""
         WITH candidates AS (
@@ -67,6 +81,8 @@ async def claim_due(
         WHERE t.id = c.id
         RETURNING t.*
     """)
+    if "kinds" in kind_params:
+        query = query.bindparams(bindparam("kinds", type_=_KIND_TEXT_ARRAY))
 
     result = await session.execute(query, {
         "tenant_id": tenant_id,

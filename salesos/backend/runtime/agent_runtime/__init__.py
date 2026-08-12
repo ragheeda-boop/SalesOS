@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.database import set_current_tenant_id, reset_current_tenant_id
+from app.database import set_current_tenant_id, reset_current_tenant_id, apply_tenant_guc
 
 from runtime.agent_runtime.models import AgentTask, AgentRun
 from runtime.agent_runtime.queue import (
@@ -77,6 +77,8 @@ class AgentRuntime:
     ) -> dict:
         task_id = str(task.id)
         kind = getattr(task, 'kind', 'unknown')
+        # set_config(..., is_local=true) dies on COMMIT — pin before every txn.
+        await apply_tenant_guc(session, tenant_id)
 
         run = AgentRun(
             id=uuid.uuid4(),
@@ -99,6 +101,7 @@ class AgentRuntime:
             }.items() if v is not None},
         )
         await session.commit()
+        await apply_tenant_guc(session, tenant_id)
 
         budget = BudgetTracker(session, str(run.id), task_id,
                                budget=task.budget, lease_generation=lease_generation)

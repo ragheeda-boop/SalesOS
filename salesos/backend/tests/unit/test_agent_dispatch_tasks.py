@@ -13,7 +13,11 @@ import inspect
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from runtime.agent_runtime import tasks as tasks_mod
-from runtime.agent_runtime.tasks import _run_async, agent_dispatch_all
+from runtime.agent_runtime.tasks import (
+    ACTIVE_TENANT_IDS_SQL,
+    _run_async,
+    agent_dispatch_all,
+)
 
 
 class TestRunAsync:
@@ -109,3 +113,84 @@ class TestAgentDispatchAll:
         assert "asyncio.run" in source
         assert "_run_async" in source
         assert "dispose()" in source
+
+
+class TestActiveTenantFilter:
+    def test_sql_uses_tenant_model_columns_not_status(self):
+        """tenants.status never existed — align to is_active / deleted_at / provisioning_status."""
+        sql = ACTIVE_TENANT_IDS_SQL
+        sql_upper = sql.upper()
+        assert "FROM TENANTS" in sql_upper
+        assert "IS_ACTIVE" in sql_upper
+        assert "DELETED_AT" in sql_upper
+        assert "PROVISIONING_STATUS" in sql_upper
+        assert "WHERE STATUS" not in sql_upper
+        assert "TENANTS.STATUS" not in sql_upper
+        assert "STATUS = 'ACTIVE'" not in sql.replace("provisioning_status = 'active'", "")
+
+    def test_module_source_does_not_select_tenants_status(self):
+        source = inspect.getsource(tasks_mod)
+        assert "WHERE status = 'active'" not in source
+        assert 'WHERE status = "active"' not in source
+        assert "tenants.status" not in source
+        assert "ACTIVE_TENANT_IDS_SQL" in source
+        assert "is_active IS TRUE" in source
+
+    def test_dispatch_executes_active_tenant_sql(self):
+        mock_engine = MagicMock()
+        mock_engine.dispose = AsyncMock()
+
+        mock_session = AsyncMock()
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=False)
+        mock_result = MagicMock()
+        mock_result.fetchall.return_value = []
+        mock_session.execute = AsyncMock(return_value=mock_result)
+        mock_factory = MagicMock(return_value=mock_session)
+
+        with (
+            patch("app.database.async_session", mock_factory),
+            patch("app.database.engine", mock_engine),
+        ):
+            result = agent_dispatch_all.run()
+
+        assert result["errors"] == []
+        mock_session.execute.assert_awaited()
+        executed = mock_session.execute.await_args.args[0]
+        executed_sql = str(executed)
+        assert "is_active" in executed_sql
+        assert "WHERE status" not in executed_sql.upper().replace("PROVISIONING_STATUS", "")
+
+    def test_dispatch_processes_loaded_tenants(self):
+        mock_engine = MagicMock()
+        mock_engine.dispose = AsyncMock()
+
+        mock_session = AsyncMock()
+        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+        mock_session.__aexit__ = AsyncMock(return_value=False)
+        row = MagicMock()
+        row.id = "11111111-1111-1111-1111-111111111111"
+        mock_result = MagicMock()
+        mock_result.fetchall.return_value = [row]
+        mock_session.execute = AsyncMock(return_value=mock_result)
+        mock_factory = MagicMock(return_value=mock_session)
+
+        async def _dispatch(_tid):
+            return {"claimed_fast": 2, "claimed_research": 1, "errors": []}
+
+        with (
+            patch("app.database.async_session", mock_factory),
+            patch("app.database.engine", mock_engine),
+            patch(
+                "runtime.agent_runtime.dispatcher.dispatch_all",
+                side_effect=_dispatch,
+            ),
+        ):
+            result = agent_dispatch_all.run()
+
+        assert result == {
+            "tenants_processed": 1,
+            "tasks_claimed": 3,
+            "errors": [],
+        }
+        mock_engine.dispose.assert_awaited()

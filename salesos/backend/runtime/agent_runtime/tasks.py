@@ -13,6 +13,17 @@ from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
+# Tenant has never had a `status` column (0001 baseline: is_active boolean;
+# STORY-04-01: provisioning_status; STORY-04-04: deleted_at). Owner Platform
+# maps API filter status=active → Tenant.is_active, not tenants.status.
+ACTIVE_TENANT_IDS_SQL = (
+    "SELECT id FROM tenants "
+    "WHERE is_active IS TRUE "
+    "AND deleted_at IS NULL "
+    "AND provisioning_status = 'active' "
+    "LIMIT 100"
+)
+
 
 def _run_async(coro):
     """Bridge sync Celery tasks to async via a fresh event loop.
@@ -47,9 +58,7 @@ def agent_dispatch_all(self) -> dict:
 
             try:
                 async with async_session() as session:
-                    result = await session.execute(
-                        text("SELECT id FROM tenants WHERE status = 'active' LIMIT 100")
-                    )
+                    result = await session.execute(text(ACTIVE_TENANT_IDS_SQL))
                     tenant_rows = result.fetchall()
 
                 for row in tenant_rows:

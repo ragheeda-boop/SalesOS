@@ -6,13 +6,22 @@ Dispatch cycle (every 60s):
   2. retireExhausted() — mark dead tasks as EXHAUSTED
   3. claimDue() — claim PENDING tasks with FOR UPDATE SKIP LOCKED
   4. dispatch — fast lane (direct) + research lane (LLM session)
+
+RLS: salesos_app has FORCE RLS on agent_tasks. Every session used for
+claim/recover/retire/run must pin app.tenant_id via apply_tenant_guc
+(ContextVar alone does not set the GUC).
 """
 from __future__ import annotations
 
 import asyncio
 import logging
 
-from app.database import async_session, set_current_tenant_id, reset_current_tenant_id
+from app.database import (
+    async_session,
+    set_current_tenant_id,
+    reset_current_tenant_id,
+    apply_tenant_guc,
+)
 
 from runtime.agent_runtime.queue import (
     claim_due as _claim_due,
@@ -33,6 +42,8 @@ RESEARCH_KINDS = {
 }
 FAST_BATCH = 60
 RESEARCH_BATCH = 12
+FAST_CONCURRENCY = 6
+RESEARCH_CONCURRENCY = 12
 
 
 async def dispatch_all(tenant_id: str) -> dict:
@@ -45,9 +56,12 @@ async def dispatch_all(tenant_id: str) -> dict:
 
 async def _dispatch_all_internal(tenant_id: str) -> dict:
     stats = {"recovered": 0, "exhausted": 0, "claimed_fast": 0, "claimed_research": 0, "errors": []}
+    fast_tasks: list = []
+    research_tasks: list = []
 
     try:
         async with async_session() as session:
+            await apply_tenant_guc(session, tenant_id)
             stats["recovered"] = await _recover_expired_leases(session, tenant_id)
             stats["exhausted"] = await _retire_exhausted(session, tenant_id)
             await session.commit()
@@ -58,6 +72,7 @@ async def _dispatch_all_internal(tenant_id: str) -> dict:
 
     try:
         async with async_session() as session:
+            await apply_tenant_guc(session, tenant_id)
             fast_tasks = await _claim_due(
                 session, tenant_id, limit=FAST_BATCH,
                 kinds_include=list(FAST_KINDS), lease_ms=LEASE_MS_FAST,
@@ -70,6 +85,7 @@ async def _dispatch_all_internal(tenant_id: str) -> dict:
 
     try:
         async with async_session() as session:
+            await apply_tenant_guc(session, tenant_id)
             research_tasks = await _claim_due(
                 session, tenant_id, limit=RESEARCH_BATCH,
                 kinds_exclude=list(FAST_KINDS), lease_ms=LEASE_MS_RESEARCH,
@@ -80,44 +96,31 @@ async def _dispatch_all_internal(tenant_id: str) -> dict:
         logger.warning(f"Research lane claim failed: {e}")
         stats["errors"].append(str(e))
 
-    if stats["claimed_fast"] > 0:
-        agents = []
-        for _ in range(min(6, stats["claimed_fast"])):
-            agents.append(_call_fast_handler(tenant_id))
-        await asyncio.gather(*agents, return_exceptions=True)
-
-    if stats["claimed_research"] > 0:
-        agents = []
-        for _ in range(min(12, stats["claimed_research"])):
-            agents.append(_call_research_handler(tenant_id))
-        await asyncio.gather(*agents, return_exceptions=True)
+    if fast_tasks:
+        await _run_claimed_batch(tenant_id, fast_tasks, FAST_CONCURRENCY)
+    if research_tasks:
+        await _run_claimed_batch(tenant_id, research_tasks, RESEARCH_CONCURRENCY)
 
     return stats
 
 
-async def _call_fast_handler(tenant_id: str) -> None:
+async def _run_claimed_batch(tenant_id: str, tasks: list, concurrency: int) -> None:
+    sem = asyncio.Semaphore(concurrency)
+
+    async def _one(task) -> None:
+        async with sem:
+            await _run_claimed_task(tenant_id, task)
+
+    await asyncio.gather(*[_one(t) for t in tasks], return_exceptions=True)
+
+
+async def _run_claimed_task(tenant_id: str, task) -> None:
+    """Execute an already-CLAIMED row. Do not claim again."""
     try:
         from runtime.agent_runtime import AgentRuntime
         runtime = AgentRuntime(async_session)
         async with async_session() as session:
-            tasks = await _claim_due(session, tenant_id, limit=1,
-                                     kinds_include=list(FAST_KINDS), lease_ms=LEASE_MS_FAST)
-            await session.commit()
-            if tasks:
-                await runtime.run_task(session, tasks[0], tenant_id)
+            await apply_tenant_guc(session, tenant_id)
+            await runtime.run_task(session, task, tenant_id)
     except Exception as e:
-        logger.warning(f"Fast handler failed: {e}")
-
-
-async def _call_research_handler(tenant_id: str) -> None:
-    try:
-        from runtime.agent_runtime import AgentRuntime
-        runtime = AgentRuntime(async_session)
-        async with async_session() as session:
-            tasks = await _claim_due(session, tenant_id, limit=1,
-                                     kinds_exclude=list(FAST_KINDS), lease_ms=LEASE_MS_RESEARCH)
-            await session.commit()
-            if tasks:
-                await runtime.run_task(session, tasks[0], tenant_id)
-    except Exception as e:
-        logger.warning(f"Research handler failed: {e}")
+        logger.warning(f"Handler failed: {e}")
