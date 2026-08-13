@@ -40,6 +40,10 @@ class SdkSettings(BaseSettings):
 
     # LLM
     openai_model: str = "gpt-4o-mini"
+    # Optional OpenAI-compatible endpoint (dev/staging shim). Empty = SDK default
+    # (api.openai.com). Example self-hosted FreeLLMAPI: http://freellmapi:3001/v1
+    # Does not enable copilot. Do not point this at live providers in production.
+    openai_base_url: str = ""
     llm_temperature: float = 0.7
     llm_max_tokens: int = 1024
     llm_research_max_tokens: int = 2048

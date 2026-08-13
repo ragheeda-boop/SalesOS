@@ -427,6 +427,10 @@ services:
         condition: service_healthy
     profiles:
       - backup
+    # Optional FreeLLMAPI sidecar is NOT defined here. Dev compose
+    # (salesos/docker-compose.yml) gates it behind --profile freellmapi.
+    # Staging proof of OPENAI_BASE_URL against a self-hosted shim is residual.
+    # Do not add FreeLLMAPI to production compose / Railway.
     deploy:
       resources:
         limits:

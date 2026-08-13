@@ -35,6 +35,7 @@ class ProviderFactory:
             "openai": lambda: {
                 "api_key": overrides.get("api_key") or sdk_settings.openai_api_key,
                 "model": overrides.get("model") or "gpt-4o-mini",
+                "base_url": overrides.get("base_url") or sdk_settings.openai_base_url or None,
             },
             "anthropic": lambda: {
                 "api_key": overrides.get("api_key") or sdk_settings.anthropic_api_key,

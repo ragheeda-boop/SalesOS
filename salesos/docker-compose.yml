@@ -420,6 +420,41 @@ services:
       - loki
     profiles: ["observability"]
 
+  # Optional OpenAI-compatible shim (dev/staging only). NOT production.
+  # Enable: docker compose --profile freellmapi up -d freellmapi
+  # Requires FREELLMAPI_ENCRYPTION_KEY (openssl rand -hex 32) — never commit it.
+  # Then set OPENAI_BASE_URL=http://freellmapi:3001/v1 for backend-on-compose,
+  # or http://127.0.0.1:3001/v1 from the host. feature_ai_copilot stays False.
+  # Pin: FreeLLMAPI v0.6.9 (git SHA 5597814ebcf4c04ae3d75d78cd6fc89bf8dff8e7).
+  # Do not add this service to docker-compose.prod.yml / Railway prod.
+  freellmapi:
+    image: ghcr.io/tashfeenahmed/freellmapi:v0.6.9
+    restart: unless-stopped
+    profiles:
+      - freellmapi
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      ENCRYPTION_KEY: ${FREELLMAPI_ENCRYPTION_KEY:-}
+    volumes:
+      - freellmapi_data:/app/server/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/api/ping').then((res) => { if (!res.ok) process.exit(1); }).catch(() => process.exit(1));",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
 volumes:
   pgdata:
   neo4j_data:
@@ -432,3 +467,4 @@ volumes:
   backup_data:
   redis-data:
   minio_data:
+  freellmapi_data:
