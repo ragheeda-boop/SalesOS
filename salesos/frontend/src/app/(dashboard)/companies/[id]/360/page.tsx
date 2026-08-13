@@ -46,8 +46,11 @@ import { useTranslation } from "@/lib/i18n";
 import { KnowledgeGraphPanel } from "@/features/company-intelligence/widgets/company-360/KnowledgeGraphPanel";
 import { ActivityTimeline } from "@/features/company-intelligence/widgets/company-360/ActivityTimeline";
 import { DecisionPlatformPanel } from "@/features/company-intelligence/widgets/company-360/DecisionPlatformPanel";
+import { Company360DocumentList } from "@/features/company-intelligence/widgets/company-360/Company360DocumentList";
+import { Company360NextStepsList } from "@/features/company-intelligence/widgets/company-360/Company360NextStepsList";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { asArray } from "@/lib/asArray";
+import { company360SignalsTotal } from "@/lib/company360Signals";
 import type { ColumnDef } from "@tanstack/react-table";
 
 type TabId = "overview" | "people" | "dealroom" | "activity" | "more";
@@ -202,7 +205,6 @@ export default function Company360Page() {
   const { data: company360, isLoading: loading360, isError: error360 } = useCompany360(id);
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [showSampleData, setShowSampleData] = useState(false);
 
   const isLoading = companyLoading || loading360;
   const isError = companyError || error360;
@@ -251,6 +253,7 @@ export default function Company360Page() {
   const opportunities = asArray<Record<string, unknown>>(company360?.opportunities);
   const contracts = asArray<Record<string, unknown>>(company360?.contracts);
   const invoices = asArray<Record<string, unknown>>(company360?.invoices);
+  const signalsTotal = company360SignalsTotal(company360?.signals);
 
   const enrichmentData = [
     {
@@ -393,15 +396,6 @@ export default function Company360Page() {
           </div>
           <HealthScoreRing score={healthScore} />
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2">
-        <button
-          onClick={() => setShowSampleData(!showSampleData)}
-          className="px-3 py-1 text-xs rounded border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-        >
-          {showSampleData ? "إخفاء البيانات التجريبية" : "عرض بيانات تجريبية"}
-        </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2">
@@ -721,29 +715,7 @@ export default function Company360Page() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {showSampleData ? (
-                    <div className="space-y-3">
-                      {[
-                        { name: "اتفاقية شراكة استراتيجية", type: "PDF", date: "2026-06-15" },
-                        { name: "شهادة تسجيل تجاري", type: "PDF", date: "2026-01-10" },
-                        { name: "عرض تقديمي للخدمات", type: "PDF", date: "2026-05-20" },
-                      ].map((doc) => (
-                        <div key={doc.name} className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-default)]">
-                          <FileText className="h-8 w-8 text-[var(--muhide-orange)]/70" />
-                          <div>
-                            <div className="font-medium text-[var(--text-primary)]">{doc.name}</div>
-                            <div className="text-xs text-[var(--text-muted)]">{doc.type} · {doc.date}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      icon={<FileText className="h-10 w-10" />}
-                      title="لا توجد وثائق"
-                      description="ستظهر المستندات والعقود المرتبطة بالشركة هنا"
-                    />
-                  )}
+                  <Company360DocumentList documents={company360?.documents} />
                 </CardContent>
               </Card>
             </div>
@@ -757,39 +729,7 @@ export default function Company360Page() {
                 </div>
               </CardHeader>
               <CardContent>
-                {showSampleData ? (
-                  <div className="space-y-3">
-                    {[
-                      { text: "متابعة عرض السعر المرسل", priority: "عاجل", dueDate: "2026-08-10" },
-                      { text: "ترتيب اجتماع مع المدير المالي", priority: "متوسط", dueDate: "2026-08-15" },
-                      { text: "إرسال مسودة العقد للمراجعة", priority: "منخفض", dueDate: "2026-08-20" },
-                    ].map((step) => (
-                      <div key={step.text} className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-default)]">
-                        <div className="flex items-center gap-3">
-                          <input type="checkbox" className="rounded border-[var(--border-default)]" />
-                          <div>
-                            <div className="font-medium text-[var(--text-primary)]">{step.text}</div>
-                            <div className="text-xs text-[var(--text-muted)]">{step.dueDate}</div>
-                          </div>
-                        </div>
-                        <span className={cn(
-                          "px-2 py-0.5 rounded-full text-[10px] font-medium",
-                          step.priority === "عاجل" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
-                          step.priority === "متوسط" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" :
-                          "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                        )}>
-                          {step.priority}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={<Target className="h-10 w-10" />}
-                    title="لا توجد خطوات تالية"
-                    description="لم يتم تحديد خطوات تالية لهذه الشركة"
-                  />
-                )}
+                <Company360NextStepsList tasks={company360?.tasks} />
               </CardContent>
             </Card>
           </div>
@@ -811,29 +751,7 @@ export default function Company360Page() {
                 </div>
               </CardHeader>
               <CardContent>
-                {showSampleData ? (
-                  <div className="space-y-3">
-                    {[
-                      { name: "اتفاقية شراكة استراتيجية", type: "PDF", date: "2026-06-15" },
-                      { name: "شهادة تسجيل تجاري", type: "PDF", date: "2026-01-10" },
-                      { name: "عرض تقديمي للخدمات", type: "PDF", date: "2026-05-20" },
-                    ].map((doc) => (
-                      <div key={doc.name} className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-default)]">
-                        <FileText className="h-8 w-8 text-[var(--muhide-orange)]/70" />
-                        <div>
-                          <div className="font-medium text-[var(--text-primary)]">{doc.name}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{doc.type} · {doc.date}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={<FileText className="h-10 w-10" />}
-                    title="لا توجد وثائق"
-                    description="ستظهر المستندات والعقود المرتبطة بالشركة هنا"
-                  />
-                )}
+                <Company360DocumentList documents={company360?.documents} />
               </CardContent>
             </Card>
             <Card>
@@ -841,9 +759,12 @@ export default function Company360Page() {
                 <div className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-[var(--text-muted)]" />
                   <span className="text-sm font-semibold text-[var(--text-primary)]">الإشارات</span>
-                  {(company360?.signals?.total ?? 0) > 0 && (
-                    <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
-                      {company360?.signals?.total ?? 0}
+                  {signalsTotal > 0 && (
+                    <span
+                      data-testid="company360-signals-badge"
+                      className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]"
+                    >
+                      {signalsTotal}
                     </span>
                   )}
                 </div>
