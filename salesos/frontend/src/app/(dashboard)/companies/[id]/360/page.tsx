@@ -48,6 +48,7 @@ import { ActivityTimeline } from "@/features/company-intelligence/widgets/compan
 import { DecisionPlatformPanel } from "@/features/company-intelligence/widgets/company-360/DecisionPlatformPanel";
 import { Company360DocumentList } from "@/features/company-intelligence/widgets/company-360/Company360DocumentList";
 import { Company360NextStepsList } from "@/features/company-intelligence/widgets/company-360/Company360NextStepsList";
+import { Company360SettingsPanel } from "@/features/company-intelligence/widgets/company-360/Company360SettingsPanel";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { asArray } from "@/lib/asArray";
 import { company360SignalsTotal } from "@/lib/company360Signals";
@@ -814,11 +815,7 @@ export default function Company360Page() {
                 </div>
               </CardHeader>
               <CardContent>
-                <EmptyState
-                  icon={<Settings className="h-10 w-10" />}
-                  title="إعدادات الشركة"
-                  description="إدارة إعدادات الشركة والصلاحيات"
-                />
+                <Company360SettingsPanel company360={company360} company={company} />
               </CardContent>
             </Card>
             <KnowledgeGraphPanel companyId={id} />
