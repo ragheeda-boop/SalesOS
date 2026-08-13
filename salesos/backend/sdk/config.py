@@ -56,3 +56,21 @@ class SdkSettings(BaseSettings):
 
 
 sdk_settings = SdkSettings()
+
+
+def resolve_openai_base_url(override: str | None = None) -> str | None:
+    """Resolve OpenAI-compatible base_url: override → sdk_settings → app Settings.
+
+    Empty string is treated as unset (None). Does not enable copilot.
+    """
+    if override:
+        return str(override)
+    if sdk_settings.openai_base_url:
+        return sdk_settings.openai_base_url
+    try:
+        from app.config import settings as app_settings
+
+        return app_settings.openai_base_url or None
+    except Exception:
+        return None
+

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, cast
 
-from sdk.config import sdk_settings
+from sdk.config import resolve_openai_base_url, sdk_settings
 
 
 @dataclass
@@ -30,14 +30,26 @@ class EmbeddingService(ABC):
 class OpenAIEmbeddingService(EmbeddingService):
     """OpenAI-backed embedding service using text-embedding-3-large."""
 
-    def __init__(self, api_key: str | None = None, model: str | None = None):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+    ):
         self._api_key = api_key or sdk_settings.openai_api_key
         self._model = model or sdk_settings.openai_embedding_model
+        self._base_url_override = base_url
+
+    def _resolved_base_url(self) -> str | None:
+        return resolve_openai_base_url(self._base_url_override)
 
     async def embed(self, text: str) -> list[float]:
         import openai
 
-        client = openai.AsyncOpenAI(api_key=self._api_key)
+        client = openai.AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._resolved_base_url(),
+        )
         response = await client.embeddings.create(
             model=self._model,
             input=text,
@@ -47,7 +59,10 @@ class OpenAIEmbeddingService(EmbeddingService):
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         import openai
 
-        client = openai.AsyncOpenAI(api_key=self._api_key)
+        client = openai.AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._resolved_base_url(),
+        )
         response = await client.embeddings.create(
             model=self._model,
             input=texts,

@@ -10,11 +10,15 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.config import Settings, settings
+from domains.ai.service import OpenAIProvider as DomainOpenAIProvider
+from domains.search.engine.embedding_service import SearchEmbeddingService
 from intelligence.agents.llm import LLMService
 from intelligence.providers import OpenAIProvider, ProviderFactory
 from intelligence.providers.base import ChatRequest, FinishReason
 from intelligence.providers.factory import sdk_settings as factory_settings
 from intelligence.rag.embeddings import EmbeddingService
+from sdk.config import resolve_openai_base_url
+from sdk.vector import OpenAIEmbeddingService
 
 
 def test_feature_ai_copilot_remains_false() -> None:
@@ -100,6 +104,63 @@ def test_rag_embeddings_inherits_app_openai_base_url(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(settings, "openai_api_key", "sk-local-dev")
     svc = EmbeddingService()
     assert "freellmapi:3001/v1" in str(svc.client.base_url)
+
+
+def test_resolve_openai_base_url_empty_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "")
+    assert resolve_openai_base_url("") is None
+    assert resolve_openai_base_url(None) is None
+
+
+def test_sdk_vector_inherits_app_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    svc = OpenAIEmbeddingService(api_key="sk-local-dev")
+    assert svc._resolved_base_url() == "http://freellmapi:3001/v1"
+
+
+def test_sdk_vector_openai_base_url_empty_becomes_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "")
+    svc = OpenAIEmbeddingService(api_key="sk-local-dev")
+    assert svc._resolved_base_url() is None
+
+
+def test_sdk_vector_explicit_base_url_wins(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "http://from-sdk:3001/v1")
+    monkeypatch.setattr(settings, "openai_base_url", "http://from-app:3001/v1")
+    svc = OpenAIEmbeddingService(api_key="sk-local-dev", base_url="http://override:3001/v1")
+    assert svc._resolved_base_url() == "http://override:3001/v1"
+
+
+def test_search_embeddings_inherits_app_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    svc = SearchEmbeddingService(openai_api_key="sk-local-dev")
+    assert svc._resolved_base_url() == "http://freellmapi:3001/v1"
+
+
+def test_search_embeddings_openai_base_url_empty_becomes_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "")
+    svc = SearchEmbeddingService(openai_api_key="sk-local-dev")
+    assert svc._resolved_base_url() is None
+
+
+def test_domain_ai_provider_inherits_app_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    provider = DomainOpenAIProvider(api_key="sk-local-dev")
+    assert "freellmapi:3001/v1" in str(provider.client.base_url)
+
+
+def test_domain_ai_provider_no_key_stays_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    provider = DomainOpenAIProvider(api_key=None)
+    assert provider.client is None
 
 
 @pytest.mark.asyncio

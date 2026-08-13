@@ -28,12 +28,19 @@ class SearchEmbeddingService:
         openai_api_key: str | None = None,
         model: str = "text-embedding-3-large",
         max_cache_entries: int = 1024,
+        base_url: str | None = None,
     ):
         self._api_key = openai_api_key
         self._model = model
         self._max_cache = max_cache_entries
         self._cache: dict[str, list[float]] = {}
         self._client = None
+        self._base_url_override = base_url
+
+    def _resolved_base_url(self) -> str | None:
+        from sdk.config import resolve_openai_base_url
+
+        return resolve_openai_base_url(self._base_url_override)
 
     @property
     def dimensions(self) -> int:
@@ -123,7 +130,10 @@ class SearchEmbeddingService:
             logger.warning("No OpenAI API key — semantic search disabled")
             return None
 
-        client = openai.AsyncOpenAI(api_key=self._api_key)
+        client = openai.AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._resolved_base_url(),
+        )
         response = await client.embeddings.create(
             model=self._model,
             input=text,
@@ -142,7 +152,10 @@ class SearchEmbeddingService:
         if not self._api_key:
             return [None] * len(texts)
 
-        client = openai.AsyncOpenAI(api_key=self._api_key)
+        client = openai.AsyncOpenAI(
+            api_key=self._api_key,
+            base_url=self._resolved_base_url(),
+        )
 
         # OpenAI batch limit is 2048 texts per request
         all_embeddings: list[list[float] | None] = []

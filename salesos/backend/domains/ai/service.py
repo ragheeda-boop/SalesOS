@@ -20,17 +20,35 @@ class AIProvider(ABC):
 
 
 class OpenAIProvider(AIProvider):
-    def __init__(self, api_key: str | None = None, model: str = "gpt-4o") -> None:
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = "gpt-4o",
+        base_url: str | None = None,
+    ) -> None:
         self.api_key = api_key
         self.model = model
+        self._base_url_override = base_url
         self._client = None
+
+    def _resolved_base_url(self) -> str | None:
+        from sdk.config import resolve_openai_base_url
+
+        return resolve_openai_base_url(self._base_url_override)
 
     @property
     def client(self):
         if self._client is None:
             try:
                 from openai import AsyncOpenAI
-                self._client = AsyncOpenAI(api_key=self.api_key) if self.api_key else None
+                self._client = (
+                    AsyncOpenAI(
+                        api_key=self.api_key,
+                        base_url=self._resolved_base_url(),
+                    )
+                    if self.api_key
+                    else None
+                )
             except ImportError:
                 logger.warning("openai package not installed")
                 self._client = None
