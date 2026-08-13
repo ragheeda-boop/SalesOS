@@ -33,7 +33,17 @@ class EmbeddingService:
         if self._client is None:
             from openai import AsyncOpenAI
             from sdk.config import sdk_settings
-            self._client = AsyncOpenAI(api_key=sdk_settings.openai_api_key)
+
+            api_key = sdk_settings.openai_api_key
+            base_url = sdk_settings.openai_base_url or None
+            try:
+                from app.config import settings as app_settings
+
+                api_key = app_settings.openai_api_key or api_key
+                base_url = app_settings.openai_base_url or base_url
+            except Exception:
+                pass
+            self._client = AsyncOpenAI(api_key=api_key, base_url=base_url or None)
         return self._client
 
     def _text_hash(self, text: str) -> str:

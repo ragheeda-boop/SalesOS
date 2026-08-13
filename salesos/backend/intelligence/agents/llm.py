@@ -71,10 +71,12 @@ class LLMService:
         ai_audit_service: Any | None = None,
         reliability_config: ReliabilityConfig | None = None,
         policy_gate: PolicyGate | None = None,
+        base_url: str | None = None,
     ):
         self._provider_type = provider_type
         self._model_override = model
         self._api_key_override = api_key
+        self._base_url_override = base_url
         self._ai_audit = ai_audit_service
         self._reliability_config = reliability_config or ReliabilityConfig()
         self._policy_gate = policy_gate or PolicyGate()
@@ -85,12 +87,25 @@ class LLMService:
         except RuntimeError:
             self._cost_tracker = cost_tracker
 
+    def _resolved_base_url(self) -> str | None:
+        if self._base_url_override:
+            return self._base_url_override
+        try:
+            from app.config import settings as app_settings
+
+            return app_settings.openai_base_url or None
+        except Exception:
+            return None
+
     def _get_raw_provider(self) -> LLMProvider:
         kwargs: dict[str, Any] = {}
         if self._api_key_override:
             kwargs["api_key"] = self._api_key_override
         if self._model_override:
             kwargs["model"] = self._model_override
+        base_url = self._resolved_base_url()
+        if base_url:
+            kwargs["base_url"] = base_url
         return get_provider(provider_type=self._provider_type, **kwargs)
 
     def _get_provider(self) -> ReliableProvider:

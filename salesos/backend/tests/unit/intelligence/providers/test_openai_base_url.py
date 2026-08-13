@@ -9,10 +9,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.config import settings
+from app.config import Settings, settings
+from intelligence.agents.llm import LLMService
 from intelligence.providers import OpenAIProvider, ProviderFactory
 from intelligence.providers.base import ChatRequest, FinishReason
 from intelligence.providers.factory import sdk_settings as factory_settings
+from intelligence.rag.embeddings import EmbeddingService
 
 
 def test_feature_ai_copilot_remains_false() -> None:
@@ -22,6 +24,22 @@ def test_feature_ai_copilot_remains_false() -> None:
 def test_sdk_openai_base_url_field_exists() -> None:
     assert hasattr(factory_settings, "openai_base_url")
     assert isinstance(factory_settings.openai_base_url, str)
+
+
+def test_app_settings_openai_base_url_field_exists() -> None:
+    assert hasattr(settings, "openai_base_url")
+    assert isinstance(settings.openai_base_url, str)
+
+
+def test_app_settings_openai_base_url_constructs() -> None:
+    s = Settings(
+        _env_file=None,
+        secret_key="x" * 32,
+        jwt_secret_key="y" * 32,
+        openai_base_url="http://freellmapi:3001/v1",
+    )
+    assert s.openai_base_url == "http://freellmapi:3001/v1"
+    assert s.feature_ai_copilot is False
 
 
 def test_factory_passes_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -34,6 +52,7 @@ def test_factory_passes_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None
 
 def test_factory_openai_base_url_empty_becomes_none(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "")
     provider = ProviderFactory.create_from_settings(provider_type="openai", api_key="test-key")
     assert isinstance(provider, OpenAIProvider)
     assert provider._base_url is None
@@ -47,6 +66,40 @@ def test_factory_openai_base_url_override_wins(monkeypatch: pytest.MonkeyPatch) 
         base_url="http://override:3001/v1",
     )
     assert provider._base_url == "http://override:3001/v1"
+
+
+def test_factory_falls_back_to_app_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    provider = ProviderFactory.create_from_settings(provider_type="openai", api_key="test-key")
+    assert isinstance(provider, OpenAIProvider)
+    assert provider._base_url == "http://freellmapi:3001/v1"
+
+
+def test_llm_service_inherits_app_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    svc = LLMService(api_key="sk-local-dev")
+    raw = svc._get_raw_provider()
+    assert isinstance(raw, OpenAIProvider)
+    assert raw._base_url == "http://freellmapi:3001/v1"
+
+
+def test_llm_service_explicit_base_url_wins(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "http://from-sdk:3001/v1")
+    monkeypatch.setattr(settings, "openai_base_url", "http://from-app:3001/v1")
+    svc = LLMService(api_key="sk-local-dev", base_url="http://override:3001/v1")
+    raw = svc._get_raw_provider()
+    assert raw._base_url == "http://override:3001/v1"
+
+
+def test_rag_embeddings_inherits_app_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(factory_settings, "openai_base_url", "")
+    monkeypatch.setattr(factory_settings, "openai_api_key", "sk-local-dev")
+    monkeypatch.setattr(settings, "openai_base_url", "http://freellmapi:3001/v1")
+    monkeypatch.setattr(settings, "openai_api_key", "sk-local-dev")
+    svc = EmbeddingService()
+    assert "freellmapi:3001/v1" in str(svc.client.base_url)
 
 
 @pytest.mark.asyncio

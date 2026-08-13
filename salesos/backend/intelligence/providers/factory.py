@@ -11,6 +11,21 @@ from .protocol import LLMProvider
 logger = logging.getLogger(__name__)
 
 
+def _openai_base_url(overrides: dict[str, Any]) -> str | None:
+    """Resolve OpenAI-compatible base_url: override → sdk_settings → app Settings."""
+    override = overrides.get("base_url")
+    if override:
+        return str(override)
+    if sdk_settings.openai_base_url:
+        return sdk_settings.openai_base_url
+    try:
+        from app.config import settings as app_settings
+
+        return app_settings.openai_base_url or None
+    except Exception:
+        return None
+
+
 class ProviderFactory:
     _providers: dict[str, type] = {}
 
@@ -35,7 +50,7 @@ class ProviderFactory:
             "openai": lambda: {
                 "api_key": overrides.get("api_key") or sdk_settings.openai_api_key,
                 "model": overrides.get("model") or "gpt-4o-mini",
-                "base_url": overrides.get("base_url") or sdk_settings.openai_base_url or None,
+                "base_url": _openai_base_url(overrides),
             },
             "anthropic": lambda: {
                 "api_key": overrides.get("api_key") or sdk_settings.anthropic_api_key,

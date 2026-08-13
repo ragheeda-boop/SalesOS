@@ -115,7 +115,11 @@ class CopilotResponse(BaseModel):
 def _build_coordinator() -> AgentCoordinator:
     llm = None
     if settings.openai_api_key:
-        llm = LLMService(api_key=settings.openai_api_key, model=settings.openai_model)
+        llm = LLMService(
+            api_key=settings.openai_api_key,
+            model=settings.openai_model,
+            base_url=settings.openai_base_url or None,
+        )
 
     coordinator = AgentCoordinator()
     coordinator.register_agent(ResearchAgent(llm))

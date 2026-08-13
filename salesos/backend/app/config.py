@@ -146,6 +146,10 @@ class Settings(BaseSettings):
     notion_token: str = ""
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-large"
+    # Optional OpenAI-compatible endpoint (dev/staging shim). Empty = SDK default
+    # (api.openai.com). Env: OPENAI_BASE_URL. Example: http://freellmapi:3001/v1
+    # Does not enable copilot. Do not point this at live providers in production.
+    openai_base_url: str = ""
 
     next_public_api_url: str = "http://localhost:8000"
     salesos_api_url: str = "http://localhost:8000"
