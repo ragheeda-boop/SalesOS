@@ -1,5 +1,7 @@
 # Program status snapshot — 2026-08-12 (Wave 2 agent streams final)
 
+> **Current snapshot:** [`PROGRAM-STATUS-2026-08-13.md`](./PROGRAM-STATUS-2026-08-13.md) (2026-08-13 landed work). This file remains the 2026-08-12 Wave 2 close record.
+
 **Classification:** **production no-go** (unchanged; ga-engineering-audit SoT)  
 **Product:** SalesOS · Railway production  
 **Validation honesty:** **light validated** (live HTTP / soak / observability / deploy tip) + **docs** for residuals  

@@ -38,6 +38,6 @@ On a company that already had a `research_company` task (COMPLETED), re-evaluate
 3. Observability SLOs for evaluate + AgentTask fan-out (Wave 8) — **hooks landed** (`salesos_decision_evaluate_*`, `salesos_event_fanout_failures_total`, `salesos_agent_dispatch_errors_total` + alert rules); live Prometheus scrape / Alertmanager fire still **needs verify**.
 4. Human secret rotations — [`HUMAN-SECRET-ROTATION-CHECKLIST.md`](./HUMAN-SECRET-ROTATION-CHECKLIST.md).
 
-Program snapshot: [`PROGRAM-STATUS-2026-08-12.md`](./PROGRAM-STATUS-2026-08-12.md) (GA still **NO-GO**).
+Program snapshot: [`PROGRAM-STATUS-2026-08-13.md`](./PROGRAM-STATUS-2026-08-13.md) (GA still **NO-GO**; 12 Aug close: [`PROGRAM-STATUS-2026-08-12.md`](./PROGRAM-STATUS-2026-08-12.md)).
 
 **Not started here:** ResearchAgent live LLM path, `feature_ai_copilot=True`.
