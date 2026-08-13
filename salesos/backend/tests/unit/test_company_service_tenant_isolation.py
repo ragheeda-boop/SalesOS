@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.exceptions import NotFoundError
 from app.modules.company.models import Company
 from app.modules.company.service import CompanyService
+from app.modules.contact.models import Contact
 from app.modules.identity.models import Tenant
 from tests.support.schema import ensure_tables_created
 from tests.support.tenant_isolation import assert_cross_tenant_read_blocked
@@ -60,3 +61,42 @@ class TestCompanyServiceCrossTenant:
             tenant_a=tenant_a,
             tenant_b=tenant_b,
         )
+
+    async def test_company_360_contacts_exclude_foreign_tenant_rows(self, db_session: AsyncSession):
+        """Defense-in-depth: 360 contact list filters tenant_id, not company_id alone."""
+        await ensure_tables_created(db_session)
+        svc = CompanyService(db_session)
+
+        tenant_a = await _ensure_tenant(db_session, "360-a")
+        tenant_b = await _ensure_tenant(db_session, "360-b")
+
+        company = Company(
+            tenant_id=uuid.UUID(tenant_a),
+            name_ar="شركة ثلاثمائة وستون",
+            name_en="360 Isolation Co",
+            cr_number=f"CR-{uuid.uuid4().hex[:8].upper()}",
+            status="active",
+        )
+        db_session.add(company)
+        await db_session.flush()
+
+        own = Contact(
+            tenant_id=uuid.UUID(tenant_a),
+            company_id=company.id,
+            name="Own Contact",
+            email="own@example.com",
+        )
+        leaked = Contact(
+            tenant_id=uuid.UUID(tenant_b),
+            company_id=company.id,
+            name="Foreign Contact",
+            email="foreign@example.com",
+        )
+        db_session.add_all([own, leaked])
+        await db_session.flush()
+
+        result = await svc.get_company_360(str(company.id), tenant_a, db=db_session)
+        names = {c.get("name") for c in result["contacts"]}
+        assert "Own Contact" in names
+        assert "Foreign Contact" not in names
+        assert result["overview"]["total_contacts"] == 1

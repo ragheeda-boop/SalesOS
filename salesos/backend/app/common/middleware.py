@@ -386,7 +386,7 @@ class SecurityHeadersMiddleware:
                     (b"x-content-type-options", b"nosniff"),
                     (b"x-frame-options", b"DENY"),
                     (b"x-xss-protection", b"1; mode=block"),
-                    (b"strict-transport-security", b"max-age=31536000; includeSubDomains"),
+                    (b"strict-transport-security", b"max-age=31536000; includeSubDomains; preload"),
                     (b"referrer-policy", b"strict-origin-when-cross-origin"),
                     (b"permissions-policy", b"camera=(), microphone=(), geolocation=()"),
                 ]

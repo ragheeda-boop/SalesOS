@@ -348,6 +348,9 @@ class TestSecurityHeaders:
         assert b"x-content-type-options" in header_names
         assert b"x-frame-options" in header_names
         assert b"strict-transport-security" in header_names
+        hsts = dict(headers_added)[b"strict-transport-security"]
+        assert b"preload" in hsts
+        assert b"includeSubDomains" in hsts
 
     @pytest.mark.asyncio
     async def test_docs_route_uses_relaxed_csp(self):

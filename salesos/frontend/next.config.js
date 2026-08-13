@@ -2,7 +2,7 @@
 const nextConfig = {
   output: "standalone",
   images: {
-    domains: ["localhost"],
+    remotePatterns: [{ protocol: "http", hostname: "localhost" }],
     formats: ["image/avif", "image/webp"],
   },
   experimental: {
@@ -38,6 +38,10 @@ const nextConfig = {
           {
             key: "Cross-Origin-Opener-Policy",
             value: "same-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
           },
         ],
       },

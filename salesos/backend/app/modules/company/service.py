@@ -415,6 +415,7 @@ class CompanyService:
                 .select_from(CompanyContact)
                 .where(
                     CompanyContact.company_id == company_id,
+                    CompanyContact.tenant_id == uuid.UUID(str(tenant_id)),
                 )
             )
             contacts_total = await session.scalar(contacts_total_q) or 0
@@ -422,6 +423,7 @@ class CompanyService:
                 select(CompanyContact)
                 .where(
                     CompanyContact.company_id == company_id,
+                    CompanyContact.tenant_id == uuid.UUID(str(tenant_id)),
                 )
                 .order_by(CompanyContact.created_at.desc())
                 .offset((page - 1) * page_size)
