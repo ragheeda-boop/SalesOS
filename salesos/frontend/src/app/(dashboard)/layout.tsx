@@ -25,7 +25,7 @@ import { logoutSession } from "@/lib/api/identity";
 import { clearAuthTokens } from "@/lib/auth/session";
 import { WorkspaceSwitcher } from "@/components/navigation/workspace-switcher";
 import { GroupedSidebar } from "@/components/navigation/grouped-sidebar";
-import { getWorkspaceByPath, type Workspace } from "@/lib/workspaces";
+import { getWorkspaceByPath, workspaceSelectHref, type Workspace } from "@/lib/workspaces";
 
 function DashboardContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -96,6 +96,15 @@ function DashboardContent({ children }: { children: ReactNode }) {
   }, [mobileSidebarOpen]);
 
   const closeMobileSidebar = useCallback(() => setMobileSidebarOpen(false), []);
+
+  const handleWorkspaceSelect = useCallback(
+    (ws: Workspace) => {
+      setActiveWorkspace(ws);
+      const href = workspaceSelectHref(ws, pathname);
+      if (href) router.push(href);
+    },
+    [pathname, router]
+  );
 
   useEffect(() => {
     closeMobileSidebar();
@@ -212,7 +221,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
               </button>
             </div>
             <div className="p-2 border-b border-[var(--border-default)]">
-              <WorkspaceSwitcher current={activeWorkspace} onSelect={setActiveWorkspace} />
+              <WorkspaceSwitcher current={activeWorkspace} onSelect={handleWorkspaceSelect} />
             </div>
             <GroupedSidebar workspace={activeWorkspace} />
           </aside>
@@ -242,7 +251,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
           >
             <WorkspaceSwitcher
               current={activeWorkspace}
-              onSelect={setActiveWorkspace}
+              onSelect={handleWorkspaceSelect}
               collapsed={sidebarCollapsed}
             />
           </div>

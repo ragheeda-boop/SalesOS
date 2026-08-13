@@ -206,6 +206,20 @@ export function getWorkspaceByPath(pathname: string): Workspace {
   return workspaces[0];
 }
 
+/** First nav href for a workspace — used when the switcher must actually route. */
+export function getWorkspaceHome(ws: Workspace): string {
+  return ws.groups[0]?.items[0]?.href ?? "/dashboard";
+}
+
+/**
+ * REMAINING_GAPS U02: switching workspace must navigate, not only set React state.
+ * Returns null when the current path already belongs to `selected`.
+ */
+export function workspaceSelectHref(selected: Workspace, pathname: string): string | null {
+  if (getWorkspaceByPath(pathname).id === selected.id) return null;
+  return getWorkspaceHome(selected);
+}
+
 export function getAllNavItems(): NavItem[] {
   return workspaces.flatMap((ws) => ws.groups.flatMap((g) => g.items));
 }
