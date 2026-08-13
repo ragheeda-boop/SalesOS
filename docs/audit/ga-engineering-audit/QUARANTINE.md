@@ -16,7 +16,7 @@
 | Workflow webhook CRUD | Remounted `/api/v1/workflow/webhooks*` | DUP-02 prefix collision with Integration Hub | Mount workflow CRUD at `/api/v1/webhooks` again |
 | Experimental search API | OpenAPI `deprecated=True` | DUP-02 dual capability quarantine | Delete without DEC (FE analytics depends) |
 | Studio + domain prompt registries | Dual-registry quarantine tags/honesty | DUP-02 prompt residual | Invent single Prompt SoT without DEC |
-| MetaData islands | Freeze ceiling **18** | DRIFT-01 | Add islands / raise ceiling without DEC |
+| MetaData islands | Freeze ceiling **6** | DRIFT-01 | Add islands / raise ceiling without DEC |
 
 ---
 

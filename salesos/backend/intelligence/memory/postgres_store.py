@@ -10,17 +10,16 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import (
-    Column,
     DateTime,
     Integer,
-    MetaData,
     String,
-    Table,
     Text,
     and_,
+    column,
     delete,
     func,
     select,
+    table,
     true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -28,21 +27,20 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from .base import MemoryEntry, MemoryScope, MemoryStore
 
-_memory_metadata = MetaData()
-
-episodic_memory = Table(
+# Lightweight table()/column() — avoid private MetaData island (EAB-001-P1-DRIFT-01).
+# DML stub only; not copied onto Base (DEC-156 would be required for that merge).
+episodic_memory = table(
     "episodic_memory",
-    _memory_metadata,
-    Column("id", String(64), primary_key=True),
-    Column("agent_id", String(128), nullable=False),
-    Column("scope", String(64), nullable=False),
-    Column("type", String(64), nullable=False),
-    Column("content", Text, nullable=False),
-    Column("metadata", JSONB, nullable=True),
-    Column("timestamp", DateTime(timezone=True), nullable=False),
-    Column("ttl_seconds", Integer, nullable=True),
-    Column("session_id", String(128), nullable=True),
-    Column("conversation_id", String(128), nullable=True),
+    column("id", String(64)),
+    column("agent_id", String(128)),
+    column("scope", String(64)),
+    column("type", String(64)),
+    column("content", Text),
+    column("metadata", JSONB),
+    column("timestamp", DateTime(timezone=True)),
+    column("ttl_seconds", Integer),
+    column("session_id", String(128)),
+    column("conversation_id", String(128)),
 )
 
 

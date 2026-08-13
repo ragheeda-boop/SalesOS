@@ -149,9 +149,9 @@ else
   fail "FF-09: METADATA-ISLAND-FREEZE.md missing"
 fi
 
-# Ceiling: EAB-003 19→18 (MCP); 2026-08-12 18→17 (pgvector); 2026-08-12b 17→13 (benchmark+admin table()).
+# Ceiling: EAB-003 19→18 (MCP); 2026-08-12 18→17 (pgvector); 2026-08-12b 17→13 (benchmark+admin table()); 2026-08-13 13→6 (query/DML stubs table()).
 MD_COUNT=$(rg -c "MetaData\(" salesos/backend --glob "*.py" | awk -F: '{s+=$2} END {print s+0}')
-MD_CEILING=13
+MD_CEILING=6
 if [[ "$MD_COUNT" -le "$MD_CEILING" ]]; then
   pass "FF-09: MetaData() count=$MD_COUNT <= ceiling=$MD_CEILING"
 else

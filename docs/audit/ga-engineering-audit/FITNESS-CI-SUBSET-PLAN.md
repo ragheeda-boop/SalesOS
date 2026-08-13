@@ -23,7 +23,7 @@ Minimal subset **exists** and is discoverable — do not invent full G-06 = 100%
 | **FF-14 (light)** | No product path calling stub evaluate/explain | Grep `decisionEngine.(evaluate|explain)` under `salesos/frontend/src` must be empty |
 | **FF-DUP-01 (light)** | Decision HTTP SoT remount held | `DECISION-API-SOT.md` present; `prefix="/api/v1/decision-runtime"`; Center SoT tag; tight include check |
 | **FF-DUP-02 (light)** | Search experimental + Studio prompt dual-registry quarantine held | `search.py` ≥3 `deprecated=True`; `prompt_library_router.py` tag `prompt dual-registry` |
-| **FF-09** | Dual compose / orphan `MetaData()` flagged | Compose SoT + freeze docs present; `MetaData()` count ≤ ceiling **17** |
+| **FF-09** | Dual compose / orphan `MetaData()` flagged | Compose SoT + freeze docs present; `MetaData()` count ≤ ceiling **6** |
 | **FF-10** | Middleware needing `db_session_factory` fails closed if unset | Grep posture: factory wire + `503` in entitlement/suspended/api_keys middleware |
 | **FF-12** | Superseded GO docs must not be cited as authority | `SUPERSEDED` banner on `GO_NO_GO_DECISION.md` + `GA_CHECKLIST.md` |
 
@@ -38,7 +38,7 @@ Out of first subset (later): FF-01…06, FF-08, FF-11, FF-13, full FF-14 product
 | [`salesos/scripts/fitness-ci-subset.sh`](../../salesos/scripts/fitness-ci-subset.sh) | Executable light checks (CI / Unix) |
 | [`salesos/scripts/fitness-ci-subset.ps1`](../../salesos/scripts/fitness-ci-subset.ps1) | Windows host twin |
 | [`.github/workflows/fitness-ci-subset.yml`](../../.github/workflows/fitness-ci-subset.yml) | Workflow job (push/PR/workflow_dispatch) — **repo root = discoverable**; honesty footer step |
-| [METADATA-ISLAND-FREEZE.md](./METADATA-ISLAND-FREEZE.md) | FF-09 ceiling / allowlist (ceiling **18**) |
+| [METADATA-ISLAND-FREEZE.md](./METADATA-ISLAND-FREEZE.md) | FF-09 ceiling / allowlist (ceiling **6**) |
 | [EAB-003 REMEDIATION-STRUCTURAL](./enterprise-audit-board/history/EAB-2026-08-06-003/REMEDIATION-STRUCTURAL.md) | Prior disposition packaging |
 | [completion/STREAM-B-M1.md](./completion/STREAM-B-M1.md) | Stream B M1 results |
 

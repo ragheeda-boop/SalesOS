@@ -9,28 +9,27 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Column, DateTime, MetaData, String, insert, select
+from sqlalchemy import DateTime, String, column, insert, select, table
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.schema import Table
 
-_audit_metadata = MetaData(schema="audit")
-
-audit_log = Table(
+# Lightweight table()/column() — avoid private MetaData island (EAB-001-P1-DRIFT-01).
+# Live table is audit.audit_log (0001_baseline); this is a DML stub only.
+audit_log = table(
     "audit_log",
-    _audit_metadata,
-    Column("id", PGUUID(as_uuid=True), primary_key=True),
-    Column("tenant_id", String(255), nullable=False),
-    Column("entity_type", String(100), nullable=False),
-    Column("entity_id", String(255), nullable=False),
-    Column("action", String(50), nullable=False),
-    Column("changes", JSONB),
-    Column("performed_by", String(255)),
-    Column("performed_at", DateTime(timezone=True), nullable=False),
-    Column("ip_address", String(50)),
-    Column("request_id", String(100)),
-    Column("metadata", JSONB),
+    column("id", PGUUID(as_uuid=True)),
+    column("tenant_id", String(255)),
+    column("entity_type", String(100)),
+    column("entity_id", String(255)),
+    column("action", String(50)),
+    column("changes", JSONB),
+    column("performed_by", String(255)),
+    column("performed_at", DateTime(timezone=True)),
+    column("ip_address", String(50)),
+    column("request_id", String(100)),
+    column("metadata", JSONB),
+    schema="audit",
 )
 
 

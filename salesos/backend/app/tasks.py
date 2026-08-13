@@ -8,7 +8,7 @@ import datetime as _datetime
 import logging
 from typing import Any
 
-from sqlalchemy import Column, MetaData, String, Table, select, update
+from sqlalchemy import String, column, select, table, update
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 
 from app.celery_app import celery_app
@@ -17,7 +17,6 @@ from app.config import settings
 logger = logging.getLogger("salesos.tasks")
 
 _ALLOWED_TABLES = frozenset({"companies", "contacts"})
-_tasks_metadata = MetaData()
 
 
 def _validate_table(name: str) -> str:
@@ -26,23 +25,21 @@ def _validate_table(name: str) -> str:
     return name
 
 
-def _entity_table(name: str) -> Table:
-    """Allowlisted Core table for Celery entity helpers."""
+def _entity_table(name: str):
+    """Allowlisted table()/column() stub for Celery entity helpers (EAB-001-P1-DRIFT-01)."""
     table_name = _validate_table(name)
-    return Table(
+    return table(
         table_name,
-        _tasks_metadata,
-        Column("id", PGUUID(as_uuid=True), primary_key=True),
-        Column("tenant_id", PGUUID(as_uuid=True)),
-        Column("name_ar", String),
-        Column("name_en", String),
-        Column("activity_description", String),
-        Column("city", String),
-        Column("industry", String),
-        Column("position", String),
-        Column("department", String),
-        Column("embedding", String),
-        extend_existing=True,
+        column("id", PGUUID(as_uuid=True)),
+        column("tenant_id", PGUUID(as_uuid=True)),
+        column("name_ar", String),
+        column("name_en", String),
+        column("activity_description", String),
+        column("city", String),
+        column("industry", String),
+        column("position", String),
+        column("department", String),
+        column("embedding", String),
     )
 
 

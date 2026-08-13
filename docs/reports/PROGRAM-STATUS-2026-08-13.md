@@ -58,7 +58,7 @@
 
 ### Agent (next, if assigned)
 
-1. MetaData live-table consolidations (DEC required; freeze ceiling **13**).
+1. MetaData live-table consolidations (DEC-156 **proposal**; freeze ceiling **6**). Residual six Base/KEEP islands still blocked.
 2. DUP-01 engine deletion still **deferred** (Partial narrowed).
 3. FreeLLMAPI compose sidecar proof (dev profile only) — **optional**; not live AI; not Railway prod.
 4. Staging `OPENAI_BASE_URL` loop — **not validated**; do not call live external providers.

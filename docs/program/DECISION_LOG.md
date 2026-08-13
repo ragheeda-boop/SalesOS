@@ -1090,6 +1090,14 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-156 — MetaData residual Base merge (Proposed — not Accepted)
+
+**Date:** 2026-08-13
+**Context:** DRIFT-01 freeze ceiling **13→6** via `table()`/`column()` on seven query/DML stubs (no Base merge). Six schema-owning / KEEP-register islands remain (`db05_orphan_keep`, activity_records, domain_events, graph_edges, vectors, event_outbox).
+**Decision:** **Proposed only.** Authorize constructing those six `Table()` objects on `sdk.database.Base.metadata` and deleting private `MetaData()`. **Not Accepted. Not CLOSED.** Companion: [`decisions/DEC-156-METADATA-BASE-MERGE-RESIDUAL.md`](decisions/DEC-156-METADATA-BASE-MERGE-RESIDUAL.md).
+**Consequence:** Further ceiling drops below **6** stay blocked until this DEC is Accepted. No DROP. No alembic head bump in the proposal. `feature_ai_copilot` unchanged.
+**Status:** Proposed.
+
 ### DEC-155 — Criterion 3.7 Stage 7 E2E CLOSED (Accepted)
 
 **Date:** 2026-08-02

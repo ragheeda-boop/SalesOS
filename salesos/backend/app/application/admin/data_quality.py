@@ -26,18 +26,17 @@ from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import (
-    Column,
     DateTime,
     Float,
-    MetaData,
     String,
-    Table,
     and_,
     case,
+    column,
     func,
     literal,
     or_,
     select,
+    table,
     union_all,
 )
 from sqlalchemy import (
@@ -75,29 +74,27 @@ CORE_FIELDS = [
 _ALLOWED_QUALITY_FIELDS = frozenset(CORE_FIELDS)
 
 
-_dq_metadata = MetaData()
-
-# Lightweight Core table for quality SQL (columns referenced by quality checks).
-companies = Table(
+# Lightweight table()/column() — avoid private MetaData island (EAB-001-P1-DRIFT-01).
+# companies already lives on shared Base; this is a query stub only.
+companies = table(
     "companies",
-    _dq_metadata,
-    Column("id", UUID(as_uuid=True), primary_key=True),
-    Column("tenant_id", UUID(as_uuid=True)),
-    Column("name_ar", String),
-    Column("name_en", String),
-    Column("cr_number", String),
-    Column("vat_number", String),
-    Column("email", String),
-    Column("phone", String),
-    Column("website", String),
-    Column("address", String),
-    Column("city", String),
-    Column("region", String),
-    Column("industry", String),
-    Column("status", String),
-    Column("revenue", Float),
-    Column("employees", String),
-    Column("updated_at", DateTime(timezone=True)),
+    column("id", UUID(as_uuid=True)),
+    column("tenant_id", UUID(as_uuid=True)),
+    column("name_ar", String),
+    column("name_en", String),
+    column("cr_number", String),
+    column("vat_number", String),
+    column("email", String),
+    column("phone", String),
+    column("website", String),
+    column("address", String),
+    column("city", String),
+    column("region", String),
+    column("industry", String),
+    column("status", String),
+    column("revenue", Float),
+    column("employees", String),
+    column("updated_at", DateTime(timezone=True)),
 )
 
 

@@ -158,11 +158,12 @@ evidence:
 validation_label: light validated
 recommendation: "Continue DEC-130f consolidation; freeze new private MetaData; migrate KEEP inventory"
 owner: backend-data
-status: partial (Wave 3 freeze + KEEP pointer; islands not migrated; ceiling 13)
+status: partial (Wave 3 freeze + KEEP pointer; residual Base islands; ceiling 6)
 related_ids: []
 economics_band: High
 drift_metric_ids: [DM-06]
 # 2026-08-12b: MetaData ceiling 17→13 (benchmark + admin COUNT stubs → table()).
+# 2026-08-13: MetaData ceiling 13→6 (query/DML stubs → table()); DEC-156 proposal for residual Base merges.
 ```
 
 ### EAB-001-P1-OPS-02 ? Dual compose / multi-stack ambiguity

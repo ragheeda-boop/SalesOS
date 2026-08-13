@@ -7,11 +7,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import Column, MetaData, String, Table, bindparam, delete, literal, select
+from sqlalchemy import String, bindparam, column, delete, literal, select, table
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-_vector_metadata = MetaData()
 
 
 @dataclass
@@ -100,16 +98,14 @@ def _validate_collection(name: str) -> None:
         raise ValueError(f"Unknown collection: {name}")
 
 
-def _embedding_table(table_name: str) -> Table:
-    """Allowlisted Core table for pgvector collections."""
+def _embedding_table(table_name: str):
+    """Allowlisted table()/column() stub for pgvector collections (EAB-001-P1-DRIFT-01)."""
     _validate_collection(table_name)
-    return Table(
+    return table(
         table_name,
-        _vector_metadata,
-        Column("id", String, primary_key=True),
-        Column("embedding", String),
-        Column("metadata", JSONB),
-        extend_existing=True,
+        column("id", String),
+        column("embedding", String),
+        column("metadata", JSONB),
     )
 
 

@@ -21,48 +21,46 @@ from typing import Any, Callable, ClassVar, Optional
 
 from sqlalchemy import (
     Boolean,
-    Column,
     DateTime,
-    MetaData,
     String,
-    Table,
     bindparam,
     case,
     cast,
+    column,
     func,
     literal,
     or_,
     select,
+    table,
 )
 from sqlalchemy import text as sa_text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-_search_metadata = MetaData()
-
-companies = Table(
+# Lightweight table()/column() — avoid private MetaData island (EAB-001-P1-DRIFT-01).
+# companies already lives on shared Base; this is a query stub only.
+companies = table(
     "companies",
-    _search_metadata,
-    Column("id", PGUUID(as_uuid=True), primary_key=True),
-    Column("tenant_id", PGUUID(as_uuid=True)),
-    Column("name_ar", String),
-    Column("name_en", String),
-    Column("cr_number", String),
-    Column("city", String),
-    Column("region", String),
-    Column("industry", String),
-    Column("status", String),
-    Column("legal_form", String),
-    Column("activity", String),
-    Column("is_active", Boolean),
-    Column("phone", String),
-    Column("email", String),
-    Column("activity_description", String),
-    Column("created_at", DateTime(timezone=True)),
-    Column("updated_at", DateTime(timezone=True)),
-    Column("search_vector", TSVECTOR),
-    Column("embedding", String),  # pgvector column; String avoids dialect dependency
+    column("id", PGUUID(as_uuid=True)),
+    column("tenant_id", PGUUID(as_uuid=True)),
+    column("name_ar", String),
+    column("name_en", String),
+    column("cr_number", String),
+    column("city", String),
+    column("region", String),
+    column("industry", String),
+    column("status", String),
+    column("legal_form", String),
+    column("activity", String),
+    column("is_active", Boolean),
+    column("phone", String),
+    column("email", String),
+    column("activity_description", String),
+    column("created_at", DateTime(timezone=True)),
+    column("updated_at", DateTime(timezone=True)),
+    column("search_vector", TSVECTOR),
+    column("embedding", String),  # pgvector column; String avoids dialect dependency
 )
 
 
