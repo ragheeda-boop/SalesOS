@@ -49,6 +49,13 @@ def _make_session_factory(session: AsyncMock):
     return MagicMock(return_value=session)
 
 
+# DEC-085 live order on search_raw / search_by_filters:
+# tenant GUC → statement_timeout → query. Index 0/1 assertions that assume
+# timeout-first are stale (GUC added in 942907b; MetaData land 8ed3608 did not
+# change execute order).
+_EXEC_GUC, _EXEC_TIMEOUT, _EXEC_QUERY = 0, 1, 2
+
+
 # ── search_raw() Tests ──────────────────────────────────────────
 
 
@@ -97,8 +104,10 @@ class TestSearchRaw:
             timeout_seconds=5.0,
         )
         await repo.search_raw("test", tenant_id="t1")
-        first_call = session.execute.call_args_list[0]
-        sql_clause = first_call.args[0]
+        guc_sql = str(session.execute.call_args_list[_EXEC_GUC].args[0])
+        assert "app.tenant_id" in guc_sql and "set_config" in guc_sql
+        timeout_call = session.execute.call_args_list[_EXEC_TIMEOUT]
+        sql_clause = timeout_call.args[0]
         rendered = str(sql_clause.compile(compile_kwargs={"literal_binds": True}))
         assert "statement_timeout" in rendered and "set_config" in rendered
 
@@ -117,8 +126,8 @@ class TestSearchRaw:
             fts_language="simple",
         )
         await repo.search_raw("test", tenant_id="t1")
-        second_call = session.execute.call_args_list[1]
-        sql_clause = second_call.args[0]
+        query_call = session.execute.call_args_list[_EXEC_QUERY]
+        sql_clause = query_call.args[0]
         compiled = sql_clause.compile()
         assert "simple" in str(compiled.params.values()) or "simple" in str(compiled)
 
@@ -142,7 +151,7 @@ class TestSearchByFilters:
         session = _make_session(rows=mock_rows)
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        # search_by_filters uses count(*) OVER() — only 2 execute calls (timeout + query)
+        # search_by_filters uses count(*) OVER() — 3 execute calls (GUC + timeout + query)
         await repo.search_by_filters(
             "test", tenant_id="t1", filters={"city": "الرياض"},
         )
@@ -354,10 +363,8 @@ class TestSearchLimitsEnforced:
         await repo.search_raw("test", tenant_id="t1", limit=999)
         assert session.execute.called
 
-        # Verify the SQL param was clamped
-        # call_args_list[1] is the second execute call (SQL query)
-        # call_args_list[1][0] is the tuple of positional args; [1] is the params dict
-        sql_call = session.execute.call_args_list[1]
+        # Verify the SQL param was clamped (DEC-085: query is execute index 2)
+        sql_call = session.execute.call_args_list[_EXEC_QUERY]
         stmt = sql_call.args[0]
         compiled = stmt.compile()
         assert MAX_PAGE_SIZE in compiled.params.values() or str(MAX_PAGE_SIZE) in str(compiled)
@@ -367,11 +374,10 @@ class TestSearchLimitsEnforced:
         session = _make_session(rows=[])
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        # search_by_filters uses count(*) OVER() — only 2 execute calls (timeout + query)
+        # search_by_filters uses count(*) OVER() — 3 execute calls (GUC + timeout + query)
         await repo.search_by_filters("test", tenant_id="t1", limit=200)
         # Should be clamped to MAX_PAGE_SIZE (50)
-        # call_args_list[1] is the second execute call (results query)
-        sql_call = session.execute.call_args_list[1]
+        sql_call = session.execute.call_args_list[_EXEC_QUERY]
         stmt = sql_call.args[0]
         compiled = stmt.compile()
         assert MAX_PAGE_SIZE in compiled.params.values() or str(MAX_PAGE_SIZE) in str(compiled)
