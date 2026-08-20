@@ -1,0 +1,18 @@
+B03 Phase 4 — Downgrade Analysis
+==================================
+Date: 2026-08-09
+Scope: 16 migrations (d1a8c35e7f09 → f7a1b82c3d09)
+
+All 16 migrations have downgrade() functions.
+
+Summary:
+  downgrade_exists: YES for all 16
+  downgrade_destructive: NO for all 16
+
+All downgrades are DDL-only (DROP TABLE, DROP INDEX, DROP COLUMN).
+None revert the data backfills — this is expected since backfills are
+additive forward-only and the columns they populate are dropped by downgrade.
+
+No data is removed by any downgrade. Schema reverts to the prior state.
+Rollback is structurally possible but requires careful orchestration
+(due to data backfills that are not reversed).

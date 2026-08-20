@@ -1,0 +1,18 @@
+B03 PG18 — TEST A: Fresh Database Schema Check
+================================================
+Date: 2026-08-09
+Database: b03_pg18_fresh
+
+alembic_version: f7a1b82c3d09 (head) ✓
+total_tables: 137 ✓
+total_rls_policies: 73 ✓
+tables_with_force_rls: 72 ✓
+
+Extensions:
+  pg_trgm 1.6 ✓
+  pgcrypto 1.4 ✓ (PG18 ships 1.4 vs PG16's 1.3 — no compatibility impact)
+  plpgsql 1.0 ✓
+  uuid-ossp 1.1 ✓
+  vector 0.8.6 ✓
+
+All schema objects match PG16 validation results.

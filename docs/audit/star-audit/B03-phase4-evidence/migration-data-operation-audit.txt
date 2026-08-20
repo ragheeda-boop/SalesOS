@@ -1,0 +1,25 @@
+B03 Phase 4 — Migration Data Operation Audit
+=============================================
+Date: 2026-08-09
+Scope: 16 migrations (d1a8c35e7f09 → f7a1b82c3d09)
+
+Total INSERT: 0
+Total UPDATE: 3
+Total DELETE: 0
+Total Backfill: 3
+
+Detailed findings:
+
+1. f6b2e84c1a90 (STORY-04-01): UPDATE tenants SET provisioning_status = 'active'
+   WHERE provisioning_status = 'pending' OR provisioning_status IS NULL
+   Risk: LOW — idempotent, additive column backfill
+
+2. d4b0e23f5a91 (STORY-04-04): UPDATE tenants SET deleted_at = (settings->>'deletion_requested_at')::timestamptz
+   WHERE deleted_at IS NULL AND settings ? 'deletion_requested_at'
+   Risk: LOW — selective backfill, guarded by multiple WHERE conditions
+
+3. d0f6e89b1a37 (STORY-06-01): UPDATE admin_plans SET entitlements = CAST(:e AS jsonb) WHERE id = :id
+   Risk: MEDIUM — imports app.modules.admin.entitlements at migration time (coupling risk)
+
+No INSERT operations. No DELETE operations. No data removal.
+All backfills are additive forward-only.

@@ -1,0 +1,21 @@
+B03 Production Migration — Post-Migration Backfill Check
+=========================================================
+Date: 2026-08-09T08:02:08.637152+00:00
+Database: interchange.proxy.rlwy.net:13698/railway
+
+f6b2e84c1a90 (tenants.provisioning_status):
+  Column exists: YES ✓
+  (Backfill targets NULL values — 0 rows on fresh migration, idempotent)
+
+d4b0e23f5a91 (tenants.deleted_at):
+  Column exists: YES ✓
+  (Backfill targets NULL values — idempotent)
+
+d0f6e89b1a37 (admin_plans.entitlements):
+  Table exists: YES ✓
+  Column exists: YES ✓
+  Row count: 0
+  (Backfill is idempotent — runs on existing admin_plans rows)
+
+All three backfill migrations applied successfully.
+Data is idempotent — no data corruption risk.

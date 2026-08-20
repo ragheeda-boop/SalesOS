@@ -1,0 +1,10 @@
+B03 Production Migration — Post-Migration Revision
+====================================================
+Date: 2026-08-09T08:02:08.637152+00:00
+Database: interchange.proxy.rlwy.net:13698/railway
+
+SELECT version_num FROM public.alembic_version;
+
+Result: f7a1b82c3d09
+
+PASS — matches authorized target.

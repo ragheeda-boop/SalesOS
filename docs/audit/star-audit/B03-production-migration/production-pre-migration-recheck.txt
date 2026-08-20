@@ -1,0 +1,12 @@
+B03 Production Migration — Pre-Migration Recheck
+================================================
+Date: 2026-08-09T07:58:50.991931+00:00
+Database: interchange.proxy.rlwy.net:13698/railway
+
+1. PostgreSQL: 18.4 (Debian 18.4-1.pgdg13+1) — PASS
+2. alembic_version: d1a8c35e7f09 — PASS
+3. Blocking transactions: 0 — PASS
+4. Backup evidence: pgBackRest WAL archiving ACTIVE (salesos-pitr-w-857q3fjjrr) — PASS
+5. Authorized target: f7a1b82c3d09 — PASS
+
+OVERALL: READY

@@ -1,0 +1,10 @@
+B03 PG18 — TEST B: RLS Check
+==============================
+Date: 2026-08-09
+Database: b03_pg18_prod_state
+
+Total RLS policies: 73 ✓
+Tables with FORCE RLS: 72 ✓
+
+RLS policies match PG16 validation.
+No PG18-specific incompatibilities observed.
