@@ -127,15 +127,16 @@ class TestPostgresOpportunityContactRepository:
         # Mock count query return
         mock_session.execute.side_effect = [
             MockResult(value=1),        # count
-            MockResult(values=[None]),  # actual query (model not needed for this test)
+            MockResult(values=[oc]),    # actual query returns model objects
         ]
 
         query = OpportunityContactQuery(
             tenant_id=tenant_id, opportunity_id="opp-target", page=1, page_size=20,
         )
-        await repo.query(query)
+        result = await repo.query(query)
 
         assert mock_session.execute.call_count == 2
+        assert result.total == 1
 
     async def test_delete_returns_true_when_found(self, repo, mock_session):
         from domains.commercial.infrastructure.models import OpportunityContactModel

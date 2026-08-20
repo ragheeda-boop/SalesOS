@@ -6,6 +6,7 @@ import json
 import os
 import uuid
 from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -28,6 +29,18 @@ from domains.analytics.templates import (
     team_performance_report,
     weekly_pipeline_summary,
 )
+
+from unittest.mock import AsyncMock, MagicMock
+
+
+def _mock_db():
+    """Create a mock db that returns empty results for all cube queries."""
+    mock_result = MagicMock()
+    mock_result.all.return_value = []
+    mock_db = AsyncMock()
+    mock_db.execute.return_value = mock_result
+    return mock_db
+
 
 # Fixture rows for export/generate path tests only — cubes stay honestly empty.
 _PIPELINE_FIXTURE_ROWS = [
@@ -54,6 +67,15 @@ def pipeline_cube_with_rows(monkeypatch):
     monkeypatch.setattr(CUBE_REGISTRY[CubeType.PIPELINE], "query", _query)
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def mock_db():
+    result = MagicMock()
+    result.all.return_value = []
+    db = AsyncMock()
+    db.execute.return_value = result
+    return db
 
 
 @pytest.fixture
@@ -130,96 +152,98 @@ class TestCubeDefinitions:
 
 class TestPipelineCubeQuery:
     @pytest.mark.asyncio
-    async def test_returns_rows(self):
+    async def test_returns_rows(self, mock_db):
         cube = PipelineCube()
-        rows = await cube.query(db=None, tenant_id="t-1")
-        # Honest empty until cubes query real tenant data
+        rows = await cube.query(db=mock_db, tenant_id="t-1")
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_stage(self):
+    async def test_filters_by_stage(self, mock_db):
         cube = PipelineCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"stage": ["closed_won"]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"stage": ["closed_won"]})
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_owner(self):
+    async def test_filters_by_owner(self, mock_db):
         cube = PipelineCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"owner": ["owner-2"]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"owner": ["owner-2"]})
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_empty_list_returns_none(self):
+    async def test_filters_empty_list_returns_none(self, mock_db):
         cube = PipelineCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"stage": ["nonexistent"]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"stage": ["nonexistent"]})
         assert len(rows) == 0
 
 
 class TestForecastCubeQuery:
     @pytest.mark.asyncio
-    async def test_returns_rows(self):
+    async def test_returns_rows(self, mock_db):
         cube = ForecastCube()
-        rows = await cube.query(db=None, tenant_id="t-1")
-        assert rows == []
+        rows = await cube.query(db=mock_db, tenant_id="t-1")
+        assert len(rows) == 1
+        assert rows[0]["quarter"] == "TOTAL"
 
     @pytest.mark.asyncio
-    async def test_filters_by_quarter(self):
+    async def test_filters_by_quarter(self, mock_db):
         cube = ForecastCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"quarter": ["2026-Q4"]})
-        assert rows == []
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"quarter": ["2026-Q4"]})
+        assert len(rows) == 1
+        assert rows[0]["quarter"] == "TOTAL"
 
     @pytest.mark.asyncio
-    async def test_filters_by_product_line(self):
+    async def test_filters_by_product_line(self, mock_db):
         cube = ForecastCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"product_line": ["SalesOS Pro"]})
-        assert rows == []
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"product_line": ["SalesOS Pro"]})
+        assert len(rows) == 1
+        assert rows[0]["quarter"] == "TOTAL"
 
 
 class TestTeamCubeQuery:
     @pytest.mark.asyncio
-    async def test_returns_rows(self):
+    async def test_returns_rows(self, mock_db):
         cube = TeamCube()
-        rows = await cube.query(db=None, tenant_id="t-1")
+        rows = await cube.query(db=mock_db, tenant_id="t-1")
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_team(self):
+    async def test_filters_by_team(self, mock_db):
         cube = TeamCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"team": ["SMB Sales"]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"team": ["SMB Sales"]})
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_month(self):
+    async def test_filters_by_month(self, mock_db):
         cube = TeamCube()
         now = datetime.now(UTC)
         this_month = now.strftime("%Y-%m")
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"month": [this_month]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"month": [this_month]})
         assert rows == []
 
 
 class TestActivityCubeQuery:
     @pytest.mark.asyncio
-    async def test_returns_rows(self):
+    async def test_returns_rows(self, mock_db):
         cube = ActivityCube()
-        rows = await cube.query(db=None, tenant_id="t-1")
+        rows = await cube.query(db=mock_db, tenant_id="t-1")
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_type(self):
+    async def test_filters_by_type(self, mock_db):
         cube = ActivityCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"type": ["email"]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"type": ["email"]})
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_filters_by_owner(self):
+    async def test_filters_by_owner(self, mock_db):
         cube = ActivityCube()
-        rows = await cube.query(db=None, tenant_id="t-1", filters={"owner": ["owner-2"]})
+        rows = await cube.query(db=mock_db, tenant_id="t-1", filters={"owner": ["owner-2"]})
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_with_granularity_override(self):
+    async def test_with_granularity_override(self, mock_db):
         cube = ActivityCube()
-        rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.WEEK)
+        rows = await cube.query(db=mock_db, tenant_id="t-1", granularity=Granularity.WEEK)
         assert rows == []
 
 
@@ -228,22 +252,23 @@ class TestActivityCubeQuery:
 
 class TestGranularity:
     @pytest.mark.asyncio
-    async def test_day_granularity(self):
+    async def test_day_granularity(self, mock_db):
         cube = PipelineCube()
-        rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.DAY)
+        rows = await cube.query(db=mock_db, tenant_id="t-1", granularity=Granularity.DAY)
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_week_granularity(self):
+    async def test_week_granularity(self, mock_db):
         cube = PipelineCube()
-        rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.WEEK)
+        rows = await cube.query(db=mock_db, tenant_id="t-1", granularity=Granularity.WEEK)
         assert rows == []
 
     @pytest.mark.asyncio
-    async def test_month_granularity(self):
+    async def test_month_granularity(self, mock_db):
         cube = ForecastCube()
-        rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.MONTH)
-        assert rows == []
+        rows = await cube.query(db=mock_db, tenant_id="t-1", granularity=Granularity.MONTH)
+        assert len(rows) == 1
+        assert rows[0]["quarter"] == "TOTAL"
 
 
 # ── Tests: Report CRUD ───────────────────────────────────────────────────────

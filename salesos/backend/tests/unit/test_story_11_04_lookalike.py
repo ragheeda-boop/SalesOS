@@ -56,6 +56,7 @@ def test_store_reusable_and_tenant_isolated() -> None:
 
 def test_update_bumps_schema_version() -> None:
     store = MemLookalikeStore()
+    store.bind_history(build_demo_opportunity_history(tenant_id=""))
     a = store.run(
         tenant_id="t1",
         name="A",

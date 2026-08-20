@@ -25,7 +25,8 @@ def test_deferred_8_inventory_exact() -> None:
 
 
 def test_deferred_8_not_folded_into_category_a_47() -> None:
-    assert len(ALL_TENANT_TABLES) == 47
+    # Updated from 47 to 51 after Phase 1-4 added tables (approval_requests, event_dead_letters, etc.)
+    assert len(ALL_TENANT_TABLES) == 51
     for t in DB05_DEFERRED_8_TENANT_TABLES:
         assert t not in ALL_TENANT_TABLES
 
