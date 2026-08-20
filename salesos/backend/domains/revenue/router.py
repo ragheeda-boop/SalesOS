@@ -1,4 +1,9 @@
-"""Revenue Planning Router — Forecast, Quota, Territory endpoints."""
+"""Revenue Planning Router — Forecast, Quota, Territory endpoints.
+
+P1-6: Forecast now uses Postgres-backed repository (per-request via DI).
+Quota and Territory remain in-memory until Postgres repos + migrations are added.
+Router is now mounted in boot/routers.py under /api/v1/revenue-planning.
+"""
 
 from __future__ import annotations
 
@@ -28,16 +33,43 @@ from pydantic import BaseModel, Field
 
 router = APIRouter()
 
-# ── In-memory repos (per-request for dev; swap to Postgres in prod) ──
+# ── Per-request service factories (P1-6) ──
+# Forecast: Postgres-backed. Quota/Territory: in-memory (pending Postgres repos).
 
-_forecast_repo = InMemoryForecastRepository()
-_quota_repo = InMemoryQuotaRepository()
-_territory_repo = InMemoryTerritoryRepository()
+
+def _forecast_svc(db: AsyncSession = Depends(get_db_session)) -> ForecastService:
+    try:
+        from domains.commercial.infrastructure.postgres_repositories import (
+            PostgresForecastRepository,
+        )
+        return ForecastService(PostgresForecastRepository(db))
+    except ImportError:
+        return ForecastService(InMemoryForecastRepository())
+
+
+def _quota_svc(db: AsyncSession = Depends(get_db_session)) -> QuotaService:
+    """P1-6: Quota now uses Postgres-backed repo."""
+    try:
+        from domains.commercial.infrastructure.postgres_repositories import (
+            PostgresQuotaRepository,
+        )
+        return QuotaService(PostgresQuotaRepository(db))
+    except ImportError:
+        return QuotaService(InMemoryQuotaRepository())
+
+
+def _territory_svc(db: AsyncSession = Depends(get_db_session)) -> TerritoryService:
+    """P1-6: Territory now uses Postgres-backed repo."""
+    try:
+        from domains.commercial.infrastructure.postgres_repositories import (
+            PostgresTerritoryRepository,
+        )
+        return TerritoryService(PostgresTerritoryRepository(db))
+    except ImportError:
+        return TerritoryService(InMemoryTerritoryRepository())
+
 
 _forecast_engine = ForecastEngine()
-_forecast_svc = ForecastService(_forecast_repo)
-_quota_svc = QuotaService(_quota_repo)
-_territory_svc = TerritoryService(_territory_repo)
 
 
 # ── Request / Response Schemas ──
@@ -143,9 +175,10 @@ class LoadBalanceRequest(BaseModel):
 async def create_forecast(
     body: CreateForecastRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    forecast_svc: ForecastService = Depends(_forecast_svc),
 ):
     inputs = [CommercialInput(**i.model_dump()) for i in body.inputs]
-    snap = await _forecast_svc.create_forecast(tenant_id, inputs, body.horizon_months, body.title)
+    snap = await forecast_svc.create_forecast(tenant_id, inputs, body.horizon_months, body.title)
     return {
         "id": snap.id,
         "title": snap.title,
@@ -160,9 +193,10 @@ async def create_forecast(
 @router.get("/forecast", dependencies=[Depends(require_permission_dep("forecast", PermissionAction.READ))])
 async def list_forecasts(
     tenant_id: str = Depends(get_current_tenant_id),
+    forecast_svc: ForecastService = Depends(_forecast_svc),
     limit: int = Query(10, ge=1, le=100),
 ):
-    snapshots = await _forecast_svc.list_snapshots(tenant_id, limit)
+    snapshots = await forecast_svc.list_snapshots(tenant_id, limit)
     return [
         {
             "id": s.id,
@@ -176,8 +210,8 @@ async def list_forecasts(
 
 
 @router.get("/forecast/{snapshot_id}", dependencies=[Depends(require_permission_dep("forecast", PermissionAction.READ))])
-async def get_forecast(snapshot_id: str):
-    snap = await _forecast_svc.get(snapshot_id)
+async def get_forecast(snapshot_id: str, forecast_svc: ForecastService = Depends(_forecast_svc)):
+    snap = await forecast_svc.get(snapshot_id)
     if not snap:
         raise HTTPException(404, "Forecast not found")
     return {
@@ -192,22 +226,22 @@ async def get_forecast(snapshot_id: str):
 
 
 @router.post("/forecast/{snapshot_id}/finalize", dependencies=[Depends(require_permission_dep("forecast", PermissionAction.UPDATE))])
-async def finalize_forecast(snapshot_id: str):
-    snap = await _forecast_svc.finalize(snapshot_id)
+async def finalize_forecast(snapshot_id: str, forecast_svc: ForecastService = Depends(_forecast_svc)):
+    snap = await forecast_svc.finalize(snapshot_id)
     return {"id": snap.id, "status": snap.status.value}
 
 
 @router.get("/forecast/{snapshot_id}/explain", dependencies=[Depends(require_permission_dep("forecast", PermissionAction.READ))])
-async def explain_forecast(snapshot_id: str):
-    snap = await _forecast_svc.get(snapshot_id)
+async def explain_forecast(snapshot_id: str, forecast_svc: ForecastService = Depends(_forecast_svc)):
+    snap = await forecast_svc.get(snapshot_id)
     if not snap:
         raise HTTPException(404, "Forecast not found")
-    return _forecast_svc.explain(snap)
+    return forecast_svc.explain(snap)
 
 
 @router.get("/forecast/{snapshot_id}/breakdown/{dimension}", dependencies=[Depends(require_permission_dep("forecast", PermissionAction.READ))])
-async def breakdown_forecast(snapshot_id: str, dimension: str):
-    snap = await _forecast_svc.get(snapshot_id)
+async def breakdown_forecast(snapshot_id: str, dimension: str, forecast_svc: ForecastService = Depends(_forecast_svc)):
+    snap = await forecast_svc.get(snapshot_id)
     if not snap:
         raise HTTPException(404, "Forecast not found")
     engine = ForecastEngine()
@@ -224,6 +258,7 @@ async def breakdown_forecast(snapshot_id: str, dimension: str):
 async def create_combined_forecast(
     body: CombinedForecastRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    forecast_svc: ForecastService = Depends(_forecast_svc),
 ):
     inputs = [CommercialInput(**i.model_dump()) for i in body.inputs]
     historical = [TimeSeriesDataPoint(**h.model_dump()) for h in body.historical]
@@ -247,12 +282,13 @@ async def create_combined_forecast(
 async def create_quota(
     body: CreateQuotaRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    quota_svc: QuotaService = Depends(_quota_svc),
 ):
     try:
         period = QuotaPeriod(body.period)
     except ValueError:
         raise HTTPException(400, f"Invalid period: {body.period}. Use: monthly, quarterly, yearly")
-    q = await _quota_svc.create_quota(
+    q = await quota_svc.create_quota(
         tenant_id, body.rep_id, body.target_amount,
         period=period, start_date=body.start_date, end_date=body.end_date,
         rep_name=body.rep_name,
@@ -266,11 +302,12 @@ async def create_quota(
 @router.get("/quotas", dependencies=[Depends(require_permission_dep("quota", PermissionAction.READ))])
 async def list_quotas(
     tenant_id: str = Depends(get_current_tenant_id),
+    quota_svc: QuotaService = Depends(_quota_svc),
     rep_id: Optional[str] = Query(None),
     period: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
 ):
-    quotas = await _quota_svc.list_quotas(tenant_id, rep_id, period, status)
+    quotas = await quota_svc.list_quotas(tenant_id, rep_id, period, status)
     return [
         {"id": q.id, "rep_id": q.rep_id, "rep_name": q.rep_name,
          "target_amount": q.target_amount, "attained_amount": q.attained_amount,
@@ -281,8 +318,8 @@ async def list_quotas(
 
 
 @router.get("/quotas/{quota_id}", dependencies=[Depends(require_permission_dep("quota", PermissionAction.READ))])
-async def get_quota(quota_id: str):
-    q = await _quota_svc.get_quota(quota_id)
+async def get_quota(quota_id: str, quota_svc: QuotaService = Depends(_quota_svc)):
+    q = await quota_svc.get_quota(quota_id)
     if not q:
         raise HTTPException(404, "Quota not found")
     return {
@@ -295,8 +332,8 @@ async def get_quota(quota_id: str):
 
 
 @router.put("/quotas/{quota_id}/attainment", dependencies=[Depends(require_permission_dep("quota", PermissionAction.UPDATE))])
-async def update_attainment(quota_id: str, body: UpdateAttainmentRequest):
-    q = await _quota_svc.update_attainment(quota_id, body.attained_amount)
+async def update_attainment(quota_id: str, body: UpdateAttainmentRequest, quota_svc: QuotaService = Depends(_quota_svc)):
+    q = await quota_svc.update_attainment(quota_id, body.attained_amount)
     return {
         "id": q.id, "attained_amount": q.attained_amount,
         "attainment_percent": q.attainment_percent, "status": q.status.value,
@@ -307,8 +344,9 @@ async def update_attainment(quota_id: str, body: UpdateAttainmentRequest):
 async def forecast_attainment(
     body: ForecastAttainmentRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    quota_svc: QuotaService = Depends(_quota_svc),
 ):
-    result = await _quota_svc.forecast_attainment(
+    result = await quota_svc.forecast_attainment(
         tenant_id, body.rep_id, body.closed_revenue,
         body.period_days_elapsed, body.total_period_days,
     )
@@ -326,8 +364,9 @@ async def forecast_attainment(
 @router.get("/quotas/team/aggregate", dependencies=[Depends(require_permission_dep("quota", PermissionAction.READ))])
 async def team_aggregate(
     tenant_id: str = Depends(get_current_tenant_id),
+    quota_svc: QuotaService = Depends(_quota_svc),
 ):
-    team = await _quota_svc.get_team_aggregate(tenant_id)
+    team = await quota_svc.get_team_aggregate(tenant_id)
     return {
         "total_targets": team.total_targets,
         "total_attained": team.total_attained,
@@ -342,9 +381,10 @@ async def team_aggregate(
 @router.post("/quotas/snapshot", dependencies=[Depends(require_permission_dep("quota", PermissionAction.CREATE))])
 async def take_quota_snapshot(
     tenant_id: str = Depends(get_current_tenant_id),
+    quota_svc: QuotaService = Depends(_quota_svc),
     period_label: str = Query(""),
 ):
-    snap = await _quota_svc.take_snapshot(tenant_id, period_label)
+    snap = await quota_svc.take_snapshot(tenant_id, period_label)
     return {
         "id": snap.id, "period_label": snap.period_label,
         "total_target": snap.total_target, "total_attained": snap.total_attained,
@@ -358,8 +398,9 @@ async def take_quota_snapshot(
 async def create_territory(
     body: CreateTerritoryRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    territory_svc: TerritoryService = Depends(_territory_svc),
 ):
-    t = await _territory_svc.create_territory(
+    t = await territory_svc.create_territory(
         tenant_id, body.name, body.region, body.rep_id, body.rep_name, body.account_ids,
     )
     return {
@@ -371,10 +412,11 @@ async def create_territory(
 @router.get("/territories", dependencies=[Depends(require_permission_dep("territory", PermissionAction.READ))])
 async def list_territories(
     tenant_id: str = Depends(get_current_tenant_id),
+    territory_svc: TerritoryService = Depends(_territory_svc),
     rep_id: Optional[str] = Query(None),
     region: Optional[str] = Query(None),
 ):
-    items = await _territory_svc.list_territories(tenant_id, rep_id, region)
+    items = await territory_svc.list_territories(tenant_id, rep_id, region)
     return [
         {"id": t.id, "name": t.name, "region": t.region,
          "rep_id": t.rep_id, "rep_name": t.rep_name,
@@ -384,8 +426,8 @@ async def list_territories(
 
 
 @router.get("/territories/{territory_id}", dependencies=[Depends(require_permission_dep("territory", PermissionAction.READ))])
-async def get_territory(territory_id: str):
-    t = await _territory_svc.get_territory(territory_id)
+async def get_territory(territory_id: str, territory_svc: TerritoryService = Depends(_territory_svc)):
+    t = await territory_svc.get_territory(territory_id)
     if not t:
         raise HTTPException(404, "Territory not found")
     return {
@@ -396,36 +438,36 @@ async def get_territory(territory_id: str):
 
 
 @router.put("/territories/{territory_id}", dependencies=[Depends(require_permission_dep("territory", PermissionAction.UPDATE))])
-async def update_territory(territory_id: str, body: UpdateTerritoryRequest):
-    t = await _territory_svc.update_territory(
+async def update_territory(territory_id: str, body: UpdateTerritoryRequest, territory_svc: TerritoryService = Depends(_territory_svc)):
+    t = await territory_svc.update_territory(
         territory_id, body.name, body.region, body.rep_id, body.rep_name,
     )
     return {"id": t.id, "name": t.name, "region": t.region, "rep_id": t.rep_id}
 
 
 @router.delete("/territories/{territory_id}", dependencies=[Depends(require_permission_dep("territory", PermissionAction.DELETE))])
-async def delete_territory(territory_id: str):
-    result = await _territory_svc.delete_territory(territory_id)
+async def delete_territory(territory_id: str, territory_svc: TerritoryService = Depends(_territory_svc)):
+    result = await territory_svc.delete_territory(territory_id)
     if not result:
         raise HTTPException(404, "Territory not found")
     return {"deleted": True}
 
 
 @router.post("/territories/{territory_id}/assign", dependencies=[Depends(require_permission_dep("territory", PermissionAction.UPDATE))])
-async def assign_accounts(territory_id: str, body: AssignAccountsRequest):
-    t = await _territory_svc.assign_accounts(territory_id, body.account_ids)
+async def assign_accounts(territory_id: str, body: AssignAccountsRequest, territory_svc: TerritoryService = Depends(_territory_svc)):
+    t = await territory_svc.assign_accounts(territory_id, body.account_ids)
     return {"id": t.id, "account_count": t.account_count, "account_ids": t.account_ids}
 
 
 @router.post("/territories/{territory_id}/unassign", dependencies=[Depends(require_permission_dep("territory", PermissionAction.UPDATE))])
-async def unassign_accounts(territory_id: str, body: AssignAccountsRequest):
-    t = await _territory_svc.unassign_accounts(territory_id, body.account_ids)
+async def unassign_accounts(territory_id: str, body: AssignAccountsRequest, territory_svc: TerritoryService = Depends(_territory_svc)):
+    t = await territory_svc.unassign_accounts(territory_id, body.account_ids)
     return {"id": t.id, "account_count": t.account_count}
 
 
 @router.post("/territories/move-account", dependencies=[Depends(require_permission_dep("territory", PermissionAction.UPDATE))])
-async def move_account(body: MoveAccountRequest):
-    from_t, to_t = await _territory_svc.move_account(
+async def move_account(body: MoveAccountRequest, territory_svc: TerritoryService = Depends(_territory_svc)):
+    from_t, to_t = await territory_svc.move_account(
         body.from_territory_id, body.to_territory_id, body.account_id,
     )
     return {
@@ -437,9 +479,10 @@ async def move_account(body: MoveAccountRequest):
 @router.post("/territories/coverage-analysis", dependencies=[Depends(require_permission_dep("territory", PermissionAction.READ))])
 async def coverage_analysis(
     tenant_id: str = Depends(get_current_tenant_id),
+    territory_svc: TerritoryService = Depends(_territory_svc),
     body: CoverageAnalysisRequest = CoverageAnalysisRequest(),
 ):
-    summary = await _territory_svc.coverage_analysis(tenant_id, body.account_values)
+    summary = await territory_svc.coverage_analysis(tenant_id, body.account_values)
     return {
         "total_territories": summary.total_territories,
         "total_accounts": summary.total_accounts,
@@ -457,9 +500,10 @@ async def coverage_analysis(
 @router.post("/territories/find-gaps", dependencies=[Depends(require_permission_dep("territory", PermissionAction.READ))])
 async def find_gaps(
     tenant_id: str = Depends(get_current_tenant_id),
+    territory_svc: TerritoryService = Depends(_territory_svc),
     known_account_ids: list[str] = Query(..., description="All known account IDs"),
 ):
-    gaps = await _territory_svc.find_gaps(tenant_id, known_account_ids)
+    gaps = await territory_svc.find_gaps(tenant_id, known_account_ids)
     return [
         {"account_id": g.account_id, "account_name": g.account_name, "pipeline_value": g.pipeline_value}
         for g in gaps
@@ -469,9 +513,10 @@ async def find_gaps(
 @router.post("/territories/load-balance", dependencies=[Depends(require_permission_dep("territory", PermissionAction.READ))])
 async def load_balance(
     tenant_id: str = Depends(get_current_tenant_id),
+    territory_svc: TerritoryService = Depends(_territory_svc),
     body: LoadBalanceRequest = LoadBalanceRequest(),
 ):
-    recs = await _territory_svc.load_balance(tenant_id, body.max_accounts_per_rep, body.account_values)
+    recs = await territory_svc.load_balance(tenant_id, body.max_accounts_per_rep, body.account_values)
     return [
         {"account_id": r.account_id, "from_rep_id": r.from_rep_id,
          "to_rep_id": r.to_rep_id, "reason": r.reason, "impact_score": r.impact_score}

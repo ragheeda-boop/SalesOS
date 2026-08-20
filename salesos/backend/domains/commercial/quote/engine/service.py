@@ -133,7 +133,36 @@ class QuoteService:
             "quote_id": quote_id, "approved_by": approved_by,
             "grand_total": quote.grand_total,
         })
+        # P1-9: domain-specific approval audit trail
+        await self._record_approval_audit(quote, approved_by, comments)
         return result
+
+    async def _record_approval_audit(self, quote: Quote, approved_by: str, comments: str) -> None:
+        """P1-9: Persist approval decision to audit_logs for commercial audit trail."""
+        try:
+            from app.modules.audit.models import AuditLog
+            from sdk.database import async_session_factory
+            if not async_session_factory:
+                return
+            async with async_session_factory() as session:
+                log = AuditLog(
+                    tenant_id=quote.tenant_id,
+                    user_id=approved_by,
+                    action="quote.approved",
+                    resource_type="quote",
+                    resource_id=quote.id,
+                    details={
+                        "version": quote.version,
+                        "grand_total": quote.grand_total,
+                        "approval_level": quote.approval.level.value,
+                        "comments": comments,
+                    },
+                    outcome="success",
+                )
+                session.add(log)
+                await session.commit()
+        except Exception:
+            pass
 
     async def send(self, quote_id: str) -> Quote:
         quote = await self._repository.get(quote_id)

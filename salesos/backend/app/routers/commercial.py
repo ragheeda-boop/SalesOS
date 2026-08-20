@@ -221,13 +221,14 @@ async def create_opportunity(
     company_id: str = Query(...),
     name: str = Query(...),
     value: float = Query(0),
+    owner_id: str = Query(""),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.CREATE)),
 ):
     svc = _get_opp(db)
-    opp = await svc.create_opportunity(tenant_id, company_id, name, value=value)
-    return {"id": opp.id, "name": opp.name, "stage": opp.stage, "value": opp.value}
+    opp = await svc.create_opportunity(tenant_id, company_id, name, value=value, owner_id=owner_id)
+    return {"id": opp.id, "name": opp.name, "stage": opp.stage, "value": opp.value, "owner_id": opp.owner_id}
 
 
 @router.get("/opportunities", tags=["Opportunities"])
@@ -267,6 +268,24 @@ async def list_opportunities(
         "total": result.total,
         "next_cursor": next_cursor,
     }
+
+
+@router.patch("/opportunities/{opportunity_id}/assign", tags=["Opportunities"])
+async def assign_opportunity_owner(
+    opportunity_id: str,
+    owner_id: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
+    svc = _get_opp(db)
+    opp = await svc.get(opportunity_id)
+    if not opp or getattr(opp, "tenant_id", None) != tenant_id:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    opp.owner_id = owner_id
+    opp.updated_at = datetime.now(UTC)
+    saved = await svc._repository.save(opp)
+    return {"id": saved.id, "owner_id": saved.owner_id}
 
 
 @router.get("/opportunities/{opportunity_id}", tags=["Opportunities"])
@@ -575,14 +594,24 @@ async def submit_quote(
 @router.post("/quotes/{quote_id}/approve", tags=["Quotes"])
 async def approve_quote(
     quote_id: str,
-    approved_by: str = Query("manager"),
+    approved_by: str = Query(...),
+    approval_level: str = Query("manager"),
+    comments: str = Query(""),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
 ):
+    """P1-9: Approve quote with RBAC enforcement on approval_level."""
+    from domains.commercial.quote.contracts.models import ApprovalLevel
+    valid_levels = {level.value for level in ApprovalLevel}
+    if approval_level not in valid_levels:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid approval_level. Must be one of: {valid_levels}",
+        )
     svc = _get_quote(db)
-    q = await svc.approve(quote_id, approved_by)
-    return {"id": q.id, "status": q.status.value, "approved": q.approval.is_approved}
+    q = await svc.approve(quote_id, approved_by, comments=comments)
+    return {"id": q.id, "status": q.status.value, "approved": q.approval.is_approved, "approved_by": approved_by}
 
 
 @router.post("/quotes/{quote_id}/send", tags=["Quotes"])
@@ -609,6 +638,69 @@ async def accept_quote(
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
 
 
+@router.post("/quotes/{quote_id}/reject", tags=["Quotes"])
+async def reject_quote(
+    quote_id: str,
+    reason: str = Query(""),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
+):
+    svc = _get_quote(db)
+    q = await svc.reject(quote_id, reason=reason)
+    return {"id": q.id, "status": q.status.value}
+
+
+@router.post("/quotes/{quote_id}/revise", tags=["Quotes"])
+async def revise_quote(
+    quote_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
+):
+    svc = _get_quote(db)
+    q = await svc.revise(quote_id)
+    return {"id": q.id, "status": q.status.value, "version": q.version}
+
+
+@router.get("/quotes", tags=["Quotes"])
+async def list_quotes(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.READ)),
+    opportunity_id: str | None = Query(None),
+):
+    svc = _get_quote(db)
+    if opportunity_id:
+        quotes = await svc.get_by_opportunity(opportunity_id)
+    else:
+        quotes = []
+    return {
+        "items": [
+            {"id": q.id, "status": q.status.value, "grand_total": q.grand_total, "version": q.version}
+            for q in quotes
+        ],
+        "total": len(quotes),
+    }
+
+
+@router.get("/quotes/{quote_id}", tags=["Quotes"])
+async def get_quote(
+    quote_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.READ)),
+):
+    svc = _get_quote(db)
+    q = await svc.get(quote_id)
+    if not q:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    return {
+        "id": q.id, "status": q.status.value, "grand_total": q.grand_total,
+        "version": q.version, "lines": [{"id": l.id, "description": l.description, "line_total": l.line_total} for l in q.lines],
+    }
+
+
 # ─────────────────────────────────────────────
 # Proposal Endpoints
 # ─────────────────────────────────────────────
@@ -627,6 +719,57 @@ async def create_proposal(
     return {"id": p.id, "status": p.status.value, "sections": len(p.sections)}
 
 
+@router.get("/proposals", tags=["Proposals"])
+async def list_proposals(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.READ)),
+    opportunity_id: str | None = Query(None),
+):
+    svc = _get_proposal(db)
+    if opportunity_id:
+        proposals = await svc.get_by_opportunity(opportunity_id)
+    else:
+        proposals = []
+    return {
+        "items": [
+            {"id": p.id, "status": p.status.value, "opportunity_id": p.opportunity_id, "title": p.title}
+            for p in proposals
+        ],
+        "total": len(proposals),
+    }
+
+
+@router.get("/proposals/{proposal_id}", tags=["Proposals"])
+async def get_proposal(
+    proposal_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.READ)),
+):
+    svc = _get_proposal(db)
+    p = await svc.get(proposal_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+    return {
+        "id": p.id, "status": p.status.value, "opportunity_id": p.opportunity_id,
+        "title": p.title, "sections": len(p.sections), "delivery_method": p.delivery_method,
+    }
+
+
+@router.post("/proposals/{proposal_id}/approve", tags=["Proposals"])
+async def approve_proposal(
+    proposal_id: str,
+    approved_by: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
+):
+    svc = _get_proposal(db)
+    p = await svc.approve(proposal_id, approved_by)
+    return {"id": p.id, "status": p.status.value}
+
+
 @router.post("/proposals/{proposal_id}/deliver", tags=["Proposals"])
 async def deliver_proposal(
     proposal_id: str,
@@ -636,7 +779,6 @@ async def deliver_proposal(
     _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
 ):
     svc = _get_proposal(db)
-    p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id, method=method)
     return {"id": p.id, "status": p.status.value, "delivery_method": p.delivery_method}
 
@@ -649,10 +791,32 @@ async def accept_proposal(
     _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
 ):
     svc = _get_proposal(db)
-    p = await svc.approve(proposal_id, "auto")
-    p = await svc.deliver(proposal_id)
-    p = await svc.mark_viewed(proposal_id)
     p = await svc.accept(proposal_id)
+    return {"id": p.id, "status": p.status.value}
+
+
+@router.post("/proposals/{proposal_id}/reject", tags=["Proposals"])
+async def reject_proposal(
+    proposal_id: str,
+    reason: str = Query(""),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
+):
+    svc = _get_proposal(db)
+    p = await svc.reject(proposal_id, reason=reason)
+    return {"id": p.id, "status": p.status.value}
+
+
+@router.post("/proposals/{proposal_id}/expire", tags=["Proposals"])
+async def expire_proposal(
+    proposal_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
+):
+    svc = _get_proposal(db)
+    p = await svc.expire(proposal_id)
     return {"id": p.id, "status": p.status.value}
 
 
@@ -685,6 +849,131 @@ async def sign_contract(
     c = await svc.sign(contract_id)
     c = await svc.activate(contract_id)
     return {"id": c.id, "status": c.status.value}
+
+
+# ─────────────────────────────────────────────
+# P1-8: Review Endpoints
+# ─────────────────────────────────────────────
+
+
+def _get_review(db: AsyncSession):
+    from domains.commercial.infrastructure.postgres_repositories import PostgresReviewRepository
+    from domains.commercial.review.engine.service import ReviewService
+
+    return ReviewService(PostgresReviewRepository(db))
+
+
+@router.post("/reviews", status_code=201, tags=["Reviews"])
+async def create_review(
+    review_type: str = Query(...),
+    target_id: str = Query(...),
+    target_type: str = Query(...),
+    assigned_to: str = Query(""),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.CREATE)),
+):
+    from domains.commercial.review.contracts.models import ReviewType
+    svc = _get_review(db)
+    r = await svc.create_review(
+        tenant_id, ReviewType(review_type), target_id, target_type,
+        requested_by=tenant_id, assigned_to=assigned_to,
+    )
+    return {"id": r.id, "status": r.status.value, "review_type": r.review_type.value}
+
+
+@router.get("/reviews", tags=["Reviews"])
+async def list_reviews(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.READ)),
+    target_type: str | None = Query(None),
+):
+    svc = _get_review(db)
+    reviews = await svc.list_by_tenant(tenant_id, target_type)
+    return {
+        "items": [
+            {"id": r.id, "status": r.status.value, "review_type": r.review_type.value,
+             "target_id": r.target_id, "target_type": r.target_type}
+            for r in reviews
+        ],
+        "total": len(reviews),
+    }
+
+
+@router.get("/reviews/{review_id}", tags=["Reviews"])
+async def get_review(
+    review_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.READ)),
+):
+    svc = _get_review(db)
+    r = await svc.get(review_id)
+    if not r:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return {
+        "id": r.id, "status": r.status.value, "review_type": r.review_type.value,
+        "target_id": r.target_id, "target_type": r.target_type,
+        "assigned_to": r.assigned_to, "decision_count": r.decision_count,
+    }
+
+
+@router.post("/reviews/{review_id}/assign", tags=["Reviews"])
+async def assign_review(
+    review_id: str,
+    assigned_to: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.UPDATE)),
+):
+    svc = _get_review(db)
+    r = await svc.assign(review_id, assigned_to)
+    return {"id": r.id, "status": r.status.value, "assigned_to": r.assigned_to}
+
+
+@router.post("/reviews/{review_id}/decide", tags=["Reviews"])
+async def decide_review(
+    review_id: str,
+    decision: str = Query(...),
+    decided_by: str = Query(...),
+    comments: str = Query(""),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.UPDATE)),
+):
+    svc = _get_review(db)
+    r = await svc.decide(review_id, decided_by, decision, comments)
+    return {"id": r.id, "status": r.status.value, "decision": decision}
+
+
+@router.get("/reviews/pending", tags=["Reviews"])
+async def list_pending_reviews(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.READ)),
+    assigned_to: str | None = Query(None),
+):
+    svc = _get_review(db)
+    reviews = await svc.list_pending(tenant_id, assigned_to)
+    return {
+        "items": [
+            {"id": r.id, "review_type": r.review_type.value,
+             "target_id": r.target_id, "target_type": r.target_type}
+            for r in reviews
+        ],
+        "total": len(reviews),
+    }
+
+
+@router.get("/reviews/kpis", tags=["Reviews"])
+async def review_kpis(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.READ)),
+):
+    svc = _get_review(db)
+    return await svc.kpis(tenant_id)
 
 
 # ─────────────────────────────────────────────

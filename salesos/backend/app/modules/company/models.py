@@ -117,6 +117,12 @@ class Company(BaseModel):
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
+    # ── P1-1/P1-2: Account ownership + segmentation (Phase 1 Gate) ──
+    owner_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+    segment: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     # ── Feature-store / hierarchy columns (Alembic 0002) — DEC-129 KEEP ──
     parent_company_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
@@ -214,6 +220,10 @@ class Company(BaseModel):
             postgresql_using="gin",
             postgresql_ops={"activity_description": "gin_trgm_ops"},
         ),
+        # P1-1/P1-2: Account ownership + segmentation indexes
+        Index("ix_companies_owner", "owner_id"),
+        Index("ix_companies_segment", "segment"),
+        Index("ix_companies_tenant_segment", "tenant_id", "segment"),
     )
 
     def __repr__(self) -> str:

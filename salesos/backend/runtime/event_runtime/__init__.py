@@ -18,6 +18,7 @@ Implements sdk.events.EventBus interface for drop-in replacement.
 """
 
 import asyncio
+import logging
 import time
 import uuid
 from collections.abc import Callable
@@ -30,6 +31,8 @@ from sdk.events.base import DomainEvent
 from sdk.events.bus import EventBus
 from sdk.events.store import PostgresEventStore
 from sdk.telemetry import StructuredLogger, get_tracer, trace_span
+
+logger = logging.getLogger(__name__)
 
 
 def _event_decision_id(event: DomainEvent) -> str:
@@ -281,6 +284,13 @@ class EventRuntime(EventBus):
         self._retry = RetryPolicy()
         self.metrics = EventMetrics()
         self._tracer = get_tracer("event_runtime")
+        self._persistent_dlq = None
+        if session_factory:
+            try:
+                from runtime.event_runtime.persistent_dlq import PersistentDeadLetterQueue
+                self._persistent_dlq = PersistentDeadLetterQueue(session_factory)
+            except Exception:
+                logger.warning("event_runtime.dlq_persistence_unavailable")
 
     def subscribe(
         self,
@@ -484,6 +494,24 @@ class EventRuntime(EventBus):
                     self._dlq.add(dl_entry)
                     lifecycle.dead_lettered = True
                     self.metrics.record_dead_lettered(event.event_type)
+                    if self._persistent_dlq:
+                        try:
+                            await self._persistent_dlq.add(
+                                entry_id=dl_entry.id,
+                                tenant_id=getattr(event, "tenant_id", "unknown"),
+                                event_id=event.event_id,
+                                event_type=event.event_type,
+                                subscriber_name=reg.name,
+                                error=error or "unknown",
+                                attempts=reg.max_retries,
+                                event_data=event.data if hasattr(event, "data") else None,
+                                failed_at=dl_entry.failed_at,
+                            )
+                        except Exception as persist_err:
+                            logger.warning(
+                                "event_runtime.dlq_persist_failed",
+                                extra={"error": str(persist_err), "event_id": event.event_id},
+                            )
                     try:
                         from app.metrics.collector import collector
 

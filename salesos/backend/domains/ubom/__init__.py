@@ -1,10 +1,24 @@
-"""Universal Business Object Model (UBOM) — base class for all business entities.
+"""Universal Business Object Model (UBOM) — DEPRECATED (ADR-021, 2026-08-17).
 
-Every entity (Company, Contact, Deal, License, etc.) inherits from BusinessObject,
-which provides built-in: ID, Tenant, Timeline, Permissions, AI, Search, Graph,
-Feature Store, Audit, Events, Attachments, Tags, Relations, Status, Owner.
+STATUS: DEPRECATED — dead code, never wired into the application layer.
+        The `deals` table was never created by any Alembic migration.
+        CompanyObject/ContactObject shadow the real models (Company/Contact)
+        but are never imported by any application code.
+        The UBOM registry uses a separate mapper_registry that does NOT share
+        the application's Base.
 
-ADR-021: All new business entities MUST extend BusinessObject.
+DISPOSITION (Phase 1 Gate — SALESOS_MASTER_CLOSURE_SEQUENCE.md):
+  - Do NOT extend BusinessObject for new entities.
+  - Canonical models live in app/modules/{company,contact}/models.py and
+    domains/commercial/infrastructure/models.py.
+  - This module is保留 for reference only and will be removed in a future
+    cleanup migration.
+
+Historical docstring (pre-deprecation):
+  Every entity (Company, Contact, Deal, License, etc.) inherits from BusinessObject,
+  which provides built-in: ID, Tenant, Timeline, Permissions, AI, Search, Graph,
+  Feature Store, Audit, Events, Attachments, Tags, Relations, Status, Owner.
+  ADR-021: All new business entities MUST extend BusinessObject.
 """
 
 from __future__ import annotations

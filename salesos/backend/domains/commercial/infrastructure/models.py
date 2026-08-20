@@ -88,10 +88,18 @@ class ActivitySessionModel(Base, TimestampMixin):
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="scheduled")
     notes: Mapped[str] = mapped_column(Text, default="")
+    # P1-5: direct FK links for unified activity spine
+    company_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    contact_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    deal_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
 
     __table_args__ = (
         Index("ix_activity_sessions_tenant_status", "tenant_id", "status"),
         Index("ix_activity_sessions_target", "target_id", "target_type"),
+        Index("ix_activity_sessions_company", "company_id"),
+        Index("ix_activity_sessions_contact", "contact_id"),
+        Index("ix_activity_sessions_deal", "deal_id"),
+        Index("ix_activity_sessions_tenant_deal", "tenant_id", "deal_id"),
     )
 
 
@@ -356,4 +364,115 @@ class OpportunityContactModel(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_opportunity_contacts_lookup", "tenant_id", "opportunity_id", "contact_id", unique=True),
         Index("ix_oc_tenant_opp", "tenant_id", "opportunity_id"),
+    )
+
+
+class ReviewModel(Base, TimestampMixin):
+    """P1-8: Review workflow — tracks approval for deals, quotes, proposals."""
+
+    __tablename__ = "commercial_reviews"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
+    review_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    target_id: Mapped[str] = mapped_column(String(36), index=True)
+    target_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    assigned_to: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    requested_by: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    decisions: Mapped[Any] = mapped_column(JSON, default=list)
+    extra_metadata: Mapped[Any] = mapped_column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("ix_commercial_reviews_tenant_status", "tenant_id", "status"),
+        Index("ix_commercial_reviews_target", "target_type", "target_id"),
+        Index("ix_commercial_reviews_assigned", "assigned_to"),
+    )
+
+
+class QuotaModel(Base, TimestampMixin):
+    """P1-6: Revenue quota per rep per period."""
+
+    __tablename__ = "commercial_quotas"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
+    rep_id: Mapped[str] = mapped_column(String(36), index=True)
+    rep_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    period: Mapped[str] = mapped_column(String(20), default="quarterly")
+    target_amount: Mapped[float] = mapped_column(Float, default=0.0)
+    attained_amount: Mapped[float] = mapped_column(Float, default=0.0)
+    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    extra_metadata: Mapped[Any] = mapped_column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("ix_commercial_quotas_tenant_status", "tenant_id", "status"),
+        Index("ix_commercial_quotas_tenant_rep", "tenant_id", "rep_id"),
+    )
+
+
+class TerritoryModel(Base, TimestampMixin):
+    """P1-6: Sales territory with assigned accounts."""
+
+    __tablename__ = "commercial_territories"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    region: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    rep_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    rep_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    account_ids: Mapped[Any] = mapped_column(JSON, default=list)
+    extra_metadata: Mapped[Any] = mapped_column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("ix_commercial_territories_tenant_rep", "tenant_id", "rep_id"),
+        Index("ix_commercial_territories_tenant_region", "tenant_id", "region"),
+    )
+
+
+class InsightModel(Base, TimestampMixin):
+    """P2-6: Commercial insight backed by evidence chain."""
+
+    __tablename__ = "commercial_insights"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
+    category: Mapped[str] = mapped_column(String(50), index=True)
+    title: Mapped[str] = mapped_column(String(500))
+    description: Mapped[str] = mapped_column(Text, default="")
+    target_id: Mapped[str] = mapped_column(String(36), index=True)
+    target_type: Mapped[str] = mapped_column(String(50), index=True)
+    overall_confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    confidence_level: Mapped[str] = mapped_column(String(20), default="unknown")
+    extra_metadata: Mapped[Any] = mapped_column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("ix_commercial_insights_tenant_category", "tenant_id", "category"),
+        Index("ix_commercial_insights_tenant_confidence", "tenant_id", "confidence_level"),
+    )
+
+
+class EvidenceItemModel(Base, TimestampMixin):
+    """P2-6: Individual evidence item linked to an insight."""
+
+    __tablename__ = "commercial_evidence_items"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    insight_id: Mapped[str] = mapped_column(String(36), index=True)
+    evidence_type: Mapped[str] = mapped_column(String(50))
+    source_domain: Mapped[str] = mapped_column(String(50))
+    source_type: Mapped[str] = mapped_column(String(50))
+    source_id: Mapped[str] = mapped_column(String(36), default="")
+    source_name: Mapped[str] = mapped_column(String(200), default="")
+    description: Mapped[str] = mapped_column(Text)
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    confidence_level: Mapped[str] = mapped_column(String(20), default="unknown")
+    extra_data: Mapped[Any] = mapped_column("data", JSON, default=dict)
+
+    __table_args__ = (
+        Index("ix_commercial_evidence_insight", "insight_id"),
+        Index("ix_commercial_evidence_type", "evidence_type"),
     )

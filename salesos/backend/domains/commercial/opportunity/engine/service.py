@@ -116,6 +116,17 @@ class OpportunityService:
         })
         return result
 
+    def get_opportunity_context(self, opportunity: Opportunity) -> dict[str, Any]:
+        """Build context dict for pipeline criteria evaluation (P1-4)."""
+        return {
+            "value": opportunity.value,
+            "contact_id": "",  # Will be populated from opportunity_contacts if available
+            "won_amount": opportunity.won_amount or 0,
+            "probability": opportunity.probability,
+            "stage": opportunity.stage,
+            "owner_id": opportunity.owner_id,
+        }
+
     async def update_details(
         self,
         opportunity_id: str,

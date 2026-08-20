@@ -216,7 +216,8 @@ class RevenueBrain:
         hot_momentum = len(hot_companies) / 30.0 if hot_companies else 0
 
         # Try to get real revenue base from DB + FeatureStore
-        base_revenue = 1000000.0
+        # P1-6 fix: no hardcoded demo fallback — if no data, return zero-based forecast.
+        base_revenue = 0.0
         revenue_companies = 0
         if self._db_session_factory:
             from sqlalchemy import text

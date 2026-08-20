@@ -8,6 +8,7 @@ and idempotent task scheduling.
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -16,6 +17,8 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.agent_runtime.models import AgentTask, AgentRun
+
+logger = logging.getLogger(__name__)
 
 # Align leases with agent_dispatch_all soft_time_limit=110 / time_limit=120.
 # A 30m research lease left soft-killed CLAIMED/RUNNING rows unreclaimable for
@@ -155,24 +158,42 @@ async def retire_exhausted(
 ) -> int:
     now = datetime.now(timezone.utc)
 
-    query = text("""
-        UPDATE agent_tasks
-        SET status = 'EXHAUSTED',
-            finished_at = :now,
-            leased_until = NULL,
-            leased_by = NULL,
-            updated_at = :now
-        WHERE tenant_id = :tenant_id
-          AND status IN ('PENDING', 'FAILED')
-          AND attempts >= max_attempts
-          AND (leased_until IS NULL OR leased_until < :now)
-    """)
-
-    result = await session.execute(query, {
-        "tenant_id": tenant_id,
-        "now": now,
-    })
-    return result.rowcount
+    result = await session.execute(
+        text("""
+            UPDATE agent_tasks
+            SET status = 'EXHAUSTED',
+                finished_at = :now,
+                leased_until = NULL,
+                leased_by = NULL,
+                updated_at = :now
+            WHERE tenant_id = :tenant_id
+              AND status IN ('PENDING', 'FAILED')
+              AND attempts >= max_attempts
+              AND (leased_until IS NULL OR leased_until < :now)
+            RETURNING id, kind, entity_type, entity_id, attempts, max_attempts, outcome
+        """),
+        {
+            "tenant_id": tenant_id,
+            "now": now,
+        },
+    )
+    rows = result.fetchall()
+    count = len(rows)
+    for row in rows:
+        logger.warning(
+            "agent_task_exhausted",
+            extra={
+                "tenant_id": tenant_id,
+                "task_id": str(row.id),
+                "kind": row.kind,
+                "entity_type": row.entity_type,
+                "entity_id": row.entity_id,
+                "attempts": row.attempts,
+                "max_attempts": row.max_attempts,
+                "last_error": (row.outcome or "")[:500],
+            },
+        )
+    return count
 
 
 async def complete_task(

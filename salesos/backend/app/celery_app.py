@@ -17,6 +17,15 @@ celery_app = Celery(
     ],
 )
 
+# Explicitly import task modules to register @shared_task decorators
+import app.tasks
+import domains.employee.tasks
+import app.modules.communication_hub.tasks
+import runtime.agent_runtime.tasks
+import runtime.odoo
+
+celery_app.autodiscover_tasks()
+
 try:
     from app.celery_schedule import BEAT_SCHEDULE
 

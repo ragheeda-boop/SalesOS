@@ -28,13 +28,15 @@ from app.dependencies import (
 )
 from domains.copilot.arabic import ArabicCopilotEngine
 from domains.copilot.feedback_service import CopilotFeedbackService
-from domains.copilot.models import ToolTelemetryStats
+from domains.copilot.models import CopilotMode, ToolTelemetryStats
 from domains.copilot.schemas import (
     ArabicDetectRequest,
     ArabicDetectResponse,
     CopilotFeedbackResponse,
     CopilotFeedbackStatsResponse,
     CopilotFeedbackSubmit,
+    CopilotModeRequest,
+    CopilotModeResponse,
     SearchCompaniesRequest,
     ToolTelemetryBreakdownResponse,
     ToolTelemetryLogRequest,
@@ -306,6 +308,136 @@ async def copilot_query(
         confidence=result.confidence,
         agent_used="coordinator",
         sources=[],
+        conversation_id=conversation_id,
+    )
+
+
+# ── P3-1: Mode-aware copilot endpoint ─────────────────────────
+
+
+@router.post("/copilot/mode", response_model=CopilotModeResponse)
+async def copilot_mode(
+    body: CopilotModeRequest,
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+    _flag=Depends(require_ai_copilot_enabled),
+):
+    """P3-1: Mode-aware copilot — Ask/Explain/Summarize/Investigate/Recommend.
+
+    Recommend mode creates an approval request (HITL gate) — no auto-execute.
+    """
+    from domains.approval.contracts.models import (
+        ApprovalLevel,
+        ApprovalTargetType,
+    )
+    from domains.approval.in_memory_repo import InMemoryApprovalRepository
+    from domains.approval.engine.service import ApprovalService
+
+    logger: StructuredLogger | None = getattr(request.app.state, "logger", None)
+    conversation_id = f"conv_{user_id}_{int(_time.time())}"
+    mode = body.mode
+
+    # Detect Arabic
+    detection = _arabic_engine.detect(body.query)
+    context = {**body.context, "tenant_id": tenant_id, "user_id": user_id}
+
+    # Build coordinator
+    coordinator = _build_coordinator()
+    task = AgentTask(
+        id=f"copilot_{mode}_{user_id}_{int(_time.time())}",
+        agent_type="coordinator",
+        input={"goal": body.query, "context": context},
+    )
+
+    t0 = _time.monotonic()
+    result = await coordinator.execute(task)
+    latency_ms = (_time.monotonic() - t0) * 1000
+
+    # Extract text
+    steps = result.output.get("results", [])
+    texts = []
+    evidence_items = []
+    for step in steps:
+        out = step.get("output", {})
+        text = (
+            out.get("summary")
+            or out.get("analysis")
+            or out.get("proposal")
+            or out.get("preparation")
+            or out.get("message")
+            or ""
+        )
+        if text:
+            texts.append(text)
+        # Collect evidence
+        if "evidence" in out:
+            evidence_items.extend(out["evidence"])
+
+    response_text = "\n\n".join(texts) if texts else "لم يتم العثور على معلومات كافية."
+    if not settings.openai_api_key:
+        response_text = (
+            "⚠️ لم يتم تكوين مفتاح OpenAI."
+            " يرجى ضبط `OPENAI_API_KEY` في الإعدادات لتفعيل المساعد الذكي."
+        )
+
+    if detection.is_arabic:
+        response_text = _arabic_engine.add_rtl_markers(response_text)
+
+    # Log telemetry
+    _telemetry_service.log(
+        tool_name=f"copilot_{mode}",
+        conversation_id=conversation_id,
+        tenant_id=tenant_id,
+        user_id=user_id,
+        success=result.success,
+        latency_ms=latency_ms,
+        result_count=len(steps),
+    )
+
+    # P3-1: Recommend mode → HITL approval gate (no auto-execute)
+    approval_id = None
+    requires_approval = False
+    if mode == CopilotMode.RECOMMEND:
+        requires_approval = True
+        approval_svc = ApprovalService(repository=InMemoryApprovalRepository())
+        approval_req = await approval_svc.create_request(
+            tenant_id=tenant_id,
+            target_type=ApprovalTargetType.NBA_RECOMMENDATION,
+            target_id=f"copilot_{conversation_id}",
+            requested_by=user_id,
+            action_summary=response_text[:500],
+            action_evidence=[e.get("description", str(e)) for e in evidence_items[:5]],
+            required_level=ApprovalLevel.MANAGER,
+            assigned_to="",
+            metadata={
+                "conversation_id": conversation_id,
+                "mode": mode,
+                "confidence": result.confidence,
+            },
+        )
+        approval_id = approval_req.id
+
+    if logger:
+        logger.info(
+            "Copilot mode=%s: user=%s confidence=%.2f lang=%s latency=%.0fms approval=%s",
+            mode,
+            user_id,
+            result.confidence,
+            "ar" if detection.is_arabic else "en",
+            latency_ms,
+            approval_id or "none",
+        )
+
+    return CopilotModeResponse(
+        mode=mode,
+        response=response_text,
+        confidence=result.confidence,
+        sources=[],
+        evidence=evidence_items,
+        approval_id=approval_id,
+        requires_approval=requires_approval,
         conversation_id=conversation_id,
     )
 

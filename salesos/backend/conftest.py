@@ -17,8 +17,13 @@ if _env_path.exists():
 
 os.environ["SALESOS_TESTING"] = "true"
 
-from app.database import Base
+from sdk.database import Base
 from sdk.permissions import PermissionRegistry, Role
+
+# Import all ORM models so Base.metadata.create_all creates their tables
+import domains.commercial.infrastructure.models  # noqa: F401
+import domains.approval.infrastructure.models  # noqa: F401
+import domains.copilot.models  # noqa: F401
 
 # Register default roles (skipped in production when SALESOS_TESTING is set)
 for role_name, perms in PermissionRegistry.default_roles().items():

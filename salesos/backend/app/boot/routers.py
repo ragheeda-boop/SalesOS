@@ -40,6 +40,7 @@ def register_routers(app: FastAPI) -> None:
     from app.modules.work_intelligence.router import router as work_intelligence_router
     from app.routers.admin_demo import router as admin_demo_router
     from app.routers.commercial import router as commercial_router
+    from app.routers.approval import router as approval_router
     from app.routers.copilot import router as copilot_router
     from app.routers.demo import router as demo_router
     from domains.employee.router import router as employee_domain_router
@@ -458,6 +459,7 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(monitoring_router, tags=["Monitoring"])
     app.include_router(cache_router, tags=["Cache"], dependencies=_auth)
     app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
+    app.include_router(approval_router, prefix="/api/v1", tags=["Approval"], dependencies=_auth)
     # STORY-12-04 — Per-plan AI model tier (Plan.entitlements; copilot flag unchanged).
     from app.modules.admin.ai_model_tiers_router import (
         router as ai_model_tiers_router,
@@ -532,6 +534,16 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(nba_router, prefix="/api/v1", tags=["NBA Engine"], dependencies=_auth)
     app.include_router(
         pipeline_analytics_router, prefix="/api/v1", tags=["Pipeline Analytics"], dependencies=_auth
+    )
+
+    # P1-6: Mount revenue planning router (forecast/quota/territory) — was dead code
+    from domains.revenue.router import router as revenue_planning_router
+
+    app.include_router(
+        revenue_planning_router,
+        prefix="/api/v1/revenue-planning",
+        tags=["Revenue Planning"],
+        dependencies=_auth,
     )
 
     from app.routers.rag import router as rag_router

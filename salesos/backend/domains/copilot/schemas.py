@@ -103,3 +103,29 @@ class ArabicDetectResponse(BaseModel):
     contains_diacritics: bool
     detected_entities: list[str]
     language: str
+
+
+# ── P3-1: Mode system ────────────────────────────────────────────
+
+
+class CopilotModeRequest(BaseModel):
+    """P3-1: Mode-aware copilot request — Ask/Explain/Summarize/Investigate/Recommend."""
+
+    mode: str = Field(..., pattern="^(ask|explain|summarize|investigate|recommend)$")
+    query: str = Field(..., min_length=1, max_length=5000)
+    target_id: str | None = Field(None, max_length=36, description="Entity ID for explain/summarize")
+    target_type: str | None = Field(None, max_length=50, description="Entity type (deal, company, activity)")
+    context: dict = Field(default_factory=dict)
+
+
+class CopilotModeResponse(BaseModel):
+    """P3-1: Mode-aware copilot response — includes mode, sources, approval_id for recommend."""
+
+    mode: str
+    response: str
+    confidence: float
+    sources: list[str] = []
+    evidence: list[dict] = []
+    approval_id: str | None = Field(None, description="Approval request ID (recommend mode only)")
+    requires_approval: bool = False
+    conversation_id: str = ""

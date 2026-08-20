@@ -1,7 +1,7 @@
 FROM postgres:16-alpine
 RUN apk add --no-cache curl aws-cli
-COPY scripts/backup-db.sh /usr/local/bin/backup-db
-COPY scripts/restore-db.sh /usr/local/bin/restore-db
+COPY infra/scripts/backup-db.sh /usr/local/bin/backup-db
+COPY infra/scripts/restore-db.sh /usr/local/bin/restore-db
 RUN chmod +x /usr/local/bin/backup-db /usr/local/bin/restore-db \
     && mkdir -p /backups \
     && chown -R postgres:postgres /backups /usr/local/bin/backup-db /usr/local/bin/restore-db

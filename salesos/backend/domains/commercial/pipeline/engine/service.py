@@ -63,8 +63,14 @@ class PipelineService:
         pipeline_id: str,
         to_stage: str,
         from_stage: str = "",
+        opportunity_context: dict[str, Any] | None = None,
     ) -> StageEntry:
-        """Move an opportunity to a new stage."""
+        """Move an opportunity to a new stage.
+
+        P1-4 fix: opportunity_context provides the full opportunity data
+        (value, contact_id, won_amount, etc.) so entry/exit criteria are
+        actually evaluated against real data.
+        """
         pipeline = await self._repository.get_definition(pipeline_id)
         if not pipeline:
             raise ValueError(f"Pipeline {pipeline_id} not found")
@@ -78,8 +84,13 @@ class PipelineService:
             if not pipeline.is_valid_transition(from_stage, to_stage):
                 raise ValueError(f"Invalid transition: {from_stage} → {to_stage}")
 
-        # Validate entry criteria
-        violation = self._check_criteria(stage_def.entry_criteria, {"stage": to_stage})
+        # P1-4: Build context for criteria evaluation from opportunity data
+        ctx = {"stage": to_stage}
+        if opportunity_context:
+            ctx.update(opportunity_context)
+
+        # Validate entry criteria with full context
+        violation = self._check_criteria(stage_def.entry_criteria, ctx)
         if violation:
             raise ValueError(f"Entry criteria not met: {violation}")
 

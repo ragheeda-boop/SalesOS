@@ -1,4 +1,4 @@
-"""Copilot domain models — feedback, telemetry, conversations."""
+"""Copilot domain models — feedback, telemetry, conversations, mode system."""
 
 from __future__ import annotations
 
@@ -6,6 +6,15 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+
+
+class CopilotMode(StrEnum):
+    """P3-1: Copilot interaction modes — defines what the copilot can do."""
+    ASK = "ask"              # Free-form question → answer from knowledge
+    EXPLAIN = "explain"      # Explain entity/topic with evidence chain
+    SUMMARIZE = "summarize"  # Summarize deal, meeting, or activity
+    INVESTIGATE = "investigate"  # Deep-dive analysis, multi-source
+    RECOMMEND = "recommend"  # Generate recommendations → HITL approval gate
 
 
 class FeedbackRating(StrEnum):

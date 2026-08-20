@@ -51,17 +51,16 @@ COPY --from=builder /app/modules ./modules
 COPY --from=builder /app/design_tokens ./design_tokens
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/alembic.ini .
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENV PYTHONPATH="/app"
 
 RUN mkdir -p /data/jwks && chown -R salesos:salesos /app /data/jwks
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 USER salesos
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-ENTRYPOINT ["tini", "--"]
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
+CMD ["api"]

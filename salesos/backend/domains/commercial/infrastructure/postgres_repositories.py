@@ -51,7 +51,8 @@ from .models import (
     ContractModel, DecisionContextModel, EmailModel, ForecastSnapshotModel,
     MeetingModel, OpportunityContactModel, OpportunityModel,
     PipelineDefinitionModel, PolicyModel, ProposalModel, QuoteLineModel,
-    QuoteModel, RecommendationModel, StageEntryModel,
+    QuoteModel, QuotaModel, RecommendationModel, ReviewModel, StageEntryModel,
+    TerritoryModel,
 )
 
 
@@ -1106,4 +1107,459 @@ class PostgresOpportunityContactRepository(OpportunityContactRepository):
             is_primary=model.is_primary,
             created_at=model.created_at,
             updated_at=model.updated_at,
+        )
+
+
+# ── P1-8: Review Repository ──
+
+from domains.commercial.review.contracts.models import Review, ReviewDecision, ReviewStatus, ReviewType
+from domains.commercial.review.contracts.repository import ReviewRepository
+
+
+class PostgresReviewRepository(ReviewRepository):
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def save(self, review: Review) -> Review:
+        stmt = select(ReviewModel).where(ReviewModel.id == review.id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model:
+            model.review_type = review.review_type.value
+            model.target_id = review.target_id
+            model.target_type = review.target_type
+            model.status = review.status.value
+            model.assigned_to = review.assigned_to
+            model.requested_by = review.requested_by
+            model.decisions = [{"decision": d.decision, "decided_by": d.decided_by,
+                               "decided_at": d.decided_at.isoformat(), "comments": d.comments}
+                              for d in review.decisions]
+            model.extra_metadata = review.metadata
+            model.updated_at = datetime.now(timezone.utc)
+        else:
+            model = ReviewModel(
+                id=review.id, tenant_id=review.tenant_id,
+                review_type=review.review_type.value,
+                target_id=review.target_id, target_type=review.target_type,
+                status=review.status.value, assigned_to=review.assigned_to,
+                requested_by=review.requested_by,
+                decisions=[{"decision": d.decision, "decided_by": d.decided_by,
+                            "decided_at": d.decided_at.isoformat(), "comments": d.comments}
+                           for d in review.decisions],
+                extra_metadata=review.metadata,
+            )
+            self.session.add(model)
+        await self.session.flush()
+        return review
+
+    async def get(self, review_id: str) -> Review | None:
+        stmt = select(ReviewModel).where(ReviewModel.id == review_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if not model:
+            return None
+        return self._to_domain(model)
+
+    async def list_by_tenant(self, tenant_id: str, target_type: str | None = None) -> list[Review]:
+        stmt = select(ReviewModel).where(ReviewModel.tenant_id == tenant_id)
+        if target_type:
+            stmt = stmt.where(ReviewModel.target_type == target_type)
+        stmt = stmt.order_by(ReviewModel.created_at.desc())
+        result = await self.session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def list_pending(self, tenant_id: str, assigned_to: str | None = None) -> list[Review]:
+        stmt = select(ReviewModel).where(
+            ReviewModel.tenant_id == tenant_id,
+            ReviewModel.status == "pending",
+        )
+        if assigned_to:
+            stmt = stmt.where(ReviewModel.assigned_to == assigned_to)
+        stmt = stmt.order_by(ReviewModel.created_at.asc())
+        result = await self.session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def count_by_status(self, tenant_id: str) -> dict[str, int]:
+        stmt = select(ReviewModel.status, func.count()).where(
+            ReviewModel.tenant_id == tenant_id
+        ).group_by(ReviewModel.status)
+        result = await self.session.execute(stmt)
+        return {row[0]: row[1] for row in result.all()}
+
+    def _to_domain(self, model: ReviewModel) -> Review:
+        decisions = []
+        for d in (model.decisions or []):
+            decisions.append(ReviewDecision(
+                decision=d.get("decision", ""),
+                decided_by=d.get("decided_by", ""),
+                decided_at=datetime.fromisoformat(d["decided_at"]) if d.get("decided_at") else datetime.now(timezone.utc),
+                comments=d.get("comments", ""),
+            ))
+        return Review(
+            id=model.id, tenant_id=model.tenant_id,
+            review_type=ReviewType(model.review_type),
+            target_id=model.target_id, target_type=model.target_type,
+            status=ReviewStatus(model.status),
+            assigned_to=model.assigned_to or "",
+            requested_by=model.requested_by or "",
+            decisions=decisions,
+            metadata=model.extra_metadata or {},
+            created_at=model.created_at, updated_at=model.updated_at,
+        )
+
+
+# ── P1-6: Quota + Territory Postgres Repositories ──
+
+from domains.revenue.quota.models import Quota, QuotaPeriod, QuotaSnapshot, QuotaStatus
+from domains.revenue.quota.repo import QuotaRepository
+
+from domains.revenue.territory.models import Territory
+from domains.revenue.territory.repo import TerritoryRepository
+
+
+class PostgresQuotaRepository(QuotaRepository):
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def save(self, quota: Quota) -> Quota:
+        stmt = select(QuotaModel).where(QuotaModel.id == quota.id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model:
+            model.rep_id = quota.rep_id
+            model.rep_name = quota.rep_name
+            model.period = quota.period.value
+            model.target_amount = quota.target_amount
+            model.attained_amount = quota.attained_amount
+            model.start_date = quota.start_date
+            model.end_date = quota.end_date
+            model.status = quota.status.value
+            model.extra_metadata = quota.metadata
+            model.updated_at = datetime.now(timezone.utc)
+        else:
+            model = QuotaModel(
+                id=quota.id, tenant_id=quota.tenant_id,
+                rep_id=quota.rep_id, rep_name=quota.rep_name,
+                period=quota.period.value,
+                target_amount=quota.target_amount,
+                attained_amount=quota.attained_amount,
+                start_date=quota.start_date, end_date=quota.end_date,
+                status=quota.status.value,
+                extra_metadata=quota.metadata,
+            )
+            self.session.add(model)
+        await self.session.flush()
+        return quota
+
+    async def get(self, quota_id: str) -> Quota | None:
+        stmt = select(QuotaModel).where(QuotaModel.id == quota_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
+
+    async def delete(self, quota_id: str) -> bool:
+        from sqlalchemy import delete as sa_delete
+        result = await self.session.execute(
+            sa_delete(QuotaModel).where(QuotaModel.id == quota_id)
+        )
+        await self.session.flush()
+        return result.rowcount > 0
+
+    async def list_by_tenant(
+        self, tenant_id: str, rep_id: str | None = None,
+        period: str | None = None, status: str | None = None,
+        limit: int = 50,
+    ) -> list[Quota]:
+        stmt = select(QuotaModel).where(QuotaModel.tenant_id == tenant_id)
+        if rep_id:
+            stmt = stmt.where(QuotaModel.rep_id == rep_id)
+        if period:
+            stmt = stmt.where(QuotaModel.period == period)
+        if status:
+            stmt = stmt.where(QuotaModel.status == status)
+        stmt = stmt.order_by(QuotaModel.created_at.desc()).limit(limit)
+        result = await self.session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def list_by_rep(self, tenant_id: str, rep_id: str) -> list[Quota]:
+        return await self.list_by_tenant(tenant_id, rep_id=rep_id)
+
+    async def get_active_quota(self, tenant_id: str, rep_id: str) -> Quota | None:
+        stmt = select(QuotaModel).where(
+            QuotaModel.tenant_id == tenant_id,
+            QuotaModel.rep_id == rep_id,
+            QuotaModel.status == "active",
+        )
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
+
+    async def save_snapshot(self, snapshot: QuotaSnapshot) -> QuotaSnapshot:
+        # Snapshots stored in-memory — no separate table yet
+        return snapshot
+
+    async def list_snapshots(self, tenant_id: str, limit: int = 10) -> list[QuotaSnapshot]:
+        return []
+
+    def _to_domain(self, model: QuotaModel) -> Quota:
+        return Quota(
+            id=model.id, tenant_id=model.tenant_id,
+            rep_id=model.rep_id, rep_name=model.rep_name or "",
+            period=QuotaPeriod(model.period),
+            target_amount=float(model.target_amount),
+            attained_amount=float(model.attained_amount),
+            start_date=model.start_date, end_date=model.end_date,
+            status=QuotaStatus(model.status),
+            metadata=model.extra_metadata or {},
+            created_at=model.created_at, updated_at=model.updated_at,
+        )
+
+
+class PostgresTerritoryRepository(TerritoryRepository):
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def save(self, territory: Territory) -> Territory:
+        stmt = select(TerritoryModel).where(TerritoryModel.id == territory.id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model:
+            model.name = territory.name
+            model.region = territory.region
+            model.rep_id = territory.rep_id
+            model.rep_name = territory.rep_name
+            model.account_ids = territory.account_ids
+            model.extra_metadata = territory.metadata
+            model.updated_at = datetime.now(timezone.utc)
+        else:
+            model = TerritoryModel(
+                id=territory.id, tenant_id=territory.tenant_id,
+                name=territory.name, region=territory.region,
+                rep_id=territory.rep_id, rep_name=territory.rep_name,
+                account_ids=territory.account_ids,
+                extra_metadata=territory.metadata,
+            )
+            self.session.add(model)
+        await self.session.flush()
+        return territory
+
+    async def get(self, territory_id: str) -> Territory | None:
+        stmt = select(TerritoryModel).where(TerritoryModel.id == territory_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
+
+    async def delete(self, territory_id: str) -> bool:
+        from sqlalchemy import delete as sa_delete
+        result = await self.session.execute(
+            sa_delete(TerritoryModel).where(TerritoryModel.id == territory_id)
+        )
+        await self.session.flush()
+        return result.rowcount > 0
+
+    async def list_by_tenant(
+        self, tenant_id: str, rep_id: str | None = None,
+        region: str | None = None, limit: int = 50,
+    ) -> list[Territory]:
+        stmt = select(TerritoryModel).where(TerritoryModel.tenant_id == tenant_id)
+        if rep_id:
+            stmt = stmt.where(TerritoryModel.rep_id == rep_id)
+        if region:
+            stmt = stmt.where(TerritoryModel.region == region)
+        stmt = stmt.order_by(TerritoryModel.created_at.desc()).limit(limit)
+        result = await self.session.execute(stmt)
+        return [self._to_domain(m) for m in result.scalars().all()]
+
+    async def list_by_rep(self, tenant_id: str, rep_id: str) -> list[Territory]:
+        return await self.list_by_tenant(tenant_id, rep_id=rep_id)
+
+    async def find_territory_for_account(self, tenant_id: str, account_id: str) -> Territory | None:
+        stmt = select(TerritoryModel).where(
+            TerritoryModel.tenant_id == tenant_id,
+            TerritoryModel.account_ids.op("??")(text("'[]'")).contains(account_id),
+        )
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return self._to_domain(model) if model else None
+
+    def _to_domain(self, model: TerritoryModel) -> Territory:
+        return Territory(
+            id=model.id, tenant_id=model.tenant_id,
+            name=model.name, region=model.region or "",
+            rep_id=model.rep_id or "", rep_name=model.rep_name or "",
+            account_ids=model.account_ids or [],
+            metadata=model.extra_metadata or {},
+            created_at=model.created_at, updated_at=model.updated_at,
+        )
+
+
+class PostgresEvidenceRepository:
+    """P2-6: Postgres-backed evidence chain repository."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def save_insight(self, insight: Insight) -> Insight:
+        from domains.commercial.infrastructure.models import InsightModel
+        model = InsightModel(
+            id=insight.id, tenant_id=insight.tenant_id,
+            category=insight.category.value, title=insight.title,
+            description=insight.description, target_id=insight.target_id,
+            target_type=insight.target_type, overall_confidence=insight.overall_confidence,
+            confidence_level=insight.confidence_level.value,
+            extra_metadata=insight.metadata,
+            created_at=insight.created_at, updated_at=insight.updated_at,
+        )
+        self.session.add(model)
+        await self.session.flush()
+        return insight
+
+    async def get_insight(self, insight_id: str) -> Insight | None:
+        from domains.commercial.infrastructure.models import InsightModel
+        from sqlalchemy import select
+        stmt = select(InsightModel).where(InsightModel.id == insight_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if not model:
+            return None
+        evidence = await self.list_evidence(insight_id)
+        return self._to_domain(model, evidence)
+
+    async def list_insights(
+        self,
+        tenant_id: str,
+        target_id: str | None = None,
+        target_type: str | None = None,
+        category: InsightCategory | None = None,
+        limit: int = 50,
+    ) -> list[Insight]:
+        from domains.commercial.infrastructure.models import InsightModel
+        from sqlalchemy import select
+        q = select(InsightModel).where(InsightModel.tenant_id == tenant_id)
+        if target_id:
+            q = q.where(InsightModel.target_id == target_id)
+        if target_type:
+            q = q.where(InsightModel.target_type == target_type)
+        if category:
+            q = q.where(InsightModel.category == category.value)
+        q = q.order_by(InsightModel.created_at.desc()).limit(limit)
+        result = await self.session.execute(q)
+        models = result.scalars().all()
+        insights = []
+        for m in models:
+            evidence = await self.list_evidence(m.id)
+            insights.append(self._to_domain(m, evidence))
+        return insights
+
+    async def list_insights_by_confidence(
+        self,
+        tenant_id: str,
+        min_confidence: float = 0.0,
+        category: InsightCategory | None = None,
+        limit: int = 50,
+    ) -> list[Insight]:
+        from domains.commercial.infrastructure.models import InsightModel
+        from sqlalchemy import select
+        q = select(InsightModel).where(
+            InsightModel.tenant_id == tenant_id,
+            InsightModel.overall_confidence >= min_confidence,
+        )
+        if category:
+            q = q.where(InsightModel.category == category.value)
+        q = q.order_by(InsightModel.overall_confidence.desc()).limit(limit)
+        result = await self.session.execute(q)
+        models = result.scalars().all()
+        insights = []
+        for m in models:
+            evidence = await self.list_evidence(m.id)
+            insights.append(self._to_domain(m, evidence))
+        return insights
+
+    async def save_evidence(self, insight_id: str, evidence: EvidenceItem) -> EvidenceItem:
+        from domains.commercial.infrastructure.models import EvidenceItemModel
+        model = EvidenceItemModel(
+            id=evidence.id, insight_id=insight_id,
+            evidence_type=evidence.evidence_type.value,
+            source_domain=evidence.source.source_domain,
+            source_type=evidence.source.source_type,
+            source_id=evidence.source.source_id,
+            source_name=evidence.source.source_name,
+            description=evidence.description,
+            confidence=evidence.confidence,
+            confidence_level=evidence.confidence_level.value,
+            extra_data=evidence.data,
+            created_at=evidence.recorded_at, updated_at=evidence.recorded_at,
+        )
+        self.session.add(model)
+        await self.session.flush()
+        return evidence
+
+    async def list_evidence(self, insight_id: str) -> list[EvidenceItem]:
+        from domains.commercial.infrastructure.models import EvidenceItemModel
+        from sqlalchemy import select
+        stmt = select(EvidenceItemModel).where(
+            EvidenceItemModel.insight_id == insight_id
+        ).order_by(EvidenceItemModel.created_at)
+        result = await self.session.execute(stmt)
+        return [self._evidence_to_domain(m) for m in result.scalars().all()]
+
+    async def count_by_category(self, tenant_id: str) -> dict[str, int]:
+        from domains.commercial.infrastructure.models import InsightModel
+        from sqlalchemy import select, func
+        stmt = select(
+            InsightModel.category, func.count(InsightModel.id)
+        ).where(
+            InsightModel.tenant_id == tenant_id
+        ).group_by(InsightModel.category)
+        result = await self.session.execute(stmt)
+        return {row[0]: row[1] for row in result.all()}
+
+    async def count_by_confidence(self, tenant_id: str) -> dict[str, int]:
+        from domains.commercial.infrastructure.models import InsightModel
+        from sqlalchemy import select, func
+        stmt = select(
+            InsightModel.confidence_level, func.count(InsightModel.id)
+        ).where(
+            InsightModel.tenant_id == tenant_id
+        ).group_by(InsightModel.confidence_level)
+        result = await self.session.execute(stmt)
+        return {row[0]: row[1] for row in result.all()}
+
+    def _to_domain(self, model, evidence: list[EvidenceItem] | None = None) -> Insight:
+        from domains.commercial.evidence.contracts.models import (
+            Insight, InsightCategory, ConfidenceLevel,
+        )
+        return Insight(
+            id=model.id, tenant_id=model.tenant_id,
+            category=InsightCategory(model.category),
+            title=model.title, description=model.description,
+            target_id=model.target_id, target_type=model.target_type,
+            overall_confidence=model.overall_confidence,
+            confidence_level=ConfidenceLevel(model.confidence_level),
+            evidence_items=evidence or [],
+            metadata=model.extra_metadata or {},
+            created_at=model.created_at, updated_at=model.updated_at,
+        )
+
+    def _evidence_to_domain(self, model) -> EvidenceItem:
+        from domains.commercial.evidence.contracts.models import (
+            EvidenceItem, EvidenceType, EvidenceSource, ConfidenceLevel,
+        )
+        return EvidenceItem(
+            id=model.id,
+            evidence_type=EvidenceType(model.evidence_type),
+            source=EvidenceSource(
+                source_domain=model.source_domain,
+                source_type=model.source_type,
+                source_id=model.source_id,
+                source_name=model.source_name,
+            ),
+            description=model.description,
+            confidence=model.confidence,
+            confidence_level=ConfidenceLevel(model.confidence_level),
+            data=model.extra_data or {},
+            recorded_at=model.created_at,
         )

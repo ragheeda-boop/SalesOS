@@ -633,3 +633,47 @@ async def ingest_companies(
         records=body.data,
     )
     return result
+
+
+# ── P1-1: Account Ownership Assignment ──
+
+
+class AssignOwnerBody:
+    owner_id: str | None = None
+    segment: str | None = None
+
+
+@router.patch(
+    "/{company_id}/assign",
+    tags=["Companies"],
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))],
+)
+async def assign_company_owner(
+    company_id: str,
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: CompanyService = Depends(get_service),
+):
+    """P1-1: Assign owner and/or segment to a company account."""
+    body = await request.json()
+    owner_id = body.get("owner_id")
+    segment = body.get("segment")
+
+    from sqlalchemy import update as sql_update
+    from app.modules.company.models import Company
+
+    stmt = sql_update(Company).where(
+        Company.id == company_id,
+        Company.tenant_id == uuid.UUID(tenant_id),
+    )
+    updates = {}
+    if owner_id is not None:
+        updates[Company.owner_id] = uuid.UUID(owner_id) if owner_id else None
+    if segment is not None:
+        updates[Company.segment] = segment
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    stmt = stmt.values(**updates)
+    await service.db.execute(stmt)
+    await service.db.commit()
+    return {"ok": True, "company_id": company_id, "updates": {k: str(v) for k, v in updates.items()}}

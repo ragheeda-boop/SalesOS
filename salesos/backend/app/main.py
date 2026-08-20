@@ -33,6 +33,23 @@ async def lifespan(app: FastAPI):
 
 _start_time = time.time()
 
+
+def _check_kafka_status(app_state) -> str:
+    """Single source of truth for Kafka status reporting across health endpoints."""
+    from sdk.events.kafka_bus import KafkaEventBus
+
+    event_runtime = getattr(app_state, "event_runtime", None)
+    if isinstance(event_runtime, KafkaEventBus):
+        kafka_ok = event_runtime.is_kafka_available
+        if kafka_ok is True:
+            return "connected"
+        elif kafka_ok is False:
+            return "fallback_in_memory"
+        else:
+            return "not_attempted"
+    return "in_memory" if event_runtime else "not_configured"
+
+
 app = FastAPI(
     title="SalesOS API",
     description="Enterprise Company Intelligence Platform",
@@ -112,17 +129,13 @@ async def health_detailed(request: Request):
         except Exception:
             checks["graph"] = {"status": "unavailable"}
 
-    from sdk.events.kafka_bus import KafkaEventBus
-
-    event_runtime = getattr(request.app.state, "event_runtime", None)
-    if isinstance(event_runtime, KafkaEventBus):
-        kafka_ok = event_runtime.is_kafka_available
-        checks["kafka"] = {"status": "connected" if kafka_ok else "fallback_in_memory"}
-    elif event_runtime is not None:
-        # Default EVENT_BUS_TYPE=in_memory — Kafka not required for GA (documented degraded).
-        checks["kafka"] = {"status": "in_memory"}
+    kafka_status = _check_kafka_status(request.app.state)
+    if kafka_status.startswith("connected") or kafka_status == "in_memory":
+        checks["kafka"] = {"status": kafka_status}
+    elif kafka_status == "fallback_in_memory":
+        checks["kafka"] = {"status": "fallback_in_memory"}
     else:
-        checks["kafka"] = {"status": "not_configured"}
+        checks["kafka"] = {"status": kafka_status}
 
     try:
         from app.routers.notifications import _ws_manager
@@ -185,23 +198,13 @@ async def health_dependencies(request: Request):
             "message": str(e) if settings.env != "production" else "unavailable",
         }
 
-    from sdk.events.kafka_bus import KafkaEventBus
-
-    event_runtime = getattr(request.app.state, "event_runtime", None)
+    kafka_status = _check_kafka_status(request.app.state)
     try:
-        if isinstance(event_runtime, KafkaEventBus):
-            kafka_ok = event_runtime.is_kafka_available
-            deps["kafka"] = {
-                "status": "connected" if kafka_ok else "fallback_in_memory",
-                "type": "message_queue",
-                "critical": False,
-            }
-        else:
-            deps["kafka"] = {
-                "status": "in_memory" if event_runtime else "not_configured",
-                "type": "message_queue",
-                "critical": False,
-            }
+        deps["kafka"] = {
+            "status": kafka_status,
+            "type": "message_queue",
+            "critical": False,
+        }
     except Exception as e:
         deps["kafka"] = {
             "status": "error",
@@ -289,19 +292,7 @@ async def health_ready(request: Request):
     else:
         checks["cache"] = "unavailable"
 
-    from sdk.events.kafka_bus import KafkaEventBus
-
-    event_runtime = getattr(request.app.state, "event_runtime", None)
-    if isinstance(event_runtime, KafkaEventBus):
-        kafka_ok = event_runtime.is_kafka_available
-        if kafka_ok is True:
-            checks["kafka"] = "connected"
-        elif kafka_ok is False:
-            checks["kafka"] = "fallback_in_memory"
-        else:
-            checks["kafka"] = "not_attempted"
-    else:
-        checks["kafka"] = "in_memory" if event_runtime else "not_configured"
+    checks["kafka"] = _check_kafka_status(request.app.state)
 
     kg = getattr(request.app.state, "kg_engine", None)
     if kg is None:
@@ -367,19 +358,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
             break
     checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
 
-    from sdk.events.kafka_bus import KafkaEventBus
-
-    kafka_bus = getattr(request.app.state, "event_runtime", None)
-    if isinstance(kafka_bus, KafkaEventBus):
-        kafka_ok = kafka_bus.is_kafka_available
-        if kafka_ok is True:
-            checks["kafka"] = "connected"
-        elif kafka_ok is False:
-            checks["kafka"] = "fallback_in_memory"
-        else:
-            checks["kafka"] = "not_attempted"
-    else:
-        checks["kafka"] = "in_memory" if kafka_bus else "not_configured"
+    checks["kafka"] = _check_kafka_status(request.app.state)
 
     try:
         from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
