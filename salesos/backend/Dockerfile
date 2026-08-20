@@ -1,4 +1,4 @@
-﻿FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Force Railway rebuild marker (OAuth Redis state store deploy 2026-07-28)
 LABEL salesos.oauth_state_redis="2"
@@ -29,7 +29,7 @@ COPY scripts/ scripts/
 RUN poetry install --only main --no-interaction
 
 
-FROM python:3.12-slim AS production
+FROM python:3.14-slim AS production
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
