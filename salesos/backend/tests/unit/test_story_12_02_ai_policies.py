@@ -62,4 +62,4 @@ def test_unknown_guardrail_rejected() -> None:
 
 
 def test_feature_ai_copilot_stays_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True

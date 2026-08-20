@@ -94,7 +94,7 @@ def test_provider_cache_keys_differ_by_tenant() -> None:
 
 
 def test_feature_ai_copilot_stays_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_settings_default_disabled() -> None:

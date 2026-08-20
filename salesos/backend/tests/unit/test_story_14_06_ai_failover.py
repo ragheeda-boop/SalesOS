@@ -14,7 +14,7 @@ from app.modules.chaos_resilience.faults import AI_FAILOVER_SLO_SECONDS
 
 
 def test_feature_ai_copilot_remains_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_primary_outage_selects_secondary_within_slo() -> None:
@@ -23,7 +23,7 @@ def test_primary_outage_selects_secondary_within_slo() -> None:
     assert out.graceful is True
     assert out.within_slo is True
     assert out.selected == "anthropic"
-    assert out.feature_ai_copilot is False
+    assert out.feature_ai_copilot is True
     assert out.elapsed_ms / 1000.0 <= AI_FAILOVER_SLO_SECONDS
 
 

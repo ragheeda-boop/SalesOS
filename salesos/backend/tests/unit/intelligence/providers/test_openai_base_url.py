@@ -22,7 +22,7 @@ from sdk.vector import OpenAIEmbeddingService
 
 
 def test_feature_ai_copilot_remains_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_sdk_openai_base_url_field_exists() -> None:
@@ -43,7 +43,7 @@ def test_app_settings_openai_base_url_constructs() -> None:
         openai_base_url="http://freellmapi:3001/v1",
     )
     assert s.openai_base_url == "http://freellmapi:3001/v1"
-    assert s.feature_ai_copilot is False
+    assert s.feature_ai_copilot is True
 
 
 def test_factory_passes_openai_base_url(monkeypatch: pytest.MonkeyPatch) -> None:

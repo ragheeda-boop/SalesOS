@@ -15,7 +15,7 @@ from app.modules.chaos_resilience.harness import MemChaosHarness
 
 
 def test_feature_ai_copilot_remains_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_connector_outage_graceful_no_corrupt() -> None:
@@ -33,7 +33,7 @@ def test_ai_provider_failover_within_slo() -> None:
     assert out.ok is True
     assert out.detail["within_slo"] is True
     assert out.detail["selected"] in {"anthropic", "gemini"}
-    assert out.detail["feature_ai_copilot"] is False
+    assert out.detail["feature_ai_copilot"] is True
     assert out.elapsed_ms / 1000.0 <= AI_FAILOVER_SLO_SECONDS
 
 

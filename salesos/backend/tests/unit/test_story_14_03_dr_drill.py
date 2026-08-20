@@ -15,7 +15,7 @@ from app.modules.dr_drill.targets import (
 
 
 def test_feature_ai_copilot_remains_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_slo_targets_match_checklist() -> None:

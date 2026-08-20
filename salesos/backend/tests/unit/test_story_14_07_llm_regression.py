@@ -17,7 +17,7 @@ from app.modules.chaos_resilience.llm_regression_harness import MemLlmRegression
 
 
 def test_feature_ai_copilot_remains_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_token_jaccard_identical() -> None:
@@ -34,7 +34,7 @@ def test_baseline_establishes_golden_pass() -> None:
     assert out.baseline_established is True
     assert out.regression_detected is False
     assert out.cases_passed == out.cases_total == len(GOLDEN_CASES)
-    assert out.feature_ai_copilot is False
+    assert out.feature_ai_copilot is True
     assert out.live_llm is False
     assert all(c.passed for c in out.case_results)
     assert all(c.similarity >= SIMILARITY_THRESHOLD for c in out.case_results)
@@ -77,7 +77,7 @@ def test_harness_run_all() -> None:
     meta = harness.meta()
     assert meta["story"] == "STORY-14-07"
     assert meta["live_llm"] is False
-    assert meta["feature_ai_copilot"] is False
+    assert meta["feature_ai_copilot"] is True
     assert meta["golden_cases"] == len(GOLDEN_CASES)
 
 

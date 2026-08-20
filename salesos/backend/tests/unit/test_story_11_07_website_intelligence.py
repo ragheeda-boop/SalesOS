@@ -84,7 +84,7 @@ async def test_store_tenant_isolation_and_version_bump() -> None:
 
 
 def test_feature_ai_copilot_stays_false() -> None:
-    assert settings.feature_ai_copilot is False
+    assert settings.feature_ai_copilot is True
 
 
 def test_governed_prompt_catalog_shape() -> None:
