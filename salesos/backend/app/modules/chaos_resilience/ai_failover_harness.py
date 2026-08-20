@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from app.config import settings
 from app.modules.chaos_resilience.ai_failover import (
     VALID_AI_FAILOVER_SCENARIOS,
     FailoverRunResult,
@@ -74,7 +75,7 @@ class MemAiFailoverHarness:
         # Annotate STORY-14-06 ownership on residual list.
         pm.residuals = [
             "STORY-14-06 CI/non-prod harness — live staging provider kill is Ops field",
-            "feature_ai_copilot remains False",
+            f"feature_ai_copilot={settings.feature_ai_copilot}",
             "No Production GO",
         ]
         pm.summary = (
@@ -112,7 +113,7 @@ class MemAiFailoverHarness:
             "ai_failover_slo_seconds": AI_FAILOVER_SLO_SECONDS,
             "providers": "fake MemFakeProvider chain (openai→anthropic→gemini)",
             "persistence": "memory",
-            "feature_ai_copilot": False,
+            "feature_ai_copilot": settings.feature_ai_copilot,
             "live_llm": False,
             "environment": "non-prod/CI",
             "honesty": (

@@ -6,6 +6,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
+from app.config import settings
 from app.modules.tenant_studio.ai_memory import (
     DEFAULT_MAX_TURNS,
     DEFAULT_RETENTION_HOURS,
@@ -260,7 +261,7 @@ class MemAiMemoryStore:
             "suite_pass": bool(probe.get("isolation_ok"))
             and attacker_view is None
             and (attacker_cache_blocked or owner is None),
-            "feature_ai_copilot": False,
+            "feature_ai_copilot": settings.feature_ai_copilot,
             "scope": "conversation",
         }
 

@@ -10,6 +10,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.config import settings
 from app.modules.chaos_resilience.faults import AI_FAILOVER_SLO_SECONDS
 
 
@@ -96,7 +97,7 @@ def handle_ai_provider_outage(
             "trail": trail,
             "slo_seconds": AI_FAILOVER_SLO_SECONDS,
             "within_slo": within_slo,
-            "feature_ai_copilot": False,
+            "feature_ai_copilot": settings.feature_ai_copilot,
             "honesty": (
                 "Simulated provider outage against failover chain pattern; "
                 "live LLM / feature_ai_copilot not enabled"

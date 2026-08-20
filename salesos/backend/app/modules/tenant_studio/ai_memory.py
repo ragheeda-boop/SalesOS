@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from app.config import settings
+
 MemoryRole = Literal["user", "assistant", "system"]
 
 # Honesty: retention is conversation-scoped; long-term cross-session deferred.
@@ -85,7 +87,7 @@ class TenantMemorySettings:
             "updated_at": self.updated_at,
             "opt_in": True,
             "cross_session": False,
-            "feature_ai_copilot": False,
+            "feature_ai_copilot": settings.feature_ai_copilot,
         }
 
 

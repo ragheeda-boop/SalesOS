@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from app.config import settings
 from app.modules.chaos_resilience.faults import VALID_FAULT_KINDS
 from app.modules.chaos_resilience.handlers import (
     HandlerOutcome,
@@ -34,7 +35,7 @@ class DrillReport:
     ran_at: str = ""
     honesty: str = (
         "CI chaos harness only; live connector/AI/DB kill not performed. "
-        "Not Production GO. feature_ai_copilot=False."
+        f"Not Production GO. feature_ai_copilot={settings.feature_ai_copilot}."
     )
 
     def as_dict(self) -> dict[str, Any]:

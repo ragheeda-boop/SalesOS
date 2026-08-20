@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.config import settings
 from app.dependencies import verify_token
 from app.modules.dr_drill.harness import DEFAULT_DR_HARNESS, MemDrDrillHarness
 from app.modules.dr_drill.targets import (
@@ -63,7 +64,7 @@ async def dr_meta() -> dict[str, Any]:
         "rpo_target_seconds": RPO_TARGET_SECONDS,
         "persistence": "memory",
         "policy_count_delta": 0,
-        "feature_ai_copilot": False,
+        "feature_ai_copilot": settings.feature_ai_copilot,
         "stage6_ghcr": "quarantined",
         "honesty": (
             "CI/non-prod DR harness (backup/restore + PITR). "

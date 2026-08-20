@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from app.config import settings
 from app.modules.chaos_resilience.llm_regression import (
     GOLDEN_CASES,
     SIMILARITY_THRESHOLD,
@@ -73,7 +74,7 @@ class MemLlmRegressionHarness:
         )
         pm.residuals = [
             "STORY-14-07 CI/non-prod golden suite — live provider model update watch is Ops field",
-            "feature_ai_copilot remains False",
+            f"feature_ai_copilot={settings.feature_ai_copilot}",
             "No Production GO",
             "No live LLM calls",
         ]
@@ -118,7 +119,7 @@ class MemLlmRegressionHarness:
             "similarity_threshold": SIMILARITY_THRESHOLD,
             "golden_cases": len(GOLDEN_CASES),
             "persistence": "memory",
-            "feature_ai_copilot": False,
+            "feature_ai_copilot": settings.feature_ai_copilot,
             "live_llm": False,
             "environment": "non-prod/CI",
             "honesty": (

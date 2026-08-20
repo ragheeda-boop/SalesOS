@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from app.config import settings
 from app.modules.dr_drill.postmortem import (
     PracticePostmortem,
     write_dr_postmortem,
@@ -36,7 +37,7 @@ class DrDrillReport:
     ran_at: str = ""
     honesty: str = (
         "CI/non-prod DR harness only; live production backup/restore not performed. "
-        "Not Production GO. feature_ai_copilot=False."
+        f"Not Production GO. feature_ai_copilot={settings.feature_ai_copilot}."
     )
 
     def as_dict(self) -> dict[str, Any]:

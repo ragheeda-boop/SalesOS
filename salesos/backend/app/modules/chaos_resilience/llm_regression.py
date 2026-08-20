@@ -8,6 +8,8 @@ Not Production GO.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
+from app.config import settings
 from typing import Any, Literal
 
 VALID_LLM_REGRESSION_MODES: frozenset[str] = frozenset(
@@ -125,7 +127,7 @@ class RegressionRunResult:
     cases_total: int
     similarity_threshold: float = SIMILARITY_THRESHOLD
     case_results: list[CaseResult] = field(default_factory=list)
-    feature_ai_copilot: bool = False
+    feature_ai_copilot: bool = field(default_factory=lambda: settings.feature_ai_copilot)
     live_llm: bool = False
     honesty: str = (
         "Non-prod LLM regression suite (golden fixtures + similarity). "

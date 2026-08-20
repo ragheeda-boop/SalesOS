@@ -10,6 +10,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
+from app.config import settings
 from app.modules.chaos_resilience.faults import AI_FAILOVER_SLO_SECONDS
 
 VALID_AI_FAILOVER_SCENARIOS: frozenset[str] = frozenset(
@@ -68,7 +69,7 @@ class FailoverRunResult:
     trail: list[dict[str, Any]] = field(default_factory=list)
     elapsed_ms: float = 0.0
     slo_seconds: float = AI_FAILOVER_SLO_SECONDS
-    feature_ai_copilot: bool = False
+    feature_ai_copilot: bool = field(default_factory=lambda: settings.feature_ai_copilot)
     honesty: str = (
         "Non-prod fake provider failover harness; live LLM / feature_ai_copilot "
         "not enabled. Not Production GO."
@@ -174,5 +175,5 @@ def run_failover_chain(
         trail=trail,
         elapsed_ms=elapsed_ms,
         slo_seconds=float(slo_seconds),
-        feature_ai_copilot=False,
+        feature_ai_copilot=settings.feature_ai_copilot,
     )

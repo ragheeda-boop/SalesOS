@@ -11,6 +11,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.config import settings
 from app.dependencies import get_current_tenant_id, verify_token
 from app.modules.marketplace_listings.catalog_install import (
     DEFAULT_CATALOG_INSTALL_STORE,
@@ -129,7 +130,7 @@ async def certify_pipeline_meta() -> dict[str, Any]:
         "trial_sandbox": "marketplace_listings.trial_sandbox",
         "not_domains_marketplace_sandbox": True,
         "first_party_checklist_exception": False,
-        "feature_ai_copilot": False,
+        "feature_ai_copilot": settings.feature_ai_copilot,
         "honesty": ("CI pipeline only; production pilot sync OPEN. Not Production GO."),
     }
 
