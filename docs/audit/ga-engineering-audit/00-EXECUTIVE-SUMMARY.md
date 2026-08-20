@@ -17,6 +17,11 @@
 
 **Why NO-GO:** CI quality gates fail (frontend lint/TS/build). Runtime DB is **5 Alembic revisions behind head**. Unit tests are **not green**. Static security deep-dive ([Security backend deep dive](1a2127a4-b90d-4e2d-9f0d-43b1ac342440)) confirmed **cross-tenant IDOR**, **webhook SSRF + InMemory persistence**, knowledge-graph SQL without tenant filters, CSRF/rate-limit bypasses, and Decision Engine still memory-primary. Prior `GO_NO_GO_DECISION.md` (GA GO / 0 P0) is **contradicted**.
 
+### Product closure order (locked 2026-08-17)
+
+**Master Gate Sequence** for SalesOS product closure: [SALESOS_MASTER_CLOSURE_SEQUENCE.md](./SALESOS_MASTER_CLOSURE_SEQUENCE.md) (Product Core → Intelligence → AI → Platform).  
+This executive summary remains **GO/NO-GO scorecard** authority. Waves stay in [PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md). A-09 / OPS-01 remain **parallel** production-readiness gates. IL-2A / IL-2B.2 are runtime proofs — **not** substitutes. Locking the sequence does **not** overturn **NO-GO**.
+
 ---
 
 ## Scorecard (0–100)

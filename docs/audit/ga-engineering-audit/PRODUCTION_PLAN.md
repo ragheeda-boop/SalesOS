@@ -13,6 +13,7 @@
 
 | وثيقة | دور |
 |-------|-----|
+| [SALESOS_MASTER_CLOSURE_SEQUENCE.md](./SALESOS_MASTER_CLOSURE_SEQUENCE.md) | **Master Gate Sequence** — ترتيب إغلاق منتج SalesOS (مُثبَّت 2026-08-17) |
 | [00-EXECUTIVE-SUMMARY.md](./00-EXECUTIVE-SUMMARY.md) | حكم NO-GO والـ scorecard |
 | [MASTER_REPORT.md](./MASTER_REPORT.md) | التدقيق الكامل |
 | [APPENDIX-A-BUILD-EVIDENCE.md](./APPENDIX-A-BUILD-EVIDENCE.md) | أوامر وأدلة البناء |
@@ -54,6 +55,25 @@
 - تحميل/chaos/pentest كاملين كشرط مسبق لكل موجة (تُجدول في Waves 7–11 و9).
 - إصلاح كل تحذيرات Tailwind / دين تقني P3–P4 قبل الإطلاق.
 - إثبات «AI-native OS» بينما `feature_ai_copilot=False` والـ runtimes stubs.
+
+---
+
+## 1b. Master Closure Sequence — سلطة إغلاق المنتج (لا تستبدل الموجات)
+
+**مُثبَّت 2026-08-17:** [SALESOS_MASTER_CLOSURE_SEQUENCE.md](./SALESOS_MASTER_CLOSURE_SEQUENCE.md) هو **سلطة ترتيب إغلاق منتج SalesOS** (Product Core → Intelligence → AI → Platform).
+
+| محور | سلطة |
+|------|------|
+| ترتيب إغلاق المنتج (Domain→…→Approval ثم Intelligence ثم AI ثم Platform) | **Master Closure Sequence** |
+| موجات الأمن/البناء/CI/DR (Waves 0–14) | **هذه الخطة** — لا تُستبدل |
+| حكم Production GO / NO-GO | [00-EXECUTIVE-SUMMARY.md](./00-EXECUTIVE-SUMMARY.md) + أدلة قابلة للتنفيذ |
+| IL-2A / IL-2B.2 | براهين runtime مغلقة — **ليست** بديلاً عن بوابات المنتج |
+| A-09 / OPS-01 | بوابات جاهزية إنتاج **متوازية** — خارج Product Core |
+| AI | `feature_ai_copilot=False` حتى تُغلق بوابة Phase 3 بأدلة ([AI_HONESTY.md](./AI_HONESTY.md)) |
+
+**قاعدة العمل:** نبني → نثبت → نغلق Gate → ننتقل. لا يُستخدم نجاح طبقة لاحقة لتجاوز فجوة طبقة سابقة.
+
+هذه الخطة تبقى برنامج CTO/Ops؛ تسلسل الإغلاق أعلاه يحكم **أولوية المنتج** دون إعادة كتابة Waves 0–14.
 
 ---
 
