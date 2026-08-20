@@ -350,11 +350,15 @@ class SecurityHeadersMiddleware:
 
     _STRICT_CSP = (
         b"default-src 'self'; "
-        b"script-src 'self'; "
+        b"script-src 'self' 'unsafe-inline'; "
         b"style-src 'self' 'unsafe-inline'; "
         b"img-src 'self' data:; "
         b"font-src 'self'; "
-        b"connect-src 'self'"
+        b"connect-src 'self'; "
+        b"object-src 'none'; "
+        b"base-uri 'self'; "
+        b"form-action 'self'; "
+        b"frame-ancestors 'none'"
     )
 
     _DOCS_CSP = (
