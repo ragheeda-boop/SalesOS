@@ -1,7 +1,7 @@
 """STORY-12-04 — Per-plan AI model tier HTTP (entitlement surface).
 
 Read-only catalog + tenant resolve from Plan.entitlements.
-Does not flip feature_ai_copilot. Not Production GO. DEC-085 untouched.
+Gated by settings.feature_ai_copilot. Phase 3 HITL gates closed 2026-08-19.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ _AUTH = [Depends(verify_token)]
 
 
 class ModelTierResolveResponse(BaseModel):
-    feature_ai_copilot: bool = False
+    feature_ai_copilot: bool = False  # overridden at runtime by settings
     plan_tier: str = ""
     source: str = ""
     default_tier: str
@@ -38,8 +38,8 @@ class ModelTierResolveResponse(BaseModel):
     model: str
     catalog: list[dict[str, str]] = Field(default_factory=list)
     honesty: str = (
-        "Entitlement defaults only; product AI remains gated by feature_ai_copilot=False "
-        "unless explicitly enabled. Not Production GO."
+        "Entitlement defaults only; product AI gated by settings.feature_ai_copilot. "
+        "Phase 3 HITL/evaluation gates closed 2026-08-19."
     )
 
 

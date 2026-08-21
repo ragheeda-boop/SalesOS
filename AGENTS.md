@@ -1,12 +1,41 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-19 (Test Suite Cleanup — 2388 passed, 0 failed, 10 xfailed)  
+> **Last updated:** 2026-08-21 (Production GA Execution + Search Filter Fix)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → [SalesOS Master Closure Sequence](docs/audit/ga-engineering-audit/SALESOS_MASTER_CLOSURE_SEQUENCE.md) (product-closure order, locked 2026-08-17) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
 
 ---
 
-## 15. Session Summary (2026-08-19) — Test Suite Cleanup
+## 17. Session Summary (2026-08-21) — Production GA Execution
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| P0 schema drift | **RESOLVED** | 13 migrations applied (2026-08-21T10:25:49Z), `/api/v1/companies` → 401 |
+| P0 staging parity | **PASS** | Deploy runs 32482172944 + 32484850885, schema_version `g1h2i3j4k5l6` verified |
+| CI schema-drift-gate | **FIXED** | `--local-only` mode, no Railway CLI from GHA runners (commit `6f27699`) |
+| Webhook SSRF | **CLOSED** | 5-layer protection in `url_safety.py` + InMemory rejection confirmed |
+| "contains" filter bug | **FIXED** | `search_repository.py:83-86`, deployed to staging |
+| owner_id/segment search | **ADDED** | Filter + sort support + 12 unit tests (all pass) |
+| AI flag defaults | **FIXED** | Updated stale honesty strings + docstrings in ai_model_tiers_router + ai_memory_router |
+| AGENTS.md hygiene | **FIXED** | Numbering (duplicate §15→§16), migration count 96→97, CI section §9→§10 |
+| Rollback script | **CREATED** | `scripts/railway_rollback.sh` with dry-run + confirmation |
+| Docs updates | **DONE** | HUMAN-GATE-CLOSURE-SUMMARY, FINAL_GO_NOGO_ASSESSMENT updated |
+
+### New files this session
+- `salesos/backend/tests/unit/test_company_search_contains.py` — 12 tests (contains, eq, in, owner_id, segment, sort)
+- `salesos/backend/scripts/railway_rollback.sh` — Railway rollback automation
+
+### Files modified this session
+- `salesos/backend/app/modules/company/search_repository.py` — added owner_id/segment field filters + sort_map entries
+- `salesos/backend/app/modules/admin/ai_model_tiers_router.py` — updated honesty string + docstring
+- `salesos/backend/app/modules/tenant_studio/ai_memory_router.py` — updated honesty string + docstring
+- `AGENTS.md` — §17 session summary, numbering fixes, migration count
+- `docs/audit/ga-engineering-audit/FINAL_GO_NOGO_ASSESSMENT.md` — A-09, Redis, §10
+- `docs/ops/HUMAN-GATE-CLOSURE-SUMMARY-2026-08-21.md` — staging evidence, P0 struck through
+
+---
+
+## 16. Session Summary (2026-08-19) — Test Suite Cleanup
 
 | Action | Result | Details |
 |--------|:------:|---------|
@@ -45,7 +74,7 @@
 | M10 — Phase 4 Platform | **CLOSED** | build + runtime validated | 17/17 Phase 4 tests, 2388 unit tests, alembic current == head verified |
 | P4-1 EventBus | COMPLETE | build validated | No split-brain; DLQ persisted to Postgres (event_dead_letters) |
 | P4-2 Capability Registry | COMPLETE | build validated | pytest wrapper gates CI; join map validated |
-| P4-3 Migrations | COMPLETE | verified | 96 migrations, 1 head, clean chain |
+| P4-3 Migrations | COMPLETE | verified | 97 migrations, 1 head, clean chain |
 | P4-4 Observability | COMPLETE | build validated | DRY _check_kafka_status(); SLA monitor; structured logging |
 | P4-5 Background Jobs | COMPLETE | build validated | EXHAUSTED task alerting added to retire_exhausted() |
 | P4-6 Backup/Restore | COMPLETE | build validated | Dockerfile COPY paths fixed (infra/scripts/) |
@@ -442,7 +471,7 @@ Windows host Poetry is **not** the production path.
 
 ---
 
-## 9. CI/Dependabot location fix (2026-07-30)
+## 10. CI/Dependabot location fix (2026-07-30)
 
 - GitHub Actions workflows were at `salesos/.github/workflows/` — **undiscoverable** by GitHub
 - **Fix:** Moved all workflows → `.github/workflows/` (repo root) + path fixes:

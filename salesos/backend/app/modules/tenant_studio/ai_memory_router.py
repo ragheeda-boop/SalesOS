@@ -1,7 +1,7 @@
 """STORY-12-03 — AI Memory HTTP (CAP-063 conversation-level MVP).
 
-Opt-in tenant memory. Not Production GO. DEC-085 untouched.
-feature_ai_copilot remains False. No live LLM / RAG GO.
+Opt-in tenant memory. feature_ai_copilot is gated by settings.feature_ai_copilot.
+Phase 3 HITL/evaluation gates closed 2026-08-19.
 """
 
 from __future__ import annotations
@@ -74,7 +74,7 @@ class MemorySettingsResponse(BaseModel):
     updated_at: str = ""
     opt_in: bool = True
     cross_session: bool = False
-    feature_ai_copilot: bool = False
+    feature_ai_copilot: bool = False  # overridden at runtime by settings
 
 
 @router.get("/meta", dependencies=_AUTH)
@@ -97,7 +97,7 @@ async def ai_memory_meta() -> dict[str, Any]:
         "feature_ai_copilot": bool(settings.feature_ai_copilot),
         "honesty": (
             "In-memory CI store; opt-in per tenant. Live LLM / RAG GO / "
-            "cross-session memory not claimed. feature_ai_copilot remains False. "
+            "cross-session memory not claimed. Gated by settings.feature_ai_copilot. "
             "FE Decision package is STUB."
         ),
     }

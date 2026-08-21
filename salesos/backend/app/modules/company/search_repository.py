@@ -68,6 +68,10 @@ class CompanySearchRepository(SearchRepository[Any]):
                 stmt = stmt.where(Company.activity_description.ilike(f"%{ff['activity']}%"))
             if "legal_form" in ff:
                 stmt = stmt.where(Company.legal_form.ilike(f"%{ff['legal_form']}%"))
+            if "owner_id" in ff:
+                stmt = stmt.where(Company.owner_id == uuid.UUID(ff["owner_id"]))
+            if "segment" in ff:
+                stmt = stmt.where(Company.segment == ff["segment"])
 
         for field, value in query.filters.items():
             if hasattr(Company, field):
@@ -102,6 +106,8 @@ class CompanySearchRepository(SearchRepository[Any]):
             "status": Company.status,
             "city": Company.city,
             "region": Company.region,
+            "owner_id": Company.owner_id,
+            "segment": Company.segment,
             "created_at": Company.created_at,
             "updated_at": Company.updated_at,
             "confidence_score": Company.confidence_score,
