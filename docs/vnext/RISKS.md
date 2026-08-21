@@ -36,7 +36,7 @@
 | R-008 | **Kafka — no healthcheck in Docker Compose** — startup race condition; services connect before Kafka is ready | Medium | Likely | **Medium** | Add healthcheck (kafka-topics --bootstrap-server); depends_on with condition |
 | R-009 | **Celery — no worker service in Docker Compose** — background tasks silently fail in dev/staging | Medium | Certain | **Medium** | Add celery worker service to docker-compose.yml |
 | R-010 | **Agent runtime is placeholder** — cannot execute agents; agent orchestration layer is stub | Medium | Certain | **Medium** | Implement agent runtime in Sprint 11-12 |
-| R-011 | **Redis not deployed in production** — rate limiting is in-memory (reset on restart), caching degraded | Medium | Likely | **Medium** | Deploy Redis; configure caching and rate-limit backends |
+| R-011 | **Redis deployed but ephemeral only** — rate limiting and caching use Redis (verified: `/health` → `"redis":"connected"`), but no persistence/backup/RPO obligation. Data is reconstructable. | Low | Likely | **Low** | Accept ephemeral Redis scope; exclude from RPO/RTO per ADR-108 scope decision. |
 | R-012 | **OpenAI vendor lock-in** — only one AI provider; KSA data sovereignty concerns | Medium | Possible | **Medium** | Add Anthropic + local model support via provider abstraction |
 | R-013 | **Data Fabric connectors return mock data** — all Data Fabric integrations return synthetic/mock data | High | Certain | **High** | Implement real connectors in Sprint 15-16 |
 | R-014 | **No i18n framework** — Saudi-market product with English-only UI; Arabic/RTL claims unsupported | High | Possible | **High** | Add i18n framework (react-intl / Lingui); full Arabic pass in Sprint 19-20 |

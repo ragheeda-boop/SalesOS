@@ -121,7 +121,7 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Proposed |
-| **Context** | Redis not deployed in production (R-011). Rate limiting uses in-memory. Caching is ad-hoc per domain. |
+| **Context** | Redis deployed in production (ephemeral only — no persistence/RPO obligation). Rate limiting uses Redis. Caching is Redis-backed. See live `/health` endpoint: `"redis":"connected"`. |
 | **Option A: Redis everywhere** | Redis for cache, rate limiting, session store. Single dependency, well-understood. |
 | **Option B: Multi-tier** | Redis for cache, database for persistent rate limits (PostgreSQL). More complex but no single point of failure. |
 | **Option C: In-memory + Redis** | In-memory L1 cache per service, Redis L2. Lowest latency, highest complexity. |

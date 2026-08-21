@@ -1,6 +1,6 @@
 # DR / GA Gaps Checklist — REQUIRED before any cutover
 
-**Date:** 2026-08-06 (honesty refresh **2026-08-12** — CLOSE packet + HG-04 runbook linked; cutover still Human-Gate)  
+**Date:** 2026-08-06 (honesty refresh **2026-08-20** — OPS01-06 reclassified per ADR-108; OPS01-08 scoped to in-scope deps)  
 **Finding:** EAB-001-P0-OPS-01  
 **Decision:** Cutover gate remains **OPEN / Human-Gate** until human CLOSE ink — even when machine drill JSON exists.  
 **Do NOT claim:** DR cutover CLOSED, soak complete, or **evidence-based** production GO from agent docs alone.
@@ -41,7 +41,7 @@ Cross-links:
 
 ## Checklist (cutover gate)
 
-Status vocabulary: `OPEN` (gate not human-CLOSED) · `DONE*` (machine drill evidenced; CLOSE still human) · `HUMAN-GO-INK` · `BLOCKED-HUMAN` · `DOC FIXED`
+Status vocabulary: `OPEN` (gate not human-CLOSED) · `DONE*` (machine drill evidenced; CLOSE still human) · `HUMAN-GO-INK` · `BLOCKED-HUMAN` · `DOC FIXED` · `NOT APPLICABLE` (outside v1.0 scope per ADR-108)
 
 | # | Requirement | Status | Owner | Blocker / notes |
 |---|-------------|--------|-------|-----------------|
@@ -50,9 +50,9 @@ Status vocabulary: `OPEN` (gate not human-CLOSED) · `DONE*` (machine drill evid
 | 3 | **PITR restore drill** — timestamp restore evidence; **human CLOSE** | **OPEN** (facts **DONE\***) | ops | Drill: `ops01-row3-pitr-restore.json`. Native `volumeInstancePITRRestore` UI = **BLOCKED-HUMAN**. |
 | 4 | **Staging soak** — ≥48–72h staging with `soak_complete_claim` | **OPEN / HUMAN** | ops | Loops ≠ complete; see SOAK-GATE-CHECKLIST + HUMAN-GATE-CARD |
 | 5 | **Go-live signatures** — CTO + Tech Lead on SIGN_HERE | **HUMAN-GO-INK** | leadership | SIGNED GO 2026-08-08 (رغيد المدني; dual-role P1). Prior NO-GO 2026-08-06 preserved. Ink ≠ soak/DR CLOSE. |
-| 6 | **Neo4j backup/restore policy** for staging/prod (not only local dump drill) | **OPEN / HUMAN** | ops | Local neo4j-admin dump/load drills ≠ prod policy |
+| 6 | **Neo4j backup/restore policy** for staging/prod (not only local dump drill) | **NOT APPLICABLE** | ops | **Reclassified per ADR-108** (ACCEPTED 2026-08-07): "Keep Neo4j offline in v1.0. Do not activate." Neo4j is not a production dependency; DR obligation deferred to v2.0. See OPS-01-CHECKLIST.md + NEO4J_GOVERNANCE_GAP.md. |
 | 7 | **Compose SoT used for target env** — no accidental root-compose cutover | **DOC FIXED** (ops honesty) | ops | See COMPOSE-SOURCE-OF-TRUTH.md; merge of dual compose still deferred |
-| 8 | **RPO/RTO signed acceptance** vs current capability | **OPEN / HUMAN** | Project Owner | Recompute RPO now that WAL drill facts exist; SIGN_HERE RPO item may remain UNSIGNED |
+| 8 | **RPO/RTO signed acceptance** vs current capability | **OPEN / HUMAN** | Project Owner | In-scope dependencies: PostgreSQL (primary) + Redis (ephemeral, no persistence obligation). Redis deployed per live `/health` endpoint. RPO < 1h target, current capability minutes-class (EAB-003 evidence). SIGN_HERE RPO item may remain UNSIGNED. See DR_RUNBOOK.md §1. |
 
 ---
 

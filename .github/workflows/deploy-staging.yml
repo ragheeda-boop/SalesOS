@@ -87,10 +87,67 @@ jobs:
           echo "staging_ready=true" >> "$GITHUB_OUTPUT"
           echo "Staging Railway secrets present — proceed with deploy."
 
-  deploy-backend-railway:
-    name: Deploy Backend (Railway Staging)
+  schema-drift-gate:
+    name: Schema Drift Gate (fail if alembic head != DB stamp)
     needs: staging-gate
     if: ${{ needs.staging-gate.outputs.staging_ready == 'true' && !inputs.skip_backend }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Require Railway staging secrets
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_STAGING_SERVICE_ID: ${{ secrets.RAILWAY_STAGING_SERVICE_ID }}
+          RAILWAY_STAGING_ENVIRONMENT_ID: ${{ secrets.RAILWAY_STAGING_ENVIRONMENT_ID }}
+        run: |
+          missing=0
+          for name in RAILWAY_TOKEN RAILWAY_PROJECT_ID RAILWAY_STAGING_SERVICE_ID RAILWAY_STAGING_ENVIRONMENT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret: ${name}"
+              missing=1
+            fi
+          done
+          exit $missing
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
+          restore-keys: poetry-${{ runner.os }}-
+      - name: Install backend dependencies (needed to import alembic/app.config locally)
+        run: cd salesos/backend && poetry install --no-interaction
+      - name: Setup Node (Railway CLI)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      - name: Check alembic drift (DB current vs repo heads)
+        # Reuses scripts/check_alembic_head.py — see deploy.yml for rationale.
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_STAGING_SERVICE_ID: ${{ secrets.RAILWAY_STAGING_SERVICE_ID }}
+          RAILWAY_STAGING_ENVIRONMENT_ID: ${{ secrets.RAILWAY_STAGING_ENVIRONMENT_ID }}
+        run: |
+          set -euo pipefail
+          echo "=== Schema Drift Gate (Staging) ==="
+          cd salesos/backend
+          railway run --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_STAGING_ENVIRONMENT_ID" --service "$RAILWAY_STAGING_SERVICE_ID" -- \
+            poetry run python scripts/check_alembic_head.py
+
+  deploy-backend-railway:
+    name: Deploy Backend (Railway Staging)
+    needs: schema-drift-gate
+    if: ${{ needs.staging-gate.outputs.staging_ready == 'true' && !inputs.skip_backend && needs.schema-drift-gate.result == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -117,7 +174,7 @@ jobs:
 
   health-check:
     name: Staging Health Gate
-    needs: [staging-gate, deploy-backend-railway]
+    needs: [staging-gate, schema-drift-gate, deploy-backend-railway]
     if: ${{ needs.staging-gate.outputs.staging_ready == 'true' && !inputs.skip_backend && needs.deploy-backend-railway.result == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
@@ -183,7 +240,7 @@ jobs:
   notify:
     name: Deploy Notification
     if: always()
-    needs: [staging-gate, deploy-backend-railway, health-check, frontend-vercel]
+    needs: [staging-gate, schema-drift-gate, deploy-backend-railway, health-check, frontend-vercel]
     runs-on: ubuntu-latest
     steps:
       - name: Determine status
