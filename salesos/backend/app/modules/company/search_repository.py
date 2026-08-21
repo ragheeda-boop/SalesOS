@@ -80,6 +80,10 @@ class CompanySearchRepository(SearchRepository[Any]):
                         stmt = stmt.where(getattr(Company, field) >= value["gte"])
                     if "lte" in value:
                         stmt = stmt.where(getattr(Company, field) <= value["lte"])
+                    if "contains" in value:
+                        stmt = stmt.where(
+                            getattr(Company, field).ilike(f"%{value['contains']}%")
+                        )
                 else:
                     stmt = stmt.where(getattr(Company, field) == value)
 
