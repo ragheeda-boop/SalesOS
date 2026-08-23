@@ -48,11 +48,13 @@ from intelligence.agents import AgentCoordinator, AgentTask
 from intelligence.agents.competitor import CompetitorAgent
 from intelligence.agents.contract import ContractAgent
 from intelligence.agents.forecast import ForecastAgent
+from intelligence.agents.icp import ICPAgent
 from intelligence.agents.llm import LLMService
 from intelligence.agents.meeting import MeetingAgent
 from intelligence.agents.news import NewsAgent
 from intelligence.agents.pricing import PricingAgent
 from intelligence.agents.proposal import ProposalAgent
+from intelligence.agents.recommendation import RecommendationAgent
 from intelligence.agents.relationship import RelationshipAgent
 from intelligence.agents.renewal import RenewalAgent
 from intelligence.agents.research import ResearchAgent
@@ -114,27 +116,73 @@ class CopilotResponse(BaseModel):
     conversation_id: str = ""
 
 
-def _build_coordinator() -> AgentCoordinator:
+def _make_company_evidence_loader():
+    """Async loader binding the ResearchAgent to real SalesOS records
+    (Grounded Phase 1). Retrieval is (tenant_id, company_id)-scoped inside
+    research_evidence.build_company_evidence; PII is stripped there."""
+
+    async def _load(tenant_id: str, company_id: str):
+        from intelligence.agents.research_evidence import build_company_evidence
+
+        from app.database import async_session
+
+        return await build_company_evidence(async_session, tenant_id, company_id)
+
+    return _load
+
+
+def _build_coordinator(
+    tenant_id: str | None = None, user_id: str | None = None
+) -> AgentCoordinator:
     llm = None
     if settings.openai_api_key:
+        # Central ai_tokens quota accounting: bind the request's tenant/user to
+        # the single LLMService instance all agents share, and hand it the
+        # canonical async session factory for usage_meters recording.
+        try:
+            from app.database import async_session as _meter_session_factory
+        except Exception:
+            _meter_session_factory = None
         llm = LLMService(
             api_key=settings.openai_api_key,
             model=settings.openai_model,
             base_url=settings.openai_base_url or None,
+            default_tenant_id=tenant_id,
+            default_user_id=user_id,
+            usage_meter_factory=_meter_session_factory,
         )
 
     coordinator = AgentCoordinator()
-    coordinator.register_agent(ResearchAgent(llm))
-    coordinator.register_agent(NewsAgent(llm))
-    coordinator.register_agent(CompetitorAgent(llm))
-    coordinator.register_agent(ForecastAgent(llm))
-    coordinator.register_agent(MeetingAgent(llm))
-    coordinator.register_agent(ProposalAgent(llm))
-    coordinator.register_agent(ContractAgent(llm))
-    coordinator.register_agent(PricingAgent(llm))
-    coordinator.register_agent(RenewalAgent(llm))
-    coordinator.register_agent(TenderAgent(llm))
-    coordinator.register_agent(RelationshipAgent(llm))
+    coordinator.register_agent(ResearchAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    # Grounded Phase 3B: all remaining agents share the same Phase-1
+    # EvidencePack loader; identity is (tenant_id, company_id), never name.
+    coordinator.register_agent(NewsAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    # Grounded Phase 2: competitor + relationship share the same Phase 1
+    # EvidencePack loader; identity is (tenant_id, company_id), never name.
+    coordinator.register_agent(CompetitorAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(ForecastAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(MeetingAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(ProposalAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(ContractAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(PricingAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(RenewalAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(TenderAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    coordinator.register_agent(RelationshipAgent(llm, evidence_loader=_make_company_evidence_loader()))
+    # Grounded Phase 3A: ICP evaluation → recommendation share the same
+    # Phase-1 EvidencePack loader; ICP uses the real runtime store only.
+    # Phase 4B (ADR-0109 Option A): Postgres-backed store via sync adapter;
+    # agents stay untouched — adapter satisfies the frozen MemICPStore shape.
+    from app.modules.gtm.icp_persistence import get_sync_icp_store
+
+    _icp_store = get_sync_icp_store()
+    coordinator.register_agent(
+        ICPAgent(llm, evidence_loader=_make_company_evidence_loader(), icp_store=_icp_store)
+    )
+    coordinator.register_agent(
+        RecommendationAgent(
+            llm, evidence_loader=_make_company_evidence_loader(), icp_store=_icp_store
+        )
+    )
     return coordinator
 
 
@@ -217,7 +265,7 @@ async def copilot_query(
     context = _arabic_engine.enrich_saudi_context(body.query, context)
     context["tenant_id"] = tenant_id
 
-    coordinator = _build_coordinator()
+    coordinator = _build_coordinator(tenant_id=tenant_id, user_id=user_id)
     task = AgentTask(
         id=f"copilot_{user_id}_{int(_time.time())}",
         agent_type="coordinator",
@@ -344,7 +392,7 @@ async def copilot_mode(
     context = {**body.context, "tenant_id": tenant_id, "user_id": user_id}
 
     # Build coordinator
-    coordinator = _build_coordinator()
+    coordinator = _build_coordinator(tenant_id=tenant_id, user_id=user_id)
     task = AgentTask(
         id=f"copilot_{mode}_{user_id}_{int(_time.time())}",
         agent_type="coordinator",

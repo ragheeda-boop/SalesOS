@@ -111,6 +111,11 @@ class AgentCoordinator(BaseAgent):
         elif "news" in goal_lower or "أخبار" in goal:
             steps.append({"name": "news", "agent": "news", "input": {"company_id": context.get("company_id")}, "priority": 1})
 
+        elif "icp" in goal_lower or "recommend" in goal_lower or "توصية" in goal or "توصيات" in goal:
+            # Grounded Phase 3A chain: ICP evaluation → recommendation
+            steps.append({"name": "icp", "agent": "icp", "input": {"company_id": context.get("company_id")}, "priority": 1})
+            steps.append({"name": "recommendation", "agent": "recommendation", "input": {"company_id": context.get("company_id")}, "priority": 2})
+
         else:
             steps.append({"name": "research", "agent": "research", "input": {"company_id": context.get("company_id"), "topic": goal}, "priority": 1})
             steps.append({"name": "competitor", "agent": "competitor", "input": {"company_id": context.get("company_id")}, "priority": 2})

@@ -72,6 +72,9 @@ class LLMService:
         reliability_config: ReliabilityConfig | None = None,
         policy_gate: PolicyGate | None = None,
         base_url: str | None = None,
+        default_tenant_id: str | None = None,
+        default_user_id: str | None = None,
+        usage_meter_factory: Any | None = None,
     ):
         self._provider_type = provider_type
         self._model_override = model
@@ -81,6 +84,12 @@ class LLMService:
         self._reliability_config = reliability_config or ReliabilityConfig()
         self._policy_gate = policy_gate or PolicyGate()
         self._reliable_provider: ReliableProvider | None = None
+        # Per-request tenant binding (set by routers that own one LLMService
+        # per request) so agent-issued chat() calls inherit attribution and
+        # central ai_tokens quota accounting without per-agent changes.
+        self._default_tenant_id = default_tenant_id
+        self._default_user_id = default_user_id
+        self._usage_meter_factory = usage_meter_factory
 
         try:
             self._cost_tracker = cost_tracker or get_cost_tracker()
@@ -131,6 +140,10 @@ class LLMService:
         provider = self._get_provider()
         resolved_model = model or self._model_override or provider.model_name
 
+        # Effective attribution: explicit call args win, then per-request binding.
+        effective_tenant = tenant_id or self._default_tenant_id
+        effective_user = user_id or self._default_user_id
+
         # Policy gate: PII scrub, data class, provider/model allowlist
         input_text = ""
         if system:
@@ -169,15 +182,15 @@ class LLMService:
             model=resolved_model,
             response_format=response_format,
             tools=tools,
-            tenant_id=tenant_id,
+            tenant_id=effective_tenant,
             request_id=request_id,
         )
 
         # ── F2: Pre-call budget check ─────────────────────────────
-        if tenant_id and self._cost_tracker:
+        if effective_tenant and self._cost_tracker:
             est_cost = estimate_cost(resolved_model, 500, 500)
             budget_check = await self._cost_tracker.check_budget(
-                tenant_id, est_cost
+                effective_tenant, est_cost
             )
             if budget_check.would_exceed and budget_check.monthly_budget > 0:
                 return LLMResponse(
@@ -199,16 +212,16 @@ class LLMService:
         if tenant_id and self._cost_tracker:
             try:
                 await self._cost_tracker.track(
-                    tenant_id=tenant_id,
+                    tenant_id=effective_tenant,
                     provider=provider.provider_name,
                     model=response.model,
                     prompt_tokens=response.usage.get("prompt_tokens", 0),
                     completion_tokens=response.usage.get("completion_tokens", 0),
                     operation="chat",
-                    user_id=user_id,
+                    user_id=effective_user,
                     latency_ms=round(elapsed, 2),
                 )
-                await self._cost_tracker.deduct_budget(tenant_id, response.cost)
+                await self._cost_tracker.deduct_budget(effective_tenant, response.cost)
 
                 # ── F3: Record observability metrics ──────────────
                 ai_observability.record_llm_call(
@@ -232,11 +245,34 @@ class LLMService:
             except Exception:
                 pass
 
-        if self._ai_audit and tenant_id and user_id:
+        # ── Central quota accounting: usage_meters.ai_tokens ──────
+        # Single accounting point for the ai_tokens quota metric. Uses ONLY
+        # actual provider-reported token counts (never estimates). Runs on
+        # the success path only; failures record nothing.
+        if effective_tenant and self._usage_meter_factory:
+            try:
+                _p = int(response.usage.get("prompt_tokens", 0) or 0)
+                _c = int(response.usage.get("completion_tokens", 0) or 0)
+                _total = int(response.usage.get("total_tokens", 0) or 0) or (_p + _c)
+                if _total > 0:
+                    from app.modules.billing.usage_meter_service import UsageMeterService
+
+                    async with self._usage_meter_factory() as meter_session:
+                        await UsageMeterService(meter_session).record_event(
+                            tenant_id=effective_tenant,
+                            metric_key="ai_tokens",
+                            quantity=float(_total),
+                            source="copilot",
+                        )
+                        await meter_session.commit()
+            except Exception:
+                logger.warning("ai_tokens usage recording failed", exc_info=True)
+
+        if self._ai_audit and effective_tenant and effective_user:
             try:
                 await self._ai_audit.log_llm_call(
-                    tenant_id=tenant_id,
-                    user_id=user_id,
+                    tenant_id=effective_tenant,
+                    user_id=effective_user,
                     model=response.model,
                     prompt_tokens=response.usage.get("prompt_tokens", 0),
                     completion_tokens=response.usage.get("completion_tokens", 0),

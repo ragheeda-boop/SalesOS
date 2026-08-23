@@ -103,7 +103,7 @@ class TestCopilotModeIntegration:
         repo = InMemoryApprovalRepository()
         svc = ApprovalService(repository=repo)
 
-        req = asyncio.get_event_loop().run_until_complete(svc.create_request(
+        req = asyncio.run(svc.create_request(
             tenant_id="t1",
             target_type=ApprovalTargetType.NBA_RECOMMENDATION,
             target_id="copilot_conv_test",
@@ -123,7 +123,7 @@ class TestCopilotModeIntegration:
 
         repo = InMemoryApprovalRepository()
         svc = ApprovalService(repository=repo)
-        items = asyncio.get_event_loop().run_until_complete(
+        items = asyncio.run(
             svc.list_pending("t1")
         )
         assert len(items) == 0

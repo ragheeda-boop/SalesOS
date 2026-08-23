@@ -1,4 +1,4 @@
-"""IL-1C: Runtime Proof — signal-decision-agent flow invariants."""
+"""IL-1C: Runtime Proof â€” signal-decision-agent flow invariants."""
 from __future__ import annotations
 
 from unittest.mock import MagicMock

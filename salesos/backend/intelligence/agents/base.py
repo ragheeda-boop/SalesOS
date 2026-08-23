@@ -27,7 +27,9 @@ class AgentTask:
 class AgentResult:
     task_id: str
     agent_type: str
-    success: bool
+    # Default False so partial constructions are treated as failed until
+    # BaseAgent.execute() flips it True after an exception-free _run().
+    success: bool = False
     output: dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
     started_at: datetime = field(default_factory=datetime.utcnow)
