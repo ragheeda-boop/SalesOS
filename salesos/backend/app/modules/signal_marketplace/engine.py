@@ -88,17 +88,22 @@ class SignalDetectionEngine:
 
         return all_signals
 
+    def match_signals(self, event_type: str) -> list[str]:
+        """Trigger-matching contract: trigger substring OR domain prefix.
+
+        Extracted from on_domain_event so the runtime bridge reuses the exact
+        same semantics instead of duplicating them."""
+        return [
+            signal_id
+            for signal_id, signal in self._signal_map.items()
+            if any(t in event_type for t in signal.triggers)
+            or event_type.startswith(signal.domain.lower())
+        ]
+
     async def on_domain_event(
         self, event_type: str, aggregate_id: str, tenant_id: str, data: dict | None = None
     ) -> None:
-        matched_signals = []
-        for signal_id, signal in self._signal_map.items():
-            if any(t in event_type for t in signal.triggers) or event_type.startswith(
-                signal.domain.lower()
-            ):
-                matched_signals.append(signal_id)
-
-        for signal_id in matched_signals:
+        for signal_id in self.match_signals(event_type):
             await self.service.create_signal_event(
                 signal_id=signal_id,
                 company_id=aggregate_id,
