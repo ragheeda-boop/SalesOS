@@ -1,0 +1,4 @@
+# Force LF for shell scripts — Windows autocrlf broke container entrypoints
+# (docker-entrypoint.sh CRLF → tini exec ENOENT, backend exit 127).
+*.sh text eol=lf
+*.bash text eol=lf
