@@ -260,10 +260,17 @@ class SearchRuntime:
                 )
             elif strategy == SearchStrategy.SEMANTIC:
                 self.metrics.semantic_searches += 1
-                result = await asyncio.wait_for(
-                    self._semantic_search(query, tenant_id, limit, offset),
-                    timeout=self.SEARCH_TIMEOUT,
-                )
+                try:
+                    result = await asyncio.wait_for(
+                        self._semantic_search(query, tenant_id, limit, offset),
+                        timeout=self.SEARCH_TIMEOUT,
+                    )
+                except Exception:
+                    self.metrics.errors += 1
+                    result = await asyncio.wait_for(
+                        self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types),
+                        timeout=self.SEARCH_TIMEOUT,
+                    )
             elif strategy == SearchStrategy.GRAPH:
                 self.metrics.graph_searches += 1
                 result = await asyncio.wait_for(

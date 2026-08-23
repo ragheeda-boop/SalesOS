@@ -212,3 +212,11 @@ class PermissionEnforcer:
         action_str = resolved.value
         if not PermissionRegistry.has_permission(user_role, resource, resolved):
             raise PermissionDeniedError(user_role, f"{resource}.{action_str}")
+
+
+def _register_default_roles() -> None:
+    for name, perms in PermissionRegistry.default_roles().items():
+        PermissionRegistry.register_role(Role(name=name, permissions=set(perms)))
+
+
+_register_default_roles()

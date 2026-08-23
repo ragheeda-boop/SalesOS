@@ -168,9 +168,12 @@ services:
       - .env
     volumes:
       - ./backend:/app
+      # Platform Knowledge Packs (read-only) — source for signal_catalog seeding.
+      - ./knowledge-packs:/app/knowledge-packs:ro
     environment:
       # Must be empty/false — any non-empty truthy string (including "0") used to skip boot.
       SALESOS_TESTING: ""
+      KNOWLEDGE_PACKS_PATH: /app/knowledge-packs
       # ADR-102 / EAB verify: compose overrides .env HS256 leftovers (fail-closed at Settings).
       JWT_ALGORITHM: RS256
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
@@ -189,7 +192,9 @@ services:
       FEATURE_SIGNAL_MARKETPLACE_POSTGRES: ${FEATURE_SIGNAL_MARKETPLACE_POSTGRES:-true}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}
-    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 120
+    # Must be an entrypoint ROLE arg ("api"), not raw uvicorn: the hardened
+    # Dockerfile ENTRYPOINT (tini + docker-entrypoint.sh) treats $1 as the role.
+    command: ["api"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

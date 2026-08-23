@@ -453,6 +453,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["GTM Intelligence"],
         dependencies=_auth,
     )
+    # Phase 4C — ICP profile admin CRUD (Postgres persistence, canonical RLS).
+    from app.modules.gtm.icp_admin_router import (
+        router as icp_admin_router,
+    )
+
+    app.include_router(
+        icp_admin_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

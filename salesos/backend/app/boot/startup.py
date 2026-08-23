@@ -661,6 +661,53 @@ async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> N
         logger.exception("  timeline subscriber init failed")
 
 
+async def _init_signal_detection_subscriber(
+    app: FastAPI, logger: StructuredLogger
+) -> None:
+    """Phase 4E — domain events → subscribed signal detections.
+
+    Wildcard fan-out with the same bounds as the timeline subscriber; only
+    companies holding an ACTIVE subscription to a matching signal produce
+    signal_events (marketplace contract)."""
+    try:
+        from sdk.events.base import DomainEvent
+        from runtime.event_runtime import SubscriberPriority
+
+        from app.modules.signal_marketplace.runtime_bridge import (
+            get_signal_detection_bridge,
+        )
+
+        event_runtime = getattr(app.state, "event_runtime", None)
+        if event_runtime is None:
+            logger.info("  signal detection subscriber: skipped (no event runtime)")
+            return
+
+        bridge = get_signal_detection_bridge()
+        app.state.signal_detection_bridge = bridge
+
+        async def _on_signal_event(event: DomainEvent) -> None:
+            try:
+                d = event.to_dict_legacy() if hasattr(event, "to_dict_legacy") else event
+                await bridge.on_domain_event(d)
+            except Exception:
+                logger.exception("signal detection bridge failed on %s", getattr(event, "event_type", "?"))
+
+        if hasattr(event_runtime, "register"):
+            event_runtime.register(
+                "*",
+                _on_signal_event,
+                priority=SubscriberPriority.LAST,
+                name="signal_detection_wildcard",
+                max_retries=1,
+                timeout_seconds=5.0,
+            )
+        else:
+            event_runtime.subscribe("*", _on_signal_event)
+        logger.info("  signal detection subscriber: ok")
+    except Exception:
+        logger.exception("  signal detection subscriber init failed")
+
+
 # ── Phase 5: Background tasks ────────────────────────────────────────────────
 
 
@@ -715,6 +762,22 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     app.state.logger = logger
     logger.info("SalesOS startup sequence initiated")
     logger.info("  db_session_factory: wired (async_session)")
+
+    # ── Phase 4D: signal_catalog seeding from platform Knowledge Packs ──
+    # Idempotent upsert; non-fatal by design (broken pack ≠ broken boot).
+    try:
+        from app.modules.signal_marketplace.seeding import (
+            seed_signal_catalog_from_packs,
+        )
+
+        seed_info = await seed_signal_catalog_from_packs()
+        logger.info(
+            "  signal_catalog seeding: %s (seeded=%s)",
+            "ok" if seed_info.get("ok") else "degraded",
+            seed_info.get("seeded", 0),
+        )
+    except Exception:
+        logger.exception("signal_catalog seeding skipped — continuing boot")
 
     # ── Phase 0: Bootstrap (sequential) ──────────────────────────────────
     try:
@@ -788,6 +851,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         return_exceptions=True,
     )
     await _init_timeline_subscriber(app, logger)
+    await _init_signal_detection_subscriber(app, logger)
     await _init_workflow_subscriber(app, logger)
     await _init_agent_task_trigger_subscriber(app, logger)
     logger.info(f"Phase 4 complete (+{time.monotonic() - p4_start:.1f}s)")

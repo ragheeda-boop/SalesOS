@@ -64,10 +64,11 @@ owner_engine = create_async_engine(
     settings.resolved_database_url,
     echo=settings.debug,
     pool_size=5,
-    max_overflow=2,
+    max_overflow=5,
     pool_pre_ping=True,
     pool_recycle=1800,
-    pool_timeout=30,
+    pool_timeout=10,
+    connect_args={"command_timeout": 10},
 )
 
 
