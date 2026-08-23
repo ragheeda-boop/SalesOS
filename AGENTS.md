@@ -1,7 +1,7 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-23 (Phase 4F Intelligence Data Layer gate — full unit triage 2761 pass / 0 NEW; ICP+RAG pilot seeds; PHASE4F evidence pack)  
+> **Last updated:** 2026-08-24 (OPS execution runbook — seeds, soak gate, live probes, Phase 4F local verification)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → [SalesOS Master Closure Sequence](docs/audit/ga-engineering-audit/SALESOS_MASTER_CLOSURE_SEQUENCE.md) (product-closure order, locked 2026-08-17) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
 
 ---
@@ -858,6 +858,27 @@ ICP unit tests wipe pif rows on cleanup — **re-seed after test runs** for live
 | Production GA | NO-GO | ga-engineering-audit | unchanged |
 
 **Evidence pack:** [`PHASE4F_EVIDENCE_PACK.md`](docs/audit/ga-engineering-audit/PHASE4F_EVIDENCE_PACK.md)
+
+---
+
+## 32. Session Summary (2026-08-24) — OPS Execution (Seeds + Soak + Probes)
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| ICP seed | **DONE** | `seed_icp_pif_demo.py` → `pif-icp-demo`, count=1 |
+| RAG seed | **DONE** | `seed_rag_pilot.py` → tenant A=5, tenant B=0 (RLS via app session) |
+| Wave 11 gate | **7/9 PASS** | `wave11-soak-gate.py` — alembic false-FAIL + `feature_ai_copilot=True` flag FAIL |
+| Scoped tests | **20/20 PASS** | rag_rls + signal bridge/api + research_signal_evidence |
+| Live probe A | **PASS** | runtime path: ICP `fit=LOW`, 5 criteria (not UNKNOWN-only) |
+| Live probe B | **PASS** | cross-tenant: T_B profiles=0, honest UNKNOWN |
+| Live probe C | **PASS** | SIG-CN-001 + `capacity_change` → 1 signal_event |
+| OPS checks | **PASS** | docker healthy, `/health` ok, `schema_version=h2i3j4k5l6m8`, alembic==head |
+| soak_complete_claim | **UNCHANGED false** | U3/U4 human signatures still required |
+| Runbook | **ADDED** | `docs/reports/OPS-EXECUTION-RUNBOOK-2026-08-24.md` |
+
+### New scripts
+- `salesos/backend/scripts/ops_live_probes.py` — HTTP probes (CSRF blocked on localhost HTTP)
+- `salesos/backend/scripts/ops_runtime_probes.py` — agent-layer A/B/C probes (authoritative local)
 
 ---
 
