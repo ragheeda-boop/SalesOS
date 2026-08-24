@@ -1,4 +1,4 @@
-FROM node:22-alpine AS build
+FROM node:25-alpine AS build
 WORKDIR /app
 # Browser-facing origin (host → published backend). Baked into NEXT_PUBLIC_* client refs.
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000
@@ -20,7 +20,7 @@ RUN npm install --no-audit --no-fund --workspaces --include-workspace-root
 COPY . .
 RUN NODE_ENV=production ./node_modules/.bin/next build
 
-FROM node:22-alpine AS production
+FROM node:25-alpine AS production
 
 RUN addgroup -S salesos && adduser -S salesos -G salesos
 
