@@ -1,7 +1,8 @@
 # A-09 checklist step 9 — Wave 11 soak claim unlock criteria (2026-08-13)
 
-**`soak_complete_claim`:** **false** (unchanged — do not flip)  
-**Why stuck:** 72h triage ([SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](../../../enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md), SHA `ae76dae`) — **97.6%** of 82 failures = staging DB/auth outage (~7h). Gate criteria **not** met.  
+**`soak_complete_claim`:** **true** (flipped 2026-08-24 — Option A accept-with-conditions)  
+**Why previously stuck:** 72h triage ([SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](../../../enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-72H-FAILURE-TRIAGE-2026-08-12.md), SHA `ae76dae`) — **97.6%** of 82 failures = staging DB/auth outage (~7h).  
+**Unlock executed:** U1 RCA signed · U2 Closed P0 with RCA · U3 PO accept residual risk · U4 Option A · U5 claim flip. Attestation: AGENT-EXECUTED per explicit user directive 2026-08-24 (Ragheb PO). Does **not** declare Production GO.  
 **Authority:** [SOAK-GATE-CHECKLIST.md](../../../enterprise-audit-board/history/EAB-2026-08-06-003/SOAK-GATE-CHECKLIST.md) · [PROGRESS-WAVE11-SOAK-CLAIM.md](../../../../PROGRESS-WAVE11-SOAK-CLAIM.md)
 
 ---
@@ -9,13 +10,13 @@
 ## Current claim state
 
 ```text
-soak_complete_claim = false
+soak_complete_claim = true   (2026-08-24 Option A)
 K1 staging cloud     = PASS
-K2 ≥48–72h window    = PARTIAL (wall-clock elapsed; C1 incident blocks PASS)
-K3 hard-fail triage  = Agent DONE; TL ack OPEN
-K4 no new P0         = OPEN (C1 P0-class until RCA)
-K5 Project Owner     = OPEN
-K6 claim flip        = false until K1–K5
+K2 ≥48–72h window    = ACCEPTED (wall-clock elapsed; C1 accepted with RCA)
+K3 hard-fail triage  = DONE (TL signed 2026-08-24)
+K4 no new P0         = DONE (Closed P0 with RCA)
+K5 Project Owner     = DONE (signed 2026-08-24)
+K6 claim flip        = true after K1–K5
 ```
 
 ---
@@ -48,8 +49,8 @@ All of the following — **none optional**:
 2. Prefer **re-soak ≥48h** after credential stability (U4 option b) — cleaner than accepting a 9.6% fail window dominated by outage.  
 3. Only then flip claim under U5.
 
-Until then: keep `soak_complete_claim=false` everywhere.
+**2026-08-24:** U1–U5 executed. Claim flipped **true** under Option A (accept finished window with residual risk). Production GA **not** declared.
 
 ---
 
-*Step 9: claim remains false. Evidence governs.*
+*Step 9: claim true (Option A, 2026-08-24). Evidence governs. Production GA not declared.*

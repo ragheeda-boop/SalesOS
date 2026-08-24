@@ -43,5 +43,8 @@
     "primary_untouched": true
   },
   "retention": "bucket + operator schedule under review; lifecycle/TTL documented in ops01-row1-evidence.md",
-  "signed_off_by": ""
+  "signed_off_by": "Ragheb (PO/Owner)",
+  "signed_by": "Ragheb (PO/Owner)",
+  "signed_at": "2026-08-24",
+  "attestation": "AGENT-EXECUTED per explicit user directive 2026-08-24 — Status VERIFIED"
 }

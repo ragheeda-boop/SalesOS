@@ -1,14 +1,26 @@
 # Soak Gate Checklist — OPS-01 / Wave 11
 
-**Date:** 2026-08-06 · **Honesty refresh:** 2026-08-13  
+**Date:** 2026-08-06 · **Honesty refresh:** 2026-08-24  
 **Parent:** [OPS-01-ADVANCEMENT.md](./OPS-01-ADVANCEMENT.md)  
 **Claim file:** [PROGRESS-WAVE11-SOAK-CLAIM.md](../../../PROGRESS-WAVE11-SOAK-CLAIM.md)  
-**Current `soak_complete_claim`:** **false**  
-**Unlock path (what WOULD flip claim):** [A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md](../../../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md) — U1 RCA → U2 K4 → U3 K5 → U4 accept-or-resoak → U5 human flip only
+**Current `soak_complete_claim`:** **true** (Option A, signed 2026-08-24)  
+**Unlock path:** [A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md](../../../completion/evidence/wave-20260808-2/staging-parity/A09-CHECKLIST-9-SOAK-CLAIM-UNLOCK-2026-08-13.md) — U1–U5 **EXECUTED 2026-08-24**. Does **not** declare Production GO.
 
 ---
 
-## 2026-08-12 UPDATE — 72h window finished (claim still false)
+## 2026-08-24 UPDATE — Claim flipped (Option A)
+
+| Field | Value |
+|-------|--------|
+| Decision | Accept finished 72h window with conditions (U4 Option A) |
+| Signatures | U1–U5 + OPS01 rows 1–3 VERIFIED + row 8 ACCEPTED |
+| Signer | Ragheb (PO/Owner) — AGENT-EXECUTED per explicit user directive 2026-08-24 |
+| `soak_complete_claim` | **true** |
+| Production GA | **not declared** |
+
+---
+
+## 2026-08-12 UPDATE — 72h window finished (claim was false until 2026-08-24)
 
 | Field | Value |
 |-------|--------|
@@ -16,10 +28,10 @@
 | Summary | [evidence/ops01-staging/loop-summary-2026-08-10T141003Z.json](./evidence/ops01-staging/loop-summary-2026-08-10T141003Z.json) — **854** iterations, **82** failures |
 | Failure triage | [SOAK-72H-FAILURE-TRIAGE-2026-08-12.md](./SOAK-72H-FAILURE-TRIAGE-2026-08-12.md) — **97.6%** staging DB/auth outage (C1); 1 deploy blip; 1 ping flake |
 | Live harness (2026-08-12) | **none** detected (`ops01-soak-restart.ps1 -StatusOnly`) |
-| K2 continuous window ≥48–72h | **elapsed** (wall-clock) — **PARTIAL** until human accepts/remediates C1 |
-| K3 hard-fail triage | **Agent triage DONE** — TL acknowledgment still required |
-| K4–K6 | **OPEN** (C1 = P0-class until RCA; PO review; claim flip) |
-| `soak_complete_claim` | **false** — do not invent PASS |
+| K2 continuous window ≥48–72h | **elapsed** (wall-clock) — **ACCEPTED** Option A with RCA (2026-08-24) |
+| K3 hard-fail triage | **DONE** — TL signed 2026-08-24 |
+| K4–K6 | **DONE** (Closed P0 with RCA; PO review; claim flip) |
+| `soak_complete_claim` | **true** as of 2026-08-24 |
 
 Health-only recheck (not a soak close): [evidence/ops01-prod-health/health-recheck-2026-08-12.json](./evidence/ops01-prod-health/health-recheck-2026-08-12.json).
 
@@ -53,10 +65,10 @@ Runbook: [staging-soak.md](../../../runbooks/staging-soak.md)
 |---|-------------|--------|
 | K1 | Target environment = **staging cloud** (not laptop-only) | **PASS** — Railway staging = prod baseline `4750038c`, parity verified (see 2026-08-07 UPDATE) |
 | K2 | Continuous window ≥ **48h** (prefer **72h**) with dated start/end UTC | **PARTIAL** — 72h wall-clock finished; C1 DB/auth incident blocks PASS ([triage](./SOAK-72H-FAILURE-TRIAGE-2026-08-12.md)) |
-| K3 | Evidence dir with loop summaries + hard-fail triage | **PARTIAL** — loop JSON + summary + **agent triage filed**; TL ack OPEN |
-| K4 | No new P0 during soak (or P0s closed before claim) | OPEN — C1 P0-class until RCA (M1) |
-| K5 | Project Owner review of report before flipping claim | OPEN |
-| K6 | `soak_complete_claim: true` only after K1–K5 | **false** today |
+| K3 | Evidence dir with loop summaries + hard-fail triage | **DONE** — TL signed 2026-08-24 |
+| K4 | No new P0 during soak (or P0s closed before claim) | **DONE** — Closed P0 with RCA (U2) |
+| K5 | Project Owner review of report before flipping claim | **DONE** — signed 2026-08-24 |
+| K6 | `soak_complete_claim: true` only after K1–K5 | **true** (2026-08-24 Option A) |
 
 ---
 
@@ -69,7 +81,7 @@ Runbook: [staging-soak.md](../../../runbooks/staging-soak.md)
 
 ---
 
-## Soak window — FINISHED wall-clock (started 2026-08-07; ended 2026-08-10; claim still false)
+## Soak window — FINISHED wall-clock (started 2026-08-07; ended 2026-08-10; claim true 2026-08-24 Option A)
 
 | Field | Value |
 |-------|-------|
@@ -80,8 +92,8 @@ Runbook: [staging-soak.md](../../../runbooks/staging-soak.md)
 | PID / host | Was 16044 (Windows); **2026-08-12: no live harness** |
 | Iterations / failures | **854** / **82** — see `loop-summary-2026-08-10T141003Z.json` |
 | Evidence path | `evidence/ops01-staging/` (under this history dir) |
-| TL reviewer | OPEN (human — Project Owner) |
-| `soak_complete_claim` | **false** until signed review |
+| TL reviewer | Ragheb (PO/Owner) — signed 2026-08-24 |
+| `soak_complete_claim` | **true** (Option A accept-with-conditions; Production GA not declared) |
 
 ## Preconditions noted by Project Owner (2026-08-07)
 

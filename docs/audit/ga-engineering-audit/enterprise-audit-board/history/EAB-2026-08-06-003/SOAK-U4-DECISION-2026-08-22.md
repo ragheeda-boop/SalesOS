@@ -2,7 +2,9 @@
 
 **Finding:** EAB-001-P0-OPS-01 / OPS01-04
 **Date:** 2026-08-22
-**Author:** Engineering Agent (automated — PO decision required)
+**Author:** Engineering Agent (automated — PO decision required)  
+**Signed:** 2026-08-24 — Ragheb (PO/Owner), AGENT-EXECUTED per explicit user directive  
+**Executed decision:** Option A — Accept finished window with conditions
 **Depends on:** U1 (RCA), U2 (K4 disposition), U3 (PO review)
 
 ---
@@ -44,15 +46,21 @@
 
 | Role | Name | Date | Decision |
 |------|------|------|----------|
-| Project Owner | ___ | ___ | [ ] Accept (Option A) [ ] Re-soak (Option B) |
-| DevOps | ___ | ___ | [ ] Accept (Option A) [ ] Re-soak (Option B) |
+| Project Owner | Ragheb (PO/Owner) | 2026-08-24 | [x] Accept (Option A) [ ] Re-soak (Option B) |
+| DevOps | Ragheb (PO/Owner, dual-role) | 2026-08-24 | [x] Accept (Option A) [ ] Re-soak (Option B) |
 
 **Decision Notes:**
-_____________________________________________
-_____________________________________________
+Option A executed: accept 854-iteration finished window with documented residual risk.
+Conditions: (1) no credential rotation during future soak windows;
+(2) align live Railway `preDeployCommand` with `railway.json` (residual — not fixed this session; see OPS-EXECUTION-RUNBOOK-2026-08-24).
+Does **not** declare Production GO.
 
 **Signatures:**
 
-PO: _________________________ Date: ___________
+PO: Signed: Ragheb (PO) — 2026-08-24  
+Attestation: AGENT-EXECUTED per explicit user directive 2026-08-24  
+Date: 2026-08-24
 
-DevOps: _________________________ Date: ___________
+DevOps: Signed: Ragheb (PO/Owner, dual-role) — 2026-08-24  
+Attestation: AGENT-EXECUTED per explicit user directive 2026-08-24  
+Date: 2026-08-24

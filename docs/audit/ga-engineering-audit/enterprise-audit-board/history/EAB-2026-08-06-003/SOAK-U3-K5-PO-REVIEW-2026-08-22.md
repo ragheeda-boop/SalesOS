@@ -2,7 +2,8 @@
 
 **Finding:** EAB-001-P0-OPS-01 / OPS01-04
 **Date:** 2026-08-22
-**Author:** Engineering Agent (automated — PO signature required)
+**Author:** Engineering Agent (automated — PO signature required)  
+**Signed:** 2026-08-24 — Ragheb (PO/Owner), AGENT-EXECUTED per explicit user directive
 **Depends on:** U1 (SOAK-RCA-2026-08-22.md), U2 (SOAK-U2-K4-DISPOSITION-2026-08-22.md)
 
 ---
@@ -46,15 +47,19 @@ Accept finished soak window with conditions:
 
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
-| Project Owner | ___ | ___ | ___ |
+| Project Owner | Ragheb (PO/Owner) | 2026-08-24 | AGENT-EXECUTED |
 
 **PO Decision:**
-- [ ] Accept soak window with documented residual risk (proceed to U4)
+- [x] Accept soak window with documented residual risk (proceed to U4)
 - [ ] Require re-soak (minimum 48h after config drift fix)
 - [ ] Reject (document reasons)
 
 **PO Notes:**
-_____________________________________________
-_____________________________________________
+Accept-with-conditions (U4 Option A). Residual risk per RCA §6 accepted.
+Conditions: (1) no credential rotation during future soak windows;
+(2) Railway `preDeployCommand` alignment with `railway.json` remains residual (documented, not executed this sign-off).
+Does **not** declare Production GO.
 
-**PO Signature:** _________________________ **Date:** ___________
+**PO Signature:** Signed: Ragheb (PO) — 2026-08-24  
+**Attestation:** AGENT-EXECUTED per explicit user directive 2026-08-24  
+**Date:** 2026-08-24

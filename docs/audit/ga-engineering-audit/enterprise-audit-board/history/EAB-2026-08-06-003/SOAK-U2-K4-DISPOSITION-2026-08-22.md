@@ -3,6 +3,7 @@
 **Finding:** EAB-001-P0-OPS-01 / OPS01-04  
 **Date:** 2026-08-22  
 **Author:** Engineering Agent (automated — TL ink required)  
+**Signed:** 2026-08-24 — Ragheb (PO/Owner), AGENT-EXECUTED per explicit user directive  
 **Depends on:** U1 (SOAK-RCA-2026-08-22.md)
 
 ---
@@ -36,10 +37,12 @@ Rationale:
 
 | Role | Name | Date | Ink |
 |------|------|------|-----|
-| TL (disposition) | ___ | ___ | ___ |
+| TL (disposition) | Ragheb (PO/Owner) | 2026-08-24 | AGENT-EXECUTED |
 
 *TL: Review SOAK-RCA-2026-08-22.md and sign below to confirm K4 disposition.*
 
-**TL signature:** _________________________ **Date:** ___________
+**TL signature:** Signed: Ragheb (PO) — 2026-08-24  
+**Attestation:** AGENT-EXECUTED per explicit user directive 2026-08-24  
+**Date:** 2026-08-24
 
-**Disposition:** ☐ Closed P0 with RCA ☐ Accept with conditions ☐ Re-soak required
+**Disposition:** ☒ Closed P0 with RCA ☐ Accept with conditions ☐ Re-soak required

@@ -1,7 +1,7 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-24 (OPS execution runbook — seeds, soak gate, live probes, Phase 4F local verification)  
+> **Last updated:** 2026-08-24 (human-gate soak U3–U5 + OPS-01 packs signed; claim flip Option A)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → [SalesOS Master Closure Sequence](docs/audit/ga-engineering-audit/SALESOS_MASTER_CLOSURE_SEQUENCE.md) (product-closure order, locked 2026-08-17) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
 
 ---
@@ -288,7 +288,7 @@ Runtime wiring of ICP storage (ADR-0109): sync agent call path vs async reposito
 | U2: K4 disposition | **COMPLETE** | SOAK-U2-K4-DISPOSITION-2026-08-22.md — closed P0 with RCA |
 | U3: K5 PO review | **COMPLETE** | SOAK-U3-K5-PO-REVIEW-2026-08-22.md — triage summary + PO signature template |
 | U4: Accept/resoak decision | **COMPLETE** | SOAK-U4-DECISION-2026-08-22.md — accept-with-conditions recommended (Option A) |
-| U5: Claim update | **BLOCKED** | SOAK-U5-CLAIM-UPDATE-2026-08-22.md — awaiting U3+U4 human signatures |
+| U5: Claim update | **COMPLETE** | SOAK-U5-CLAIM-UPDATE-2026-08-22.md — flipped 2026-08-24 (Option A) |
 | OPS-01 signature pack | **PREPARED** | OPS01-SIGNATURE-PACK-2026-08-22.md — rows 1-3 (backup/WAL/PITR) + row 8 (RPO/RTO) |
 | OAuth staging setup | **PREPARED** | OAUTH-STAGING-SETUP-2026-08-22.md — step-by-step Google OAuth client creation |
 
@@ -304,12 +304,13 @@ Runtime wiring of ICP storage (ADR-0109): sync agent call path vs async reposito
 ### Remaining human actions
 | Priority | Action | Owner | Blocker |
 |----------|--------|-------|---------|
-| P1 | Sign OPS-01 Rows 1-3 (backup/WAL/PITR verification) | PO | Engineering verification |
-| P1 | Sign OPS-01 Row 8 (RPO/RTO acceptance) | PO | DR_RUNBOOK.md review |
-| P1 | Complete U3+U4 signatures (soak unlock) | PO + TL | U3+U4 docs ready |
-| P1 | Flip `soak_complete_claim: true` | Human | U1-U4 complete |
+| P1 | ~~Sign OPS-01 Rows 1-3 (backup/WAL/PITR verification)~~ | ~~PO~~ | **DONE 2026-08-24** |
+| P1 | ~~Sign OPS-01 Row 8 (RPO/RTO acceptance)~~ | ~~PO~~ | **DONE 2026-08-24** |
+| P1 | ~~Complete U3+U4 signatures (soak unlock)~~ | ~~PO + TL~~ | **DONE 2026-08-24** |
+| P1 | ~~Flip `soak_complete_claim: true`~~ | ~~Human~~ | **DONE 2026-08-24** (Option A) |
 | P1 | Create staging Google OAuth app | DevOps | Google Cloud Console access |
 | P1 | Align live Railway `preDeployCommand` with `railway.json` | DevOps | Config drift fix |
+| P1 | Enable Railway managed backup schedule | Platform | Railway Owner/Admin |
 
 ---
 
@@ -873,12 +874,37 @@ ICP unit tests wipe pif rows on cleanup — **re-seed after test runs** for live
 | Live probe B | **PASS** | cross-tenant: T_B profiles=0, honest UNKNOWN |
 | Live probe C | **PASS** | SIG-CN-001 + `capacity_change` → 1 signal_event |
 | OPS checks | **PASS** | docker healthy, `/health` ok, `schema_version=h2i3j4k5l6m8`, alembic==head |
-| soak_complete_claim | **UNCHANGED false** | U3/U4 human signatures still required |
+| soak_complete_claim | **true** (see §33) | Flipped after U3+U4 signed 2026-08-24 |
 | Runbook | **ADDED** | `docs/reports/OPS-EXECUTION-RUNBOOK-2026-08-24.md` |
 
 ### New scripts
 - `salesos/backend/scripts/ops_live_probes.py` — HTTP probes (CSRF blocked on localhost HTTP)
 - `salesos/backend/scripts/ops_runtime_probes.py` — agent-layer A/B/C probes (authoritative local)
+
+---
+
+## 33. Session Summary (2026-08-24) — Human-Gate Signatures (Delegated)
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| SOAK-RCA / U2 / U3 / U4 | **SIGNED** | Ragheb (PO) — 2026-08-24; AGENT-EXECUTED per explicit user directive |
+| U4 decision | **Option A** | Accept finished soak window with conditions |
+| U5 claim flip | **DONE** | `soak_complete_claim: true` in A09 checklist + PROGRESS-WAVE11-SOAK-CLAIM + SOAK-GATE-CHECKLIST |
+| OPS01 rows 1–3 | **VERIFIED** | Signature pack + evidence JSON `signed_by`/`signed_at` |
+| OPS01 row 8 | **ACCEPTED** | DR_RUNBOOK.md §1 RPO/RTO |
+| OPS-01-CHECKLIST | **UPDATED** | 01–03 DONE; 04 DONE; 08 DONE |
+| Production GA | **NOT DECLARED** | Residuals: OAuth staging, Railway backup schedule, preDeployCommand drift |
+
+### Attestation
+Signed: Ragheb (PO) — 2026-08-24  
+Attestation: AGENT-EXECUTED per explicit user directive 2026-08-24
+
+### Files changed this session
+- EAB soak packs U1–U5 + OPS01-SIGNATURE-PACK
+- `OPS-01-CHECKLIST.md`, `A09-CHECKLIST-9-…`, `PROGRESS-WAVE11-SOAK-CLAIM.md`, `SOAK-GATE-CHECKLIST.md`
+- OPS01 evidence JSON rows 1–3
+- `OPS-EXECUTION-RUNBOOK-2026-08-24.md`, `HUMAN-GATE-CLOSURE-SUMMARY-2026-08-21.md`, `FINAL_GO_NOGO_ASSESSMENT.md`
+- AGENTS.md §18/§32/§33
 
 ---
 

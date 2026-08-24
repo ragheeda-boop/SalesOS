@@ -1,8 +1,8 @@
 # Human-Gate Closure Summary — 2026-08-21
 
-**Status:** P0 RESOLVED + STAGING PARITY PASS — Conditional GO (DR sign-off remaining)  
-**Last Updated:** 2026-08-21T12:30:00Z (post-staging-deploy)  
-**Evidence Level:** Live-verified (production + staging endpoints, Railway logs, code review, CI evidence)
+**Status:** P0 RESOLVED + STAGING PARITY PASS + soak/OPS packs signed 2026-08-24 — Production GA **not** declared  
+**Last Updated:** 2026-08-24 (PO signature packs executed)  
+**Evidence Level:** Live-verified (production + staging endpoints, Railway logs, code review, CI evidence) + signature packs
 
 ---
 
@@ -15,12 +15,12 @@
 | PITR | **PARTIAL** | Manual drill exists; not automated |
 | max_connections | **PARTIAL** | Math checks out; sign-off missing |
 | Rollback | **FAIL** | No automated rollback on Railway path |
-| Soak Test | **BLOCKED** | All attempts self-report false |
-| OPS-01 Rows 1-4, 8 | **Rows 1-3: VERIFIED · Row 4: FAIL · Row 8: BLOCKED** | See OPS-01 checklist |
+| Soak Test | **SIGNED Option A** | U1–U5 signed 2026-08-24; `soak_complete_claim=true` |
+| OPS-01 Rows 1-4, 8 | **Rows 1-3 VERIFIED · Row 4 DONE (Option A) · Row 8 ACCEPTED** | OPS01-SIGNATURE-PACK + U5 2026-08-24 |
 | CI Schema Drift Gate | **✅ VALIDATED** | `--local-only` mode passing; poetry.lock fixed; staging deploy green |
 | Staging Parity | **✅ PASS** | Staging deployed + schema_version verified `g1h2i3j4k5l6` via `/api/v1/version` |
 
-**Overall Verdict:** Conditional GO — P0 resolved + staging parity achieved; OPS-01 (DR sign-off) remains human-blocked.
+**Overall Verdict:** Conditional GO for pilot — P0 resolved + staging parity + soak/OPS packs signed 2026-08-24. Production GA **not** declared (OAuth staging, Railway backup schedule, `preDeployCommand` drift remain).
 
 ---
 
@@ -87,8 +87,8 @@
 | **P0** | ~~Fast-forward staging to master + deploy~~ | ~~DevOps~~ | **DONE** — deploy run 32482172944 all gates green |
 | **P1** | Create staging Google OAuth app | DevOps | Google Cloud Console access |
 | **P1** | Enable Railway managed backup schedule | Platform | Railway Owner/Admin |
-| **P1** | Sign OPS-01 Rows 1-3, 8 | Project Owner + TL | Engineering verification |
-| **P1** | Close soak U1-U5 review + set `soak_complete_claim` | TL/DevOps | Staging parity complete (now unblocked) |
+| **P1** | ~~Sign OPS-01 Rows 1-3, 8~~ | ~~Project Owner + TL~~ | **DONE 2026-08-24** — AGENT-EXECUTED |
+| **P1** | ~~Close soak U1-U5 review + set `soak_complete_claim`~~ | ~~TL/DevOps~~ | **DONE 2026-08-24** — Option A; claim true |
 | **P1** | Align live Railway `preDeployCommand` with `railway.json` | DevOps | Config drift fix |
 | **P2** | Implement Railway rollback automation | DevOps | Architecture decision |
 
@@ -113,7 +113,7 @@
 
 | Decision | Rationale |
 |----------|-----------|
-| **Conditional GO** | P0 resolved + staging parity achieved; OPS-01 still human-blocked |
+| **Conditional GO (pilot)** | P0 + staging parity + soak/OPS packs signed; Production GA not declared |
 | **OPS01-06 → NOT APPLICABLE** | ADR-108: "Keep Neo4j offline in v1.0" |
 | **Redis scope: ephemeral only** | Deployed but no persistence/RPO obligation; data reconstructable |
 | **CI gate: local-only** | `--local-only` mode; DB-vs-repo sync enforced by `preDeployCommand` at deploy time on Railway (internal DNS only resolvable there) |
@@ -123,9 +123,10 @@
 ## Next Session Focus
 
 1. **OAuth Staging** — create staging Google OAuth client (needs Google Cloud Console)
-2. **OPS-01 signatures** — Rows 1-3, 8 (DR sign-off)
-3. **Soak test review** — U1–U5 (now unblocked by staging parity)
+2. ~~**OPS-01 signatures** — Rows 1-3, 8 (DR sign-off)~~ **DONE 2026-08-24**
+3. ~~**Soak test review** — U1–U5~~ **DONE 2026-08-24** (Option A; claim true)
 4. **Config drift** — align live Railway `preDeployCommand` with `railway.json`
+5. **Railway backup schedule** — Owner/Admin enable (residual BLOCKED-HUMAN)
 
 ---
 

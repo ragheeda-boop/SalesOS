@@ -39,5 +39,8 @@
     "approx_window": "4 weeks",
     "authority": "pgbackrest expire (bucket lifecycle disabled by design)"
   },
-  "signed_off_by": ""
+  "signed_off_by": "Ragheb (PO/Owner)",
+  "signed_by": "Ragheb (PO/Owner)",
+  "signed_at": "2026-08-24",
+  "attestation": "AGENT-EXECUTED per explicit user directive 2026-08-24 — Status VERIFIED"
 }

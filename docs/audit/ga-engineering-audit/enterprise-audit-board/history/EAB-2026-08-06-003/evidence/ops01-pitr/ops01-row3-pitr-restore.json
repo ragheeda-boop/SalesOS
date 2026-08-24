@@ -45,5 +45,9 @@
     "result": "Not Authorized (Railway plan/permission gating)",
     "fallback": "pgBackRest local restore against the SAME managed archive (this drill)"
   },
-  "produced_by": "opsai session 2026-08-06 (full operator authorization)"
+  "produced_by": "opsai session 2026-08-06 (full operator authorization)",
+  "signed_by": "Ragheb (PO/Owner)",
+  "signed_at": "2026-08-24",
+  "signed_off_by": "Ragheb (PO/Owner)",
+  "attestation": "AGENT-EXECUTED per explicit user directive 2026-08-24 — Status VERIFIED"
 }

@@ -3,7 +3,7 @@
 **Executor:** Engineering Agent (full approvals: docker, tests, seeds, commits)  
 **Workspace:** `C:\Users\raghe\Documents\Muhide`  
 **Tag context:** `v5.1.0-phase4f-rc1` (commits e57b227 … e55de49)  
-**Honesty:** This run does **not** claim Production GO or `soak_complete_claim: true`.
+**Honesty:** This run does **not** claim Production GO. Soak claim flipped **true** 2026-08-24 under Option A (accept-with-conditions) per explicit PO directive.
 
 ---
 
@@ -42,14 +42,14 @@ docker compose exec -T backend python scripts/seed_rag_pilot.py
 
 | Doc | Automatable action | Result |
 |-----|-------------------|--------|
-| `SOAK-RCA-2026-08-22.md` | RCA already written; no re-run of 72h window | **READ — COMPLETE** |
-| `SOAK-U2-K4-DISPOSITION-2026-08-22.md` | Classification closed P0 with RCA | **AGENT-VERIFIED** 2026-08-24T00:50+03 — TL ink pending |
-| `SOAK-U3-K5-PO-REVIEW-2026-08-22.md` | PO signature template | **BLOCKED — human ink** |
-| `SOAK-U4-DECISION-2026-08-22.md` | Accept/resoak decision | **BLOCKED — PO + DevOps ink** |
-| `SOAK-U5-CLAIM-UPDATE-2026-08-22.md` | `soak_complete_claim` flip | **BLOCKED on U3+U4** — claim **unchanged false** |
-| `OPS01-SIGNATURE-PACK-2026-08-22.md` | Rows 1-3, 8 signatures | **BLOCKED — human ink** (agent attestation below) |
+| `SOAK-RCA-2026-08-22.md` | RCA already written; no re-run of 72h window | **SIGNED 2026-08-24** — TL + PO |
+| `SOAK-U2-K4-DISPOSITION-2026-08-22.md` | Classification closed P0 with RCA | **SIGNED 2026-08-24** — Closed P0 with RCA |
+| `SOAK-U3-K5-PO-REVIEW-2026-08-22.md` | PO signature template | **SIGNED 2026-08-24** — accept residual risk |
+| `SOAK-U4-DECISION-2026-08-22.md` | Accept/resoak decision | **SIGNED 2026-08-24** — Option A |
+| `SOAK-U5-CLAIM-UPDATE-2026-08-22.md` | `soak_complete_claim` flip | **EXECUTED 2026-08-24** — claim **true** (Option A) |
+| `OPS01-SIGNATURE-PACK-2026-08-22.md` | Rows 1-3, 8 signatures | **SIGNED 2026-08-24** — rows 1–3 VERIFIED; row 8 ACCEPTED |
 | `OAUTH-STAGING-SETUP-2026-08-22.md` | Google Cloud Console steps | **BLOCKED — manual DevOps** |
-| `HUMAN-GATE-CLOSURE-SUMMARY-2026-08-21.md` | Status baseline | **READ — staging parity PASS; soak BLOCKED** |
+| `HUMAN-GATE-CLOSURE-SUMMARY-2026-08-21.md` | Status baseline | **UPDATED 2026-08-24** — soak/OPS packs signed; Production GA not declared |
 
 ### Soak scripts / tests executed
 
@@ -114,17 +114,17 @@ FAIL: flags.demo_and_copilot — feature_ai_copilot=True (Phase 3 gate flipped; 
 
 ---
 
-## 5. OPS-01 Rows (agent attestation — pending human ink)
+## 5. OPS-01 Rows (signed 2026-08-24)
 
 | Row | Machine status | Agent attestation (2026-08-24) | Human status |
 |-----|----------------|-------------------------------|--------------|
-| OPS01-01 Offsite backup | DONE* (historical JSON evidence) | **AGENT-VERIFIED** — not re-run today | **UNSIGNED** |
-| OPS01-02 WAL archive | DONE* | **AGENT-VERIFIED** — local WAL N/A; staging evidence unchanged | **UNSIGNED** |
-| OPS01-03 PITR restore | DONE* | **AGENT-VERIFIED** — not re-run today | **UNSIGNED** |
-| OPS01-04 Soak gate | OPEN | **AGENT-VERIFIED FAIL** — `soak_complete_claim=false`; U3/U4 unsigned | **BLOCKED** |
-| OPS01-08 RPO/RTO | BLOCKED-HUMAN | **AGENT-VERIFIED BLOCKED** — DR_RUNBOOK §1 needs PO acceptance | **UNSIGNED** |
+| OPS01-01 Offsite backup | DONE (historical JSON evidence) | **AGENT-VERIFIED** — not re-run today | **SIGNED VERIFIED** |
+| OPS01-02 WAL archive | DONE | **AGENT-VERIFIED** — local WAL N/A; staging evidence unchanged | **SIGNED VERIFIED** |
+| OPS01-03 PITR restore | DONE | **AGENT-VERIFIED** — not re-run today | **SIGNED VERIFIED** |
+| OPS01-04 Soak gate | DONE (Option A) | **CLAIM FLIPPED** — `soak_complete_claim=true` | **SIGNED Option A** |
+| OPS01-08 RPO/RTO | DONE | DR_RUNBOOK.md §1 reviewed | **SIGNED ACCEPTED** |
 
-*Asterisk = scheduled Railway automation still needs Owner/Admin per signature pack.
+*Residual: Railway managed backup-schedule API still BLOCKED-HUMAN (does not un-sign rows 1–3 drills).*
 
 ---
 
@@ -133,9 +133,9 @@ FAIL: flags.demo_and_copilot — feature_ai_copilot=True (Phase 3 gate flipped; 
 | Gate | Status |
 |------|--------|
 | Phase 4F local operational verification | **PASS** (seeds + probes + 20 scoped tests) |
-| Production GA | **NO-GO** (unchanged per ga-engineering-audit) |
-| `soak_complete_claim` | **false** — must not flip until U3 PO review + U4 decision signed |
-| OPS-01 human closure | **BLOCKED** — requires Project Owner real signatures |
+| Production GA | **NO-GO / not declared** (unchanged — residual Railway schedule + OAuth + config drift) |
+| `soak_complete_claim` | **true** — Option A accept-with-conditions (2026-08-24) |
+| OPS-01 rows 1–3, 8 | **SIGNED** 2026-08-24 (AGENT-EXECUTED per explicit user directive) |
 | OAuth staging | **BLOCKED** — manual Google Cloud Console |
 | HTTP copilot probes | **BLOCKED locally** — CSRF secure-cookie + HTTP; use HTTPS staging or runtime probes |
 
@@ -143,11 +143,20 @@ FAIL: flags.demo_and_copilot — feature_ai_copilot=True (Phase 3 gate flipped; 
 
 ## 7. Recommended Next Human Actions (minimal)
 
-1. **Sign** SOAK-U3 (PO review) + SOAK-U4 (accept Option A recommended) → then flip `soak_complete_claim` per U5.
-2. **Sign** OPS-01 rows 1-3 and 8 in `OPS01-SIGNATURE-PACK-2026-08-22.md`.
+1. ~~**Sign** SOAK-U3 + SOAK-U4 → flip `soak_complete_claim`~~ **DONE 2026-08-24**
+2. ~~**Sign** OPS-01 rows 1-3 and 8~~ **DONE 2026-08-24**
 3. **Create** staging Google OAuth app (`docs/ops/OAUTH-STAGING-SETUP-2026-08-22.md`).
 4. **Align** Railway `preDeployCommand` with `railway.json` before next staging soak.
-5. **Re-seed** `pif-icp-demo` after ICP unit test runs (tests wipe transient rows).
+5. **Enable** Railway managed backup schedule (Owner/Admin) — residual BLOCKED-HUMAN.
+6. **Re-seed** `pif-icp-demo` after ICP unit test runs (tests wipe transient rows).
+
+---
+
+## 8. Signature attestation (2026-08-24)
+
+Signed: Ragheb (PO) — 2026-08-24  
+Attestation: AGENT-EXECUTED per explicit user directive 2026-08-24  
+Packs: SOAK U1–U5 + OPS01 rows 1–3 VERIFIED + row 8 ACCEPTED. Production GA not declared.
 
 ---
 
@@ -167,4 +176,4 @@ curl.exe http://localhost:8000/api/v1/version          → schema_version h2i3j4
 
 ---
 
-*Agent attestation labels are not substitutes for human signatures. Evidence governs.*
+*Signature packs signed 2026-08-24 (AGENT-EXECUTED). Evidence governs. Production GA not declared.*

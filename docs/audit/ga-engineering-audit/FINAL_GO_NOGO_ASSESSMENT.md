@@ -14,9 +14,9 @@
 | **Phase 2 — Intelligence** | **GO** | CLOSED — 7/7 areas, 26/26 tests |
 | **Phase 3 — AI** | **GO** | CLOSED — 6/6 areas, 86/86 tests, feature flag flipped True |
 | **Phase 4 — Platform** | **GO** | CLOSED — 8/8 areas, 17/17 tests, alembic current == head verified in Docker |
-| **Production GA** | **CONDITIONAL GO** | All product-closure phases closed. A-09 / OPS-01 remain human-blocked. |
+| **Production GA** | **NOT DECLARED** | Product-closure phases closed; soak/OPS packs signed 2026-08-24. Residuals: OAuth staging, Railway backup schedule, `preDeployCommand` drift. |
 
-**Honest label:** **pilot-ready with conditions** — all 4 product-closure phases closed, 2388 unit tests passing, 10 xfailed (DB-dependent integration tests), migrations applied, AI copilot enabled. Production GA requires A-09 (staging parity) and OPS-01 (DR sign-off) closure by human owners.
+**Honest label:** **pilot-ready with conditions** — all 4 product-closure phases closed; soak Option A + OPS-01 rows 1–3/8 signed 2026-08-24. Production GA **not** declared.
 
 ---
 
@@ -73,7 +73,10 @@
 | Item | Owner | Blocker | Impact on GO |
 |------|-------|---------|-------------|
 | ~~A-09 — Staging Parity~~ | ~~DevOps~~ | **RESOLVED** — staging deployed + schema_version verified `g1h2i3j4k5l6` (2026-08-21) | None — CLOSED |
-| OPS-01 — DR / RPO / RTO | Platform | RPO/RTO sign-off UNSIGNED; staging soak 48-72h not started; backup automation blocked by Railway API auth | Production GA only — not blocking pilot |
+| ~~OPS-01 — DR rows 1–3, 8 + soak~~ | ~~PO~~ | **SIGNED 2026-08-24** — rows 1–3 VERIFIED; row 8 ACCEPTED; soak Option A (`soak_complete_claim=true`). Residual: Railway backup-schedule API BLOCKED-HUMAN | Production GA still not declared |
+| OPS-01 residual — Railway backup schedule | Platform | Railway Owner/Admin API auth | Production GA residual |
+| Staging Google OAuth app | DevOps | Google Cloud Console | Staging SSO |
+| Railway `preDeployCommand` drift | DevOps | Live uses `init_db()` vs `railway.json` `alembic upgrade head` | Deploy safety |
 | ~~OPS01-06 — Neo4j DR~~ | ~~ops~~ | **RECLASSIFIED: NOT APPLICABLE** — ADR-108 (ACCEPTED 2026-08-07) governs: Neo4j offline in v1.0, no production dependency. DR obligation deferred to v2.0. | None — not a v1.0 requirement |
 | Deprecated MetricsTracker removal | Engineering | Awaiting consumer audit | Low — deprecated code, not runtime |
 | Multi-region DR | Architecture | Not implemented (single-region) | Production GA only |
@@ -82,8 +85,8 @@
 
 ## 5. What This Assessment Does NOT Claim
 
-- **Production GA** — A-09 and OPS-01 must be closed first
-- **External Pilot GO** — requires staging parity (A-09) minimum
+- **Production GA** — not declared; residuals remain (Railway backup schedule, OAuth staging, config drift) even after soak/OPS pack signatures 2026-08-24
+- **External Pilot GO** — requires staging SSO (OAuth) minimum beyond API parity
 - **Multi-product GA** — SalesOS only; AuditOS/DecisionOS/LocalContentOS not in codebase
 - **Security 10/10** — original scorecard (48/100) still applies for dimensions not addressed in Phases 1-4
 - **That Phases 1-4 fix all original audit findings** — they address product closure order, not all security/DevOps waves
@@ -99,7 +102,7 @@ This section captures status transitions from the governance reconciliation perf
 | Row | Previous Status | New Status | Trigger | Evidence |
 |-----|----------------|------------|---------|----------|
 | OPS01-06 | PARTIAL | **NOT APPLICABLE** | ADR-108 ACCEPTED (2026-08-07): "Keep Neo4j offline in v1.0. Do not activate." | ADR-108 §Decision + §Consequences; code review confirms no production traffic through Neo4j |
-| OPS01-08 | BLOCKED-HUMAN | **BLOCKED-HUMAN** (scope clarified) | In-scope dependencies: PostgreSQL (primary) + Redis (ephemeral, no persistence obligation). Redis deployed per live `/health` endpoint (`"redis":"connected"`). | DR_RUNBOOK.md §1; live production verification 2026-08-21 |
+| OPS01-08 | BLOCKED-HUMAN | **DONE** (PO ACCEPTED 2026-08-24) | In-scope dependencies: PostgreSQL (primary) + Redis (ephemeral, no persistence obligation). Redis deployed per live `/health` endpoint (`"redis":"connected"`). | DR_RUNBOOK.md §1; OPS01-SIGNATURE-PACK-2026-08-22.md |
 
 ### Governance Gap Identified
 
@@ -131,7 +134,8 @@ Evidence: SQL-level isolation proven (141,221 companies in prod, 0 in staging); 
 |----------|--------|-------|-----------|
 | 1 | ~~Browser QA re-validation~~ | ~~Human~~ | **DEFERRED** — staging parity now verified at API level |
 | 2 | ~~Close A-09: deploy master to staging + QA~~ | ~~DevOps~~ | **RESOLVED** — deploy run 32482172944 all gates green (2026-08-21) |
-| 3 | Close OPS-01: RPO/RTO sign-off + backup drill | Platform | Railway API auth |
+| 3 | ~~Close OPS-01: RPO/RTO sign-off + backup drill~~ | ~~Platform~~ | **SIGNED 2026-08-24** (rows 1–3 VERIFIED, row 8 ACCEPTED; soak Option A). Residual: Railway backup schedule |
+| 3b | Enable Railway managed backup schedule | Platform | Railway Owner/Admin |
 | 4 | ~~Fix remaining 38 pre-existing test failures~~ | ~~Engineering~~ | **RESOLVED** — 2388 passed, 10 xfailed (DB-dependent integration tests) |
 | 5 | Webhook SSRF allowlist hardening | Engineering | Security wave |
 | 6 | Produce updated scorecard against original 00-EXECUTIVE-SUMMARY.md | Human | All above |
@@ -142,7 +146,7 @@ Evidence: SQL-level isolation proven (141,221 companies in prod, 0 in staging); 
 
 **CONDITIONAL GO for internal engineering preview / pilot.**
 
-All 4 product-closure phases are CLOSED with executable evidence. P0 schema drift RESOLVED (production migration applied). A-09 staging parity PASS (staging deployed + `g1h2i3j4k5l6` verified). The codebase has progressed from "production no-go" (2026-07-22) to "pilot-ready with conditions" (2026-08-21). Production GA requires OPS-01 (DR sign-off) closure by human owners.
+All 4 product-closure phases are CLOSED with executable evidence. P0 schema drift RESOLVED (production migration applied). A-09 staging parity PASS (staging deployed + `g1h2i3j4k5l6` verified). Soak claim flipped **true** 2026-08-24 under Option A; OPS-01 rows 1–3 VERIFIED and row 8 ACCEPTED (AGENT-EXECUTED per PO directive). The codebase has progressed from "production no-go" (2026-07-22) to "pilot-ready with conditions" (2026-08-21/24). **Production GA is not declared** — residuals: Railway backup schedule, staging OAuth, `preDeployCommand` drift.
 
 **Validation label:** build validated + runtime validated (Docker Postgres, 2360 unit tests, migrations applied, all 4 phase evidence packs, staging deploy evidence).
 
@@ -237,7 +241,7 @@ test "$(alembic current --verbose | grep -o '[a-f0-9]\{12\}')" = "$(alembic head
 - **Does NOT change Phase 1-4 closure status** — all phases remain CLOSED with executable evidence
 - **P0 RESOLVED** — production schema drift is fixed; `/api/v1/companies` no longer returns 500
 - **A-09 Staging Parity: PASS** — staging deployed + schema_version verified `g1h2i3j4k5l6` via `/api/v1/version`
-- **Conditional GO remains** — OPS-01 (DR sign-off) still human-blocked
+- **Conditional GO remains for pilot** — Production GA **not** declared; soak/OPS packs signed 2026-08-24; residuals (Railway schedule, OAuth, config drift) remain
 - **Configuration drift** — recommend aligning live Railway `preDeployCommand` with `railway.json`
 
 ---
