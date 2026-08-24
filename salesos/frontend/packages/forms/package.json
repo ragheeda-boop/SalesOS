@@ -5,12 +5,12 @@
   "main": "./src/index.tsx",
   "types": "./src/index.tsx",
   "dependencies": {
-    "react": "^19.0",
-    "react-hook-form": "^7.54",
+    "react": "^19.2",
+    "react-hook-form": "^7.86",
     "@hookform/resolvers": "^3.9",
     "zod": "^3.23"
   },
   "peerDependencies": {
-    "react": "^19.0"
+    "react": "^19.2"
   }
 }
