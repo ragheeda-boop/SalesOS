@@ -1,0 +1,459 @@
+[
+  {
+    "ma_id": "MA-0269507",
+    "name": "التوعية المرورية بمنطقة عسير",
+    "cr_raw": "1901; 1200723000",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "1901"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0272236",
+    "name": "الاحسان",
+    "cr_raw": "7137; 1100530300",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "7137"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268046",
+    "name": "جمعية قرن ظبي الخيرية للخدمات الاجتماعية",
+    "cr_raw": "30; 4003",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "30",
+      "4003"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0094929",
+    "name": "صلة وعطاء",
+    "cr_raw": "1200727500; 2286",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "2286"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0272039",
+    "name": "العربية السعودية للثقافة والفنون",
+    "cr_raw": "5533; 4708",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "5533",
+      "4708"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0272304",
+    "name": "نبع الخير",
+    "cr_raw": "7048819507; 5555",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "5555"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268102",
+    "name": "جمعية مراكز الأحياءبمنطقة المدينة المنورة",
+    "cr_raw": "1200727000; 89",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "89"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268107",
+    "name": "جمعية البر الخيرية بعيون الجواء",
+    "cr_raw": "94; 1100009400",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "94"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0272610",
+    "name": "جمعية البر الخيرية بالمجمعة",
+    "cr_raw": "95; 1000626700; 1000580200",
+    "valid_cr_count": 2,
+    "rejected_tokens": [
+      "95"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0269342",
+    "name": "جمعية التنمية الأسرية بالبدائع",
+    "cr_raw": "1000604600; 1328",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "1328"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0269343",
+    "name": "جمعية الخدمات الإنسانية بالرميضة",
+    "cr_raw": "3449; 1338",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "3449",
+      "1338"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0269790",
+    "name": "مجيد لتحفيظ القرآن الكريم بمحافظة طريف",
+    "cr_raw": "1000664400; 3244",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "3244"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0270571",
+    "name": "جمعية الدعوة والإرشاد وتوعية الجاليات في مركز عريعره",
+    "cr_raw": "3382; 3445; 3607",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "3382",
+      "3445",
+      "3607"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0271423",
+    "name": "الحماية الأسرية بالقصيم",
+    "cr_raw": "1000693300; 2314",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "2314"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268651",
+    "name": "الجمعية الخيرية لتأهيل الحاسبات الآلية (ارتقاء)",
+    "cr_raw": "660; 1000705600",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "660"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0269337",
+    "name": "جمعية دعم الخيريه بالهرانية",
+    "cr_raw": "7066; 1005",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "7066",
+      "1005"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0270029",
+    "name": "مؤسسة صندوق عائلة عبد العزيز عبدالله العبيدي",
+    "cr_raw": "1100015300; 10131",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "10131"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0270165",
+    "name": "صندوق عائلة سليمان بن جربوع الجربوع",
+    "cr_raw": "38; 1200004800",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "38"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0270353",
+    "name": "حلول التدوير لإعادة إستخدام الملابس",
+    "cr_raw": "2177; 1000676600",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "2177"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268510",
+    "name": "جمعية البركة الخيرية للخدمات الاجتماعية",
+    "cr_raw": "1000669600; 511",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "511"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0259345",
+    "name": "خدمات الأسرة بالربيعية",
+    "cr_raw": "2051063905; 5348",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "5348"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0279803",
+    "name": "مكتب وليد بن خالد الدريهم محاسبون ومراجعون قانونيون",
+    "cr_raw": "1206; 7026807060",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "1206"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268316",
+    "name": "جمعية البر الأهلية بالشبيكية",
+    "cr_raw": "310; 4263",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "310",
+      "4263"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0268489",
+    "name": "جمعية عرقه الخيريه",
+    "cr_raw": "489; 1000572500",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "489"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268596",
+    "name": "جمعية المودة للتنمية الآسرية",
+    "cr_raw": "601; 5330",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "601",
+      "5330"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0263479",
+    "name": "جمعية الأشخاص ذوي الإعاقة بالأحساء",
+    "cr_raw": "7041460564; 621",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "621"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0268270",
+    "name": "الجمعية السعودية للثلاسيميا والأنيميا المنجلية",
+    "cr_raw": "262; 843",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "262",
+      "843"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0270882",
+    "name": "جمعية الدعوة والإرشاد وتوعية الجاليات بمحافظة المويه",
+    "cr_raw": "3624; 1000592500",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "3624"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0271700",
+    "name": "العطير",
+    "cr_raw": "1100501900; 5556; 5194; 5404",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "5556",
+      "5194",
+      "5404"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0271788",
+    "name": "عيد الاضحى المبارك",
+    "cr_raw": "12000; 12001",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "12000",
+      "12001"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0269412",
+    "name": "جمعية التنمية الأهلية بمربه",
+    "cr_raw": "1000656200; 2320; 5022; 1621; 4051; 5252; 5597",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "2320",
+      "5022",
+      "1621",
+      "4051",
+      "5252",
+      "5597"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0270791",
+    "name": "فلاليح القصيم",
+    "cr_raw": "2230; 1000568900",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "2230"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0272359",
+    "name": "اليد الواحده",
+    "cr_raw": "7157; 1200773700",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "7157"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0279593",
+    "name": "مكتب نوره مساعد الدريس محاسبون ومراجعون قانونيون",
+    "cr_raw": "1218; 7050371686",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "1218"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0269017",
+    "name": "جمعية بادر الأجهزة الطبية",
+    "cr_raw": "1111; 7028654585",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "1111"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0269354",
+    "name": "وعي البيئية",
+    "cr_raw": "1495; 1000622600",
+    "valid_cr_count": 1,
+    "rejected_tokens": [
+      "1495"
+    ],
+    "proxy_disposition": "CONFIRMED_ARTIFACT",
+    "proxy_note": "Short token treated as artifact because a valid long CR exists."
+  },
+  {
+    "ma_id": "MA-0269545",
+    "name": "جمعية تنميتنا الأهلية",
+    "cr_raw": "4379; 5090; 1967; 2261; 4224",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "4379",
+      "5090",
+      "1967",
+      "2261",
+      "4224"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0270322",
+    "name": "مساكن",
+    "cr_raw": "2193; 4425",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "2193",
+      "4425"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  },
+  {
+    "ma_id": "MA-0270336",
+    "name": "مؤسسة تجربة خدمات المركز",
+    "cr_raw": "2194; 5178; 9999999; 8888888; 7777777; 1063; 10211",
+    "valid_cr_count": 0,
+    "rejected_tokens": [
+      "2194",
+      "5178",
+      "9999999",
+      "8888888",
+      "7777777",
+      "1063",
+      "10211"
+    ],
+    "proxy_disposition": "UNRESOLVED_ESCALATE",
+    "proxy_note": "No valid long CR present; requires escalation."
+  }
+]
