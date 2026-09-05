@@ -24,9 +24,9 @@ export function SignalsFeedView({ signals }: SignalsFeedViewProps) {
 
   return (
     <div role="region" aria-label="الإشارات" className="space-y-1/20 dark:rounded-lg dark:p-1">
-      {signals.map((s) => (
+      {signals.map((s, i) => (
         <div
-          key={s.id}
+          key={`${s.id}-${i}`}
           className="flex items-start gap-2.5 rounded-lg px-3 py-2 transition hover:bg-[var(--bg-tertiary)]"
         >
           <Activity className="mt-1 h-4 w-4 shrink-0 text-[var(--text-muted)]" />

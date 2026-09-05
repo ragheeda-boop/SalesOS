@@ -16,6 +16,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const loginMutation = useLogin();
 
+  const getNextPath = () => {
+    const fallback = "/v3";
+    if (typeof window === "undefined") return fallback;
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
+    return next;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -25,42 +33,45 @@ export default function LoginPage() {
       return;
     }
 
-    loginMutation.mutate(
-      { email, password },
-      {
-        onSuccess: () => router.push("/dashboard"),
-        onError: (err: unknown) => {
-          if (err && typeof err === "object" && "response" in err) {
-            const axiosErr = err as {
-              response?: {
-                status?: number;
-                data?: { detail?: string | { msg?: string }[] };
-              };
-              message?: string;
-            };
-            const detail = axiosErr.response?.data?.detail;
-            if (typeof detail === "string" && detail) {
-              setError(detail);
-            } else if (Array.isArray(detail) && detail[0]?.msg) {
-              setError(
-                detail
-                  .map((d) => d.msg)
-                  .filter(Boolean)
-                  .join(";") || t("auth.login_failed")
-              );
-            } else if (!axiosErr.response) {
-              setError(
-                `Cannot reach API (${axiosErr.message || "network error"}). Check NEXT_PUBLIC_API_URL.`
-              );
-            } else {
-              setError(t("auth.login_failed"));
-            }
-          } else {
-            setError(t("error.unexpected"));
-          }
-        },
+    try {
+      await loginMutation.mutateAsync({ email, password });
+      const nextPath = getNextPath();
+      router.replace(nextPath);
+      window.setTimeout(() => {
+        if (window.location.pathname === "/login") {
+          window.location.assign(nextPath);
+        }
+      }, 500);
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosErr = err as {
+          response?: {
+            status?: number;
+            data?: { detail?: string | { msg?: string }[] };
+          };
+          message?: string;
+        };
+        const detail = axiosErr.response?.data?.detail;
+        if (typeof detail === "string" && detail) {
+          setError(detail);
+        } else if (Array.isArray(detail) && detail[0]?.msg) {
+          setError(
+            detail
+              .map((d) => d.msg)
+              .filter(Boolean)
+              .join(";") || t("auth.login_failed")
+          );
+        } else if (!axiosErr.response) {
+          setError(
+            `Cannot reach API (${axiosErr.message || "network error"}). Check NEXT_PUBLIC_API_URL.`
+          );
+        } else {
+          setError(t("auth.login_failed"));
+        }
+      } else {
+        setError(t("error.unexpected"));
       }
-    );
+    }
   };
 
   return (
