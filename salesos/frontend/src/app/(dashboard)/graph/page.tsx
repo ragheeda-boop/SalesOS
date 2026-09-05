@@ -6,7 +6,7 @@ import api from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { Spinner, Tooltip } from "@salesos/ui";
-import { Search, X, ZoomIn, ZoomOut, Maximize2, Info } from "lucide-react";
+import { Search, X, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 
 interface GraphNode {
   id: string;
@@ -287,185 +287,6 @@ function transformSubgraph(data: unknown): {
   return { nodes, edges };
 }
 
-function getDemoData(): { nodes: GraphNode[]; edges: GraphEdge[] } {
-  const nodes: GraphNode[] = [
-    {
-      id: "c1",
-      label: "أرامكو السعودية",
-      type: "company",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 28,
-    },
-    {
-      id: "c2",
-      label: "سابك",
-      type: "company",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 28,
-    },
-    {
-      id: "c3",
-      label: "STC",
-      type: "company",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 28,
-    },
-    {
-      id: "c4",
-      label: "الراجحي",
-      type: "company",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 28,
-    },
-    {
-      id: "c5",
-      label: "دار الأركان",
-      type: "company",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 28,
-    },
-    {
-      id: "ct1",
-      label: "محمد العلي",
-      type: "contact",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 20,
-    },
-    {
-      id: "ct2",
-      label: "فهد الخالدي",
-      type: "contact",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 20,
-    },
-    {
-      id: "ct3",
-      label: "سارة المطيري",
-      type: "contact",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 20,
-    },
-    {
-      id: "ct4",
-      label: "عبدالله الشمري",
-      type: "contact",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 20,
-    },
-    {
-      id: "e1",
-      label: "أحمد السبيعي",
-      type: "employee",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 20,
-    },
-    {
-      id: "e2",
-      label: "نورة الحربي",
-      type: "employee",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 20,
-    },
-    {
-      id: "o1",
-      label: "صفقة التوريد 2024",
-      type: "opportunity",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 22,
-    },
-    {
-      id: "o2",
-      label: "مشروع البنية التحتية",
-      type: "opportunity",
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      fx: null,
-      fy: null,
-      radius: 22,
-    },
-  ];
-  const edges: GraphEdge[] = [
-    { source: "c1", target: "ct1", label: "has_contact" },
-    { source: "c1", target: "ct2", label: "has_contact" },
-    { source: "c2", target: "ct3", label: "has_contact" },
-    { source: "c3", target: "ct4", label: "has_contact" },
-    { source: "c4", target: "ct1", label: "has_contact" },
-    { source: "e1", target: "c1", label: "assigned_to" },
-    { source: "e1", target: "c2", label: "assigned_to" },
-    { source: "e2", target: "c3", label: "assigned_to" },
-    { source: "e2", target: "c5", label: "assigned_to" },
-    { source: "o1", target: "c1", label: "belongs_to" },
-    { source: "o2", target: "c3", label: "belongs_to" },
-    { source: "o1", target: "e1", label: "owned_by" },
-    { source: "o2", target: "e2", label: "owned_by" },
-    { source: "c1", target: "c2", label: "competitor" },
-    { source: "c3", target: "c5", label: "partner" },
-  ];
-  return { nodes, edges };
-}
-
 export default function KnowledgeGraphPage() {
   const { t } = useTranslation();
   const { tenantId } = useTenant();
@@ -565,18 +386,6 @@ export default function KnowledgeGraphPage() {
     }
     setLoading(false);
   }, [query, tenantId]);
-
-  const handleLoadDemo = useCallback(() => {
-    const demo = getDemoData();
-    setGraphNodes(demo.nodes);
-    setGraphEdges(demo.edges);
-    setSearchFilter("");
-    setSelectedNode(null);
-    setHighlightedIds(new Set());
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    setHasSearched(true);
-  }, []);
 
   const handleExpandNode = useCallback(
     async (nodeId: string) => {
@@ -1082,13 +891,9 @@ export default function KnowledgeGraphPage() {
                     height="50"
                     style={{ transform: "translate(-150px, -25px)" }}
                   >
-                    <button
-                      onClick={handleLoadDemo}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] rounded-lg text-sm font-medium hover:bg-[var(--muhide-orange)]/20 transition-colors border border-[var(--muhide-orange)]/30"
-                    >
-                      <Info className="h-4 w-4" />
-                      {t("graph.expand")}
-                    </button>
+                    <p className="text-center text-[var(--text-tertiary)] text-sm">
+                      No graph data available. Connect data sources to visualize relationships.
+                    </p>
                   </foreignObject>
                 )}
               </g>
