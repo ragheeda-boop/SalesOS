@@ -12,7 +12,6 @@ const SIDEBAR_KEY = "salesos_v3_sidebar_collapsed";
 /**
  * SalesOS v3 workspace shell at /v3.
  * AI is popup-only — never a permanent layout region.
- * Not Production GO.
  */
 export default function V3Layout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);

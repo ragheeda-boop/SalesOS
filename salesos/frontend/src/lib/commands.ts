@@ -275,6 +275,100 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.v3.quotes",
+    label: "V3 · Quotes",
+    description: "View and manage quotes",
+    category: "تنقل",
+    shortcut: "G Q",
+    handler: () => router.push("/v3/quotes"),
+  });
+
+  registerCommand({
+    id: "go.v3.contracts",
+    label: "V3 · Contracts",
+    description: "View and manage contracts",
+    category: "تنقل",
+    handler: () => router.push("/v3/contracts"),
+  });
+
+  registerCommand({
+    id: "go.v3.approvals",
+    label: "V3 · Approvals",
+    description: "View and decide on approval requests",
+    category: "تنقل",
+    handler: () => router.push("/v3/approvals"),
+  });
+
+  registerCommand({
+    id: "go.v3.data",
+    label: "V3 · Data",
+    description: "Master data management",
+    category: "تنقل",
+    handler: () => router.push("/v3/data"),
+  });
+
+  registerCommand({
+    id: "go.v3.data.companies",
+    label: "V3 · Global Companies",
+    description: "296,746 canonical company records",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/companies"),
+  });
+
+  registerCommand({
+    id: "go.v3.data.people",
+    label: "V3 · Global People",
+    description: "1,124 canonical person records",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/people"),
+  });
+
+  registerCommand({
+    id: "go.v3.data.er",
+    label: "V3 · Entity Resolution",
+    description: "Golden records, conflicts, quality scores",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/er"),
+  });
+
+  registerCommand({
+    id: "go.v3.data.review-queue",
+    label: "V3 · Review Queue",
+    description: "P3 fuzzy pairs, suspicious CRs, triage",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/review-queue"),
+  });
+
+  registerCommand({
+    id: "go.data.companies",
+    label: "شركات البيانات",
+    description: "شركات البيانات الرئيسية",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/companies"),
+  });
+  registerCommand({
+    id: "go.data.people",
+    label: "أشخاص البيانات",
+    description: "أشخاص البيانات الرئيسية",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/people"),
+  });
+  registerCommand({
+    id: "go.data.imports",
+    label: "الاستيرادات",
+    description: "ملفات المصدر",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/imports"),
+  });
+  registerCommand({
+    id: "go.data.er",
+    label: "حل الكيانات",
+    description: "مطابقة ودمج الكيانات",
+    category: "تنقل",
+    handler: () => router.push("/v3/data/er"),
+  });
+
+  registerCommand({
     id: "go.settings",
     label: "الإعدادات",
     description: "الانتقال إلى الإعدادات",

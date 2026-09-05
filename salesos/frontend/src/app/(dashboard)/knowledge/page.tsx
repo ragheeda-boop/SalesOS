@@ -180,157 +180,6 @@ function transformGraph(data: unknown): { nodes: KNode[]; edges: KEdge[] } {
   return { nodes, edges };
 }
 
-function getDemoData(): { nodes: KNode[]; edges: KEdge[] } {
-  return {
-    nodes: [
-      {
-        id: "c1",
-        label: "أرامكو السعودية",
-        type: "company",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 28,
-      },
-      {
-        id: "c2",
-        label: "سابك",
-        type: "company",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 28,
-      },
-      {
-        id: "c3",
-        label: "STC",
-        type: "company",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 28,
-      },
-      {
-        id: "c4",
-        label: "الراجحي",
-        type: "company",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 28,
-      },
-      {
-        id: "c5",
-        label: "دار الأركان",
-        type: "company",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 28,
-      },
-      {
-        id: "p1",
-        label: "محمد العلي",
-        type: "person",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 20,
-      },
-      {
-        id: "p2",
-        label: "فهد الخالدي",
-        type: "person",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 20,
-      },
-      {
-        id: "p3",
-        label: "سارة المطيري",
-        type: "person",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 20,
-      },
-      {
-        id: "pr1",
-        label: "نظام CRM",
-        type: "product",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 22,
-      },
-      {
-        id: "pr2",
-        label: "منصة التحليلات",
-        type: "product",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 22,
-      },
-      {
-        id: "ev1",
-        label: "مؤتمر التقنية 2026",
-        type: "event",
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        fx: null,
-        fy: null,
-        radius: 18,
-      },
-    ],
-    edges: [
-      { source: "c1", target: "p1", label: "WORKS_AT" },
-      { source: "c1", target: "p2", label: "WORKS_AT" },
-      { source: "c2", target: "p3", label: "WORKS_AT" },
-      { source: "c3", target: "p1", label: "WORKS_AT" },
-      { source: "c1", target: "c2", label: "COMPETES_WITH" },
-      { source: "c3", target: "c5", label: "PARTNER" },
-      { source: "c4", target: "pr1", label: "BUYS_FROM" },
-      { source: "c5", target: "pr2", label: "BUYS_FROM" },
-      { source: "c1", target: "ev1", label: "ATTENDED" },
-      { source: "p1", target: "ev1", label: "ATTENDED" },
-    ],
-  };
-}
-
 export default function KnowledgeGraphPage() {
   const { tenantId } = useTenant();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -435,19 +284,6 @@ export default function KnowledgeGraphPage() {
     }
     setLoading(false);
   }, [query, tenantId]);
-
-  const handleLoadDemo = useCallback(() => {
-    const demo = getDemoData();
-    setNodes(demo.nodes);
-    setEdges(demo.edges);
-    setSearchFilter("");
-    setEntityFilter([]);
-    setSelected(null);
-    setHighlighted(new Set());
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    setHasSearched(true);
-  }, []);
 
   const handleExpandNode = useCallback(
     async (nodeId: string) => {
@@ -884,10 +720,7 @@ export default function KnowledgeGraphPage() {
                 description={
                   hasSearched
                     ? "Try a different search query"
-                    : "Search for entities to visualize relationships, or load demo data."
-                }
-                action={
-                  !hasSearched ? { label: "Load Demo Data", onClick: handleLoadDemo } : undefined
+                    : "No knowledge graph data available. Connect data sources to visualize relationships."
                 }
               />
             )}
