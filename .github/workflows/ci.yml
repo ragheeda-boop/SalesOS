@@ -216,7 +216,7 @@ jobs:
             --fail-under 80
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: backend-coverage
           path: |
@@ -240,7 +240,7 @@ jobs:
         run: cd salesos/frontend && npm run test -- --coverage --forceExit
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: frontend-coverage
           path: salesos/frontend/coverage/
@@ -334,7 +334,7 @@ jobs:
         # (run 30759755215 / tip 3a25c76) — infra flake, not test failure.
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: integration-coverage-${{ github.run_id }}
           path: salesos/backend/integration-coverage.xml
@@ -367,7 +367,7 @@ jobs:
           pip-audit -r /tmp/requirements.txt --desc on --ignore-vuln PYSEC-2026-1325 --strict
       - name: Upload pip-audit report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pip-audit-report
           path: salesos/backend/pip-audit-report.json
@@ -522,7 +522,7 @@ jobs:
           Write-Host "::notice::Architecture compliance $($report.overall_compliance)% meets target"
       - name: Upload compliance report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: arch-compliance-report
           path: salesos/reports/arch-compliance-report.json
@@ -800,14 +800,14 @@ jobs:
             e2e/smoke-auth-ui.spec.ts
       - name: Upload backend log on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-backend-log
           path: /tmp/salesos-e2e-backend.log
           retention-days: 7
       - name: Upload E2E results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-results
           path: |
