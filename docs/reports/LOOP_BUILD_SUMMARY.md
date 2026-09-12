@@ -156,7 +156,7 @@ Not pushed. Named-path only. Never `git add -A`.
 | 26 | `3bcb1ccb` fix: keep leftover dashboard and leftover 404 off leftover golden-path hubs | `e93a757a` |
 | 27 | `4729abfa` fix: keep leftover dashboard widgets off leftover /companies/{id} | `32a4cec4` |
 | 28 | `6c6e44e1` fix: keep leftover onboarding hops off leftover /opportunities and /dashboard | `edef4441` |
-| 29 | *(this draft + Tick 29 state — hash after commit)* | — |
+| 29 | `82462ec6` docs: draft loop build summary after leftover dashboard honesty scan | *(hash-record follow-up)* |
 
 Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in loop state.
 
