@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 1 **COMPLETE**  
+**Tick:** 3 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -41,14 +41,15 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | ID | Item | Status | Why next |
 |----|------|--------|----------|
 | L3 | **Create company on `/v3/companies`** | **DONE** (tick 1) | Thin `CreateCompanyForm` → `POST /api/v1/companies`. Empty state stays in v3 (no `/companies` leak). Success navigates to `/v3/companies/{id}`. Honest 403/API errors. No mocks. |
-| L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies empty/create. |
-| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Next same-class holes: create contact (`/v3/contacts` still leaks to `/contacts`); create deal on company detail / CRM. |
+| L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies + contacts empty/create. |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Next same-class hole: **create deal** on `/v3/companies/[id]` / CRM. Confirm real POST before UI. Residual: `/v3/contacts/[id]` still has GhostButtonLink to `/contacts` (not the list empty CTA). |
+| L8 | **Create contact on `/v3/contacts`** | **DONE** (tick 3) | Thin `CreateContactForm` → `POST /api/v1/contacts` (`name` + `company_id` required). Empty state stays in v3 (no `/contacts` leak). Success navigates to `/v3/contacts/{id}`. Honest 403/API errors. Company picker via `GET /api/v1/companies`. No mocks. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** (tick 1) — **9/9 PASS** via isolated temp Jest (host `salesos/frontend/node_modules` still half-written; `npm install` ENOTEMPTY). No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** (tick 3) — **15/15 PASS** via isolated temp Jest (host `node_modules` still incomplete; no `npm install`). Tick 0–1 regression 9 + contacts 6. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -81,7 +82,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Decision FE STUB | Matrix | Do not sell |
 | Nav prune to ~12 MVP items | B1 §8 | After golden-path create |
 | `/v3/shell` remove from CmdK | B1 P1 | Later |
-| GhostButtonLink “Open legacy …” on other v3 pages | B1 | Not all `/companies`/`/dashboard`; L3 replaces the companies empty-state leak |
+| GhostButtonLink “Open legacy …” on other v3 pages | B1 | L3 closed `/companies` empty leak; tick 3 closed `/contacts` list empty leak. Residual: `/v3/contacts/[id]` still links `/contacts`. |
 
 ---
 
@@ -118,6 +119,36 @@ npm install ts-jest@29.2.6          # same ENOTEMPTY
 npm install jest ts-jest typescript jest-environment-jsdom   # %TEMP%\salesos-jest-runner
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
   # 9/9 PASS (employee + commands + companies __tests__)
+```
+
+No `git add -A`. No push.
+
+---
+
+## 6. Tick 2 note
+
+Tick 2 was assigned L6 / host Jest (`npm install`). This tick did **not** fight host `npm install` and reused `%TEMP%\salesos-jest-runner`. No Tick 2 code files claimed here.
+
+---
+
+## 7. Tick 3 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L8**: in-v3 create contact + honest empty (no legacy `/contacts` CTA). Form posts `createContact` (`name`, `company_id`, optional email/phone/position). No company → stay in v3 (`/v3/companies`). Success → `/v3/contacts/{id}` if id exists. |
+| Files | `salesos/frontend/src/app/v3/contacts/page.tsx`; `salesos/frontend/src/app/v3/contacts/create-contact-form.tsx` (new); `salesos/frontend/src/app/v3/contacts/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/contacts/__tests__/create-contact-form.test.tsx` (new); this file |
+| Tests | **6/6** contacts + **15/15** tick 0–3 scoped **PASS** (`%TEMP%\salesos-jest-runner`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(set after commit)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Next slice (tick 4) | **Create deal** on `/v3/companies/[id]` (or CRM) if `POST` opportunity API is real. Confirm contract first. Stay in v3. No mocks. Residual optional: remove `/contacts` GhostButtonLink on `/v3/contacts/[id]`. |
+
+### Tick 3 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
+  # contacts __tests__: 6/6 PASS
+  # employee + commands + companies + contacts: 15/15 PASS
 ```
 
 No `git add -A`. No push.

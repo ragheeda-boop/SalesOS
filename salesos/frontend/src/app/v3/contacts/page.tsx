@@ -16,6 +16,7 @@ import {
   PermissionState,
 } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
+import { CreateContactForm } from "./create-contact-form";
 
 function contactDisplayName(c: Contact): string {
   return c.name?.trim() || c.name_ar?.trim() || "Untitled";
@@ -24,6 +25,7 @@ function contactDisplayName(c: Contact): string {
 export default function V3ContactsPage() {
   const { ready, hasToken } = useAccessToken();
   const [q, setQ] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
   const debouncedQ = useDebounce(q, 400);
 
   const params = useMemo(
@@ -49,11 +51,20 @@ export default function V3ContactsPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Contacts"
-        description="Customer contacts — Design Program v3. Legacy /contacts is unchanged."
+        description="Tenant contacts via GET /api/v1/contacts. Create stays in v3 — POST /api/v1/contacts."
         actions={
           <div className="flex flex-wrap gap-2">
             <GhostButtonLink href="/v3/companies">Companies</GhostButtonLink>
-            <GhostButtonLink href="/contacts">Open legacy contacts</GhostButtonLink>
+            {hasToken ? (
+              <button
+                type="button"
+                onClick={() => setShowCreate((open) => !open)}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                data-testid="contacts-new-toggle"
+              >
+                {showCreate ? "Hide form" : "New contact"}
+              </button>
+            ) : null}
           </div>
         }
       />
@@ -64,6 +75,7 @@ export default function V3ContactsPage() {
         <PermissionState nextPath="/v3/contacts" />
       ) : (
         <div className="space-y-4">
+          {showCreate ? <CreateContactForm onCancel={() => setShowCreate(false)} /> : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <label className="block min-w-0 flex-1">
               <span className="sr-only">Search contacts</span>
@@ -95,7 +107,7 @@ export default function V3ContactsPage() {
               description={
                 debouncedQ
                   ? "Try a different search, or clear the filter."
-                  : "No contacts in this tenant yet. Add them from legacy contacts or a company record."
+                  : "No contacts in this tenant yet. Create one here — nothing is invented and the list stays empty until POST /api/v1/contacts succeeds."
               }
               action={
                 debouncedQ ? (
@@ -107,7 +119,14 @@ export default function V3ContactsPage() {
                     Clear search
                   </button>
                 ) : (
-                  <GhostButtonLink href="/contacts">Open legacy contacts</GhostButtonLink>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreate(true)}
+                    className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                    data-testid="contacts-empty-create"
+                  >
+                    Create contact
+                  </button>
                 )
               }
             />
