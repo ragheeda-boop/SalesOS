@@ -10,7 +10,7 @@ import { useActivityIntelligence } from "@/lib/hooks/useActivityIntelligence";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { PageHeader } from "../_components/page-header";
 import { ActivityFeed } from "../_components/activity-feed";
-import { GhostButtonLink, LoadingState, PermissionState } from "../_components/states";
+import { LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 
 const ACTION_FILTERS = [
@@ -77,7 +77,6 @@ export default function V3ActivitiesPage() {
             >
               Ask AI
             </button>
-            <GhostButtonLink href="/activities">Legacy activities</GhostButtonLink>
           </div>
         }
       />

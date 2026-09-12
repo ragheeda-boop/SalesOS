@@ -373,27 +373,18 @@ function OpportunitiesTab({
         >
           Browse all deals →
         </Link>
-        <span className="text-[var(--text-muted)]"> · </span>
-        <Link
-          href={`/companies/${companyId}`}
-          className="text-[var(--text-secondary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-        >
-          Legacy company
-        </Link>
       </p>
     </div>
   );
 }
 
 function TasksTab({
-  companyId,
   items,
   isLoading,
   isError,
   error,
   onRetry,
 }: {
-  companyId: string;
   items: TaskResponse[];
   isLoading: boolean;
   isError: boolean;
@@ -478,13 +469,6 @@ function TasksTab({
           className="text-[var(--text-secondary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
         >
           Browse all tasks →
-        </Link>
-        <span className="text-[var(--text-muted)]"> · </span>
-        <Link
-          href={`/companies/${companyId}`}
-          className="text-[var(--text-secondary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-        >
-          Legacy company
         </Link>
       </p>
     </div>
@@ -620,7 +604,6 @@ export default function V3Company360Page() {
       case "tasks":
         return (
           <TasksTab
-            companyId={company.id}
             items={companyTasks}
             isLoading={tasksLoading}
             isError={tasksError}
@@ -717,7 +700,6 @@ export default function V3Company360Page() {
                   Ask AI
                 </button>
                 <GhostButtonLink href="/v3/companies">Back to list</GhostButtonLink>
-                <GhostButtonLink href={`/companies/${company.id}`}>Legacy company</GhostButtonLink>
                 <GhostButtonLink href={`/v3/companies/${company.id}/360`} primary>
                   Company 360
                 </GhostButtonLink>

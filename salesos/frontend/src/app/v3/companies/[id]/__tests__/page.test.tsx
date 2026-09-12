@@ -32,11 +32,12 @@ jest.mock("../intelligence-tab", () => ({
   IntelligenceTab: () => <div>Intelligence stub</div>,
 }));
 
-import { getCompany, listOpportunities } from "@/lib/api";
+import { getCompany, listOpportunities, listTasks } from "@/lib/api";
 import V3Company360Page from "../page";
 
 const mockedCompany = getCompany as jest.MockedFunction<typeof getCompany>;
 const mockedOpps = listOpportunities as jest.MockedFunction<typeof listOpportunities>;
+const mockedTasks = listTasks as jest.MockedFunction<typeof listTasks>;
 
 function renderPage() {
   const qc = new QueryClient({
@@ -70,6 +71,15 @@ describe("V3 company detail opportunities create hole", () => {
       contacts: [],
     });
     mockedOpps.mockResolvedValue({ items: [], total: 0 });
+    mockedTasks.mockResolvedValue([]);
+  });
+
+  it("does not leak a loaded company to legacy /companies/{id}", async () => {
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Test Co" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /legacy company/i })).not.toBeInTheDocument();
+    expect(document.querySelector('a[href="/companies/co-1"]')).toBeNull();
+    expect(document.querySelector('a[href="/v3/companies"]')).not.toBeNull();
   });
 
   it("does not leak empty opportunities to legacy pipeline or CRM-only CTA", async () => {
@@ -92,5 +102,47 @@ describe("V3 company detail opportunities create hole", () => {
       expect(screen.getByTestId("create-deal-submit")).toBeInTheDocument();
     });
     expect(screen.getByTestId("create-deal-company-locked")).toBeInTheDocument();
+  });
+
+  it("keeps populated opportunities and tasks tabs off legacy /companies/{id}", async () => {
+    mockedOpps.mockResolvedValue({
+      items: [
+        {
+          id: "opp-1",
+          name: "Deal A",
+          stage: "qualification",
+          value: 1000,
+          company_id: "co-1",
+          status: "open",
+        },
+      ],
+      total: 1,
+    });
+    mockedTasks.mockResolvedValue([
+      {
+        id: "task-1",
+        title: "Follow up",
+        priority: "medium",
+        source: "manual",
+        company_id: "co-1",
+        completed: false,
+      },
+    ]);
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Test Co" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Opportunities" }));
+    expect(await screen.findByRole("link", { name: "Deal A" })).toHaveAttribute(
+      "href",
+      "/v3/crm/opp-1"
+    );
+    expect(screen.queryByRole("link", { name: /legacy company/i })).not.toBeInTheDocument();
+    expect(document.querySelector('a[href="/companies/co-1"]')).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: "Tasks" }));
+    expect(await screen.findByRole("link", { name: "Follow up" })).toHaveAttribute(
+      "href",
+      "/v3/tasks/task-1"
+    );
+    expect(screen.queryByRole("link", { name: /legacy company/i })).not.toBeInTheDocument();
+    expect(document.querySelector('a[href="/companies/co-1"]')).toBeNull();
   });
 });
