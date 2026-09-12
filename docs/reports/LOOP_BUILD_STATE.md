@@ -49,7 +49,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** (tick 3) — **15/15 PASS** via isolated temp Jest (host `node_modules` still incomplete; no `npm install`). Tick 0–1 regression 9 + contacts 6. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 3 isolated runner **15/15 PASS**. Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean** (hung / ENOTEMPTY); surgical tarball repair + Jest-only `next/navigation` stub. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -125,9 +125,33 @@ No `git add -A`. No push.
 
 ---
 
-## 6. Tick 2 note
+## 6. Tick 2 log
 
-Tick 2 was assigned L6 / host Jest (`npm install`). This tick did **not** fight host `npm install` and reused `%TEMP%\salesos-jest-runner`. No Tick 2 code files claimed here.
+| Field | Value |
+|-------|-------|
+| Done | L6 host Jest for Tick 0 files only. **L3 was still OPEN** at tick start → did **not** start create-contact (Tick 3 closed L8 later). |
+| Files | This file only (plus uncommitted host `node_modules` repairs — **not** committed). Did not touch `v3/companies` or Tick 1 L3 files. |
+| Tests | Host Jest **4/4 PASS**: `src/lib/__tests__/commands.test.tsx` (3) + `src/app/v3/employee/__tests__/page.test.tsx` (1). Full `npm test` / `npm run build` **not run**. Browser **not validated**. No pytest (no BE). |
+| Commit | LOOP_BUILD_STATE notes only. **Not pushed.** `node_modules` **not** committed. |
+| Validation | Those two files **build validated** on host Jest after surgical repair. Host toolchain **not** a clean `npm install`. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Next slice | **Create deal** on `/v3/companies/[id]` / CRM if opportunity POST is real (L3 + L8 already closed by ticks 1 and 3). Stay in v3. No mocks. |
+
+### Tick 2 commands
+
+```text
+# L3 OPEN at start → stayed on L6. Did not implement create-contact.
+npm install --no-audit --no-fund   # salesos/frontend — hung (~10 min, no children/network); killed
+# Prior leftover npm pid 15464 also hung; killed so extracts could proceed.
+# Surgical npm pack + tar extract (not committed): resolve, ejs, @babel/types,
+# @babel/traverse, @babel/core, typescript@5.7.3, cssstyle, jsdom@20.0.3,
+# pure-rand, aria-query, @babel/runtime. Host next had no package.json.
+# Uncommitted Jest-only stub: node_modules/next/{package.json,navigation.js}
+node node_modules/jest/bin/jest.js --config jest.config.js --no-coverage --forceExit \
+  --testPathPattern="src/lib/__tests__/commands.test.tsx|src/app/v3/employee/__tests__/page.test.tsx"
+  # 2 suites / 4 tests PASS
+```
+
+No `git add -A`. No push. No Phase 7. Flag unchanged.
 
 ---
 
