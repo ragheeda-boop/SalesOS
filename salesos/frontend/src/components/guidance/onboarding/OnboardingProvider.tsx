@@ -19,7 +19,7 @@ const DEFAULT_ITEMS: OnboardingItem[] = [
   {
     id: "pipeline",
     label: "استورد خط الأنابيب",
-    href: "/opportunities",
+    href: "/v3/crm",
     tourId: "pipeline",
   },
   {
@@ -30,7 +30,7 @@ const DEFAULT_ITEMS: OnboardingItem[] = [
   },
   { id: "team", label: "ادعُ أعضاء الفريق", href: "/admin" },
   { id: "integrations", label: "اضبط التكاملات", href: "/settings" },
-  { id: "nba", label: "شغّل أول تحليل NBA", href: "/dashboard", tourId: "nba" },
+  { id: "nba", label: "شغّل أول تحليل NBA", href: "/v3", tourId: "nba" },
 ];
 
 interface OnboardingContextValue {

@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 27 **COMPLETE**  
+**Tick:** 28 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -42,7 +42,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 |----|------|--------|----------|
 | L3 | **Create company on `/v3/companies`** | **DONE** (tick 1) | Thin `CreateCompanyForm` → `POST /api/v1/companies`. Empty state stays in v3 (no `/companies` leak). Success navigates to `/v3/companies/{id}`. Honest 403/API errors. No mocks. |
 | L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies + contacts empty/create. |
-| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal / task / default pipeline / quote / proposal / review / contract closed (L3/L8/L9/L11/L12/L13/L14/L15/L16). Contact 360 `/contacts` leak closed (tick 5). Company 360 `/companies/{id}` leak closed (tick 7). `/v3/activities` `/activities` leak closed (tick 7). Residual Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]` closed (tick 8). Residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`) closed (tick 10). Tick 11 scan: **zero** golden-path GhostButtonLink/href to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard`. Commercial create cluster closed. `/v3/approvals` remains HITL — leave. Tick 26 leftover-layout page scan: leftover dashboard QuickActions + leftover 404 closed (L28). Tick 27 leftover dashboard widget `window.location` `/companies/{id}` closed (L29). |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal / task / default pipeline / quote / proposal / review / contract closed (L3/L8/L9/L11/L12/L13/L14/L15/L16). Contact 360 `/contacts` leak closed (tick 5). Company 360 `/companies/{id}` leak closed (tick 7). `/v3/activities` `/activities` leak closed (tick 7). Residual Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]` closed (tick 8). Residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`) closed (tick 10). Tick 11 scan: **zero** golden-path GhostButtonLink/href to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard`. Commercial create cluster closed. `/v3/approvals` remains HITL — leave. Tick 26 leftover-layout page scan: leftover dashboard QuickActions + leftover 404 closed (L28). Tick 27 leftover dashboard widget `window.location` `/companies/{id}` closed (L29). Tick 28 leftover `OnboardingProvider` `/opportunities` + `/dashboard` closed (L30); `/settings` + `/admin` left. |
 | L8 | **Create contact on `/v3/contacts`** | **DONE** (tick 3) | Thin `CreateContactForm` → `POST /api/v1/contacts` (`name` + `company_id` required). Empty state stays in v3 (no `/contacts` leak). Success navigates to `/v3/contacts/{id}`. Honest 403/API errors. Company picker via `GET /api/v1/companies`. No mocks. |
 | L9 | **Create deal on `/v3/companies/[id]` + `/v3/crm`** | **DONE** (tick 4) | Thin `CreateDealForm` → existing `createOpportunity` (`POST /api/v1/opportunities` query: `company_id`, `name`, optional `value` default 0). Company tab locks `company_id`. CRM empty CTA no longer bounces to companies / “legacy pipeline”. Success → `/v3/crm/{id}`. Honest 403/API errors. No mocks. Did not invent `owner_id` UI (FE client does not send it). |
 | L10 | Residual GhostButtonLink `/contacts` on `/v3/contacts/[id]` | **DONE** (tick 5) | Header “Legacy contacts” removed (exits shell; “Back to list” already `/v3/contacts`). Company-tab empty CTA retargeted `/contacts` → `/v3/companies` (“Browse companies”). Honest no-`company_id` copy. Did not invent link-company. Left company-tab “Legacy company” (`/companies/{id}`) — not this hole. |
@@ -65,12 +65,13 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | L27 | **Leftover CmdK jumps to remaining MVP v3 destinations** | **DONE** (tick 25) | Added `go.v3.contacts` / `go.v3.crm` / `go.v3.activities` / `go.v3.tasks` / `go.v3.proposals` / `go.v3.reviews` / `go.v3.icp`. Did not duplicate home/companies/settings. Left `go.admin` on `/admin`. Count **8 → 15**. |
 | L28 | **Leftover-layout page href leaks to leftover golden-path hubs** | **DONE** (tick 26) | Scan leftover-layout pages (not v3; not Emp360/admin/settings/analytics **pages**). Closed leftover dashboard QuickActions `/opportunities` → `/v3/crm`, `/activities` → `/v3/activities`, leftover `/companies/new` → `/v3/companies` (same leftover dashboard widget + metrics header). Leftover 404 `/dashboard` → `/v3`. Left leftover chrome (MobileNav, `workspaces.ts`), leftover 360 back-to-list, leftover widget `window.location` `/companies/{id}` (closed tick 27 / L29), leftover onboarding. Left `go.admin`. |
 | L29 | **Leftover dashboard widget `window.location` dumps to leftover `/companies/{id}`** | **DONE** (tick 27) | Same leftover `/dashboard` page as L28. Retargeted company-health / decision-queue / pipeline / recent-activity / market-pulse mover clicks `/companies/{id}` → `/v3/companies/{id}` via `v3CompanyHref`. Left market-pulse `/market/trends/{name}`. Did **not** wholesale-redirect leftover company/contact 360 back-to-list. Did **not** retarget leftover chrome (`MobileNav`, `workspaces.ts`). Left leftover onboarding. Left `go.admin`. |
+| L30 | **Leftover `OnboardingProvider` hops `/opportunities` + `/dashboard`** | **DONE** (tick 28) | Pipeline hop `/opportunities` → `/v3/crm`. NBA hop `/dashboard` → `/v3`. Left `/settings` (profile + integrations) and `/admin` (team). Left `/automation`. Did **not** wholesale leftover 360 back-to-list. Did **not** retarget leftover chrome (`MobileNav`, `workspaces.ts`). Left `go.admin`. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 27 isolated runner **104/104 PASS** (ticks 0–27 scoped +2 leftover widget href; leftover widget **2/2**). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 28 isolated runner **106/106 PASS** (ticks 0–28 scoped +2 leftover onboarding hops; leftover onboarding **2/2**). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -114,6 +115,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Leftover CmdK jumps to remaining MVP v3 destinations | Tick 25 / leftover layout | **DONE** (tick 25). Added leftover CmdK jumps to `/v3/contacts`, `/v3/crm`, `/v3/activities`, `/v3/tasks`, `/v3/proposals`, `/v3/reviews`, `/v3/icp`. Home/companies/settings already v3 — not duplicated. `go.admin` left on `/admin`. |
 | Leftover-layout page href leaks to leftover golden-path hubs | Tick 26 / leftover layout | **DONE** (tick 26). Leftover dashboard QuickActions + leftover 404 + leftover metrics-header new-company CTA retargeted to v3. Leftover chrome / leftover 360 back-to-list / leftover onboarding **not** closed. |
 | Leftover dashboard widget `window.location` `/companies/{id}` | Tick 27 / leftover dashboard | **DONE** (tick 27). Five leftover dashboard widgets (company-health, decision-queue, pipeline, recent-activity, market-pulse movers) dump to `/v3/companies/{id}`. Market-pulse `/market/trends/{name}` left. |
+| Leftover `OnboardingProvider` `/opportunities` + `/dashboard` | Tick 28 / leftover guidance | **DONE** (tick 28). Pipeline → `/v3/crm`. NBA → `/v3`. `/settings` + `/admin` left. `/automation` left. |
 | GhostButtonLink “Open legacy …” on other v3 pages | B1 | Golden-path leaks to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` = **ZERO** (tick 11 scan). Remaining **frozen** GhostButtonLink: `/v3/people` + `/v3/people/[id]` → `/employees` (Emp360 parked); `/v3/admin` → `/admin`; `/v3/settings` → `/settings`; `/v3/analytics` → `/analytics`. |
 
 ---
@@ -778,7 +780,7 @@ No `git add -A`. No push.
 | Leftover `tasks` page | `/tasks/new` | leftover-hub create — left |
 | Leftover dashboard widgets (`window.location`) | `/companies/{id}` ×5 | **CLOSED** tick 27 → `/v3/companies/{id}` |
 | Leftover `MobileNav` + `workspaces.ts` | leftover hub chrome | leftover chrome — left |
-| Leftover `OnboardingProvider` | `/opportunities`, `/dashboard` | leftover guidance — left |
+| Leftover `OnboardingProvider` | `/opportunities`, `/dashboard` | **CLOSED** tick 28 → `/v3/crm`, `/v3` (`/settings` + `/admin` left) |
 | `/v3/people`, `/v3/admin`, `/v3/settings`, `/v3/analytics` | Emp360 / admin / settings / analytics | **FROZEN** — left |
 
 ### Tick 26 commands
@@ -794,14 +796,13 @@ No `git add -A`. No push.
 
 ---
 
-## 31. Last-hour remaining work (tick 28+)
+## 31. Last-hour remaining work (tick 29+)
 
 Not a Production GO list. No HITL. No Phase 7. `feature_ai_copilot` stays False.
 
 | Priority | Item | Why last hour |
 |----------|------|----------------|
 | P1 | Browser QA of v3 golden path (login → `/v3` → companies/contacts/CRM/tasks create → stay in v3) | Loop is **build validated** only. Browser **not validated**. |
-| P2 | Leftover `OnboardingProvider` `/opportunities` + `/dashboard` | Leftover guidance on leftover layout. Leave `/settings` + `/admin` items. |
 | P2 | Leftover company/contact 360 back-to-list (`/companies`, `/contacts`) | Leftover-hub internals. **Do not** wholesale leftover hub redirects. |
 | P2 | Leftover chrome leftover-hub hrefs (`MobileNav`, `workspaces.ts`) | Analogous to leftover CmdK — **do not** wholesale unless one-line and evidence-clear. Do **not** retarget `go.admin` / leftover `/admin`. |
 | P2 | Honesty copy on leftover `/dashboard` if it still advertises leftover hubs | Docs/honesty only. |
@@ -820,7 +821,7 @@ Not a Production GO list. No HITL. No Phase 7. `feature_ai_copilot` stays False.
 | Commit | **`4729abfa`** (`4729abfa` — `fix: keep leftover dashboard widgets off leftover /companies/{id}`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings` (page GhostButtonLinks only; CmdK now `/v3/settings`). `/v3/analytics` → `/analytics`. Legacy CmdK `go.admin` still `/admin`. |
-| Next slice (tick 28) | Leftover dashboard widget `/companies/{id}` dumps are **closed**. Do **not** wholesale-redirect leftover company/contact 360 back-to-list. Do **not** retarget leftover chrome wholesale unless one-line and evidence-clear. Eligible: leftover `OnboardingProvider` `/opportunities` → `/v3/crm` and `/dashboard` → `/v3` (leave `/settings` + `/admin` items). Do **not** retarget `go.admin`. Do **not** start HITL. Do **not** invent activity-session form. Do **not** un-prune nav. Leave Emp360 / admin / settings / analytics **pages** frozen. Wholesale Next redirects of leftover hubs stay out of this loop. Do not redo L3/L8–L29. |
+| Next slice (tick 28) | Leftover `OnboardingProvider` `/opportunities` + `/dashboard` — **closed this tick** (L30). |
 
 ### Tick 27 commands
 
@@ -829,6 +830,32 @@ Not a Production GO list. No HITL. No Phase 7. `feature_ai_copilot` stays False.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-27 scoped>"
   # leftover widget href: 2/2 PASS
   # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav + leftover href + leftover widget href: 104/104 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 33. Tick 28 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L30**: leftover `OnboardingProvider` hops. Pipeline `/opportunities` → `/v3/crm`. NBA `/dashboard` → `/v3`. Left `/settings` (profile + integrations) and `/admin` (team). Left `/automation`. Did **not** wholesale leftover company/contact 360 back-to-list. Did **not** retarget leftover chrome (`MobileNav`, `workspaces.ts`). Left `go.admin` on `/admin`. Did **not** start HITL. Did **not** invent activity-session form. Did **not** un-prune nav. Did **not** touch Emp360 / admin / settings / analytics **pages**. |
+| Files | `salesos/frontend/src/components/guidance/onboarding/OnboardingProvider.tsx`; `salesos/frontend/src/components/guidance/onboarding/__tests__/leftover-hops.test.tsx` (new); this file |
+| Tests | **2/2** leftover onboarding hops + **106/106** ticks 0–28 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(pending this tick)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings` (page GhostButtonLinks only; CmdK now `/v3/settings`). `/v3/analytics` → `/analytics`. Legacy CmdK `go.admin` still `/admin`. Onboarding `/settings` + `/admin` hops left. |
+| Next slice (tick 29) | Leftover onboarding `/opportunities` + `/dashboard` hops are **closed**. Do **not** wholesale leftover company/contact 360 back-to-list. Do **not** wholesale leftover chrome (`MobileNav`, `workspaces.ts`) unless one-line and evidence-clear. Eligible: leftover `/dashboard` honesty copy if it still advertises leftover hubs (scan first). Do **not** retarget `go.admin`. Do **not** start HITL. Do **not** invent activity-session form. Do **not** un-prune nav. Leave Emp360 / admin / settings / analytics **pages** frozen. Wholesale Next redirects of leftover hubs stay out of this loop. Do not redo L3/L8–L30. |
+
+### Tick 28 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="leftover-hops"
+  # leftover onboarding hops: 2/2 PASS
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-28 scoped>"
+  # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav + leftover href + leftover widget href + leftover onboarding hops: 106/106 PASS
 ```
 
 No `git add -A`. No push.
