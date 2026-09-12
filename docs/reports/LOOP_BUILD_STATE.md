@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 18 **COMPLETE**  
+**Tick:** 19 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -56,12 +56,13 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | L18 | **Remove `/v3/shell` from customer v3 CmdK** | **DONE** (tick 16) | Emptied `V3_CMD_EXTRA`. Page stays on disk (internal spec). Customer CmdK = 12 golden-path destinations. Did not un-prune nav. |
 | L19 | **Legacy CmdK `go.settings` → `/v3/settings`** | **DONE** (tick 17) | Settings is already in the 12-item MVP nav (Gmail/integrations). Left `go.admin` on `/admin` (Admin pruned from customer chrome). Did not touch the `/v3/settings` page GhostButtonLinks. |
 | L20 | **Stop advertising pruned leftover CmdK** | **DONE** (tick 18) | Removed `go.v3.approvals`, `go.v3.data*`, `go.data.*` (10 ids). Pages stay. Left `go.admin` on `/admin`. Kept `go.v3.quotes` / `go.v3.contracts`. Count **51 → 41**. |
+| L21 | **Stop advertising leftover GTM tip CmdK** | **DONE** (tick 19) | Removed `go.gtm` + `go.gtm.*` (10 ids). Pages stay. Customer ICP remains `/v3/icp` in the 12-item MVP nav. Left `go.admin` on `/admin`. Count **41 → 31**. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 18 isolated runner **92/92 PASS** (ticks 0–18, +1 CmdK pruned-ids). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 19 isolated runner **93/93 PASS** (ticks 0–19, +1 CmdK gtm-ids). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -96,6 +97,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | `/v3/shell` remove from CmdK | B1 P1 | **DONE** (tick 16). `V3_CMD_EXTRA` empty. Page stays. |
 | Legacy CmdK `go.settings` → `/v3/settings` | B1 P0 #4 | **DONE** (tick 17). `go.admin` left on `/admin`. Settings **page** GhostButtonLinks still frozen. |
 | Legacy CmdK pruned Approvals / Data / Review Queue | Tick 18 / B1 §8 | **DONE** (tick 18). `go.v3.approvals` + `go.v3.data*` + `go.data.*` removed from leftover palette. Pages stay. |
+| Legacy CmdK leftover GTM tip destinations | Tick 19 / Matrix §5.10 | **DONE** (tick 19). `go.gtm` + `go.gtm.*` removed from leftover palette. GTM pages stay. Customer ICP is `/v3/icp`. |
 | GhostButtonLink “Open legacy …” on other v3 pages | B1 | Golden-path leaks to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` = **ZERO** (tick 11 scan). Remaining **frozen** GhostButtonLink: `/v3/people` + `/v3/people/[id]` → `/employees` (Emp360 parked); `/v3/admin` → `/admin`; `/v3/settings` → `/settings`; `/v3/analytics` → `/analytics`. |
 
 ---
@@ -546,7 +548,7 @@ No `git add -A`. No push.
 | Commit | **`86a4c176`** (`86a4c176` — `fix: stop advertising pruned approvals and data in leftover CmdK`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings` (page GhostButtonLinks only; CmdK now `/v3/settings`). `/v3/analytics` → `/analytics`. Legacy CmdK `go.admin` still `/admin`. |
-| Next slice (tick 19) | Stop advertising leftover **GTM tip** destinations in leftover CmdK (`go.gtm.*`) — customer ICP is already `/v3/icp` in the 12-item MVP nav; GTM ICP page stays frozen. Do **not** retarget `go.admin`. Do **not** start `/v3/approvals` HITL. Do **not** invent activity-session form. Do **not** un-prune nav. Leave Emp360 / admin / settings / analytics **pages** frozen. Wholesale Next redirects of legacy hubs stay out of this loop. Do not redo L3/L8–L20. |
+| Next slice (tick 19) | Stop advertising leftover **GTM tip** destinations in leftover CmdK (`go.gtm.*`) — **closed this tick**. |
 
 ### Tick 18 commands
 
@@ -555,6 +557,31 @@ No `git add -A`. No push.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-18 scoped>"
   # commands __tests__: 5/5 PASS
   # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav: 92/92 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 23. Tick 19 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L21**: leftover legacy CmdK no longer advertises GTM tip destinations. Removed `go.gtm`, `go.gtm.icp`, `go.gtm.market-sizing`, `go.gtm.lead-discovery`, `go.gtm.enrichment`, `go.gtm.website-intelligence`, `go.gtm.outreach`, `go.gtm.verification`, `go.gtm.lookalikes`, `go.gtm.sequences` (10 ids). Pages stay on disk. Customer ICP remains `/v3/icp` in the 12-item MVP nav. Count **41 → 31**. Left `go.admin` on `/admin`. Did **not** start `/v3/approvals` HITL. Did **not** invent activity-session form. Did **not** un-prune nav. Did **not** touch Emp360 / admin / settings / analytics **pages**. |
+| Files | `salesos/frontend/src/lib/commands.ts`; `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
+| Tests | **6/6** commands (+1 gtm-ids) + **93/93** ticks 0–19 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(pending this tick)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings` (page GhostButtonLinks only; CmdK now `/v3/settings`). `/v3/analytics` → `/analytics`. Legacy CmdK `go.admin` still `/admin`. |
+| Next slice (tick 20) | Stop advertising leftover **Tenant Studio / Marketplace tip** destinations in leftover CmdK (`go.studio.*`, `go.marketplace.listings`) — pages stay. Do **not** retarget `go.admin`. Do **not** start `/v3/approvals` HITL. Do **not** invent activity-session form. Do **not** un-prune nav. Leave Emp360 / admin / settings / analytics **pages** frozen. Wholesale Next redirects of legacy hubs stay out of this loop. Do not redo L3/L8–L21. |
+
+### Tick 19 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-19 scoped>"
+  # commands __tests__: 6/6 PASS
+  # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav: 93/93 PASS
 ```
 
 No `git add -A`. No push.

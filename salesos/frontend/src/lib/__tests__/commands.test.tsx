@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(41);
+    expect(registerCommand).toHaveBeenCalledTimes(31);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -115,74 +115,6 @@ describe("registerBuiltinCommands", () => {
     expect(marketplaceListings).toBeTruthy();
     marketplaceListings[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/marketplace/listings");
-
-    const gtmHub = (registerCommand as jest.Mock).mock.calls.find((c: any) => c[0].id === "go.gtm");
-    expect(gtmHub).toBeTruthy();
-    gtmHub[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm");
-
-    const gtmIcp = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.icp"
-    );
-    expect(gtmIcp).toBeTruthy();
-    gtmIcp[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/icp");
-
-    const gtmMarketSizing = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.market-sizing"
-    );
-    expect(gtmMarketSizing).toBeTruthy();
-    gtmMarketSizing[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/market-sizing");
-
-    const gtmLeadDiscovery = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.lead-discovery"
-    );
-    expect(gtmLeadDiscovery).toBeTruthy();
-    gtmLeadDiscovery[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/lead-discovery");
-
-    const gtmEnrichment = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.enrichment"
-    );
-    expect(gtmEnrichment).toBeTruthy();
-    gtmEnrichment[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/enrichment");
-
-    const gtmWebsiteIntel = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.website-intelligence"
-    );
-    expect(gtmWebsiteIntel).toBeTruthy();
-    gtmWebsiteIntel[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/website-intelligence");
-
-    const gtmOutreach = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.outreach"
-    );
-    expect(gtmOutreach).toBeTruthy();
-    gtmOutreach[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/outreach");
-
-    const gtmVerification = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.verification"
-    );
-    expect(gtmVerification).toBeTruthy();
-    gtmVerification[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/verification");
-
-    const gtmLookalikes = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.lookalikes"
-    );
-    expect(gtmLookalikes).toBeTruthy();
-    gtmLookalikes[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/lookalikes");
-
-    const gtmSequences = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.sequences"
-    );
-    expect(gtmSequences).toBeTruthy();
-    gtmSequences[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/sequences");
   });
 
   it("does not advertise pruned approvals or master-data destinations", () => {
@@ -209,6 +141,28 @@ describe("registerBuiltinCommands", () => {
     expect(ids).toContain("go.v3.quotes");
     expect(ids).toContain("go.v3.contracts");
     expect(ids).toContain("go.admin");
+  });
+
+  it("does not advertise leftover GTM tip destinations", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    const gtmTips = [
+      "go.gtm",
+      "go.gtm.icp",
+      "go.gtm.market-sizing",
+      "go.gtm.lead-discovery",
+      "go.gtm.enrichment",
+      "go.gtm.website-intelligence",
+      "go.gtm.outreach",
+      "go.gtm.verification",
+      "go.gtm.lookalikes",
+      "go.gtm.sequences",
+    ];
+    for (const id of gtmTips) {
+      expect(ids).not.toContain(id);
+    }
   });
 
   it("retargets leftover go.settings to /v3/settings and leaves go.admin on /admin", () => {
