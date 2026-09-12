@@ -2,6 +2,7 @@
 
 import { useDashboardContext } from "../../_providers/dashboard-provider";
 import { WidgetCard } from "../widget-card";
+import { v3CompanyHref } from "../v3-company-href";
 import { PipelineView } from "./PipelineView";
 import { useCompanyDecision } from "../../../revenue-execution/_providers/DecisionProvider";
 import { useNBAFeed } from "../../_hooks/useNBAFeed";
@@ -26,7 +27,9 @@ export function PipelineWidget() {
           nbaItems={nbaItems}
           isDecisionLoading={false}
           onDealClick={(dealId) => {
-            window.location.href = `/companies/${data.deals?.find((d) => d.id === dealId)?.companyId ?? dealId}`;
+            window.location.href = v3CompanyHref(
+              data.deals?.find((d) => d.id === dealId)?.companyId ?? dealId
+            );
           }}
         />
       ) : null}

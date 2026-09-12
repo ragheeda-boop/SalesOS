@@ -2,6 +2,7 @@
 
 import { useDashboardContext } from "../../_providers/dashboard-provider";
 import { WidgetCard } from "../widget-card";
+import { v3CompanyHref } from "../v3-company-href";
 import { CompanyHealthView } from "./CompanyHealthView";
 import { useCompanyDecision } from "../../../revenue-execution/_providers/DecisionProvider";
 import { useNBAFeed } from "../../_hooks/useNBAFeed";
@@ -28,7 +29,7 @@ export function CompanyHealthWidget() {
           onAlertClick={(alertId) => {
             const alert = data.alerts?.find((a) => a.id === alertId);
             if (alert?.companyId) {
-              window.location.href = `/companies/${alert.companyId}`;
+              window.location.href = v3CompanyHref(alert.companyId);
             }
           }}
         />

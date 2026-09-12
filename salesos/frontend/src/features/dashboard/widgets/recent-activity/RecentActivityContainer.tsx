@@ -2,6 +2,7 @@
 
 import { useDashboardContext } from "../../_providers/dashboard-provider";
 import { WidgetCard } from "../widget-card";
+import { v3CompanyHref } from "../v3-company-href";
 import { RecentActivityView } from "./RecentActivityView";
 
 export function RecentActivityWidget() {
@@ -17,7 +18,7 @@ export function RecentActivityWidget() {
           onItemClick={(id) => {
             const item = data.items?.find((i) => i.id === id);
             if (item?.companyId) {
-              window.location.href = `/companies/${item.companyId}`;
+              window.location.href = v3CompanyHref(item.companyId);
             }
           }}
         />

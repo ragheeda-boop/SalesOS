@@ -2,6 +2,7 @@
 
 import { useDashboardContext } from "../../_providers/dashboard-provider";
 import { WidgetCard } from "../widget-card";
+import { v3CompanyHref } from "../v3-company-href";
 import { DecisionQueueView } from "./DecisionQueueView";
 import { useCompanyDecision } from "../../../revenue-execution/_providers/DecisionProvider";
 import { useNBAFeed } from "../../_hooks/useNBAFeed";
@@ -23,7 +24,9 @@ export function DecisionQueueWidget() {
           nbaItems={nbaItems}
           isDecisionLoading={false}
           onItemClick={(id) => {
-            window.location.href = `/companies/${data.items?.find((i) => i.id === id)?.companyId ?? id}`;
+            window.location.href = v3CompanyHref(
+              data.items?.find((i) => i.id === id)?.companyId ?? id
+            );
           }}
         />
       ) : null}
