@@ -105,7 +105,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Done | L1/L2 confirmed already in `905d3468`. Slice 2 **L3**: in-v3 create company + honest empty (no legacy `/companies` CTA). CmdK count assertion 39→51 (matches 51 `registerCommand`). |
 | Files | `salesos/frontend/src/app/v3/companies/page.tsx`; `salesos/frontend/src/app/v3/companies/create-company-form.tsx` (new); `salesos/frontend/src/app/v3/companies/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/companies/__tests__/create-company-form.test.tsx` (new); `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
 | Tests | **9/9 PASS**: employee redirect (1) + CmdK (3) + companies empty/create (5). Isolated runner `%TEMP%\salesos-jest-runner` because host `node_modules` is incomplete (`npm install` ENOTEMPTY). Browser **not validated**. No pytest (no BE). |
-| Commit | *(filled after commit)* |
+| Commit | **`61c78b96`** (`fix: add in-v3 company create so empty tenants stay off legacy /companies`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. Host `npm test` **not validated** (broken `node_modules/.bin`). **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 2) | **Create contact on `/v3/contacts`** (same class of hole: empty CTA → `/contacts`; `POST /api/v1/contacts` is real). Or create deal on `/v3/companies/[id]` if contacts is already patched. Stay in v3. No mocks. |
 
