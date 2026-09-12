@@ -48,7 +48,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **WRITTEN, not run** — Jest files updated/added; `npm install` still incomplete (`ts-jest` missing). No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **WRITTEN, not run** — Jest files updated/added. Host `npm install` **aborted** (~24 min) with `TAR_ENTRY_ERROR ENOENT`; `ts-jest` never resolved. `node_modules` may be half-written. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -91,7 +91,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 |-------|-------|
 | Done | Slice 1 v3 containment: `/v3/employee` stays in v3; legacy CmdK home/companies go to v3. |
 | Files | `salesos/frontend/src/app/v3/employee/page.tsx`; `salesos/frontend/src/app/v3/employee/__tests__/page.test.tsx` (new); `salesos/frontend/src/lib/commands.ts`; `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
-| Tests | Jest written. **not validated** — host `npm install` started (allowed this loop) but did not finish; `ts-jest` not resolvable. No browser QA. No pytest (no BE). |
+| Tests | Jest written. **not validated** — host `npm install` **aborted** (exit unknown, ~24 min); extract errors (`TAR_ENTRY_ERROR ENOENT`, including `ts-jest/dist`). No browser QA. No pytest (no BE). |
 | Commit | **`905d3468`** (`905d3468` — `fix: keep v3 users off legacy employee and CmdK destinations`). **Not pushed.** |
 | Validation | Code **light validated** (static read of handlers + redirect). Tests **not validated**. Browser **not validated**. **production no-go** unchanged. |
 | Next slice (tick 1) | **L3 — create company on `/v3/companies`** using existing `createCompany()` / `POST /api/v1/companies`. Replace “Open legacy companies” empty-state action. Honest empty if create fails. Do not invent fields. Optional follow: create contact if L3 lands early. |
@@ -99,7 +99,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 ### Tick 0 commands
 
 ```text
-npm install   # salesos/frontend — started; still running at tick end; ts-jest missing
+npm install   # salesos/frontend — aborted ~24 min; TAR_ENTRY_ERROR ENOENT; not a clean install
 node node_modules/jest/bin/jest.js … commands.test.tsx employee/__tests__/page.test.tsx
   # 1st: Cannot find module '@jest/core'
   # 2nd: Module ts-jest in the transform option was not found
