@@ -211,7 +211,7 @@ export default function Company360Page() {
   const isError = companyError || error360;
 
   const breadcrumbItems = [
-    { label: t("nav.companies"), href: "/companies" },
+    { label: t("nav.companies"), href: "/v3/companies" },
     {
       label: company?.name_ar || company?.name_en || "...",
       href: `/companies/${id}`,
@@ -240,7 +240,7 @@ export default function Company360Page() {
           description={t("company.load_error_hint")}
           action={{
             label: t("companies.back_to_list"),
-            onClick: () => router.push("/companies"),
+            onClick: () => router.push("/v3/companies"),
           }}
         />
       </div>

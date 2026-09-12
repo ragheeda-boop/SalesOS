@@ -111,7 +111,7 @@ export default function CompanyPage() {
   const handleDelete = useCallback(async () => {
     await deleteCompany.mutateAsync({ id });
     setDeleteOpen(false);
-    router.push("/companies");
+    router.push("/v3/companies");
   }, [id, deleteCompany, router]);
 
   const handleAddContact = useCallback(async () => {
@@ -137,7 +137,7 @@ export default function CompanyPage() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <Link
-          href="/companies"
+          href="/v3/companies"
           className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-primary)] transition-colors"
         >
           <ArrowRight className="h-4 w-4" />

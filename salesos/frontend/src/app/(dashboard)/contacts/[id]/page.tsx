@@ -116,7 +116,7 @@ export default function ContactDetailPage() {
       await api.delete(`/api/v1/contacts/${id}`, {
         headers: { "X-Tenant-Id": tenantId }
       });
-      router.push("/contacts");
+      router.push("/v3/contacts");
     } catch {
       alert("فشل حذف جهة الاتصال");
     } finally {
@@ -141,7 +141,7 @@ export default function ContactDetailPage() {
           icon={<User className="h-12 w-12" />}
           title="جهة الاتصال غير موجودة"
           description="لم يتم العثور على جهة الاتصال المطلوبة"
-          action={{ label: "العودة للقائمة", onClick: () => router.push("/contacts") }}
+          action={{ label: "العودة للقائمة", onClick: () => router.push("/v3/contacts") }}
         />
       </div>
     );
@@ -157,7 +157,7 @@ export default function ContactDetailPage() {
     <div className="space-y-4">
       <Breadcrumbs
         items={[
-          { label: t("nav.contacts"), href: "/contacts" },
+          { label: t("nav.contacts"), href: "/v3/contacts" },
           { label: contact.name, href: undefined },
         ]}
       />

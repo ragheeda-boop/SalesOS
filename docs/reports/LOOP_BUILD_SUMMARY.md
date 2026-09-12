@@ -1,10 +1,10 @@
 # SalesOS 4h Build Loop — Summary
 
-**Status:** FINAL (window end). Not a Production GO claim.  
+**Status:** FINAL (window end) + post-loop Tick 32 leftover 360 list CTAs. Not a Production GO claim.  
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Ticks:** 0–31  
+**Ticks:** 0–32  
 **Push:** **no** (named-path commits only; never `git add -A`)  
 **Production GA:** **NOT APPROVED** / **production no-go** (unchanged)  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
@@ -24,10 +24,10 @@ Sources: `LOOP_BUILD_STATE.md`, `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY
 | Browser QA | **not validated** |
 | Host `npm test` / `npm run build` | **not claimed** / **not validated** (host `node_modules` incomplete) |
 | Backend pytest this loop | **not run** (FE-only). Pre-loop B3 Option B **101/101** is `162ef993`. **353/353 not claimed.** |
-| Last scoped Jest | Tick 28 isolated runner **106/106 PASS**. Ticks 29–31: docs-only — Jest **not re-run**. |
+| Last scoped Jest | Tick 32 isolated runner **110/110 PASS** (ticks 0–28 scoped **106** + leftover 360 list **4**). |
 | Push | **no** |
 
-No leftover dashboard product was invented. Leftover chrome (`MobileNav`, `workspaces.ts`) is leftover-shell navigation — **not rewritten**. Leftover 360 back-to-list remains open.
+No leftover dashboard product was invented. Leftover chrome (`MobileNav`, `workspaces.ts`) is leftover-shell navigation — **not rewritten**. Leftover company/contact 360 **list CTAs** now re-enter `/v3/companies` / `/v3/contacts`. Leftover 360 internals left.
 
 ---
 
@@ -87,6 +87,7 @@ Success routes stay in v3 (`/v3/companies/{id}`, `/v3/contacts/{id}`, `/v3/crm/{
 | L30 | 28 | Leftover onboarding pipeline `/opportunities` → `/v3/crm`; NBA `/dashboard` → `/v3`. `/settings` + `/admin` + `/automation` left. |
 | L31 | 29 | Leftover `/dashboard` honesty copy: **no leftover-hub customer CTAs left**. Honesty line is Settings → Integrations only. |
 | L32 | 30 | Leftover chrome (`MobileNav`, `workspaces.ts`) scan: leftover-shell nav only. **No rewrite.** |
+| L33 | 32 | Leftover company/contact 360 list CTAs → `/v3/companies` / `/v3/contacts`. Leftover 360 internals left. |
 
 ---
 
@@ -115,7 +116,7 @@ Success routes stay in v3 (`/v3/companies/{id}`, `/v3/contacts/{id}`, `/v3/crm/{
 | Phase 7 / production ingest | **BLOCKED** — human review + PO sign-off. |
 | `feature_ai_copilot` | Default **False**. Not flipped. |
 | Activity-session form on `/v3/activities` | Out. Empty CTA is Gmail/Calendar feed. |
-| Leftover company/contact 360 back-to-list | Leftover-hub internals. Not wholesale-redirected. |
+| Leftover company/contact 360 back-to-list | **DONE** (tick 32). List CTAs only. Leftover 360 internals left. |
 | Leftover chrome leftover-hub hrefs | Tick 30: leftover-shell nav. Not rewritten. |
 | Wholesale Next redirects of leftover hubs | Out of this loop. |
 | Nav un-prune | Out. 12-item MVP stays. |
@@ -176,13 +177,15 @@ Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in
 
 Tick 31: `3af11fac` docs: finalize 4h SalesOS build loop summary at window end. **Not pushed.**
 
+Tick 32: leftover 360 list CTAs (named-path; see git). **Not pushed.**
+
 ---
 
 ## 6. Test status (honest labels)
 
 | Check | Label | Evidence |
 |-------|-------|----------|
-| Isolated Jest ticks 0–28 | **build validated** | `%TEMP%\salesos-jest-runner` + `jest.frontend.cjs` — **106/106 PASS** (tick 28 last run) |
+| Isolated Jest ticks 0–32 | **build validated** | `%TEMP%\salesos-jest-runner` + `jest.frontend.cjs` — **110/110 PASS** (tick 32) |
 | Host Jest Tick 0 files | **build validated** (narrow) | Tick 2: **4/4 PASS** (`commands` + `employee`) |
 | Ticks 29–31 Jest | **not run** | Docs-only; no FE code change |
 | Host `npm test` | **not claimed** | Host `node_modules` incomplete |
@@ -203,7 +206,7 @@ Tick 31: `3af11fac` docs: finalize 4h SalesOS build loop summary at window end. 
 | **SSO** | Create staging/production Google OAuth apps. Console access required. |
 | **Stripe** | Live keys empty → 503. Human KYC + keys. |
 | **Browser QA** | Login → `/v3` → companies/contacts/CRM/tasks/quote/proposal/review/contract/pipeline create. Stay in v3. Loop is Jest-only. |
-| **Leftover chrome / leftover 360** | `MobileNav` + `workspaces.ts` leftover-shell nav left. Leftover company/contact 360 back-to-list left. Do not wholesale-redirect without a leftover-shell plan. |
+| **Leftover chrome** | `MobileNav` + `workspaces.ts` leftover-shell nav left (tick 30: no rewrite). Leftover 360 list CTAs closed (tick 32). Leftover 360 internals left. |
 
 Also still human (not this loop): Phase 7 candidate review + PO sign-off; Design Partner MOU; production LLM contract.
 
