@@ -92,7 +92,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Done | Slice 1 v3 containment: `/v3/employee` stays in v3; legacy CmdK home/companies go to v3. |
 | Files | `salesos/frontend/src/app/v3/employee/page.tsx`; `salesos/frontend/src/app/v3/employee/__tests__/page.test.tsx` (new); `salesos/frontend/src/lib/commands.ts`; `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
 | Tests | Jest written. **not validated** — host `npm install` started (allowed this loop) but did not finish; `ts-jest` not resolvable. No browser QA. No pytest (no BE). |
-| Commit | *filled after `git commit`* |
+| Commit | **`905d3468`** (`905d3468` — `fix: keep v3 users off legacy employee and CmdK destinations`). **Not pushed.** |
 | Validation | Code **light validated** (static read of handlers + redirect). Tests **not validated**. Browser **not validated**. **production no-go** unchanged. |
 | Next slice (tick 1) | **L3 — create company on `/v3/companies`** using existing `createCompany()` / `POST /api/v1/companies`. Replace “Open legacy companies” empty-state action. Honest empty if create fails. Do not invent fields. Optional follow: create contact if L3 lands early. |
 
