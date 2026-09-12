@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(9);
+    expect(registerCommand).toHaveBeenCalledTimes(8);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -168,6 +168,17 @@ describe("registerBuiltinCommands", () => {
     const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
     expect(ids).not.toContain("action.copilot");
     expect(ids).toContain("action.search");
+    expect(ids).toContain("go.admin");
+  });
+
+  it("does not advertise leftover help overlay action", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    expect(ids).not.toContain("action.help");
+    expect(ids).toContain("action.search");
+    expect(ids).toContain("action.theme");
     expect(ids).toContain("go.admin");
   });
 

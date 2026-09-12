@@ -88,14 +88,6 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     },
   });
 
-  registerCommand({
-    id: "action.help",
-    label: "المساعدة",
-    description: "عرض المساعدة والتعليمات",
-    category: "إجراءات",
-    shortcut: "?",
-    handler: () => {
-      window.dispatchEvent(new CustomEvent("salesos:toggle-help"));
-    },
-  });
+  // Help overlay stays unbuilt — leftover layout has no salesos:toggle-help listener.
+  // Do not advertise. Leave action.search / action.theme (wired overlays).
 }
