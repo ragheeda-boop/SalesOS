@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 12 **COMPLETE**  
+**Tick:** 13 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -42,7 +42,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 |----|------|--------|----------|
 | L3 | **Create company on `/v3/companies`** | **DONE** (tick 1) | Thin `CreateCompanyForm` → `POST /api/v1/companies`. Empty state stays in v3 (no `/companies` leak). Success navigates to `/v3/companies/{id}`. Honest 403/API errors. No mocks. |
 | L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies + contacts empty/create. |
-| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal / task / default pipeline / quote / proposal closed (L3/L8/L9/L11/L12/L13/L14). Contact 360 `/contacts` leak closed (tick 5). Company 360 `/companies/{id}` leak closed (tick 7). `/v3/activities` `/activities` leak closed (tick 7). Residual Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]` closed (tick 8). Residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`) closed (tick 10). Tick 11 scan: **zero** golden-path GhostButtonLink/href to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard`. |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal / task / default pipeline / quote / proposal / review closed (L3/L8/L9/L11/L12/L13/L14/L15). Contact 360 `/contacts` leak closed (tick 5). Company 360 `/companies/{id}` leak closed (tick 7). `/v3/activities` `/activities` leak closed (tick 7). Residual Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]` closed (tick 8). Residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`) closed (tick 10). Tick 11 scan: **zero** golden-path GhostButtonLink/href to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard`. Next real-API hole: empty `/v3/contracts`. |
 | L8 | **Create contact on `/v3/contacts`** | **DONE** (tick 3) | Thin `CreateContactForm` → `POST /api/v1/contacts` (`name` + `company_id` required). Empty state stays in v3 (no `/contacts` leak). Success navigates to `/v3/contacts/{id}`. Honest 403/API errors. Company picker via `GET /api/v1/companies`. No mocks. |
 | L9 | **Create deal on `/v3/companies/[id]` + `/v3/crm`** | **DONE** (tick 4) | Thin `CreateDealForm` → existing `createOpportunity` (`POST /api/v1/opportunities` query: `company_id`, `name`, optional `value` default 0). Company tab locks `company_id`. CRM empty CTA no longer bounces to companies / “legacy pipeline”. Success → `/v3/crm/{id}`. Honest 403/API errors. No mocks. Did not invent `owner_id` UI (FE client does not send it). |
 | L10 | Residual GhostButtonLink `/contacts` on `/v3/contacts/[id]` | **DONE** (tick 5) | Header “Legacy contacts” removed (exits shell; “Back to list” already `/v3/contacts`). Company-tab empty CTA retargeted `/contacts` → `/v3/companies` (“Browse companies”). Honest no-`company_id` copy. Did not invent link-company. Left company-tab “Legacy company” (`/companies/{id}`) — not this hole. |
@@ -50,12 +50,13 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | L12 | **Create default pipeline on `/v3/crm`** | **DONE** (tick 9) | Confirmed `POST /api/v1/pipelines` is real and **body-less** (`create_pipeline` builds `default_sales_pipeline`). Added FE `createPipeline` (null body, tenant header only — no invented name/stages). Thin toggle + button on existing v3 CRM pipeline page. Success stays on `/v3/crm` (no designer, no invented detail route). Honest 403/API errors. No mocks. |
 | L13 | **Create quote on `/v3/quotes` + `/v3/crm/[id]`** | **DONE** (tick 11) | Tick 11 scan found **zero** golden-path leaks to `/companies` `/contacts` `/opportunities` `/activities` `/tasks` `/dashboard`. Next real-API hole: empty `/v3/quotes` said “create from an opportunity” with no form. Confirmed `POST /api/v1/quotes` is real (`opportunity_id` Query required, `title` default `Quote`, **null body**). Fixed FE `createQuote` (was sending JSON body). Thin form + deal-360 lock. Success → `/v3/quotes/{id}`. No deals → `/v3/crm`. Honest 403. No line-item UI. |
 | L14 | **Create proposal on `/v3/proposals`** | **DONE** (tick 12) | Confirmed `POST /api/v1/proposals` is real (`opportunity_id` + `quote_id` Query required, **null body**, 201 `{id,status,sections}`). Needs a quote first (L13). GET `/quotes` and GET `/proposals` without `opportunity_id` return `[]` — form picks deal then quotes for that deal. Thin form on `/v3/proposals`. Success → `/v3/proposals/{id}` (route exists). No deals → `/v3/crm`. No quotes → `/v3/quotes`. Honest 403. No sections UI. |
+| L15 | **Create review on `/v3/reviews`** | **DONE** (tick 13) | Confirmed `POST /api/v1/reviews` is real (`review_type` + `target_id` + `target_type` Query required, `assigned_to` default `""`, **null body**, 201 `{id,status,review_type}`). Types on disk: `deal_review` / `manager_review` / `exception_review` / `quote_review` / `proposal_review`. Target types on disk: `opportunity` / `quote` / `proposal`. GET `/reviews` lists by tenant. Thin form on `/v3/reviews`. Success → `/v3/reviews/{id}` (route exists). No deals → `/v3/crm`. No quotes → `/v3/quotes`. No proposals → `/v3/proposals`. Honest 403. No assign/decide UI on create. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 12 isolated runner **62/62 PASS** (ticks 0–12). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 13 isolated runner **72/72 PASS** (ticks 0–13). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -397,6 +398,31 @@ No `git add -A`. No push.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
   # proposals + createProposal client: 9/9 PASS
   # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals: 62/62 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 17. Tick 13 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L15**: in-v3 create review on `/v3/reviews`. Confirmed `POST /api/v1/reviews` (`review_type` + `target_id` + `target_type` query required, `assigned_to` default `""`, **null body**, 201 `{id,status,review_type}`). Added FE `createReview` (null body). Thin form: type picker (5 on-disk types) + target_type (`opportunity`/`quote`/`proposal`) + deal/quote/proposal pickers. Empty reviews CTA no longer dead. Success → `/v3/reviews/{id}`. No deals → `/v3/crm`. No quotes → `/v3/quotes`. No proposals → `/v3/proposals`. Honest 403. No assign/decide workflow on create. Did **not** redo L3/L8–L14. Did **not** touch Emp360 / admin / settings / analytics. |
+| Files | `salesos/frontend/src/lib/api/reviews.ts` (new); `salesos/frontend/src/lib/api/__tests__/reviews-create.test.ts` (new); `salesos/frontend/src/lib/api/proposals.ts` (`listProposals` for proposal_review picker); `salesos/frontend/src/app/v3/reviews/create-review-form.tsx` (new); `salesos/frontend/src/app/v3/reviews/page.tsx`; `salesos/frontend/src/app/v3/reviews/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/reviews/__tests__/create-review-form.test.tsx` (new); this file |
+| Tests | **10/10** review-create + **72/72** ticks 0–13 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(filled after commit)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings`. `/v3/analytics` → `/analytics`. |
+| Next slice (tick 14) | Thin **create contract** on `/v3/contracts` if FE client is aligned: `POST /api/v1/contracts` is real (`opportunity_id` required via Query or body; `quote_id` optional; `title` optional; 201). Empty `/v3/contracts` says create from an approved quote with no form. Detail route `/v3/contracts/{id}` exists. Stay in v3. No mocks. Leave Emp360 / admin / settings / analytics frozen. Do not invent sign/activate workflow on create. Do not redo L3/L8–L15. `/v3/approvals` empty is HITL (`POST /approvals` JSON body for AI recommendations) — leave until AI flag is evidence-validated. |
+
+### Tick 13 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
+  # reviews + createReview client: 10/10 PASS
+  # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews: 72/72 PASS
 ```
 
 No `git add -A`. No push.
