@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 4 **COMPLETE**  
+**Tick:** 5 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -42,15 +42,16 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 |----|------|--------|----------|
 | L3 | **Create company on `/v3/companies`** | **DONE** (tick 1) | Thin `CreateCompanyForm` → `POST /api/v1/companies`. Empty state stays in v3 (no `/companies` leak). Success navigates to `/v3/companies/{id}`. Honest 403/API errors. No mocks. |
 | L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies + contacts empty/create. |
-| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal closed (L3/L8/L9). Residual: `/v3/contacts/[id]` still has GhostButtonLink to `/contacts` (not the list empty CTA). Company 360 header still has Legacy company (populated list only). |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal closed (L3/L8/L9). Contact 360 `/contacts` leak closed (tick 5). Residual: company 360 header still has Legacy company (populated list only). `/v3/activities` still has Legacy activities. Next candidate: thin create task (`POST /api/v1/tasks` is real). |
 | L8 | **Create contact on `/v3/contacts`** | **DONE** (tick 3) | Thin `CreateContactForm` → `POST /api/v1/contacts` (`name` + `company_id` required). Empty state stays in v3 (no `/contacts` leak). Success navigates to `/v3/contacts/{id}`. Honest 403/API errors. Company picker via `GET /api/v1/companies`. No mocks. |
 | L9 | **Create deal on `/v3/companies/[id]` + `/v3/crm`** | **DONE** (tick 4) | Thin `CreateDealForm` → existing `createOpportunity` (`POST /api/v1/opportunities` query: `company_id`, `name`, optional `value` default 0). Company tab locks `company_id`. CRM empty CTA no longer bounces to companies / “legacy pipeline”. Success → `/v3/crm/{id}`. Honest 403/API errors. No mocks. Did not invent `owner_id` UI (FE client does not send it). |
+| L10 | Residual GhostButtonLink `/contacts` on `/v3/contacts/[id]` | **DONE** (tick 5) | Header “Legacy contacts” removed (exits shell; “Back to list” already `/v3/contacts`). Company-tab empty CTA retargeted `/contacts` → `/v3/companies` (“Browse companies”). Honest no-`company_id` copy. Did not invent link-company. Left company-tab “Legacy company” (`/companies/{id}`) — not this hole. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 4 isolated runner **24/24 PASS** (ticks 0–4). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 5 isolated runner **26/26 PASS** (ticks 0–5). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -83,7 +84,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Decision FE STUB | Matrix | Do not sell |
 | Nav prune to ~12 MVP items | B1 §8 | After golden-path create |
 | `/v3/shell` remove from CmdK | B1 P1 | Later |
-| GhostButtonLink “Open legacy …” on other v3 pages | B1 | L3 closed `/companies` empty leak; tick 3 closed `/contacts` list empty leak; tick 4 closed CRM/company-deal empty CTAs. Residual: `/v3/contacts/[id]` still links `/contacts`; company 360 header still has Legacy company. |
+| GhostButtonLink “Open legacy …” on other v3 pages | B1 | L3 closed `/companies` empty leak; tick 3 closed `/contacts` list empty leak; tick 4 closed CRM/company-deal empty CTAs; tick 5 closed `/v3/contacts/[id]` `/contacts` leak. Residual: company 360 header Legacy company; `/v3/activities` Legacy activities. |
 
 ---
 
@@ -198,6 +199,30 @@ No `git add -A`. No push.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
   # crm + company [id] __tests__: 9/9 PASS
   # employee + commands + companies + contacts + crm + company [id]: 24/24 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 9. Tick 5 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L10**: residual GhostButtonLink `/contacts` on `/v3/contacts/[id]`. Header “Legacy contacts” removed (exits shell; list already `/v3/contacts`). No-company tab CTA retargeted to `/v3/companies`. Did **not** start create task (preference 1 was still open). Did **not** redo L3/L8/L9. |
+| Files | `salesos/frontend/src/app/v3/contacts/[id]/page.tsx`; `salesos/frontend/src/app/v3/contacts/[id]/__tests__/page.test.tsx` (new); this file |
+| Tests | **2/2** contact detail + **26/26** ticks 0–5 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(pending this tick — fill after named-path commit)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Next slice (tick 6) | Thin **create task** on `/v3/tasks` (not activities feed). `POST /api/v1/tasks` is real; FE `createTask` exists. Contract: required `title`; optional `priority` (default `medium`, pattern critical\|high\|medium\|low), `source` (default `manual`), `company_id`, `opportunity_id`, `due_date`. No invented fields. Stay in v3. Honest errors. No mocks. Do not redo L3/L8/L9/L10. |
+
+### Tick 5 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
+  # contacts/[id] __tests__: 2/2 PASS
+  # employee + commands + companies + contacts + crm + company [id] + contact [id]: 26/26 PASS
 ```
 
 No `git add -A`. No push.

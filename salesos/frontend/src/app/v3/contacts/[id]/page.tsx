@@ -120,9 +120,9 @@ function CompanyTab({
     return (
       <TabEmpty
         title="No company linked"
-        description="This contact has no company_id on the API payload. Link an account from legacy contacts."
-        ctaHref="/contacts"
-        ctaLabel="Open legacy contacts"
+        description="This contact has no company_id on the API payload. Empty is honest — nothing is invented."
+        ctaHref="/v3/companies"
+        ctaLabel="Browse companies"
       />
     );
   }
@@ -318,9 +318,6 @@ export default function V3Contact360Page() {
                     Company 360
                   </GhostButtonLink>
                 ) : null}
-                <GhostButtonLink href="/contacts" primary>
-                  Legacy contacts
-                </GhostButtonLink>
               </div>
             }
           />
