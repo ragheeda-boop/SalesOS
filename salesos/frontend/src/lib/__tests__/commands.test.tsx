@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(11);
+    expect(registerCommand).toHaveBeenCalledTimes(10);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -106,6 +106,16 @@ describe("registerBuiltinCommands", () => {
       expect(ids).not.toContain(id);
     }
 
+    expect(ids).toContain("go.admin");
+  });
+
+  it("does not advertise leftover Search hub destination", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    expect(ids).not.toContain("go.search");
+    expect(ids).toContain("action.search");
     expect(ids).toContain("go.admin");
   });
 

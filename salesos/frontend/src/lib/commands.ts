@@ -22,14 +22,8 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     handler: () => router.push("/v3/companies"),
   });
 
-  registerCommand({
-    id: "go.search",
-    label: "البحث العام",
-    description: "فتح البحث العام",
-    category: "تنقل",
-    shortcut: "G S",
-    handler: () => router.push("/search"),
-  });
+  // Search hub `/search` stays on disk (FREEZE — later embed in v3 topbar) — do not advertise.
+  // Overlay toggle stays as action.search (salesos:toggle-search), not this hub.
 
   // Integrations Studio + Tenant Studio + Marketplace listings stay on disk (tip / MVP-out) — do not advertise.
   // Gmail OAuth stays on /v3/settings (go.settings), not this studio.
