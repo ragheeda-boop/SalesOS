@@ -63,16 +63,8 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     handler: () => router.push("/admin"),
   });
 
-  registerCommand({
-    id: "action.copilot",
-    label: "فتح المساعد الذكي",
-    description: "تشغيل المساعد الذكي AI",
-    category: "إجراءات",
-    shortcut: "Ctrl+I",
-    handler: () => {
-      window.dispatchEvent(new CustomEvent("salesos:toggle-copilot"));
-    },
-  });
+  // AI copilot stays off (feature_ai_copilot default False) — do not advertise.
+  // Do not flip the flag. Do not build copilot UI.
 
   registerCommand({
     id: "action.search",

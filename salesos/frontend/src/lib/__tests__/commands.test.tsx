@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(10);
+    expect(registerCommand).toHaveBeenCalledTimes(9);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -161,17 +161,28 @@ describe("registerBuiltinCommands", () => {
     expect(mockRouter.push).toHaveBeenCalledWith("/admin");
   });
 
+  it("does not advertise leftover AI copilot action", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    expect(ids).not.toContain("action.copilot");
+    expect(ids).toContain("action.search");
+    expect(ids).toContain("go.admin");
+  });
+
   it("registers action commands that dispatch custom events", () => {
     const dispatchSpy = jest.spyOn(window, "dispatchEvent");
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
 
-    const copilotCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "action.copilot"
+    const searchCall = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "action.search"
     );
-    copilotCall[0].handler();
+    expect(searchCall).toBeTruthy();
+    searchCall[0].handler();
     expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "salesos:toggle-copilot" })
+      expect.objectContaining({ type: "salesos:toggle-search" })
     );
   });
 });
