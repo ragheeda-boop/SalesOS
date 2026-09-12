@@ -4,7 +4,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Ticks covered:** 0–29  
+**Ticks covered:** 0–30  
 **Push:** **no**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
@@ -24,10 +24,10 @@ Sources: `LOOP_BUILD_STATE.md`, `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY
 | Browser QA | **not validated** |
 | Host `npm test` / `npm run build` | **not validated** (host `node_modules` incomplete) |
 | Docker pytest this loop | **not run** (FE-only slices). Pre-loop B3 Option B **101/101** is `162ef993`. |
-| Last scoped Jest | Tick 28 isolated runner **106/106 PASS**. Tick 29: **no code change** — Jest **not re-run**. |
+| Last scoped Jest | Tick 28 isolated runner **106/106 PASS**. Ticks 29–30: **no FE code change** — Jest **not re-run**. |
 | Push | **no** |
 
-This file is a draft from `LOOP_BUILD_STATE.md`. It does not invent a leftover dashboard product and does not close leftover chrome / leftover 360 back-to-list.
+This file is a draft from `LOOP_BUILD_STATE.md`. It does not invent a leftover dashboard product. Tick 30 **FACT:** leftover chrome (`MobileNav`, `workspaces.ts`) is leftover-shell navigation — **not rewritten**. Leftover 360 back-to-list remains open.
 
 ---
 
@@ -91,24 +91,27 @@ Login fallback was already `/v3` before this loop. `getDemoData` already removed
 | L29 | 27 | Leftover dashboard widgets dump to `/v3/companies/{id}` (not leftover `/companies/{id}`). Market-pulse `/market/trends/{name}` left. |
 | L30 | 28 | Leftover onboarding pipeline `/opportunities` → `/v3/crm`; NBA `/dashboard` → `/v3`. `/settings` + `/admin` + `/automation` left. |
 | L31 | 29 | Leftover `/dashboard` honesty copy scan: **no leftover-hub customer CTAs left to close**. Summary draft started. |
+| L32 | 30 | Leftover chrome (`MobileNav`, `workspaces.ts`) scan: leftover-shell nav only. **No rewrite.** |
 
 ---
 
-## 2. Tick 29 scan (leftover `/dashboard` honesty copy)
+## 2. Tick 30 scan (leftover chrome)
 
-Scope: leftover `/dashboard` page + leftover dashboard feature + dashboard i18n. Not leftover chrome. Not leftover company/contact 360 back-to-list.
+Scope: leftover chrome only — `MobileNav.tsx` + `workspaces.ts`. Mount: leftover `(dashboard)/layout.tsx` (`GroupedSidebar` / `WorkspaceSwitcher` / `MobileNav`). UI_SHELL: **L** = `workspaces.ts` sidebar; **M** = `MobileNav`. Not leftover 360 back-to-list. Not `go.admin`.
 
-| Location | Leftover-hub CTA? | Disposition |
-|----------|-------------------|-------------|
-| `dashboard.widgets_empty_honesty` (en/ar) | No. Text is empty-cards + Settings → Integrations. No `/companies` `/contacts` `/opportunities` `/activities` `/tasks` `/dashboard` paths. | Left. Settings page GhostButtonLinks remain **frozen**. |
-| `dashboard.overview_subtitle` / `dashboard.title` | No leftover-hub paths | Left |
-| `mission.empty.hint` | “Add companies to start tracking” — empty-state text, no leftover-hub href | Left |
-| Leftover dashboard feature `href` / `window.location` to leftover hubs | **Zero** remaining (closed L28/L29). Remaining dumps: `/v3/companies`, `/v3/crm`, `/v3/activities`, `/v3/companies/{id}`, leftover `/search`, leftover `/decisions`, leftover `/market/trends/{name}` | `/search` + `/decisions` + market-pulse are **not** leftover golden-path hubs — left |
-| Leftover `/dashboard` route JSDoc (`nav target /dashboard`) | Developer comment, not a customer CTA | Left |
-| Leftover company/contact 360 back-to-list | Leftover-hub internals | **Not** this slice |
-| Leftover chrome (`MobileNav`, `workspaces.ts`) | Leftover chrome | **Not** this slice |
+| Location | Leftover-hub hrefs | Isolated customer CTA? | Disposition |
+|----------|--------------------|------------------------|-------------|
+| `MobileNav` | `/dashboard`, `/companies`, `/contacts`, `/opportunities` | No — leftover-shell mobile nav | **Left** |
+| `workspaces.ts` sales core | `/dashboard`, `/companies`, `/contacts`, `/opportunities` | No — leftover-shell sidebar | **Left** |
+| `workspaces.ts` sales activity | `/activities` | No — leftover-shell sidebar | **Left** |
+| `workspaces.ts` `getWorkspaceHome` fallback | `/dashboard` | No — leftover-shell helper | **Left** |
+| `workspaces.ts` admin + `MobileNav` | `/settings`, `/admin` | Leftover `/admin` | **Left** (do not retarget `go.admin`) |
+| `/tasks` | **absent** | n/a | n/a |
+| `workspaces.test.ts` | expects leftover `/dashboard` home; `/companies` stays in sales workspace | Existing leftover-shell contract | **Left** |
 
-No frontend code change this tick. No new dashboard product.
+**FACT:** leftover chrome is leftover-shell navigation (expected). One-line retarget would dump leftover-shell users to v3 while leftover 360 back-to-list still points at leftover hubs. Wholesale leftover chrome rewrite is out of this loop.
+
+No frontend code change this tick. No new product feature.
 
 ---
 
@@ -123,7 +126,7 @@ Not pushed. Named-path only. Never `git add -A`.
 | `162ef993` | fix: restore fail-closed AI copilot default and publish 2026-09-12 audit pack |
 | `85fec4b7` | docs: record B3 verify evidence for 2026-09-12 workstream commit |
 
-### Ticks 0–29 (code + follow-up state hashes)
+### Ticks 0–30 (code + follow-up state hashes)
 
 | Tick | Code / primary | Follow-up state hash |
 |------|----------------|----------------------|
@@ -156,7 +159,8 @@ Not pushed. Named-path only. Never `git add -A`.
 | 26 | `3bcb1ccb` fix: keep leftover dashboard and leftover 404 off leftover golden-path hubs | `e93a757a` |
 | 27 | `4729abfa` fix: keep leftover dashboard widgets off leftover /companies/{id} | `32a4cec4` |
 | 28 | `6c6e44e1` fix: keep leftover onboarding hops off leftover /opportunities and /dashboard | `edef4441` |
-| 29 | `82462ec6` docs: draft loop build summary after leftover dashboard honesty scan | *(hash-record follow-up)* |
+| 29 | `82462ec6` docs: draft loop build summary after leftover dashboard honesty scan | `a0f414ac` |
+| 30 | *(this tick)* docs: record leftover chrome is leftover-shell nav (no rewrite) | *(hash-record follow-up)* |
 
 Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in loop state.
 
@@ -168,7 +172,7 @@ Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in
 |-------|-------|----------|
 | Isolated Jest ticks 0–28 | **build validated** | `%TEMP%\salesos-jest-runner` + `jest.frontend.cjs` — **106/106 PASS** (tick 28) |
 | Host Jest Tick 0 files | **build validated** (narrow) | Tick 2: **4/4 PASS** (`commands` + `employee`) |
-| Tick 29 Jest | **not run** | Docs-only; no FE code change |
+| Tick 29–30 Jest | **not run** | Docs-only; no FE code change |
 | Host `npm install` | **not clean** | ENOTEMPTY / aborted earlier in loop |
 | Browser QA | **not validated** | Not run |
 | Backend pytest this loop | **not run** | FE-only |
@@ -181,7 +185,7 @@ Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in
 | Item | Why |
 |------|-----|
 | Leftover company/contact 360 back-to-list (`/companies`, `/contacts`) | Leftover-hub internals. Do not wholesale leftover hub redirects. |
-| Leftover chrome leftover-hub hrefs (`MobileNav`, `workspaces.ts`) | Leftover chrome. Do not wholesale unless one-line and evidence-clear. |
+| Leftover chrome leftover-hub hrefs (`MobileNav`, `workspaces.ts`) | **FACT** (tick 30): leftover-shell nav. Not rewritten. |
 | Leftover CmdK `go.admin` → `/admin` | Admin pruned from customer chrome. Leave. |
 | Onboarding hops `/settings` + `/admin` + `/automation` | Settings/admin frozen; automation leftover. |
 | v3 GhostButtonLinks: Emp360 `/employees`, admin `/admin`, settings `/settings`, analytics `/analytics` | Frozen. Emp360 parked. |
@@ -194,8 +198,8 @@ Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in
 
 ---
 
-## 6. Next (after this draft)
+## 6. Next (window end)
 
-Eligible last-hour work from `LOOP_BUILD_STATE.md` §31: leftover chrome leftover-hub hrefs — **scan first**, one-line only if evidence-clear. Do **not** wholesale leftover 360. Do **not** retarget `go.admin`. Finalize this summary at window end.
+**Finalize this summary at window end.** Do not start a new product feature. Do **not** wholesale leftover 360. Do **not** retarget leftover chrome. Do **not** retarget `go.admin`.
 
 **Not a Production GO claim.**
