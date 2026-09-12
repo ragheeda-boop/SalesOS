@@ -54,9 +54,18 @@ describe("V3_DOMAIN_NAV", () => {
     }
   });
 
-  it("does not put /v3/shell in primary", () => {
+  it("does not advertise /v3/shell in primary or customer CmdK", () => {
     expect(V3_DOMAIN_NAV.some((item) => item.href === "/v3/shell")).toBe(false);
-    expect(V3_CMD_EXTRA.some((item) => item.href === "/v3/shell")).toBe(true);
+    expect(V3_CMD_EXTRA.some((item) => item.href === "/v3/shell")).toBe(false);
+  });
+});
+
+describe("V3_CMD_EXTRA", () => {
+  it("is empty so customer CmdK is the 12-item golden path only", () => {
+    expect(V3_CMD_EXTRA).toHaveLength(0);
+    const cmdk = [...V3_DOMAIN_NAV, ...V3_CMD_EXTRA].map((item) => item.href);
+    expect(cmdk).toEqual(MUST_KEEP);
+    expect(cmdk).not.toContain("/v3/shell");
   });
 });
 

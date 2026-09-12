@@ -95,15 +95,11 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
   },
 ];
 
-/** Internal spec — still in v3 CmdK; not primary chrome. Page stays. */
-export const V3_CMD_EXTRA: V3NavItem[] = [
-  {
-    href: "/v3/shell",
-    label: "Shell spec",
-    icon: Home,
-    keywords: ["shell", "spec", "chrome"],
-  },
-];
+/**
+ * Extra v3 CmdK destinations beyond primary chrome.
+ * `/v3/shell` stays on disk (internal spec) — do not advertise it to customers.
+ */
+export const V3_CMD_EXTRA: V3NavItem[] = [];
 
 export function isV3NavActive(pathname: string, href: string): boolean {
   if (href === "/v3") return pathname === "/v3" || pathname === "/v3/";
