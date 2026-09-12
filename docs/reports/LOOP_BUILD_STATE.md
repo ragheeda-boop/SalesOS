@@ -212,7 +212,7 @@ No `git add -A`. No push.
 | Done | Slice **L10**: residual GhostButtonLink `/contacts` on `/v3/contacts/[id]`. Header “Legacy contacts” removed (exits shell; list already `/v3/contacts`). No-company tab CTA retargeted to `/v3/companies`. Did **not** start create task (preference 1 was still open). Did **not** redo L3/L8/L9. |
 | Files | `salesos/frontend/src/app/v3/contacts/[id]/page.tsx`; `salesos/frontend/src/app/v3/contacts/[id]/__tests__/page.test.tsx` (new); this file |
 | Tests | **2/2** contact detail + **26/26** ticks 0–5 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | *(pending this tick — fill after named-path commit)* |
+| Commit | **`d3b9fdad`** (`fix: keep v3 contact 360 off legacy /contacts`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 6) | Thin **create task** on `/v3/tasks` (not activities feed). `POST /api/v1/tasks` is real; FE `createTask` exists. Contract: required `title`; optional `priority` (default `medium`, pattern critical\|high\|medium\|low), `source` (default `manual`), `company_id`, `opportunity_id`, `due_date`. No invented fields. Stay in v3. Honest errors. No mocks. Do not redo L3/L8/L9/L10. |
 
