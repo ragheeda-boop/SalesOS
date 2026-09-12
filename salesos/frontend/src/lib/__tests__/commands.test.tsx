@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(39);
+    expect(registerCommand).toHaveBeenCalledTimes(51);
   });
 
   it("registers navigation commands with correct router pushes", () => {

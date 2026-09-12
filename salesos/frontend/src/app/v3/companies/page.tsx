@@ -11,11 +11,11 @@ import { PageHeader } from "../_components/page-header";
 import {
   EmptyState,
   ErrorState,
-  GhostButtonLink,
   LoadingState,
   PermissionState,
 } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
+import { CreateCompanyForm } from "./create-company-form";
 
 type SortOrder = "asc" | "desc";
 
@@ -31,18 +31,20 @@ function statusLabel(status: string | null | undefined): string {
 export default function V3CompaniesPage() {
   const { ready, hasToken } = useAccessToken();
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [showCreate, setShowCreate] = useState(false);
   const debouncedQ = useDebounce(q, 400);
 
   const params = useMemo(
     () => ({
       q: debouncedQ || undefined,
-      page: 1,
+      page,
       page_size: 50,
       sort_by: "name_ar",
       sort_order: sortOrder,
     }),
-    [debouncedQ, sortOrder]
+    [debouncedQ, page, sortOrder]
   );
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -54,12 +56,26 @@ export default function V3CompaniesPage() {
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
+  const pageSize = 50;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Companies"
-        description="Enterprise Data Grid lite — Design Program v3. Legacy /companies is unchanged."
+        description="Tenant companies via GET /api/v1/companies. Create stays in v3 — POST /api/v1/companies."
+        actions={
+          hasToken ? (
+            <button
+              type="button"
+              onClick={() => setShowCreate((open) => !open)}
+              className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+              data-testid="companies-new-toggle"
+            >
+              {showCreate ? "Hide form" : "New company"}
+            </button>
+          ) : null
+        }
       />
 
       {!ready ? (
@@ -68,14 +84,18 @@ export default function V3CompaniesPage() {
         <PermissionState nextPath="/v3/companies" />
       ) : (
         <div className="space-y-4">
+          {showCreate ? <CreateCompanyForm onCancel={() => setShowCreate(false)} /> : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <label className="block min-w-0 flex-1">
               <span className="sr-only">Search companies</span>
               <input
                 type="search"
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search by name or CR…"
+                placeholder="Search by name, CR, or contact…"
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setPage(1);
+                }}
                 className="w-full max-w-md rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm outline-none focus:border-[var(--muhide-orange)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               />
             </label>
@@ -99,19 +119,29 @@ export default function V3CompaniesPage() {
               description={
                 debouncedQ
                   ? "Try a different search, or clear the filter."
-                  : "No companies in this tenant yet."
+                  : "No companies in this tenant yet. Create one here — nothing is invented and the list stays empty until POST /api/v1/companies succeeds."
               }
               action={
                 debouncedQ ? (
                   <button
                     type="button"
-                    onClick={() => setQ("")}
+                    onClick={() => {
+                      setQ("");
+                      setPage(1);
+                    }}
                     className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
                   >
                     Clear search
                   </button>
                 ) : (
-                  <GhostButtonLink href="/companies">Open legacy companies</GhostButtonLink>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreate(true)}
+                    className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                    data-testid="companies-empty-create"
+                  >
+                    Create company
+                  </button>
                 )
               }
             />
@@ -124,7 +154,10 @@ export default function V3CompaniesPage() {
                       <th scope="col" className="px-3 py-2.5 font-medium">
                         <button
                           type="button"
-                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          onClick={() => {
+                            setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+                            setPage(1);
+                          }}
                           className="inline-flex items-center gap-1 hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                           aria-label={`Sort by name, currently ${sortOrder === "asc" ? "ascending" : "descending"}`}
                         >
@@ -182,6 +215,31 @@ export default function V3CompaniesPage() {
                   </tbody>
                 </table>
               </div>
+              {total > pageSize ? (
+                <div className="flex items-center justify-between border-t border-[var(--border-default)] px-3 py-2 text-[12px] text-[var(--text-muted)]">
+                  <span>
+                    Page {page} of {pageCount}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-2 py-1 disabled:opacity-40"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      disabled={page >= pageCount}
+                      onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                      className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-2 py-1 disabled:opacity-40"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 0 **COMPLETE**  
+**Tick:** 1 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -40,15 +40,15 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 
 | ID | Item | Status | Why next |
 |----|------|--------|----------|
-| L3 | **Create company on `/v3/companies`** | **OPEN — tick 1** | List/search exist; empty state sends users to legacy `/companies`. `POST /api/v1/companies` + FE `createCompany()` are real. Thin form + honest empty (no mock). |
-| L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` |
-| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | After L3 (create contact / create deal are the same class of hole). |
+| L3 | **Create company on `/v3/companies`** | **DONE** (tick 1) | Thin `CreateCompanyForm` → `POST /api/v1/companies`. Empty state stays in v3 (no `/companies` leak). Success navigates to `/v3/companies/{id}`. Honest 403/API errors. No mocks. |
+| L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies empty/create. |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Next same-class holes: create contact (`/v3/contacts` still leaks to `/contacts`); create deal on company detail / CRM. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **WRITTEN, not run** — Jest files updated/added. Host `npm install` **aborted** (~24 min) with `TAR_ENTRY_ERROR ENOENT`; `ts-jest` never resolved. `node_modules` may be half-written. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** (tick 1) — **9/9 PASS** via isolated temp Jest (host `salesos/frontend/node_modules` still half-written; `npm install` ENOTEMPTY). No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -94,15 +94,30 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Tests | Jest written. **not validated** — host `npm install` **aborted** (exit unknown, ~24 min); extract errors (`TAR_ENTRY_ERROR ENOENT`, including `ts-jest/dist`). No browser QA. No pytest (no BE). |
 | Commit | **`905d3468`** (`905d3468` — `fix: keep v3 users off legacy employee and CmdK destinations`). **Not pushed.** |
 | Validation | Code **light validated** (static read of handlers + redirect). Tests **not validated**. Browser **not validated**. **production no-go** unchanged. |
-| Next slice (tick 1) | **L3 — create company on `/v3/companies`** using existing `createCompany()` / `POST /api/v1/companies`. Replace “Open legacy companies” empty-state action. Honest empty if create fails. Do not invent fields. Optional follow: create contact if L3 lands early. |
+| Next slice (tick 1) | **L3 — create company on `/v3/companies`** — **closed this tick**. |
 
-### Tick 0 commands
+---
+
+## 5. Tick 1 log
+
+| Field | Value |
+|-------|-------|
+| Done | L1/L2 confirmed already in `905d3468`. Slice 2 **L3**: in-v3 create company + honest empty (no legacy `/companies` CTA). CmdK count assertion 39→51 (matches 51 `registerCommand`). |
+| Files | `salesos/frontend/src/app/v3/companies/page.tsx`; `salesos/frontend/src/app/v3/companies/create-company-form.tsx` (new); `salesos/frontend/src/app/v3/companies/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/companies/__tests__/create-company-form.test.tsx` (new); `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
+| Tests | **9/9 PASS**: employee redirect (1) + CmdK (3) + companies empty/create (5). Isolated runner `%TEMP%\salesos-jest-runner` because host `node_modules` is incomplete (`npm install` ENOTEMPTY). Browser **not validated**. No pytest (no BE). |
+| Commit | *(filled after commit)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. Host `npm test` **not validated** (broken `node_modules/.bin`). **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Next slice (tick 2) | **Create contact on `/v3/contacts`** (same class of hole: empty CTA → `/contacts`; `POST /api/v1/contacts` is real). Or create deal on `/v3/companies/[id]` if contacts is already patched. Stay in v3. No mocks. |
+
+### Tick 1 commands
 
 ```text
-npm install   # salesos/frontend — aborted ~24 min; TAR_ENTRY_ERROR ENOENT; not a clean install
-node node_modules/jest/bin/jest.js … commands.test.tsx employee/__tests__/page.test.tsx
-  # 1st: Cannot find module '@jest/core'
-  # 2nd: Module ts-jest in the transform option was not found
+npm install                         # salesos/frontend — ENOTEMPTY (jsx-ast-utils / graphql / next)
+npm install ts-jest@29.2.6          # same ENOTEMPTY
+# Isolated runner (not committed):
+npm install jest ts-jest typescript jest-environment-jsdom   # %TEMP%\salesos-jest-runner
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
+  # 9/9 PASS (employee + commands + companies __tests__)
 ```
 
 No `git add -A`. No push.
