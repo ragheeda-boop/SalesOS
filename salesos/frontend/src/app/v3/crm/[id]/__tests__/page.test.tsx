@@ -12,12 +12,17 @@ jest.mock("@/lib/api", () => ({
   getEntityActivities: jest.fn(),
 }));
 
+jest.mock("@/lib/api/quotes", () => ({
+  createQuote: jest.fn(),
+}));
+
 jest.mock("@/lib/hooks/useTenant", () => ({
   getTenantId: () => "tenant-1",
 }));
 
 jest.mock("next/navigation", () => ({
   useParams: () => ({ id: "opp-1" }),
+  useRouter: () => ({ push: jest.fn() }),
 }));
 
 jest.mock("@/components/v3/V3AiPopup", () => ({
@@ -66,6 +71,11 @@ describe("V3 deal 360 /opportunities leak", () => {
       "href",
       "/v3/companies/co-1"
     );
+    expect(screen.getByTestId("deal-new-quote-toggle")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("deal-new-quote-toggle"));
+    expect(screen.getByTestId("create-quote-submit")).toBeInTheDocument();
+    expect(screen.getByTestId("create-quote-opportunity-locked")).toBeInTheDocument();
+    expect(document.querySelector('a[href="/opportunities"]')).toBeNull();
   });
 
   it("keeps a deal without company_id inside v3", async () => {

@@ -25,6 +25,7 @@ import {
 } from "../../_components/states";
 import { useAccessToken } from "../../_hooks/useAccessToken";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
+import { CreateQuoteForm } from "../../quotes/create-quote-form";
 
 type TabId = "overview" | "activity" | "contacts";
 
@@ -212,6 +213,7 @@ export default function V3Deal360Page() {
   const id = String(params.id ?? "");
   const { ready, hasToken } = useAccessToken();
   const [tab, setTab] = useState<TabId>("overview");
+  const [showCreateQuote, setShowCreateQuote] = useState(false);
 
   const {
     data: deal,
@@ -352,9 +354,26 @@ export default function V3Deal360Page() {
                     Company 360
                   </GhostButtonLink>
                 ) : null}
+                <button
+                  type="button"
+                  onClick={() => setShowCreateQuote((open) => !open)}
+                  className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                  data-testid="deal-new-quote-toggle"
+                >
+                  {showCreateQuote ? "Hide quote form" : "New quote"}
+                </button>
               </div>
             }
           />
+
+          {showCreateQuote ? (
+            <div className="mb-4">
+              <CreateQuoteForm
+                opportunityId={deal.id}
+                onCancel={() => setShowCreateQuote(false)}
+              />
+            </div>
+          ) : null}
 
           <div
             role="tablist"
