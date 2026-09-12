@@ -334,7 +334,7 @@ No `git add -A`. No push.
 | Done | Residual v3→legacy leak: removed GhostButtonLink **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`). Already on v3 deal 360 with **Back to CRM** → `/v3/crm` — no retarget needed. Did **not** redo L3/L8/L9/L10/L11/L12. Did **not** touch frozen admin `/admin`, settings `/settings`, analytics `/analytics`, people `/employees`. |
 | Files | `salesos/frontend/src/app/v3/crm/[id]/page.tsx`; `salesos/frontend/src/app/v3/crm/[id]/__tests__/page.test.tsx` (new); this file |
 | Tests | **2/2** deal 360 + **45/45** ticks 0–10 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | *(pending this tick)* |
+| Commit | **`40966155`** (`40966155` — `fix: keep v3 deal 360 off legacy /opportunities`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 11) | Scan remaining v3 GhostButtonLink to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` on **golden-path pages only**. Leave frozen: admin `/admin`, settings `/settings`, analytics `/analytics`, people `/employees`. Stay in v3. No mocks. Do not redo L3/L8/L9/L10/L11/L12. |
 
