@@ -8,6 +8,7 @@ jest.mock("../../_hooks/useAccessToken", () => ({
 jest.mock("@/lib/api", () => ({
   listOpportunities: jest.fn(),
   createOpportunity: jest.fn(),
+  createPipeline: jest.fn(),
   searchCompanies: jest.fn(),
   advanceOpportunity: jest.fn(),
 }));
@@ -62,5 +63,15 @@ describe("V3CrmPage empty / create hole", () => {
     await waitFor(() => {
       expect(screen.getByTestId("create-deal-submit")).toBeInTheDocument();
     });
+  });
+
+  it("opens body-less default pipeline create without a designer or legacy /pipeline", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByTestId("crm-pipeline-create-toggle"));
+    await waitFor(() => {
+      expect(screen.getByTestId("create-pipeline-submit")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("create-pipeline-name")).toBeNull();
+    expect(document.querySelector('a[href="/pipeline"]')).toBeNull();
   });
 });

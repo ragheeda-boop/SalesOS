@@ -17,6 +17,7 @@ import {
 } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 import { CreateDealForm } from "./create-deal-form";
+import { CreatePipelineButton } from "./create-pipeline-button";
 
 type PipelineStageDef = {
   key: string;
@@ -78,6 +79,7 @@ export default function V3CrmPage() {
   const [moveError, setMoveError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showCreatePipeline, setShowCreatePipeline] = useState(false);
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: opportunityKeys.list(),
@@ -169,7 +171,7 @@ export default function V3CrmPage() {
     <div className={view === "board" ? "mx-auto max-w-[1600px]" : "mx-auto max-w-6xl"}>
       <PageHeader
         title="CRM"
-        description="Pipeline board + deal table — Design Program v3. Create stays in v3 — POST /api/v1/opportunities. Stage moves call POST /opportunities/{id}/advance."
+        description="Pipeline board + deal table — Design Program v3. Create stays in v3 — POST /api/v1/opportunities. Default pipeline: POST /api/v1/pipelines (body-less). Stage moves call POST /opportunities/{id}/advance."
         actions={
           <div className="flex flex-wrap gap-2">
             <button
@@ -190,6 +192,16 @@ export default function V3CrmPage() {
                 {showCreate ? "Hide form" : "New deal"}
               </button>
             ) : null}
+            {hasToken ? (
+              <button
+                type="button"
+                onClick={() => setShowCreatePipeline((open) => !open)}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                data-testid="crm-pipeline-create-toggle"
+              >
+                {showCreatePipeline ? "Hide pipeline create" : "Create default pipeline"}
+              </button>
+            ) : null}
           </div>
         }
       />
@@ -201,6 +213,7 @@ export default function V3CrmPage() {
       ) : (
         <div className="space-y-4">
           {showCreate ? <CreateDealForm onCancel={() => setShowCreate(false)} /> : null}
+          {showCreatePipeline ? <CreatePipelineButton /> : null}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
               <div

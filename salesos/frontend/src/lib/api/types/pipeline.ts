@@ -33,6 +33,13 @@ export interface PipelineListResponse {
   items: Pipeline[];
 }
 
+/** POST /api/v1/pipelines — body-less; stages are stage names, not a count. */
+export interface CreatePipelineResponse {
+  id: string;
+  name: string;
+  stages: string[];
+}
+
 export interface RevenueKPI {
   total_booked: number;
   total_pipeline: number;

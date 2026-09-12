@@ -1,5 +1,6 @@
 import api from "./client";
 import type {
+  CreatePipelineResponse,
   ExecutiveDashboardResponse,
   Opportunity,
   OpportunityListResponse,
@@ -66,6 +67,14 @@ export async function closeLost(opportunityId: string, reason = "") {
 
 export async function listPipelines(tenantId: string): Promise<PipelineListResponse> {
   const response = await api.get("/api/v1/pipelines", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+/** POST /api/v1/pipelines — no body. Server creates the default sales pipeline. */
+export async function createPipeline(tenantId: string): Promise<CreatePipelineResponse> {
+  const response = await api.post("/api/v1/pipelines", null, {
     headers: { "X-Tenant-Id": tenantId },
   });
   return response.data;
