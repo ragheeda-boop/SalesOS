@@ -1,16 +1,16 @@
-# SalesOS 4h Build Loop — Summary (DRAFT)
+# SalesOS 4h Build Loop — Summary
 
-**Status:** DRAFT — finalize at window end. Not a Production GO claim.  
+**Status:** FINAL (window end). Not a Production GO claim.  
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Ticks covered:** 0–30  
-**Push:** **no**  
-**Production GA:** **NOT APPROVED** / **production no-go**  
+**Ticks:** 0–31  
+**Push:** **no** (named-path commits only; never `git add -A`)  
+**Production GA:** **NOT APPROVED** / **production no-go** (unchanged)  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (not flipped)
 
-Sources: `LOOP_BUILD_STATE.md`, `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPABILITY_MATRIX_VERIFIED-2026-09-12.md`, `B3_VERIFY_COMMIT-2026-09-12.md`.
+Sources: `LOOP_BUILD_STATE.md`, `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPABILITY_MATRIX_VERIFIED-2026-09-12.md`, `B3_VERIFY_COMMIT-2026-09-12.md`, `git log` `162ef993^..HEAD`.
 
 ---
 
@@ -22,39 +22,23 @@ Sources: `LOOP_BUILD_STATE.md`, `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY
 | Phase 7 | **Still BLOCKED.** Not started. |
 | `feature_ai_copilot` | Default **False**. Tick 23 removed leftover CmdK `action.copilot`. Copilot UI not built. |
 | Browser QA | **not validated** |
-| Host `npm test` / `npm run build` | **not validated** (host `node_modules` incomplete) |
-| Docker pytest this loop | **not run** (FE-only slices). Pre-loop B3 Option B **101/101** is `162ef993`. |
-| Last scoped Jest | Tick 28 isolated runner **106/106 PASS**. Ticks 29–30: **no FE code change** — Jest **not re-run**. |
+| Host `npm test` / `npm run build` | **not claimed** / **not validated** (host `node_modules` incomplete) |
+| Backend pytest this loop | **not run** (FE-only). Pre-loop B3 Option B **101/101** is `162ef993`. **353/353 not claimed.** |
+| Last scoped Jest | Tick 28 isolated runner **106/106 PASS**. Ticks 29–31: docs-only — Jest **not re-run**. |
 | Push | **no** |
 
-This file is a draft from `LOOP_BUILD_STATE.md`. It does not invent a leftover dashboard product. Tick 30 **FACT:** leftover chrome (`MobileNav`, `workspaces.ts`) is leftover-shell navigation — **not rewritten**. Leftover 360 back-to-list remains open.
+No leftover dashboard product was invented. Leftover chrome (`MobileNav`, `workspaces.ts`) is leftover-shell navigation — **not rewritten**. Leftover 360 back-to-list remains open.
 
 ---
 
-## 1. What this loop closed
+## 1. What shipped — v3 golden-path create
 
-### Pre-loop (already on branch; not redone)
-
-| Commit | What |
-|--------|------|
-| `162ef993` | Option B: `feature_ai_copilot` default False + 12 unit files; register success → `/v3`; `/v3/icp` in v3 nav; root `railway.json` `preDeployCommand: alembic upgrade head`; `project-audit/` pack |
-| `85fec4b7` | B3 verify memo (Option B **101/101** Docker pytest) |
-
-Login fallback was already `/v3` before this loop. `getDemoData` already removed from graph/knowledge.
-
-### P0 — stay in v3
-
-| ID | Tick | Fact |
-|----|------|------|
-| L1 | 0 | `/v3/employee` → `/v3/people` (Emp360 parked) |
-| L2 | 0 | Leftover CmdK `go.dashboard` → `/v3`; `go.companies` → `/v3/companies` |
-
-### P1 — in-v3 create (real API only; no mocks)
+Thin in-v3 create forms on real APIs. No mocks. Honest 403/API errors. Empty tenants stay in v3.
 
 | ID | Tick | Surface | POST |
 |----|------|---------|------|
 | L3 | 1 | `/v3/companies` | `/api/v1/companies` |
-| L8 | 3 | `/v3/contacts` | `/api/v1/contacts` |
+| L8 | 3 | `/v3/contacts` | `/api/v1/contacts` (`name` + `company_id`) |
 | L9 | 4 | `/v3/companies/[id]` + `/v3/crm` | `/api/v1/opportunities` |
 | L11 | 6 | `/v3/tasks` | `/api/v1/tasks` |
 | L12 | 9 | `/v3/crm` default pipeline | `/api/v1/pipelines` (body-less) |
@@ -63,7 +47,20 @@ Login fallback was already `/v3` before this loop. `getDemoData` already removed
 | L15 | 13 | `/v3/reviews` | `/api/v1/reviews` |
 | L16 | 14 | `/v3/contracts` | `/api/v1/contracts` |
 
-### P1 — leftover-hub leaks off golden-path v3 pages
+Success routes stay in v3 (`/v3/companies/{id}`, `/v3/contacts/{id}`, `/v3/crm/{id}`, `/v3/tasks/{id}`, `/v3/quotes/{id}`, `/v3/proposals/{id}`, `/v3/reviews/{id}`, `/v3/contracts/{id}`). Pipeline create stays on `/v3/crm` (no designer).
+
+---
+
+## 2. Containment — stay off leftover hubs
+
+### P0 — employee + leftover CmdK home
+
+| ID | Tick | Fact |
+|----|------|------|
+| L1 | 0 | `/v3/employee` → `/v3/people` (Emp360 product still parked) |
+| L2 | 0 | Leftover CmdK `go.dashboard` → `/v3`; `go.companies` → `/v3/companies` |
+
+### Golden-path v3 pages — leftover-hub GhostButtonLink/href = zero (tick 11 scan)
 
 | ID | Tick | Fact |
 |----|------|------|
@@ -71,62 +68,75 @@ Login fallback was already `/v3` before this loop. `getDemoData` already removed
 | — | 7 | `/v3/companies/[id]` + `/v3/activities` off leftover hubs |
 | — | 8 | `/v3/contacts/[id]` + `/v3/tasks/[id]` off leftover `/companies/{id}` |
 | — | 10 | `/v3/crm/[id]` off leftover `/opportunities` |
-| — | 11 | Golden-path v3 GhostButtonLink/href to leftover hubs = **zero** |
+| — | 11 | Golden-path v3 GhostButtonLink/href to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` = **zero** |
 
-### P1 — customer chrome / leftover CmdK
+### Leftover CmdK (palette still mounts only on leftover layout)
 
 | ID | Tick | Fact |
 |----|------|------|
-| L17 | 15 | Primary `V3_DOMAIN_NAV` **26 → 12**. Pages not deleted. |
-| L18 | 16 | `/v3/shell` removed from customer v3 CmdK. Page stays. |
-| L19 | 17 | Leftover CmdK `go.settings` → `/v3/settings`. `go.admin` left on `/admin`. |
-| L20–L26 | 18–24 | Stopped advertising pruned Approvals/Data, GTM, Studio/Marketplace, Integrations Studio, Search hub, AI copilot, help overlay. Count **51 → 8** then L27 **8 → 15**. |
-| L27 | 25 | Leftover CmdK jumps to remaining MVP v3 destinations. `go.admin` left. |
+| L19 | 17 | `go.settings` → `/v3/settings`. `go.admin` left on `/admin`. |
+| L20–L26 | 18–24 | Stopped advertising pruned Approvals/Data, GTM, Studio/Marketplace, Integrations Studio, Search hub, AI copilot, help overlay. Count **51 → 8**. |
+| L27 | 25 | Added leftover CmdK jumps to remaining MVP v3 destinations. Count **8 → 15**. `go.admin` left. |
 
-### P1 — leftover-layout containment (not wholesale hub redirects)
+### Leftover dashboard / onboarding / widgets (not wholesale hub redirects)
 
 | ID | Tick | Fact |
 |----|------|------|
 | L28 | 26 | Leftover dashboard QuickActions + metrics header + leftover 404 retargeted off leftover golden-path hubs |
 | L29 | 27 | Leftover dashboard widgets dump to `/v3/companies/{id}` (not leftover `/companies/{id}`). Market-pulse `/market/trends/{name}` left. |
 | L30 | 28 | Leftover onboarding pipeline `/opportunities` → `/v3/crm`; NBA `/dashboard` → `/v3`. `/settings` + `/admin` + `/automation` left. |
-| L31 | 29 | Leftover `/dashboard` honesty copy scan: **no leftover-hub customer CTAs left to close**. Summary draft started. |
+| L31 | 29 | Leftover `/dashboard` honesty copy: **no leftover-hub customer CTAs left**. Honesty line is Settings → Integrations only. |
 | L32 | 30 | Leftover chrome (`MobileNav`, `workspaces.ts`) scan: leftover-shell nav only. **No rewrite.** |
 
 ---
 
-## 2. Tick 30 scan (leftover chrome)
+## 3. Nav prune 26 → 12
 
-Scope: leftover chrome only — `MobileNav.tsx` + `workspaces.ts`. Mount: leftover `(dashboard)/layout.tsx` (`GroupedSidebar` / `WorkspaceSwitcher` / `MobileNav`). UI_SHELL: **L** = `workspaces.ts` sidebar; **M** = `MobileNav`. Not leftover 360 back-to-list. Not `go.admin`.
+| ID | Tick | Fact |
+|----|------|------|
+| L17 | 15 | Primary `V3_DOMAIN_NAV` **26 → 12**. Pages not deleted. |
+| L18 | 16 | `/v3/shell` removed from customer v3 CmdK. Page stays. Customer CmdK = 12 destinations. |
 
-| Location | Leftover-hub hrefs | Isolated customer CTA? | Disposition |
-|----------|--------------------|------------------------|-------------|
-| `MobileNav` | `/dashboard`, `/companies`, `/contacts`, `/opportunities` | No — leftover-shell mobile nav | **Left** |
-| `workspaces.ts` sales core | `/dashboard`, `/companies`, `/contacts`, `/opportunities` | No — leftover-shell sidebar | **Left** |
-| `workspaces.ts` sales activity | `/activities` | No — leftover-shell sidebar | **Left** |
-| `workspaces.ts` `getWorkspaceHome` fallback | `/dashboard` | No — leftover-shell helper | **Left** |
-| `workspaces.ts` admin + `MobileNav` | `/settings`, `/admin` | Leftover `/admin` | **Left** (do not retarget `go.admin`) |
-| `/tasks` | **absent** | n/a | n/a |
-| `workspaces.test.ts` | expects leftover `/dashboard` home; `/companies` stays in sales workspace | Existing leftover-shell contract | **Left** |
+**Kept:** Home, Companies, Contacts, CRM, Activities (real feed), Tasks, Quotes, Proposals, Reviews, Contracts, ICP (live `GET/POST /api/v1/icp/profiles`), Settings (Gmail/integrations).
 
-**FACT:** leftover chrome is leftover-shell navigation (expected). One-line retarget would dump leftover-shell users to v3 while leftover 360 back-to-list still points at leftover hubs. Wholesale leftover chrome rewrite is out of this loop.
-
-No frontend code change this tick. No new product feature.
+**Dropped from primary only (pages stay):** People, Approvals, Analytics, Sales Dashboard, My Day, Effectiveness, CS, Admin, Data + MD children, Review Queue.
 
 ---
 
-## 3. Commits (this loop + pre-loop on branch)
+## 4. Frozen (not this loop)
 
-Not pushed. Named-path only. Never `git add -A`.
+| Item | Why |
+|------|-----|
+| `/v3/approvals` HITL | Out. `POST /approvals` is AI-recommendation HITL. `feature_ai_copilot` stays **False**. |
+| Emp360 (`/v3/people` → `/employees`) | Parked / MVP out. |
+| Admin (`/v3/admin` → `/admin`; leftover CmdK `go.admin`) | Pruned from customer chrome. Leave. |
+| Settings **page** GhostButtonLinks → `/settings` | Frozen. CmdK already `/v3/settings`. |
+| Analytics GhostButtonLink → `/analytics` | Frozen. |
+| Phase 7 / production ingest | **BLOCKED** — human review + PO sign-off. |
+| `feature_ai_copilot` | Default **False**. Not flipped. |
+| Activity-session form on `/v3/activities` | Out. Empty CTA is Gmail/Calendar feed. |
+| Leftover company/contact 360 back-to-list | Leftover-hub internals. Not wholesale-redirected. |
+| Leftover chrome leftover-hub hrefs | Tick 30: leftover-shell nav. Not rewritten. |
+| Wholesale Next redirects of leftover hubs | Out of this loop. |
+| Nav un-prune | Out. 12-item MVP stays. |
+| Stripe / OAuth / Railway live confirm / backups | Human ops. |
 
-### Pre-loop
+---
+
+## 5. Commits (named-path, not pushed)
+
+Never `git add -A`. Never push.
+
+### Pre-loop (already on branch; not redone)
 
 | Hash | Subject |
 |------|---------|
 | `162ef993` | fix: restore fail-closed AI copilot default and publish 2026-09-12 audit pack |
 | `85fec4b7` | docs: record B3 verify evidence for 2026-09-12 workstream commit |
 
-### Ticks 0–30 (code + follow-up state hashes)
+Login fallback was already `/v3` before this loop. `getDemoData` already removed from graph/knowledge.
+
+### Ticks 0–30
 
 | Tick | Code / primary | Follow-up state hash |
 |------|----------------|----------------------|
@@ -160,46 +170,41 @@ Not pushed. Named-path only. Never `git add -A`.
 | 27 | `4729abfa` fix: keep leftover dashboard widgets off leftover /companies/{id} | `32a4cec4` |
 | 28 | `6c6e44e1` fix: keep leftover onboarding hops off leftover /opportunities and /dashboard | `edef4441` |
 | 29 | `82462ec6` docs: draft loop build summary after leftover dashboard honesty scan | `a0f414ac` |
-| 30 | `b7e5a18d` docs: record leftover chrome is leftover-shell nav (no rewrite) | *(hash-record follow-up)* |
+| 30 | `b7e5a18d` docs: record leftover chrome is leftover-shell nav (no rewrite) | `4bfe34bd` |
 
 Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in loop state.
 
+Tick 31 (this file + state log) is a named-path commit after this document.
+
 ---
 
-## 4. Validation (honest labels)
+## 6. Test status (honest labels)
 
 | Check | Label | Evidence |
 |-------|-------|----------|
-| Isolated Jest ticks 0–28 | **build validated** | `%TEMP%\salesos-jest-runner` + `jest.frontend.cjs` — **106/106 PASS** (tick 28) |
+| Isolated Jest ticks 0–28 | **build validated** | `%TEMP%\salesos-jest-runner` + `jest.frontend.cjs` — **106/106 PASS** (tick 28 last run) |
 | Host Jest Tick 0 files | **build validated** (narrow) | Tick 2: **4/4 PASS** (`commands` + `employee`) |
-| Tick 29–30 Jest | **not run** | Docs-only; no FE code change |
-| Host `npm install` | **not clean** | ENOTEMPTY / aborted earlier in loop |
+| Ticks 29–31 Jest | **not run** | Docs-only; no FE code change |
+| Host `npm test` | **not claimed** | Host `node_modules` incomplete |
+| `npm run build` | **not claimed** | Not run |
+| Backend 353/353 | **not claimed** | Not run this loop |
 | Browser QA | **not validated** | Not run |
-| Backend pytest this loop | **not run** | FE-only |
 | Production | **production no-go** | Unchanged |
 
 ---
 
-## 5. Left frozen / not closed this loop
+## 7. Remaining human actions
 
-| Item | Why |
-|------|-----|
-| Leftover company/contact 360 back-to-list (`/companies`, `/contacts`) | Leftover-hub internals. Do not wholesale leftover hub redirects. |
-| Leftover chrome leftover-hub hrefs (`MobileNav`, `workspaces.ts`) | **FACT** (tick 30): leftover-shell nav. Not rewritten. |
-| Leftover CmdK `go.admin` → `/admin` | Admin pruned from customer chrome. Leave. |
-| Onboarding hops `/settings` + `/admin` + `/automation` | Settings/admin frozen; automation leftover. |
-| v3 GhostButtonLinks: Emp360 `/employees`, admin `/admin`, settings `/settings`, analytics `/analytics` | Frozen. Emp360 parked. |
-| `/v3/approvals` HITL | Out. `feature_ai_copilot` stays False. |
-| Activity-session form on `/v3/activities` | Out. Empty CTA is Gmail/Calendar feed. |
-| Nav un-prune | Out. 12-item MVP stays. |
-| Wholesale Next redirects of leftover hubs | Out of this loop. |
-| Phase 7 / production ingest | Blocked. |
-| Stripe / OAuth / Railway live confirm / backups | Human ops. |
+| Action | Why |
+|--------|-----|
+| **Push** this branch | All loop commits are local. Not pushed. |
+| **Railway dashboard** | Confirm live `preDeployCommand` matches root `railway.json` (`alembic upgrade head`). File is set; live dashboard **not validated**. |
+| **Backup** | Enable Railway managed backup schedule (OPS-01). |
+| **SSO** | Create staging/production Google OAuth apps. Console access required. |
+| **Stripe** | Live keys empty → 503. Human KYC + keys. |
+| **Browser QA** | Login → `/v3` → companies/contacts/CRM/tasks/quote/proposal/review/contract/pipeline create. Stay in v3. Loop is Jest-only. |
+| **Leftover chrome / leftover 360** | `MobileNav` + `workspaces.ts` leftover-shell nav left. Leftover company/contact 360 back-to-list left. Do not wholesale-redirect without a leftover-shell plan. |
 
----
-
-## 6. Next (window end)
-
-**Finalize this summary at window end.** Do not start a new product feature. Do **not** wholesale leftover 360. Do **not** retarget leftover chrome. Do **not** retarget `go.admin`.
+Also still human (not this loop): Phase 7 candidate review + PO sign-off; Design Partner MOU; production LLM contract.
 
 **Not a Production GO claim.**

@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 30 **COMPLETE**  
+**Tick:** 31 **COMPLETE** (window end)  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -73,7 +73,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 28 isolated runner **106/106 PASS** (ticks 0–28 scoped +2 leftover onboarding hops; leftover onboarding **2/2**). Ticks 29–30 docs-only — Jest **not re-run**. Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 28 isolated runner **106/106 PASS** (ticks 0–28 scoped +2 leftover onboarding hops; leftover onboarding **2/2**). Ticks 29–31 docs-only — Jest **not re-run**. Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). 353/353 **not claimed**. `npm run build` **not claimed**. |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -913,7 +913,7 @@ No `git add -A`. No push.
 | Commit | **`b7e5a18d`** (`b7e5a18d` — `docs: record leftover chrome is leftover-shell nav (no rewrite)`). **Not pushed.** |
 | Validation | Scan **light validated** (static read of `MobileNav.tsx` + `workspaces.ts` + leftover layout mount + `workspaces.test.ts`). Tests **not run** this tick. Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings` (page GhostButtonLinks only; CmdK now `/v3/settings`). `/v3/analytics` → `/analytics`. Legacy CmdK `go.admin` still `/admin`. Onboarding `/settings` + `/admin` hops left. Leftover chrome leftover-hub hrefs left (leftover-shell nav). Leftover 360 back-to-list left. |
-| Next slice (tick 31 / window end) | **Finalize `LOOP_BUILD_SUMMARY.md`** at window end. Do **not** start a new product feature. Do **not** wholesale leftover 360. Do **not** retarget leftover chrome. Do **not** retarget `go.admin`. Do **not** start HITL. Do **not** invent activity-session form. Do **not** un-prune nav. Do not redo L3/L8–L32. |
+| Next slice (tick 31 / window end) | **Finalize `LOOP_BUILD_SUMMARY.md`** — **closed this tick**. |
 
 ### Tick 30 scan (leftover chrome)
 
@@ -936,6 +936,32 @@ No `git add -A`. No push.
 # Last recorded (tick 28):
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-28 scoped>"
   # 106/106 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 36. Tick 31 log
+
+| Field | Value |
+|-------|-------|
+| Done | Window end. Finalized `LOOP_BUILD_SUMMARY.md` (facts-only). No new product feature. Did **not** wholesale leftover 360. Did **not** retarget leftover chrome. Did **not** retarget `go.admin`. Did **not** start HITL. Did **not** invent activity-session form. Did **not** un-prune nav. Did **not** flip `feature_ai_copilot`. Did **not** start Phase 7. |
+| Files | `docs/reports/LOOP_BUILD_SUMMARY.md`; this file |
+| Tests | Docs-only. Isolated Jest **not re-run**. Last recorded: Tick 28 **106/106 PASS**. Browser **not validated**. Host `npm test` **not validated**. `npm run build` **not claimed**. Backend 353/353 **not claimed**. No pytest (no BE). |
+| Commit | Named-path after this log. **Not pushed.** |
+| Validation | Summary **light validated** (static read of `LOOP_BUILD_STATE.md` + `git log 162ef993^..HEAD`). Tests **not run** this tick. Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Remaining human | Push; Railway dashboard `preDeployCommand`; Railway backup; SSO (Google OAuth); Stripe keys; browser QA of v3 golden path; leftover chrome / leftover 360. |
+| Next slice | **None.** Window end. Do not start a new product feature from this loop. |
+
+### Tick 31 commands
+
+```text
+# Docs-only. Isolated Jest not re-run (no FE code change).
+# Last recorded (tick 28):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-28 scoped>"
+  # 106/106 PASS
+git log --oneline 162ef993^..HEAD
 ```
 
 No `git add -A`. No push.
