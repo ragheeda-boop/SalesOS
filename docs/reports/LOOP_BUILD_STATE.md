@@ -310,7 +310,7 @@ No `git add -A`. No push.
 | Done | Slice **L12**: confirmed `POST /api/v1/pipelines` is real and body-less (`default_sales_pipeline`, 201, `{id,name,stages[]}`). Added FE `createPipeline` (null body, no invented name/stages). Thin toggle + button on existing `/v3/crm` pipeline page. Success stays on CRM — no designer, no invented `/v3/pipelines/{id}`. Honest 403. Did **not** redo L3/L8/L9/L10/L11. Did **not** touch Emp360 / `/employees`. |
 | Files | `salesos/frontend/src/lib/api/pipeline.ts`; `salesos/frontend/src/lib/api/types/pipeline.ts`; `salesos/frontend/src/lib/api/__tests__/pipeline.test.ts` (new); `salesos/frontend/src/app/v3/crm/create-pipeline-button.tsx` (new); `salesos/frontend/src/app/v3/crm/page.tsx`; `salesos/frontend/src/app/v3/crm/__tests__/create-pipeline-button.test.tsx` (new); `salesos/frontend/src/app/v3/crm/__tests__/page.test.tsx`; this file |
 | Tests | **4/4** pipeline-create + **43/43** ticks 0–9 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | *(this tick)* |
+| Commit | **`adba2369`** (`adba2369` — `fix: add in-v3 default pipeline create on CRM without a designer`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 10) | Residual **GhostButtonLink Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`). Remaining GhostButtonLink legacy hubs: admin `/admin`, settings `/settings`, analytics `/analytics`, people `/employees` — **frozen** (Emp360 parked). Stay in v3. No mocks. Do not redo L3/L8/L9/L10/L11/L12. |
 
