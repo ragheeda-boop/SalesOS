@@ -16,7 +16,7 @@ export function QuickActionsBar() {
 
   const actions: QuickActionItem[] = [
     {
-      href: "/companies/new",
+      href: "/v3/companies",
       label: t("dashboard.new_company"),
       icon: <Plus className="h-3.5 w-3.5" />,
       variant: "primary",
@@ -28,13 +28,13 @@ export function QuickActionsBar() {
       variant: "secondary",
     },
     {
-      href: "/opportunities",
+      href: "/v3/crm",
       label: "الصفقات",
       icon: <Building2 className="h-3.5 w-3.5" />,
       variant: "secondary",
     },
     {
-      href: "/activities",
+      href: "/v3/activities",
       label: "الأنشطة",
       icon: <CalendarClock className="h-3.5 w-3.5" />,
       variant: "secondary",

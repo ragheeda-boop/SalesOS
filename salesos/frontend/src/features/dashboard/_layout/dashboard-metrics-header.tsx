@@ -39,7 +39,7 @@ function QuickActions() {
   return (
     <div className="flex items-center gap-2">
       <Link
-        href="/companies/new"
+        href="/v3/companies"
         className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--muhide-orange)] px-3 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90"
       >
         <Building2 className="h-3.5 w-3.5" aria-hidden="true" />

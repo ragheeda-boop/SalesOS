@@ -6,7 +6,7 @@ export default function NotFound() {
       <h1 className="text-6xl font-bold text-[var(--text-disabled)]">404</h1>
       <p className="mt-4 text-[var(--text-muted)]">Page not found</p>
       <Link
-        href="/dashboard"
+        href="/v3"
         className="mt-4 px-4 py-2 bg-[var(--muhide-orange)] text-white rounded-lg hover:opacity-90"
       >
         Back to Dashboard
