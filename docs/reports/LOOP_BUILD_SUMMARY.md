@@ -160,7 +160,7 @@ Not pushed. Named-path only. Never `git add -A`.
 | 27 | `4729abfa` fix: keep leftover dashboard widgets off leftover /companies/{id} | `32a4cec4` |
 | 28 | `6c6e44e1` fix: keep leftover onboarding hops off leftover /opportunities and /dashboard | `edef4441` |
 | 29 | `82462ec6` docs: draft loop build summary after leftover dashboard honesty scan | `a0f414ac` |
-| 30 | *(this tick)* docs: record leftover chrome is leftover-shell nav (no rewrite) | *(hash-record follow-up)* |
+| 30 | `b7e5a18d` docs: record leftover chrome is leftover-shell nav (no rewrite) | *(hash-record follow-up)* |
 
 Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in loop state.
 
