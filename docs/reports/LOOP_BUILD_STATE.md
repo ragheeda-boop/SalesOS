@@ -237,7 +237,7 @@ No `git add -A`. No push.
 | Done | Slice **L11**: in-v3 create task on `/v3/tasks`. Confirmed real `POST /api/v1/tasks` + FE `createTask`. Empty CTA no longer bounces to companies. Success → `/v3/tasks/{id}`. Extended `createTask` last-arg `dueDate` so optional `due_date` is sent. Did **not** redo L3/L8/L9/L10. |
 | Files | `salesos/frontend/src/app/v3/tasks/page.tsx`; `salesos/frontend/src/app/v3/tasks/create-task-form.tsx` (new); `salesos/frontend/src/app/v3/tasks/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/tasks/__tests__/create-task-form.test.tsx` (new); `salesos/frontend/src/lib/api/admin.ts` (`dueDate` last arg); this file |
 | Tests | **6/6** tasks + **32/32** ticks 0–6 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | *(set after commit)* |
+| Commit | **`b53731fb`** (`b53731fb` — `fix: add in-v3 task create so empty tenants stay on /v3/tasks`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 7) | Residual **GhostButtonLink Legacy company** on `/v3/companies/[id]` (`/companies/{id}`) and/or **Legacy activities** on `/v3/activities`. Pipeline create: FE has GET `listPipelines` only — confirm POST before starting. Stay in v3. No mocks. Do not redo L3/L8/L9/L10/L11. |
 
