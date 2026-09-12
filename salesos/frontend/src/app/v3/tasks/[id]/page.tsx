@@ -212,7 +212,6 @@ export default function V3TaskDetailPage() {
                   <GhostButtonLink href={`/v3/companies/${companyId}`} primary>
                     Open Company 360
                   </GhostButtonLink>
-                  <GhostButtonLink href={`/companies/${companyId}`}>Legacy company</GhostButtonLink>
                 </div>
               </div>
             )}

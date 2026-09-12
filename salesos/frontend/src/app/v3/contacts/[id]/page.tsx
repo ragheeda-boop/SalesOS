@@ -149,9 +149,6 @@ function CompanyTab({
           <GhostButtonLink href={`/v3/companies/${contact.company_id}`} primary>
             Open Company 360
           </GhostButtonLink>
-          <GhostButtonLink href={`/companies/${contact.company_id}`}>
-            Legacy company
-          </GhostButtonLink>
         </div>
       </div>
     </div>
