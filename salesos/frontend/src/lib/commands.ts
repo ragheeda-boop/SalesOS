@@ -31,72 +31,8 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     handler: () => router.push("/search"),
   });
 
-  registerCommand({
-    id: "go.integrations",
-    label: "التكاملات",
-    description: "Integrations Studio (Hub HTTP)",
-    category: "تنقل",
-    shortcut: "G I",
-    handler: () => router.push("/integrations"),
-  });
-
-  registerCommand({
-    id: "go.integrations.connect",
-    label: "Integrations · Connect",
-    description: "Studio Connect step (tip ?step=connect)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=connect"),
-  });
-
-  registerCommand({
-    id: "go.integrations.test",
-    label: "Integrations · Test",
-    description: "Studio Test step (tip ?step=test)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=test"),
-  });
-
-  registerCommand({
-    id: "go.integrations.map",
-    label: "Integrations · Map",
-    description: "Studio Map step (tip ?step=map)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=map"),
-  });
-
-  registerCommand({
-    id: "go.integrations.conflict",
-    label: "Integrations · Conflict",
-    description: "Studio Conflict step (tip ?step=conflict)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=conflict"),
-  });
-
-  registerCommand({
-    id: "go.integrations.schedule",
-    label: "Integrations · Schedule",
-    description: "Studio Schedule step (tip ?step=schedule)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=schedule"),
-  });
-
-  registerCommand({
-    id: "go.integrations.monitor",
-    label: "Integrations · Monitor",
-    description: "Studio Monitor step (tip ?step=monitor)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=monitor"),
-  });
-
-  registerCommand({
-    id: "go.integrations.disconnect",
-    label: "Integrations · Disconnect",
-    description: "Studio Disconnect step (tip ?step=disconnect)",
-    category: "تنقل",
-    handler: () => router.push("/integrations?step=disconnect"),
-  });
-
-  // Tenant Studio + Marketplace listings stay on disk (tip / MVP-out) — do not advertise.
+  // Integrations Studio + Tenant Studio + Marketplace listings stay on disk (tip / MVP-out) — do not advertise.
+  // Gmail OAuth stays on /v3/settings (go.settings), not this studio.
   registerCommand({
     id: "go.v3.quotes",
     label: "V3 · Quotes",

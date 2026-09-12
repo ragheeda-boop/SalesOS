@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(19);
+    expect(registerCommand).toHaveBeenCalledTimes(11);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -33,25 +33,6 @@ describe("registerBuiltinCommands", () => {
     expect(companiesCall).toBeTruthy();
     companiesCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/v3/companies");
-
-    const integrationsCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.integrations"
-    );
-    expect(integrationsCall).toBeTruthy();
-    integrationsCall[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/integrations");
-    const monitorCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.integrations.monitor"
-    );
-    expect(monitorCall).toBeTruthy();
-    monitorCall[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/integrations?step=monitor");
-    const conflictCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.integrations.conflict"
-    );
-    expect(conflictCall).toBeTruthy();
-    conflictCall[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/integrations?step=conflict");
   });
 
   it("does not advertise pruned approvals or master-data destinations", () => {
@@ -125,6 +106,29 @@ describe("registerBuiltinCommands", () => {
       expect(ids).not.toContain(id);
     }
 
+    expect(ids).toContain("go.admin");
+  });
+
+  it("does not advertise leftover Integrations Studio tip destinations", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    const integrationsTips = [
+      "go.integrations",
+      "go.integrations.connect",
+      "go.integrations.test",
+      "go.integrations.map",
+      "go.integrations.conflict",
+      "go.integrations.schedule",
+      "go.integrations.monitor",
+      "go.integrations.disconnect",
+    ];
+    for (const id of integrationsTips) {
+      expect(ids).not.toContain(id);
+    }
+
+    expect(ids).toContain("go.settings");
     expect(ids).toContain("go.admin");
   });
 
