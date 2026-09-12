@@ -138,7 +138,7 @@ Tick 2 was assigned L6 / host Jest (`npm install`). This tick did **not** fight 
 | Done | Slice **L8**: in-v3 create contact + honest empty (no legacy `/contacts` CTA). Form posts `createContact` (`name`, `company_id`, optional email/phone/position). No company → stay in v3 (`/v3/companies`). Success → `/v3/contacts/{id}` if id exists. |
 | Files | `salesos/frontend/src/app/v3/contacts/page.tsx`; `salesos/frontend/src/app/v3/contacts/create-contact-form.tsx` (new); `salesos/frontend/src/app/v3/contacts/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/contacts/__tests__/create-contact-form.test.tsx` (new); this file |
 | Tests | **6/6** contacts + **15/15** tick 0–3 scoped **PASS** (`%TEMP%\salesos-jest-runner`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | *(set after commit)* |
+| Commit | **`57d45779`** (`fix: add in-v3 contact create so empty tenants stay off legacy /contacts`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 4) | **Create deal** on `/v3/companies/[id]` (or CRM) if `POST` opportunity API is real. Confirm contract first. Stay in v3. No mocks. Residual optional: remove `/contacts` GhostButtonLink on `/v3/contacts/[id]`. |
 
