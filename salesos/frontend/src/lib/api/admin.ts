@@ -167,7 +167,8 @@ export async function createTask(
   priority?: string,
   companyId?: string,
   source?: string,
-  opportunityId?: string
+  opportunityId?: string,
+  dueDate?: string
 ): Promise<TaskResponse> {
   const response = await api.post(
     "/api/v1/tasks",
@@ -177,6 +178,7 @@ export async function createTask(
       company_id: companyId,
       source,
       opportunity_id: opportunityId,
+      due_date: dueDate,
     },
     { headers: { "X-Tenant-Id": tenantId } }
   );

@@ -17,6 +17,7 @@ import {
 } from "../_components/states";
 import { formatWhen } from "../_components/format";
 import { useAccessToken } from "../_hooks/useAccessToken";
+import { CreateTaskForm } from "./create-task-form";
 
 const PRIORITY_FILTERS = [
   { label: "All", value: "" },
@@ -39,6 +40,7 @@ export default function V3TasksPage() {
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [q, setQ] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: taskKeys.list(priority ? { priority } : undefined),
@@ -75,7 +77,7 @@ export default function V3TasksPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Tasks"
-        description="Revenue tasks from GET /api/v1/tasks — Design Program v3. No fake rows; empty is honest. There is no dedicated legacy /tasks page."
+        description="Revenue tasks from GET /api/v1/tasks. Create stays in v3 — POST /api/v1/tasks. No fake rows; empty is honest."
         actions={
           <div className="flex flex-wrap gap-2">
             <button
@@ -87,6 +89,16 @@ export default function V3TasksPage() {
             </button>
             <GhostButtonLink href="/v3/activities">Activities</GhostButtonLink>
             <GhostButtonLink href="/v3/companies">Companies</GhostButtonLink>
+            {hasToken ? (
+              <button
+                type="button"
+                onClick={() => setShowCreate((open) => !open)}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                data-testid="tasks-new-toggle"
+              >
+                {showCreate ? "Hide form" : "New task"}
+              </button>
+            ) : null}
           </div>
         }
       />
@@ -97,6 +109,7 @@ export default function V3TasksPage() {
         <PermissionState nextPath="/v3/tasks" />
       ) : (
         <div className="space-y-4">
+          {showCreate ? <CreateTaskForm onCancel={() => setShowCreate(false)} /> : null}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
               <label className="block min-w-0 flex-1">
@@ -184,7 +197,7 @@ export default function V3TasksPage() {
               description={
                 q || priority || status !== "all"
                   ? "Try clearing search or filters. Empty results are honest — nothing is invented."
-                  : "GET /api/v1/tasks returned no rows for this tenant."
+                  : "No tasks in this tenant yet. Create one here — nothing is invented and the list stays empty until POST /api/v1/tasks succeeds."
               }
               action={
                 q || priority || status !== "all" ? (
@@ -200,7 +213,14 @@ export default function V3TasksPage() {
                     Clear filters
                   </button>
                 ) : (
-                  <GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreate(true)}
+                    className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                    data-testid="tasks-empty-create"
+                  >
+                    Create task
+                  </button>
                 )
               }
             />
