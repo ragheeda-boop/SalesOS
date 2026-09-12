@@ -70,7 +70,7 @@ def test_normalize_key_guards() -> None:
 
 
 def test_feature_ai_copilot_stays_false() -> None:
-    assert settings.feature_ai_copilot is True
+    assert settings.feature_ai_copilot is False
 
 
 def test_rollback_unknown_version() -> None:

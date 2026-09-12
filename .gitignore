@@ -7,6 +7,9 @@ __pycache__/
 .venv/
 venv/
 env/
+# Mypy incremental caches (local/CI variant dirs — never commit)
+.mypy_cache/
+.mypy_cache_*
 *.egg
 dist/
 build/
@@ -152,3 +155,5 @@ docs/audit/ga-engineering-audit/enterprise-audit-board/history/*/evidence/ops01-
 /workflow-failure-snippet.txt
 .vercel
 .env*
+
+salesos/backend/outputs/

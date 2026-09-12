@@ -1,7 +1,7 @@
 # AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-09-05 (E2E Commercial Loop 42/42 PASS; Backend 353/353 PASS; Frontend build PASS; Productization gates closed; Phase 7 REMAINS BLOCKED; production NOT APPROVED)  
+> **Last updated:** 2026-09-12 (Phase 3 merge: Option B `feature_ai_copilot` default False; register→`/v3`; `/v3/icp` in v3 nav; Wave 0 index reset; Phase 7 REMAINS BLOCKED; production NOT APPROVED; B3 not run; no commit)  
 > **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → [SalesOS Master Closure Sequence](docs/audit/ga-engineering-audit/SALESOS_MASTER_CLOSURE_SEQUENCE.md) (product-closure order, locked 2026-08-17) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
 
 ---
@@ -105,6 +105,50 @@
 - `frontend/src/app/v3/layout.tsx` — removed "Not Production GO" marker
 - `frontend/src/app/(dashboard)/graph/page.tsx` — removed getDemoData() + demo button
 - `frontend/src/app/(dashboard)/knowledge/page.tsx` — removed getDemoData() + demo button
+
+---
+
+## 40. Session Summary (2026-09-12) — Phase 3 Merge (Option B + v3 P0s)
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| Audit pack | **WRITTEN** | `project-audit/` (2026-09-12 read-only synthesis; not edited this session). Verdict overlay: **pilot-ready with conditions**; Production GA still **NOT APPROVED** (2026-07-22 audit **NO-GO** not overturned). |
+| Wave 0 git index | **RESET** | A1: `git reset HEAD -- .` cleared **4,748 staged deletes**. Cached/index empty after. Working tree **not** claimed clean (unstaged D/M + large untracked set remain). Broken `engineering-os` submodule still breaks plain `git status`. |
+| A1 Git hygiene | **REPORTED** | `docs/reports/GIT_HYGIENE-2026-09-12.md` — junk probes deleted on disk; `.gitignore` mypy-cache patterns; no commit. |
+| A2 AI flag recon | **REPORTED then APPLIED** | `docs/reports/AI_FLAG_RECON-2026-09-12.md` recommended Option B. This session applied it (see below). |
+| A3 Railway config | **RECONCILED (prior wave)** | Canonical **`railway.json`** (repo root) + `preDeployCommand: alembic upgrade head`. `salesos/railway.json` is a pointer stub. Live Railway dashboard **not** re-probed. |
+| A4 Doc contradictions | **REPORTED** | `docs/reports/RECON-2026-09-12.md` — 22 OPEN rows (5 P0). C-01 (flag split) addressed by Option B apply; remaining C-02…C-05 (GA language, A-09/OPS-01, missing harnesses) stay OPEN. |
+| B1 UI shell | **REPORTED + 2 P0s** | `docs/reports/UI_SHELL_STRATEGY-2026-09-12.md` — v3=40 / legacy=78 confirmed. Login already `/v3`. Register retargeted `/dashboard`→`/v3`. `/v3/icp` added to `V3_DOMAIN_NAV` (v3 CmdK inherits). 78 legacy pages **not** deleted. `commands.ts` **not** rewritten. |
+| B2 Capability matrix | **REPORTED** | `docs/reports/CAPABILITY_MATRIX_VERIFIED-2026-09-12.md` — 113 rows; COMPLETE **52** (audit ~85 over-claimed). Light validated; suites **not** re-run. |
+| B3 | **NOT RUN** | No browser / deploy / suite pass this session. |
+| Option B | **APPLIED** | `Settings.feature_ai_copilot` default **False**. 12 backend test files / 17 asserts flipped True→False (names still `remains_false` where they were). Honesty strings in admin/copilot routers already False / gated-by-Settings — **not** rewritten. Hardcoded-False chaos/policies endpoints **left False**. `AI_HONESTY.md` **not** edited. |
+| Phase 7 | **STILL BLOCKED** | 54,185 ER candidates + 36 suspicious short-CR + DI P1/P2 confirmation + Product/PO sign-off. |
+| Production | **NOT APPROVED** | Provider DEV-only. Audit NO-GO stands. No commit / push. |
+
+### Key engineering notes
+- Option B restores fail-closed Settings so `AI_HONESTY.md`, FF-07, soak, pentest marker, prod templates, and EAB AIGOV agree. Lab still via `FEATURE_AI_COPILOT=true`.
+- Phase 3 (2026-08-19) True flip was a **code-gate**, not production-AI authorization. Do not market copilot as GA.
+- Register was the only post-auth landing still pointing at legacy `/dashboard`. Login fallback was already `/v3`.
+- v3 command palette is `V3CommandPalette` = `V3_DOMAIN_NAV` ∪ `V3_CMD_EXTRA` — ICP nav entry is enough; legacy `commands.ts` left alone.
+
+### Files changed this session
+- `salesos/backend/app/config.py` — `feature_ai_copilot: bool = False`
+- 12 unit test files listed in AI_FLAG_RECON §6.1 (17 asserts → False)
+- `salesos/frontend/src/app/(auth)/register/page.tsx` — success → `/v3`
+- `salesos/frontend/src/components/v3/nav.ts` — ICP item
+- `AGENTS.md` — header + this §40
+- `docs/reports/PHASE3_MERGE-2026-09-12.md` — handoff
+
+### Remaining human actions
+| Priority | Action | Owner |
+|----------|--------|-------|
+| P1 | B3 approval (browser / scoped pytest if wanted) | PO |
+| P1 | Confirm live Railway dashboard `preDeployCommand` matches root `railway.json` | DevOps |
+| P1 | Human commit after review (do **not** `git add -A` — poisoned unstaged deletes remain) | Eng+PO |
+| P1 | Enable Railway managed backup schedule | Platform |
+| P1 | Staging SSO / Google OAuth app | DevOps |
+| P1 | Stripe keys (fail-closed until set) | Platform |
+| P1 | Phase 7 still blocked — 54,185 ER candidates + DI P1/P2 + PO sign-off | PO+TL |
 
 ---
 

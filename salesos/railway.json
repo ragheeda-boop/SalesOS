@@ -1,13 +1,10 @@
 {
-  "$schema": "https://railway.com/railway.schema.json",
-  "build": {
-    "builder": "DOCKERFILE",
-    "dockerfilePath": "backend/Dockerfile",
-    "watchPatterns": ["**"]
-  },
-  "deploy": {
-    "preDeployCommand": "alembic upgrade head",
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
-  }
+  "NOTICE": "STALE — NOT USED BY RAILWAY. This is a pointer, not a deploy config.",
+  "canonicalFile": "../railway.json",
+  "doNotDeployFromThisFile": true,
+  "evidence": [
+    ".github/workflows/deploy.yml:134 — Deploy from repo root so the root railway.json / Dockerfile.railway path is used.",
+    ".github/workflows/deploy-staging.yml:138 — same instruction for staging.",
+    "docs/archive/railway.json.stale — previous salesos/railway.json contents (backend/Dockerfile + alembic upgrade head)."
+  ]
 }

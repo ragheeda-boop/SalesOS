@@ -20,6 +20,7 @@ import {
   Upload,
   Users,
   Zap,
+  Crosshair,
 } from "lucide-react";
 
 export type V3NavItem = {
@@ -123,6 +124,12 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
     keywords: ["effectiveness", "cohorts", "lift", "funnel", "conversion", "pipeline"],
   },
   {
+    href: "/v3/icp",
+    label: "ICP",
+    icon: Crosshair,
+    keywords: ["icp", "ideal customer", "profile", "fit", "criteria"],
+  },
+  {
     href: "/v3/cs",
     label: "CS",
     icon: HeartHandshake,
@@ -150,6 +157,7 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
   { href: "/v3/data/people", label: "MD People", icon: Users, keywords: ["master data", "people", "contacts"] },
   { href: "/v3/data/imports", label: "Imports", icon: Upload, keywords: ["imports", "source files", "ingestion"] },
   { href: "/v3/data/er", label: "Entity Resolution", icon: GitMerge, keywords: ["er", "matching", "merge", "conflicts"] },
+  { href: "/v3/review-queue", label: "Review Queue", icon: GitMerge, keywords: ["review", "p3", "fuzzy", "short cr", "master data"] },
 ];
 
 export const V3_CMD_EXTRA: V3NavItem[] = [

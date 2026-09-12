@@ -20,7 +20,7 @@ from app.modules.load_slo.targets import (
 
 
 def test_feature_ai_copilot_remains_false() -> None:
-    assert settings.feature_ai_copilot is True
+    assert settings.feature_ai_copilot is False
 
 
 def test_targets_match_50_tenant_checklist() -> None:

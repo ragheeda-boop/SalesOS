@@ -38,7 +38,7 @@ export default function RegisterPage() {
     registerMutation.mutate(
       { email, password, fullName: name },
       {
-        onSuccess: () => router.push("/dashboard"),
+        onSuccess: () => router.push("/v3"),
         onError: (err: unknown) => {
           if (err && typeof err === "object" && "response" in err) {
             const axiosErr = err as {

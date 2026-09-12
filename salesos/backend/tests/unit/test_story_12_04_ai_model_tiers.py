@@ -83,7 +83,7 @@ def test_default_must_be_in_allowed() -> None:
 
 
 def test_copilot_flag_unchanged_false() -> None:
-    assert settings.feature_ai_copilot is True
+    assert settings.feature_ai_copilot is False
 
 
 def test_round_trip_dump_includes_ai_model_tier() -> None:

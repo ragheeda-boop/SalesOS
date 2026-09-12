@@ -1,0 +1,20 @@
+# Backend-local artifacts (never commit)
+
+# Virtualenv (also covered by root .gitignore)
+.venv/
+
+# Mypy incremental caches (~14 local/CI variants)
+.mypy_cache/
+.mypy_cache_*
+
+# Celery beat schedule (local runtime state)
+celerybeat-schedule
+celerybeat-schedule.*
+
+# Ad-hoc dumps / one-off probes
+orphan_dump.txt
+test_reg.py
+test_store.py
+direct_import.py
+.tmp-*
+.tmp_*

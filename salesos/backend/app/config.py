@@ -155,11 +155,11 @@ class Settings(BaseSettings):
     salesos_api_url: str = "http://localhost:8000"
 
     feature_search_fuzzy_v2: bool = False
-    # GA honesty (Wave 6): False until AI runtime is evidence-validated.
-    # P3-6 (2026-08-19): Phase 3 gates closed — groundedness, hallucination,
-    # HITL approval, governance audit all passing. Flag flipped to True.
-    # See docs/audit/ga-engineering-audit/PHASE3_GATE_EVIDENCE_PACK.md
-    feature_ai_copilot: bool = True
+    # GA honesty (Wave 6 + AI_HONESTY.md): False until production AI is
+    # evidence-validated. Phase 3 (2026-08-19) flipped True for a code gate;
+    # PO recon 2026-09-12 reverts default. Lab: FEATURE_AI_COPILOT=true.
+    # See docs/reports/AI_FLAG_RECON-2026-09-12.md
+    feature_ai_copilot: bool = False
     # C.1: Postgres signal marketplace after alembic f7a1b82c3d09. Default False =
     # InMemory (current behavior). Flip only after non-prod upgrade.
     feature_signal_marketplace_postgres: bool = False
