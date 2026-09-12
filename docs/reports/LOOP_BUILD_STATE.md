@@ -285,7 +285,7 @@ No `git add -A`. No push.
 | Done | Residual v3→legacy leaks: removed GhostButtonLink **Legacy company** on `/v3/contacts/[id]` company tab (`/companies/{id}`) and `/v3/tasks/[id]` related-company footer (`/companies/{id}`). Already have v3 Company 360 CTAs — no retarget needed. Did **not** start pipeline create (residuals were still open at tick start). Did **not** redo L3/L8/L9/L10/L11. |
 | Files | `salesos/frontend/src/app/v3/contacts/[id]/page.tsx`; `salesos/frontend/src/app/v3/contacts/[id]/__tests__/page.test.tsx`; `salesos/frontend/src/app/v3/tasks/[id]/page.tsx`; `salesos/frontend/src/app/v3/tasks/[id]/__tests__/page.test.tsx` (new); this file |
 | Tests | **5/5** contact-detail+task-detail + **39/39** ticks 0–8 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | *(pending named-path commit this tick)* |
+| Commit | **`e1147dee`** (`e1147dee` — `fix: keep v3 contact 360 and task detail off legacy /companies`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 9) | Thin **pipeline create** only: POST `/api/v1/pipelines` is real but **body-less** (default sales pipeline); FE still GET `listPipelines` only — add `createPipeline` client, no invented name/stages UI. Stay in v3. No mocks. Do not redo L3/L8/L9/L10/L11. People `/employees` GhostButtonLink remains frozen (Emp360 parked). |
 
