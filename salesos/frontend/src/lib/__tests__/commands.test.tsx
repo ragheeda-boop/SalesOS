@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(51);
+    expect(registerCommand).toHaveBeenCalledTimes(41);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -183,6 +183,32 @@ describe("registerBuiltinCommands", () => {
     expect(gtmSequences).toBeTruthy();
     gtmSequences[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/sequences");
+  });
+
+  it("does not advertise pruned approvals or master-data destinations", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    const pruned = [
+      "go.v3.approvals",
+      "go.v3.data",
+      "go.v3.data.companies",
+      "go.v3.data.people",
+      "go.v3.data.er",
+      "go.v3.data.review-queue",
+      "go.data.companies",
+      "go.data.people",
+      "go.data.imports",
+      "go.data.er",
+    ];
+    for (const id of pruned) {
+      expect(ids).not.toContain(id);
+    }
+
+    expect(ids).toContain("go.v3.quotes");
+    expect(ids).toContain("go.v3.contracts");
+    expect(ids).toContain("go.admin");
   });
 
   it("retargets leftover go.settings to /v3/settings and leaves go.admin on /admin", () => {
