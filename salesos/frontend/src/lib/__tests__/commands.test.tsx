@@ -185,6 +185,25 @@ describe("registerBuiltinCommands", () => {
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/sequences");
   });
 
+  it("retargets leftover go.settings to /v3/settings and leaves go.admin on /admin", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const settingsCall = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.settings"
+    );
+    expect(settingsCall).toBeTruthy();
+    settingsCall[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/v3/settings");
+
+    const adminCall = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.admin"
+    );
+    expect(adminCall).toBeTruthy();
+    adminCall[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/admin");
+  });
+
   it("registers action commands that dispatch custom events", () => {
     const dispatchSpy = jest.spyOn(window, "dispatchEvent");
     const mockRouter = { push: jest.fn() } as any;

@@ -374,7 +374,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     description: "الانتقال إلى الإعدادات",
     category: "تنقل",
     shortcut: "G ,",
-    handler: () => router.push("/settings"),
+    handler: () => router.push("/v3/settings"),
   });
 
   registerCommand({
