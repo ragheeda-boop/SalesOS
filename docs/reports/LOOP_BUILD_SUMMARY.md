@@ -177,7 +177,7 @@ Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in
 
 Tick 31: `3af11fac` docs: finalize 4h SalesOS build loop summary at window end. **Not pushed.**
 
-Tick 32: leftover 360 list CTAs (named-path; see git). **Not pushed.**
+Tick 32: `db023caa` fix: keep leftover company and contact 360 list CTAs on v3. **Not pushed.**
 
 ---
 
