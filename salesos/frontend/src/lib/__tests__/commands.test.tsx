@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(31);
+    expect(registerCommand).toHaveBeenCalledTimes(19);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -52,69 +52,6 @@ describe("registerBuiltinCommands", () => {
     expect(conflictCall).toBeTruthy();
     conflictCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/integrations?step=conflict");
-
-    const studioWorkflows = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.workflows"
-    );
-    expect(studioWorkflows).toBeTruthy();
-    studioWorkflows[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/workflows");
-
-    const studioNotifications = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.notifications"
-    );
-    expect(studioNotifications).toBeTruthy();
-    studioNotifications[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/notifications");
-
-    const studioBranding = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.branding"
-    );
-    expect(studioBranding).toBeTruthy();
-    studioBranding[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/branding");
-
-    const studioTerritories = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.territories"
-    );
-    expect(studioTerritories).toBeTruthy();
-    studioTerritories[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/territories");
-
-    const studioAiTiers = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.ai-model-tiers"
-    );
-    expect(studioAiTiers).toBeTruthy();
-    studioAiTiers[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-model-tiers");
-
-    const studioPromptLibrary = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.prompt-library"
-    );
-    expect(studioPromptLibrary).toBeTruthy();
-    studioPromptLibrary[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/prompt-library");
-
-    const studioAiPolicies = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.ai-policies"
-    );
-    expect(studioAiPolicies).toBeTruthy();
-    studioAiPolicies[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-policies");
-
-    const studioAiMemory = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.ai-memory"
-    );
-    expect(studioAiMemory).toBeTruthy();
-    studioAiMemory[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-memory");
-
-    const marketplaceListings = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.marketplace.listings"
-    );
-    expect(marketplaceListings).toBeTruthy();
-    marketplaceListings[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/marketplace/listings");
   });
 
   it("does not advertise pruned approvals or master-data destinations", () => {
@@ -163,6 +100,32 @@ describe("registerBuiltinCommands", () => {
     for (const id of gtmTips) {
       expect(ids).not.toContain(id);
     }
+  });
+
+  it("does not advertise leftover Tenant Studio or Marketplace tip destinations", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    const studioMarketplaceTips = [
+      "go.studio.custom-fields",
+      "go.studio.scoring",
+      "go.studio.permissions",
+      "go.studio.workflows",
+      "go.studio.notifications",
+      "go.studio.branding",
+      "go.studio.territories",
+      "go.studio.ai-model-tiers",
+      "go.studio.prompt-library",
+      "go.studio.ai-policies",
+      "go.studio.ai-memory",
+      "go.marketplace.listings",
+    ];
+    for (const id of studioMarketplaceTips) {
+      expect(ids).not.toContain(id);
+    }
+
+    expect(ids).toContain("go.admin");
   });
 
   it("retargets leftover go.settings to /v3/settings and leaves go.admin on /admin", () => {
