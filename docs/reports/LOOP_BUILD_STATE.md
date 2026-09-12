@@ -187,7 +187,7 @@ No `git add -A`. No push.
 | Done | Slice **L9**: confirmed real `POST /api/v1/opportunities` (`company_id` + `name` required, `value` default 0) and existing FE `createOpportunity`. In-v3 create deal on `/v3/companies/[id]` (locked company_id) and `/v3/crm` (company picker). Empty CTAs no longer bounce CRM↔company or mention legacy pipeline. Success → `/v3/crm/{id}`. |
 | Files | `salesos/frontend/src/app/v3/crm/create-deal-form.tsx` (new); `salesos/frontend/src/app/v3/crm/page.tsx`; `salesos/frontend/src/app/v3/crm/__tests__/create-deal-form.test.tsx` (new); `salesos/frontend/src/app/v3/crm/__tests__/page.test.tsx` (new); `salesos/frontend/src/app/v3/companies/[id]/page.tsx`; `salesos/frontend/src/app/v3/companies/[id]/__tests__/page.test.tsx` (new); `salesos/frontend/jest.frontend.cjs` (new; isolated runner); `salesos/frontend/jest.frontend.setup.cjs` (new); `salesos/frontend/jest.frontend.next-link.cjs` (new); this file |
 | Tests | **9/9** deal/company-detail + **24/24** ticks 0–4 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
-| Commit | pending this tick (named paths). **Not pushed.** |
+| Commit | **`6ab5ca15`** (`fix: add in-v3 deal create so empty CRM stays off legacy pipeline`). **Not pushed.** |
 | Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice (tick 5) | Residual **GhostButtonLink `/contacts` on `/v3/contacts/[id]`**, or thin **create task** if `POST /api/v1/tasks` is real — confirm contract first. Stay in v3. No mocks. Do not redo L3/L8/L9. |
 
