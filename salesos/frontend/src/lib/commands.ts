@@ -10,7 +10,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     description: "الانتقال إلى لوحة المعلومات",
     category: "تنقل",
     shortcut: "G D",
-    handler: () => router.push("/dashboard"),
+    handler: () => router.push("/v3"),
   });
 
   registerCommand({
@@ -19,7 +19,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     description: "الانتقال إلى قائمة الشركات",
     category: "تنقل",
     shortcut: "G C",
-    handler: () => router.push("/companies"),
+    handler: () => router.push("/v3/companies"),
   });
 
   registerCommand({

@@ -1,0 +1,112 @@
+# SalesOS 4h Build Loop — State
+
+**Date:** 2026-09-12  
+**Branch:** `fix/login-and-keys`  
+**Workspace:** `D:\AISalesOS`  
+**Tick:** 0 **COMPLETE**  
+**Production GA:** **NOT APPROVED** / **production no-go**  
+**Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
+**AI flag:** `feature_ai_copilot` default **False** (do not flip)
+
+Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPABILITY_MATRIX_VERIFIED-2026-09-12.md`, `B3_VERIFY_COMMIT-2026-09-12.md`, `project-audit/17_NEXT_ACTIONS.md`, `project-audit/06_MVP_SCOPE.md`.
+
+---
+
+## 0. Already DONE (do not redo)
+
+| Item | Evidence | Label |
+|------|----------|-------|
+| Option B — `feature_ai_copilot` default False + 12 unit files | commit `162ef993`; B3 Option B **101/101** Docker pytest | **build validated** |
+| Register success → `/v3` | `register/page.tsx` in `162ef993` | **light validated** (static; browser **not validated**) |
+| `/v3/icp` in `V3_DOMAIN_NAV` + v3 CmdK | `nav.ts` in `162ef993` | **light validated** (static) |
+| Root `railway.json` `preDeployCommand: alembic upgrade head` | `162ef993` | **light validated** (file). Live dashboard **not validated** |
+| Audit pack `project-audit/` + Wave 0–2 reports committed | `162ef993` (54 files) | **committed** — **not pushed** |
+| B3 verify memo | `85fec4b7` | **committed** — **not pushed** |
+| Login fallback already `/v3` | B1 + PHASE3_MERGE | **FACT** before this loop |
+| `getDemoData` removed from graph/knowledge | AGENTS §39; B1 §7.3 | **FACT** |
+
+---
+
+## 1. This 4h loop — IN SCOPE (code)
+
+### P0 — keep users in v3 (slice 1)
+
+| ID | Item | Status | Notes |
+|----|------|--------|-------|
+| L1 | `/v3/employee` exits v3 → `/employees/me` | **DONE** (tick 0) | Now `redirect("/v3/people")`. Emp360 product still parked (MVP out). |
+| L2 | Legacy CmdK `go.dashboard` / `go.companies` | **DONE** (tick 0) | Handlers → `/v3` and `/v3/companies`. Palette still mounted only on legacy layout. |
+
+### P1 — golden-path UI holes (slice 2+)
+
+| ID | Item | Status | Why next |
+|----|------|--------|----------|
+| L3 | **Create company on `/v3/companies`** | **OPEN — tick 1** | List/search exist; empty state sends users to legacy `/companies`. `POST /api/v1/companies` + FE `createCompany()` are real. Thin form + honest empty (no mock). |
+| L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | After L3 (create contact / create deal are the same class of hole). |
+
+### P1 — scoped proof
+
+| ID | Item | Status |
+|----|------|--------|
+| L6 | Scoped tests for files we touch | **WRITTEN, not run** — Jest files updated/added; `npm install` still incomplete (`ts-jest` missing). No Docker pytest (FE-only). |
+| L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
+
+---
+
+## 2. OUT OF SCOPE (this loop)
+
+- Phase 7 / production DB / `salesos` production ingest
+- Flip `feature_ai_copilot` True
+- Secrets, Stripe keys, OAuth app creation, Railway dashboard
+- Deleting 78 legacy pages wholesale
+- Claiming Production GO
+- Editing `project-audit/`
+- Human ops: MOU, LLM contract, SSO apps, backup schedule, Stripe KYC, Sentry, status page, MSA/DPA
+- Wholesale Next redirects of all legacy hubs
+
+---
+
+## 3. Frozen / later (not this 4h)
+
+| Item | Source | Why frozen |
+|------|--------|------------|
+| Phase 7-B/C + 54,185 review | AGENTS, 17_NEXT #16–18 | Human + PO |
+| Railway live `preDeployCommand` confirm | 17_NEXT #3 | Dashboard |
+| Railway managed backup | 17_NEXT #4 | Platform |
+| Google OAuth staging app | 17_NEXT #9 | Console |
+| Stripe live keys | MVP #11 | Keys empty → 503 |
+| Production LLM contract | MVP #5 | Procurement |
+| GTM 8 MOCK stories | Matrix §5.10 | Out of MVP |
+| KG / Neo4j | ADR-108 | Offline |
+| Decision FE STUB | Matrix | Do not sell |
+| Nav prune to ~12 MVP items | B1 §8 | After golden-path create |
+| `/v3/shell` remove from CmdK | B1 P1 | Later |
+| GhostButtonLink “Open legacy …” on other v3 pages | B1 | Not all `/companies`/`/dashboard`; L3 replaces the companies empty-state leak |
+
+---
+
+## 4. Tick 0 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice 1 v3 containment: `/v3/employee` stays in v3; legacy CmdK home/companies go to v3. |
+| Files | `salesos/frontend/src/app/v3/employee/page.tsx`; `salesos/frontend/src/app/v3/employee/__tests__/page.test.tsx` (new); `salesos/frontend/src/lib/commands.ts`; `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
+| Tests | Jest written. **not validated** — host `npm install` started (allowed this loop) but did not finish; `ts-jest` not resolvable. No browser QA. No pytest (no BE). |
+| Commit | *filled after `git commit`* |
+| Validation | Code **light validated** (static read of handlers + redirect). Tests **not validated**. Browser **not validated**. **production no-go** unchanged. |
+| Next slice (tick 1) | **L3 — create company on `/v3/companies`** using existing `createCompany()` / `POST /api/v1/companies`. Replace “Open legacy companies” empty-state action. Honest empty if create fails. Do not invent fields. Optional follow: create contact if L3 lands early. |
+
+### Tick 0 commands
+
+```text
+npm install   # salesos/frontend — started; still running at tick end; ts-jest missing
+node node_modules/jest/bin/jest.js … commands.test.tsx employee/__tests__/page.test.tsx
+  # 1st: Cannot find module '@jest/core'
+  # 2nd: Module ts-jest in the transform option was not found
+```
+
+No `git add -A`. No push.
+
+---
+
+*Loop state. Not a Production GO claim.*

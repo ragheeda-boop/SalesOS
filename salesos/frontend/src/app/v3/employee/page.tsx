@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Legacy / bookmark path — Emp360 lives under /employees/me */
+/** Bookmark path — stay in v3. Employee list is the v3 surface; Emp360 stays parked. */
 export default function V3EmployeeRedirectPage() {
-  redirect("/employees/me");
+  redirect("/v3/people");
 }

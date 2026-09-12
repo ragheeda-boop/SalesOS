@@ -25,7 +25,14 @@ describe("registerBuiltinCommands", () => {
       (c: any) => c[0].id === "go.dashboard"
     );
     dashboardCall[0].handler();
-    expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
+    expect(mockRouter.push).toHaveBeenCalledWith("/v3");
+
+    const companiesCall = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.companies"
+    );
+    expect(companiesCall).toBeTruthy();
+    companiesCall[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/v3/companies");
 
     const integrationsCall = (registerCommand as jest.Mock).mock.calls.find(
       (c: any) => c[0].id === "go.integrations"
