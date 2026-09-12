@@ -949,7 +949,7 @@ No `git add -A`. No push.
 | Done | Window end. Finalized `LOOP_BUILD_SUMMARY.md` (facts-only). No new product feature. Did **not** wholesale leftover 360. Did **not** retarget leftover chrome. Did **not** retarget `go.admin`. Did **not** start HITL. Did **not** invent activity-session form. Did **not** un-prune nav. Did **not** flip `feature_ai_copilot`. Did **not** start Phase 7. |
 | Files | `docs/reports/LOOP_BUILD_SUMMARY.md`; this file |
 | Tests | Docs-only. Isolated Jest **not re-run**. Last recorded: Tick 28 **106/106 PASS**. Browser **not validated**. Host `npm test` **not validated**. `npm run build` **not claimed**. Backend 353/353 **not claimed**. No pytest (no BE). |
-| Commit | Named-path after this log. **Not pushed.** |
+| Commit | **`3af11fac`** (`3af11fac` — `docs: finalize 4h SalesOS build loop summary at window end`). **Not pushed.** |
 | Validation | Summary **light validated** (static read of `LOOP_BUILD_STATE.md` + `git log 162ef993^..HEAD`). Tests **not run** this tick. Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Remaining human | Push; Railway dashboard `preDeployCommand`; Railway backup; SSO (Google OAuth); Stripe keys; browser QA of v3 golden path; leftover chrome / leftover 360. |
 | Next slice | **None.** Window end. Do not start a new product feature from this loop. |

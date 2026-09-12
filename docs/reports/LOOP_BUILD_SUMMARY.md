@@ -174,7 +174,7 @@ Login fallback was already `/v3` before this loop. `getDemoData` already removed
 
 Also on the loop branch: `8d0bc7f9` docs: record aborted frontend npm install in loop state.
 
-Tick 31 (this file + state log) is a named-path commit after this document.
+Tick 31: `3af11fac` docs: finalize 4h SalesOS build loop summary at window end. **Not pushed.**
 
 ---
 
