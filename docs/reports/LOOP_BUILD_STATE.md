@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 24 **COMPLETE**  
+**Tick:** 25 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -62,12 +62,13 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | L24 | **Stop advertising leftover Search hub CmdK** | **DONE** (tick 22) | Removed `go.search` (`/search`). Page stays (FREEZE — later embed in v3 topbar). Overlay toggle stays as `action.search`. Left `go.admin` on `/admin`. Count **11 → 10**. |
 | L25 | **Stop advertising leftover AI copilot CmdK** | **DONE** (tick 23) | Removed `action.copilot` (`salesos:toggle-copilot`). `feature_ai_copilot` stays **False**. Copilot UI not built. Overlay toggle stays as `action.search`. Left `go.admin` on `/admin`. Count **10 → 9**. |
 | L26 | **Stop advertising leftover help overlay CmdK** | **DONE** (tick 24) | Removed `action.help` (`salesos:toggle-help`). Leftover layout has no listener. Overlay toggles stay as `action.search` / `action.theme`. Left `go.admin` on `/admin`. Count **9 → 8**. |
+| L27 | **Leftover CmdK jumps to remaining MVP v3 destinations** | **DONE** (tick 25) | Added `go.v3.contacts` / `go.v3.crm` / `go.v3.activities` / `go.v3.tasks` / `go.v3.proposals` / `go.v3.reviews` / `go.v3.icp`. Did not duplicate home/companies/settings. Left `go.admin` on `/admin`. Count **8 → 15**. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 24 isolated runner **98/98 PASS** (ticks 0–24 scoped +1 CmdK help-id; commands **11/11**). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 25 isolated runner **99/99 PASS** (ticks 0–25 scoped +1 CmdK leftover-mvp-jumps; commands **12/12**). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -108,6 +109,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Legacy CmdK leftover Search hub destination | Tick 22 / UI_SHELL `/search` FREEZE | **DONE** (tick 22). `go.search` removed from leftover palette. `/search` page stays. Overlay toggle `action.search` kept. |
 | Legacy CmdK leftover AI copilot action | Tick 23 / AI_HONESTY | **DONE** (tick 23). `action.copilot` removed from leftover palette. `feature_ai_copilot` stays False. Copilot UI not built. |
 | Legacy CmdK leftover help overlay action | Tick 24 / leftover layout | **DONE** (tick 24). `action.help` removed from leftover palette. Leftover layout has no `salesos:toggle-help` listener. `action.search` / `action.theme` kept. |
+| Leftover CmdK jumps to remaining MVP v3 destinations | Tick 25 / leftover layout | **DONE** (tick 25). Added leftover CmdK jumps to `/v3/contacts`, `/v3/crm`, `/v3/activities`, `/v3/tasks`, `/v3/proposals`, `/v3/reviews`, `/v3/icp`. Home/companies/settings already v3 — not duplicated. `go.admin` left on `/admin`. |
 | GhostButtonLink “Open legacy …” on other v3 pages | B1 | Golden-path leaks to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` = **ZERO** (tick 11 scan). Remaining **frozen** GhostButtonLink: `/v3/people` + `/v3/people/[id]` → `/employees` (Emp360 parked); `/v3/admin` → `/admin`; `/v3/settings` → `/settings`; `/v3/analytics` → `/analytics`. |
 
 ---
@@ -717,6 +719,31 @@ No `git add -A`. No push.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-24 scoped>"
   # commands __tests__: 11/11 PASS
   # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav: 98/98 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 29. Tick 25 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L27**: leftover CmdK jumps to remaining MVP v3 destinations. Added `go.v3.contacts` → `/v3/contacts`, `go.v3.crm` → `/v3/crm`, `go.v3.activities` → `/v3/activities`, `go.v3.tasks` → `/v3/tasks`, `go.v3.proposals` → `/v3/proposals`, `go.v3.reviews` → `/v3/reviews`, `go.v3.icp` → `/v3/icp`. Did **not** duplicate `go.dashboard` / `go.companies` / `go.settings`. Left `go.admin` on `/admin`. Count **8 → 15**. Did **not** start `/v3/approvals` HITL. Did **not** invent activity-session form. Did **not** un-prune nav. Did **not** touch Emp360 / admin / settings / analytics **pages**. Leftover CmdK now covers the full 12-item MVP nav + `go.admin` (leave) + wired overlays. |
+| Files | `salesos/frontend/src/lib/commands.ts`; `salesos/frontend/src/lib/__tests__/commands.test.tsx`; this file |
+| Tests | **12/12** commands (+1 leftover-mvp-jumps) + **99/99** ticks 0–25 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | **PENDING** — named-path commit this tick. **Not pushed.** |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings` (page GhostButtonLinks only; CmdK now `/v3/settings`). `/v3/analytics` → `/analytics`. Legacy CmdK `go.admin` still `/admin`. |
+| Next slice (tick 26) | Leftover CmdK extras + leftover CmdK MVP jumps are **closed**. Remaining leftover CmdK: `go.admin` (leave) + wired overlays. Do **not** retarget `go.admin`. Do **not** start `/v3/approvals` HITL. Do **not** invent activity-session form. Do **not** un-prune nav. Leave Emp360 / admin / settings / analytics **pages** frozen. Wholesale Next redirects of leftover hubs stay out of this loop. Eligible later: leftover-layout **page** leaks other than the frozen GhostButtonLinks (scan only — no wholesale redirects). Commercial create + nav prune + leftover CmdK extras/jumps closed. Do not redo L3/L8–L27. |
+
+### Tick 25 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs --testPathPattern="<ticks 0-25 scoped>"
+  # commands __tests__: 12/12 PASS
+  # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav: 99/99 PASS
 ```
 
 No `git add -A`. No push.

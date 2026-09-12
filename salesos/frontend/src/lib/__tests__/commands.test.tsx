@@ -14,7 +14,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(8);
+    expect(registerCommand).toHaveBeenCalledTimes(15);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -58,7 +58,42 @@ describe("registerBuiltinCommands", () => {
 
     expect(ids).toContain("go.v3.quotes");
     expect(ids).toContain("go.v3.contracts");
+    expect(ids).toContain("go.v3.contacts");
+    expect(ids).toContain("go.v3.crm");
     expect(ids).toContain("go.admin");
+  });
+
+  it("adds leftover CmdK jumps to remaining MVP v3 destinations without duplicating home/companies/settings", () => {
+    const mockRouter = { push: jest.fn() } as any;
+    registerBuiltinCommands(mockRouter);
+
+    const ids = (registerCommand as jest.Mock).mock.calls.map((c: any) => c[0].id);
+    const jumps: Array<[string, string]> = [
+      ["go.v3.contacts", "/v3/contacts"],
+      ["go.v3.crm", "/v3/crm"],
+      ["go.v3.activities", "/v3/activities"],
+      ["go.v3.tasks", "/v3/tasks"],
+      ["go.v3.proposals", "/v3/proposals"],
+      ["go.v3.reviews", "/v3/reviews"],
+      ["go.v3.icp", "/v3/icp"],
+    ];
+    for (const [id, href] of jumps) {
+      const call = (registerCommand as jest.Mock).mock.calls.find((c: any) => c[0].id === id);
+      expect(call).toBeTruthy();
+      call[0].handler();
+      expect(mockRouter.push).toHaveBeenCalledWith(href);
+    }
+
+    expect(ids.filter((id: string) => id === "go.dashboard")).toHaveLength(1);
+    expect(ids.filter((id: string) => id === "go.companies")).toHaveLength(1);
+    expect(ids.filter((id: string) => id === "go.settings")).toHaveLength(1);
+
+    const adminCall = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.admin"
+    );
+    expect(adminCall).toBeTruthy();
+    adminCall[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/admin");
   });
 
   it("does not advertise leftover GTM tip destinations", () => {
