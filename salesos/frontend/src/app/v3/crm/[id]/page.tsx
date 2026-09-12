@@ -352,9 +352,6 @@ export default function V3Deal360Page() {
                     Company 360
                   </GhostButtonLink>
                 ) : null}
-                <GhostButtonLink href="/opportunities" primary>
-                  Legacy opportunities
-                </GhostButtonLink>
               </div>
             }
           />

@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 9 **COMPLETE**  
+**Tick:** 10 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -42,7 +42,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 |----|------|--------|----------|
 | L3 | **Create company on `/v3/companies`** | **DONE** (tick 1) | Thin `CreateCompanyForm` → `POST /api/v1/companies`. Empty state stays in v3 (no `/companies` leak). Success navigates to `/v3/companies/{id}`. Honest 403/API errors. No mocks. |
 | L4 | Honest empty states only (no mock/demo) on any page we touch | **STANDING RULE** | B1: zero `getDemoData` in `src/` — followed on companies + contacts empty/create. |
-| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal / task / default pipeline closed (L3/L8/L9/L11/L12). Contact 360 `/contacts` leak closed (tick 5). Company 360 `/companies/{id}` leak closed (tick 7). `/v3/activities` `/activities` leak closed (tick 7). Residual Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]` closed (tick 8). Residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`) still open. |
+| L5 | Backend-without-UI that is **MVP-blocking** — thin v3 surface **only if API is real** | **DEFER** | Create company / contact / deal / task / default pipeline closed (L3/L8/L9/L11/L12). Contact 360 `/contacts` leak closed (tick 5). Company 360 `/companies/{id}` leak closed (tick 7). `/v3/activities` `/activities` leak closed (tick 7). Residual Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]` closed (tick 8). Residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`) closed (tick 10). |
 | L8 | **Create contact on `/v3/contacts`** | **DONE** (tick 3) | Thin `CreateContactForm` → `POST /api/v1/contacts` (`name` + `company_id` required). Empty state stays in v3 (no `/contacts` leak). Success navigates to `/v3/contacts/{id}`. Honest 403/API errors. Company picker via `GET /api/v1/companies`. No mocks. |
 | L9 | **Create deal on `/v3/companies/[id]` + `/v3/crm`** | **DONE** (tick 4) | Thin `CreateDealForm` → existing `createOpportunity` (`POST /api/v1/opportunities` query: `company_id`, `name`, optional `value` default 0). Company tab locks `company_id`. CRM empty CTA no longer bounces to companies / “legacy pipeline”. Success → `/v3/crm/{id}`. Honest 403/API errors. No mocks. Did not invent `owner_id` UI (FE client does not send it). |
 | L10 | Residual GhostButtonLink `/contacts` on `/v3/contacts/[id]` | **DONE** (tick 5) | Header “Legacy contacts” removed (exits shell; “Back to list” already `/v3/contacts`). Company-tab empty CTA retargeted `/contacts` → `/v3/companies` (“Browse companies”). Honest no-`company_id` copy. Did not invent link-company. Left company-tab “Legacy company” (`/companies/{id}`) — not this hole. |
@@ -53,7 +53,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 9 isolated runner **43/43 PASS** (ticks 0–9). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 10 isolated runner **45/45 PASS** (ticks 0–10). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -86,7 +86,7 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | Decision FE STUB | Matrix | Do not sell |
 | Nav prune to ~12 MVP items | B1 §8 | After golden-path create |
 | `/v3/shell` remove from CmdK | B1 P1 | Later |
-| GhostButtonLink “Open legacy …” on other v3 pages | B1 | L3 closed `/companies` empty leak; tick 3 closed `/contacts` list empty leak; tick 4 closed CRM/company-deal empty CTAs; tick 5 closed `/v3/contacts/[id]` `/contacts` leak; tick 6 closed `/v3/tasks` empty bounce; tick 7 closed company 360 `/companies/{id}` + `/v3/activities` `/activities`; tick 8 closed Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]`. Tick 9 did not touch residual **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`). Admin/settings/analytics/people (`/employees`) legacy hubs still frozen. |
+| GhostButtonLink “Open legacy …” on other v3 pages | B1 | L3 closed `/companies` empty leak; tick 3 closed `/contacts` list empty leak; tick 4 closed CRM/company-deal empty CTAs; tick 5 closed `/v3/contacts/[id]` `/contacts` leak; tick 6 closed `/v3/tasks` empty bounce; tick 7 closed company 360 `/companies/{id}` + `/v3/activities` `/activities`; tick 8 closed Legacy company on `/v3/contacts/[id]` and `/v3/tasks/[id]`. Tick 10 closed **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`). Admin/settings/analytics/people (`/employees`) legacy hubs still frozen. Next: scan remaining golden-path GhostButtonLink to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard`. |
 
 ---
 
@@ -321,6 +321,30 @@ No `git add -A`. No push.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
   # crm pipeline + createPipeline client: 4/4 PASS (plus existing crm deal tests → 11/11 on crm+client)
   # employee + commands + companies + contacts + contact [id] + crm + company [id] + tasks + task [id] + activities + pipeline client: 43/43 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 14. Tick 10 log
+
+| Field | Value |
+|-------|-------|
+| Done | Residual v3→legacy leak: removed GhostButtonLink **Legacy opportunities** on `/v3/crm/[id]` (`/opportunities`). Already on v3 deal 360 with **Back to CRM** → `/v3/crm` — no retarget needed. Did **not** redo L3/L8/L9/L10/L11/L12. Did **not** touch frozen admin `/admin`, settings `/settings`, analytics `/analytics`, people `/employees`. |
+| Files | `salesos/frontend/src/app/v3/crm/[id]/page.tsx`; `salesos/frontend/src/app/v3/crm/[id]/__tests__/page.test.tsx` (new); this file |
+| Tests | **2/2** deal 360 + **45/45** ticks 0–10 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(pending this tick)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Next slice (tick 11) | Scan remaining v3 GhostButtonLink to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` on **golden-path pages only**. Leave frozen: admin `/admin`, settings `/settings`, analytics `/analytics`, people `/employees`. Stay in v3. No mocks. Do not redo L3/L8/L9/L10/L11/L12. |
+
+### Tick 10 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
+  # crm/[id] __tests__: 2/2 PASS
+  # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client: 45/45 PASS
 ```
 
 No `git add -A`. No push.
