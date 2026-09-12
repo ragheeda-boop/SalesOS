@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `fix/login-and-keys`  
 **Workspace:** `D:\AISalesOS`  
-**Tick:** 14 **COMPLETE**  
+**Tick:** 15 **COMPLETE**  
 **Production GA:** **NOT APPROVED** / **production no-go**  
 **Phase 7:** **BLOCKED** (54,185 ER candidates + 36 short-CR + DI P1/P2 + PO sign-off)  
 **AI flag:** `feature_ai_copilot` default **False** (do not flip)
@@ -52,12 +52,13 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | L14 | **Create proposal on `/v3/proposals`** | **DONE** (tick 12) | Confirmed `POST /api/v1/proposals` is real (`opportunity_id` + `quote_id` Query required, **null body**, 201 `{id,status,sections}`). Needs a quote first (L13). GET `/quotes` and GET `/proposals` without `opportunity_id` return `[]` — form picks deal then quotes for that deal. Thin form on `/v3/proposals`. Success → `/v3/proposals/{id}` (route exists). No deals → `/v3/crm`. No quotes → `/v3/quotes`. Honest 403. No sections UI. |
 | L15 | **Create review on `/v3/reviews`** | **DONE** (tick 13) | Confirmed `POST /api/v1/reviews` is real (`review_type` + `target_id` + `target_type` Query required, `assigned_to` default `""`, **null body**, 201 `{id,status,review_type}`). Types on disk: `deal_review` / `manager_review` / `exception_review` / `quote_review` / `proposal_review`. Target types on disk: `opportunity` / `quote` / `proposal`. GET `/reviews` lists by tenant. Thin form on `/v3/reviews`. Success → `/v3/reviews/{id}` (route exists). No deals → `/v3/crm`. No quotes → `/v3/quotes`. No proposals → `/v3/proposals`. Honest 403. No assign/decide UI on create. |
 | L16 | **Create contract on `/v3/contracts`** | **DONE** (tick 14) | Confirmed `POST /api/v1/contracts` is real (`opportunity_id` required via Query or JSON body; `quote_id` / `title` optional; 201). FE `createContract` already posted JSON body — title made optional to match API. Thin form on `/v3/contracts`. Success → `/v3/contracts/{id}` (route exists). No deals → `/v3/crm`. No quotes does **not** block (quote optional) + `/v3/quotes` link. Honest 403. No invented sign/activate on create. |
+| L17 | **v3 nav prune to ~12 MVP items** | **DONE** (tick 15) | Primary `V3_DOMAIN_NAV` **26 → 12**. Kept golden path + commercial create (L3/L8–L16) + live ICP + Settings (Gmail/integrations for the Activities feed — not leak-only). Activities kept (real `getGlobalActivities` feed, not a Tasks duplicate). Dropped from primary only (pages stay): People, Approvals, Analytics, Sales Dashboard, My Day, Effectiveness, CS, Admin, Data + MD children, Review Queue. v3 CmdK inherits nav (**13** destinations = 12 + `/v3/shell`). Legacy `commands.ts` untouched. |
 
 ### P1 — scoped proof
 
 | ID | Item | Status |
 |----|------|--------|
-| L6 | Scoped tests for files we touch | **DONE** — Tick 14 isolated runner **82/82 PASS** (ticks 0–14). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
+| L6 | Scoped tests for files we touch | **DONE** — Tick 15 isolated runner **89/89 PASS** (ticks 0–15, +7 nav). Tick 2 host Jest **4/4 PASS** on the two Tick 0 files only (`commands` + `employee`). Host `npm install` still **not clean**; `jest.frontend.cjs` prefers `%TEMP%\salesos-jest-runner`. No Docker pytest (FE-only). |
 | L7 | Named-path git commit. Never `git add -A`. Never push. | **STANDING RULE** |
 
 ---
@@ -88,8 +89,8 @@ Sources: `PHASE3_MERGE-2026-09-12.md`, `UI_SHELL_STRATEGY-2026-09-12.md`, `CAPAB
 | GTM 8 MOCK stories | Matrix §5.10 | Out of MVP |
 | KG / Neo4j | ADR-108 | Offline |
 | Decision FE STUB | Matrix | Do not sell |
-| Nav prune to ~12 MVP items | B1 §8 | Golden-path create cluster closed (tick 14). Eligible as a later tick — not started here. |
-| `/v3/shell` remove from CmdK | B1 P1 | Later |
+| Nav prune to ~12 MVP items | B1 §8 | **DONE** (tick 15). Primary `V3_DOMAIN_NAV` **26 → 12**. Pages not deleted. |
+| `/v3/shell` remove from CmdK | B1 P1 | Still in `V3_CMD_EXTRA` (1 extra). Eligible next. |
 | GhostButtonLink “Open legacy …” on other v3 pages | B1 | Golden-path leaks to `/companies`, `/contacts`, `/opportunities`, `/activities`, `/tasks`, `/dashboard` = **ZERO** (tick 11 scan). Remaining **frozen** GhostButtonLink: `/v3/people` + `/v3/people/[id]` → `/employees` (Emp360 parked); `/v3/admin` → `/admin`; `/v3/settings` → `/settings`; `/v3/analytics` → `/analytics`. |
 
 ---
@@ -449,6 +450,31 @@ No `git add -A`. No push.
 node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
   # contracts + createContract client: 10/10 PASS
   # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts: 82/82 PASS
+```
+
+No `git add -A`. No push.
+
+---
+
+## 19. Tick 15 log
+
+| Field | Value |
+|-------|-------|
+| Done | Slice **L17**: conservative v3 nav prune (B1 §8). Primary `V3_DOMAIN_NAV` **26 → 12**. Kept: Home, Companies, Contacts, CRM, Activities (real feed), Tasks, Quotes, Proposals, Reviews, Contracts, ICP (live `GET/POST /api/v1/icp/profiles`), Settings (Gmail/integrations — not leak-only). Dropped from primary only (pages stay): People (Emp360 parked), Approvals (HITL — not started), Analytics, Sales Dashboard, My Day, Effectiveness, CS, Admin, Data + MD children, Review Queue. v3 CmdK inherits nav → **27 → 13** destinations (`12` + `/v3/shell` still in `V3_CMD_EXTRA`). Did **not** rewrite legacy `commands.ts`. Did **not** start `/v3/approvals` HITL. Did **not** invent activity-session form. Did **not** touch Emp360 / admin / settings / analytics **pages**. |
+| Files | `salesos/frontend/src/components/v3/nav.ts`; `salesos/frontend/src/components/v3/__tests__/nav.test.ts` (new); `salesos/frontend/jest.frontend.cjs` (lucide stub map for isolated runner); `salesos/frontend/jest.frontend.lucide.cjs` (new); this file |
+| Tests | **7/7** nav + **89/89** ticks 0–15 scoped **PASS** (`%TEMP%\salesos-jest-runner` + `jest.frontend.cjs`). Browser **not validated**. Host `npm test` **not validated**. No pytest (no BE). |
+| Commit | *(pending this tick)* |
+| Validation | Scoped Jest **build validated** (isolated runner). Browser **not validated**. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
+| Remaining leaks (frozen) | `/v3/people` header + empty → `/employees`; `/v3/people/[id]` → `/employees/{id}` (Emp360). `/v3/admin` → `/admin`. `/v3/settings` → `/settings`. `/v3/analytics` → `/analytics`. |
+| Next slice (tick 16) | Remove **`/v3/shell` from customer CmdK** (B1 P1; still in `V3_CMD_EXTRA`). Page stays. Do **not** start `/v3/approvals` HITL. Do **not** invent activity-session form. Leave Emp360 / admin / settings / analytics pages frozen. Do not redo L3/L8–L17. |
+
+### Tick 15 commands
+
+```text
+# Isolated runner (not committed; reused from tick 1 — no host npm install):
+node %TEMP%\salesos-jest-runner\node_modules\jest\bin\jest.js --config jest.frontend.cjs
+  # nav __tests__: 7/7 PASS
+  # employee + commands + companies + contacts + contact [id] + crm + crm [id] + company [id] + tasks + task [id] + activities + pipeline client + quotes + proposals + reviews + contracts + nav: 89/89 PASS
 ```
 
 No `git add -A`. No push.

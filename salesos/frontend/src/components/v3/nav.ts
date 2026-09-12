@@ -1,25 +1,16 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
-  BarChart3,
   Building2,
-  Calendar,
   CheckSquare,
   ContactRound,
-  Database,
   FileSignature,
   FileText,
-  HeartHandshake,
-  GitMerge,
   Home,
   Receipt,
   Settings,
   ShieldCheck,
-  Shield,
   Target,
-  Upload,
-  Users,
-  Zap,
   Crosshair,
 } from "lucide-react";
 
@@ -30,7 +21,10 @@ export type V3NavItem = {
   keywords?: string[];
 };
 
-/** L2 domain nav — routes stay under /v3/* only. */
+/**
+ * Primary customer chrome — MVP golden path (~12).
+ * Commercial create surfaces (L3/L8–L16) stay here. Pages not listed remain routed.
+ */
 export const V3_DOMAIN_NAV: V3NavItem[] = [
   { href: "/v3", label: "Home", icon: Home, keywords: ["home", "workspace"] },
   {
@@ -40,22 +34,16 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
     keywords: ["companies", "accounts", "orgs"],
   },
   {
-    href: "/v3/crm",
-    label: "CRM",
-    icon: Target,
-    keywords: ["crm", "pipeline", "deals", "leads"],
-  },
-  {
     href: "/v3/contacts",
     label: "Contacts",
     icon: ContactRound,
     keywords: ["contacts", "customers", "decision makers"],
   },
   {
-    href: "/v3/people",
-    label: "People",
-    icon: Users,
-    keywords: ["people", "employees", "owners"],
+    href: "/v3/crm",
+    label: "CRM",
+    icon: Target,
+    keywords: ["crm", "pipeline", "deals", "leads"],
   },
   {
     href: "/v3/activities",
@@ -70,22 +58,16 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
     keywords: ["tasks", "todos", "follow-ups"],
   },
   {
-    href: "/v3/proposals",
-    label: "Proposals",
-    icon: FileText,
-    keywords: ["proposals", "offers", "deals"],
-  },
-  {
     href: "/v3/quotes",
     label: "Quotes",
     icon: Receipt,
     keywords: ["quotes", "pricing", "line items", "offers"],
   },
   {
-    href: "/v3/contracts",
-    label: "Contracts",
-    icon: FileSignature,
-    keywords: ["contracts", "agreements", "sign", "legal"],
+    href: "/v3/proposals",
+    label: "Proposals",
+    icon: FileText,
+    keywords: ["proposals", "offers", "deals"],
   },
   {
     href: "/v3/reviews",
@@ -94,34 +76,10 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
     keywords: ["reviews", "audit"],
   },
   {
-    href: "/v3/approvals",
-    label: "Approvals",
-    icon: CheckSquare,
-    keywords: ["approvals", "decisions", "review", "hitl"],
-  },
-  {
-    href: "/v3/analytics",
-    label: "Analytics",
-    icon: BarChart3,
-    keywords: ["analytics", "reports", "metrics"],
-  },
-  {
-    href: "/v3/sales-dashboard",
-    label: "Sales Dashboard",
-    icon: Zap,
-    keywords: ["sales", "dashboard", "actions", "signals", "daily", "priorities"],
-  },
-  {
-    href: "/v3/my-day",
-    label: "My Day",
-    icon: Calendar,
-    keywords: ["my day", "work queue", "today", "follow-ups", "outcomes"],
-  },
-  {
-    href: "/v3/effectiveness",
-    label: "Effectiveness",
-    icon: BarChart3,
-    keywords: ["effectiveness", "cohorts", "lift", "funnel", "conversion", "pipeline"],
+    href: "/v3/contracts",
+    label: "Contracts",
+    icon: FileSignature,
+    keywords: ["contracts", "agreements", "sign", "legal"],
   },
   {
     href: "/v3/icp",
@@ -130,36 +88,14 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
     keywords: ["icp", "ideal customer", "profile", "fit", "criteria"],
   },
   {
-    href: "/v3/cs",
-    label: "CS",
-    icon: HeartHandshake,
-    keywords: ["cs", "customer success", "health"],
-  },
-  {
-    href: "/v3/admin",
-    label: "Admin",
-    icon: Shield,
-    keywords: ["admin", "flags", "governance"],
-  },
-  {
     href: "/v3/settings",
     label: "Settings",
     icon: Settings,
-    keywords: ["settings", "preferences"],
+    keywords: ["settings", "preferences", "gmail", "integrations"],
   },
-  {
-    href: "/v3/data",
-    label: "Data",
-    icon: Database,
-    keywords: ["master data", "companies", "people", "imports", "er", "quality"],
-  },
-  { href: "/v3/data/companies", label: "MD Companies", icon: Building2, keywords: ["master data", "companies", "global"] },
-  { href: "/v3/data/people", label: "MD People", icon: Users, keywords: ["master data", "people", "contacts"] },
-  { href: "/v3/data/imports", label: "Imports", icon: Upload, keywords: ["imports", "source files", "ingestion"] },
-  { href: "/v3/data/er", label: "Entity Resolution", icon: GitMerge, keywords: ["er", "matching", "merge", "conflicts"] },
-  { href: "/v3/review-queue", label: "Review Queue", icon: GitMerge, keywords: ["review", "p3", "fuzzy", "short cr", "master data"] },
 ];
 
+/** Internal spec — still in v3 CmdK; not primary chrome. Page stays. */
 export const V3_CMD_EXTRA: V3NavItem[] = [
   {
     href: "/v3/shell",

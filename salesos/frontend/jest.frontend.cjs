@@ -14,6 +14,7 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^next/link$": "<rootDir>/jest.frontend.next-link.cjs",
+    "^lucide-react$": "<rootDir>/jest.frontend.lucide.cjs",
     "^@salesos/widget-sdk$": "<rootDir>/packages/widget-sdk/src/index.ts",
     "^@salesos/widget-sdk/testing$": "<rootDir>/packages/widget-sdk/src/testing",
     "^@salesos/workspace/testing$": "<rootDir>/packages/workspace/src/testing",
