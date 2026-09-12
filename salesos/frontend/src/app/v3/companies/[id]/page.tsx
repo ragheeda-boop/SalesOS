@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   getCompany,
+  getContactsByCompany,
   getEntityActivities,
   listOpportunities,
   listTasks,
@@ -14,7 +15,7 @@ import {
   type Opportunity,
   type TaskResponse,
 } from "@/lib/api";
-import { activityKeys, companyKeys, opportunityKeys, taskKeys } from "@/lib/queryKeys";
+import { activityKeys, companyKeys, contactKeys, opportunityKeys, taskKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../../_components/page-header";
 import { ActivityFeed } from "../../_components/activity-feed";
@@ -28,6 +29,7 @@ import {
 import { useAccessToken } from "../../_hooks/useAccessToken";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { IntelligenceTab } from "./intelligence-tab";
+import { CreateDealForm } from "../../crm/create-deal-form";
 
 type TabId = "overview" | "contacts" | "timeline" | "opportunities" | "tasks" | "intelligence";
 
@@ -104,7 +106,7 @@ function OverviewTab({ company }: { company: CompanyDetail }) {
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Arabic name" value={company.name_ar} />
         <Field label="English name" value={company.name_en} />
-        <Field label="CR number" value={company.cr_number} />
+        <Field label="CR number" value={company.cr_number || "Pending CR"} />
         <Field label="Status" value={company.status} />
         <Field label="City" value={company.city} />
         <Field label="Region" value={company.region} />
@@ -171,12 +173,38 @@ function OverviewTab({ company }: { company: CompanyDetail }) {
   );
 }
 
-function ContactsTab({ contacts }: { contacts: Contact[] }) {
+function ContactsTab({
+  contacts,
+  isLoading,
+  isError,
+  error,
+  onRetry,
+}: {
+  contacts: Contact[];
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  onRetry: () => void;
+}) {
+  if (isLoading) {
+    return <LoadingState label="Loading contacts…" />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        title="Could not load contacts"
+        description={error instanceof Error ? error.message : "Request failed"}
+        onRetry={onRetry}
+      />
+    );
+  }
+
   if (!contacts.length) {
     return (
       <TabEmpty
         title="No contacts yet"
-        description="Contacts for this company are empty on the detail payload. Add them in legacy contacts or the company workspace."
+        description="GET /api/v1/contacts/by-company/{id} returned no rows. Empty is honest — nothing is invented."
         ctaHref="/v3/contacts"
         ctaLabel="Browse contacts"
       />
@@ -231,6 +259,8 @@ function OpportunitiesTab({
   error: Error | null;
   onRetry: () => void;
 }) {
+  const [showCreate, setShowCreate] = useState(false);
+
   if (isLoading) {
     return <LoadingState label="Loading opportunities…" />;
   }
@@ -247,20 +277,47 @@ function OpportunitiesTab({
 
   if (!items.length) {
     return (
-      <TabEmpty
-        title="No opportunities for this company"
-        description="No deals are linked to this account yet. Create one from the CRM pipeline or the legacy company workspace."
-        ctaHref="/v3/crm"
-        ctaLabel="Open CRM"
-      />
+      <div className="space-y-3">
+        {showCreate ? (
+          <CreateDealForm companyId={companyId} onCancel={() => setShowCreate(false)} />
+        ) : (
+          <EmptyState
+            title="No opportunities for this company"
+            description="No deals are linked to this account yet. Create one here — POST /api/v1/opportunities with this company_id. Empty is honest."
+            action={
+              <button
+                type="button"
+                onClick={() => setShowCreate(true)}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                data-testid="company-deals-empty-create"
+              >
+                Create deal
+              </button>
+            }
+          />
+        )}
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <p className="text-[12px] text-[var(--text-muted)]">
-        {items.length} deal{items.length === 1 ? "" : "s"} · open Deal 360 for detail
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[12px] text-[var(--text-muted)]">
+          {items.length} deal{items.length === 1 ? "" : "s"} · open Deal 360 for detail
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowCreate((open) => !open)}
+          className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+          data-testid="company-deals-new-toggle"
+        >
+          {showCreate ? "Hide form" : "New deal"}
+        </button>
+      </div>
+      {showCreate ? (
+        <CreateDealForm companyId={companyId} onCancel={() => setShowCreate(false)} />
+      ) : null}
       <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-left text-sm">
@@ -467,6 +524,19 @@ export default function V3Company360Page() {
   });
 
   const {
+    data: companyContacts,
+    isLoading: contactsLoading,
+    isError: contactsError,
+    error: contactsErr,
+    refetch: refetchContacts,
+  } = useQuery({
+    queryKey: contactKeys.list({ company_id: id }),
+    queryFn: () => getContactsByCompany(id, getTenantId()),
+    enabled: ready && hasToken && !!id && tab === "contacts",
+    staleTime: 15_000,
+  });
+
+  const {
     data: activity,
     isLoading: activityLoading,
     isError: activityError,
@@ -513,7 +583,15 @@ export default function V3Company360Page() {
       case "overview":
         return <OverviewTab company={company} />;
       case "contacts":
-        return <ContactsTab contacts={company.contacts ?? []} />;
+        return (
+          <ContactsTab
+            contacts={companyContacts ?? []}
+            isLoading={contactsLoading}
+            isError={contactsError}
+            error={contactsErr instanceof Error ? contactsErr : null}
+            onRetry={() => void refetchContacts()}
+          />
+        );
       case "timeline":
         return (
           <ActivityFeed
@@ -558,6 +636,11 @@ export default function V3Company360Page() {
   }, [
     company,
     tab,
+    companyContacts,
+    contactsLoading,
+    contactsError,
+    contactsErr,
+    refetchContacts,
     companyOpps,
     oppsLoading,
     oppsError,

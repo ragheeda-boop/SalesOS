@@ -16,6 +16,7 @@ import {
   PermissionState,
 } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
+import { CreateDealForm } from "./create-deal-form";
 
 type PipelineStageDef = {
   key: string;
@@ -76,6 +77,7 @@ export default function V3CrmPage() {
   const [q, setQ] = useState("");
   const [moveError, setMoveError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: opportunityKeys.list(),
@@ -167,7 +169,7 @@ export default function V3CrmPage() {
     <div className={view === "board" ? "mx-auto max-w-[1600px]" : "mx-auto max-w-6xl"}>
       <PageHeader
         title="CRM"
-        description="Pipeline board + deal table — Design Program v3. Stage moves call POST /opportunities/{id}/advance. Legacy /pipeline and /opportunities are unchanged."
+        description="Pipeline board + deal table — Design Program v3. Create stays in v3 — POST /api/v1/opportunities. Stage moves call POST /opportunities/{id}/advance."
         actions={
           <div className="flex flex-wrap gap-2">
             <button
@@ -178,6 +180,16 @@ export default function V3CrmPage() {
               Ask AI
             </button>
             <GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>
+            {hasToken ? (
+              <button
+                type="button"
+                onClick={() => setShowCreate((open) => !open)}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                data-testid="crm-new-toggle"
+              >
+                {showCreate ? "Hide form" : "New deal"}
+              </button>
+            ) : null}
           </div>
         }
       />
@@ -188,6 +200,7 @@ export default function V3CrmPage() {
         <PermissionState nextPath="/v3/crm" />
       ) : (
         <div className="space-y-4">
+          {showCreate ? <CreateDealForm onCancel={() => setShowCreate(false)} /> : null}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
               <div
@@ -272,7 +285,7 @@ export default function V3CrmPage() {
               title={items.length === 0 ? "No deals yet" : "No matching deals"}
               description={
                 items.length === 0
-                  ? "Create opportunities from a company record, or open the legacy pipeline when needed."
+                  ? "No opportunities in this tenant yet. Create one here — nothing is invented and the board stays empty until POST /api/v1/opportunities succeeds."
                   : "Try a different stage or clear the search."
               }
               action={
@@ -288,7 +301,14 @@ export default function V3CrmPage() {
                     Clear filters
                   </button>
                 ) : (
-                  <GhostButtonLink href="/v3/companies">Find a company</GhostButtonLink>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreate(true)}
+                    className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+                    data-testid="crm-empty-create"
+                  >
+                    Create deal
+                  </button>
                 )
               }
             />
