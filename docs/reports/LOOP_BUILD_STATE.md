@@ -132,7 +132,7 @@ No `git add -A`. No push.
 | Done | L6 host Jest for Tick 0 files only. **L3 was still OPEN** at tick start → did **not** start create-contact (Tick 3 closed L8 later). |
 | Files | This file only (plus uncommitted host `node_modules` repairs — **not** committed). Did not touch `v3/companies` or Tick 1 L3 files. |
 | Tests | Host Jest **4/4 PASS**: `src/lib/__tests__/commands.test.tsx` (3) + `src/app/v3/employee/__tests__/page.test.tsx` (1). Full `npm test` / `npm run build` **not run**. Browser **not validated**. No pytest (no BE). |
-| Commit | LOOP_BUILD_STATE notes only. **Not pushed.** `node_modules` **not** committed. |
+| Commit | **`86b1867e`** (`docs: record tick 2 host Jest 4/4 for Tick 0 files`). **Not pushed.** `node_modules` **not** committed. |
 | Validation | Those two files **build validated** on host Jest after surgical repair. Host toolchain **not** a clean `npm install`. **production no-go** unchanged. Phase 7 still **BLOCKED**. `feature_ai_copilot` untouched. |
 | Next slice | **Create deal** on `/v3/companies/[id]` / CRM if opportunity POST is real (L3 + L8 already closed by ticks 1 and 3). Stay in v3. No mocks. |
 
