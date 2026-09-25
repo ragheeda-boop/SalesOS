@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Optional
 
 from sqlalchemy import select, text
@@ -583,7 +583,7 @@ class ExpansionScoreComputer(FeatureComputer):
                     renewal_date = renewal.date()
                 else:
                     renewal_date = renewal
-                days_to_renewal = (renewal_date - datetime.now(timezone.utc).date()).days
+                days_to_renewal = (renewal_date - date.today()).days
 
         # Subsidiary count (25 pts)
         if subsidiary_count >= 5:
