@@ -21,6 +21,8 @@ from app.modules.gtm.icp_admin_router import (
     create_icp_profile,
     get_icp_profile,
     list_icp_profiles,
+    score_icp_profile,
+    ICPScoreIn,
     update_icp_profile,
 )
 
@@ -34,6 +36,13 @@ async def _pin(db, tenant):
 
 
 async def _cleanup():
+    # Drop pooled connections from any prior asyncio loop before opening a
+    # session. The full unit suite uses per-test loops; stale asyncpg
+    # connections otherwise fail during fixture setup with "event loop is
+    # closed" even though this file passes in isolation.
+    from app.database import engine
+
+    await engine.dispose()
     async with async_session() as db:
         for t in (T_B, T_A):
             await _pin(db, t)
@@ -117,6 +126,47 @@ async def test_patch_bumps_version_and_updates_criteria():
     assert out["schema_version"] == 2
     assert out["criteria"]["industries"] == ["fintech"]
     assert out["weights"]["industry"] == 2.0  # untouched weights preserved
+
+
+@pytest.mark.asyncio
+async def test_score_uses_persisted_profile_and_returns_deterministic_match():
+    profile = await create_icp_profile(
+        ICPProfileCreate(
+            name="phase4c-score",
+            criteria=ICPCriteriaIn(industries=["technology"], cities=["riyadh"]),
+            weights=ICPWeightsIn(industry=2.0, city=1.0),
+        ),
+        tenant_id=T_A,
+    )
+
+    result = await score_icp_profile(
+        profile["id"],
+        ICPScoreIn(industry="Technology", city="Riyadh", name="Acme Tech"),
+        tenant_id=T_A,
+    )
+
+    assert result["profile_id"] == profile["id"]
+    assert result["schema_version"] == 1
+    assert result["score"] == 3.0
+    assert result["max_score"] == 3.0
+    assert result["fit_ratio"] == 1.0
+    assert result["matched"]["industry"] is True
+    assert result["matched"]["city"] is True
+    assert result["matched"]["employees"] is False
+    assert result["matched"]["titles"] is False
+    assert result["matched"]["keywords"] is False
+
+
+@pytest.mark.asyncio
+async def test_score_hides_cross_tenant_profile():
+    from fastapi import HTTPException
+
+    profile = await create_icp_profile(_create_payload("phase4c-private"), tenant_id=T_A)
+    with pytest.raises(HTTPException) as error:
+        await score_icp_profile(
+            profile["id"], ICPScoreIn(industry="technology"), tenant_id=T_B
+        )
+    assert error.value.status_code == 404
 
 
 @pytest.mark.asyncio

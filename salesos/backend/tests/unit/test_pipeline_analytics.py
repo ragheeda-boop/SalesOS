@@ -73,6 +73,7 @@ HEALTH_ROWS = [
         "name": "Deal A",
         "stage": "proposal",
         "value": 500000,
+        "currency": "SAR",
         "health_score": 0.85,
         "owner_id": "user-1",
     },
@@ -81,6 +82,7 @@ HEALTH_ROWS = [
         "name": "Deal B",
         "stage": "qualification",
         "value": 200000,
+        "currency": "SAR",
         "health_score": 0.50,
         "owner_id": "user-2",
     },
@@ -89,20 +91,24 @@ HEALTH_ROWS = [
         "name": "Deal C",
         "stage": "negotiation",
         "value": 100000,
+        "currency": "SAR",
         "health_score": 0.30,
         "owner_id": None,
     },
 ]
 
-FORECAST_ROW = {
-    "total_count": 15,
-    "total_value": 2500000.0,
-    "weighted_value": 1500000.0,
-    "avg_probability": 0.60,
-}
+FORECAST_ROWS = [
+    {
+        "currency": "SAR",
+        "total_count": 15,
+        "total_value": 2500000.0,
+        "weighted_value": 1500000.0,
+        "avg_probability": 0.60,
+    }
+]
 
 
-def _make_session(velocity_rows=None, conversion_rows=None, health_rows=None, forecast_row=None):
+def _make_session(velocity_rows=None, conversion_rows=None, health_rows=None, forecast_rows=None):
     """Return a mock session that returns different data based on the SQL query."""
 
     async def execute(sql_str, params=None):
@@ -121,13 +127,9 @@ def _make_session(velocity_rows=None, conversion_rows=None, health_rows=None, fo
             return FakeResult(
                 FakeMappings(rows=health_rows if health_rows is not None else HEALTH_ROWS)
             )
-        elif (
-            "weighted_value" in text
-            or "SUM(value * probability)" in text
-            or ("COUNT(*) as total_count" in text or "SUM(value)" in text)
-        ):
+        elif "GROUP BY COALESCE(NULLIF(UPPER(TRIM(currency))" in text:
             return FakeResult(
-                FakeMappings(one=forecast_row if forecast_row is not None else FORECAST_ROW)
+                FakeMappings(rows=forecast_rows if forecast_rows is not None else FORECAST_ROWS)
             )
         return FakeResult(FakeMappings())
 
@@ -232,13 +234,32 @@ class TestHealthMap:
             assert "name" in item
             assert "stage" in item
             assert "value" in item
+            assert "currency" in item
             assert "health" in item
             assert "health_score" in item
 
     async def test_health_values_are_valid(self, analytics):
         result = await analytics.health_map()
         for item in result:
-            assert item["health"] in ("healthy", "at_risk", "critical")
+            assert item["health"] in ("healthy", "at_risk", "critical", "unknown")
+
+    async def test_missing_probability_is_unknown_not_defaulted(self):
+        rows = [
+            {
+                "id": "opp-unknown",
+                "name": "No probability",
+                "stage": "prospecting",
+                "value": 1000,
+                "health_score": None,
+                "owner_id": "user-1",
+            }
+        ]
+        analytics = PipelineAnalytics(db=_make_session(health_rows=rows), tenant_id="tenant-1")
+
+        result = await analytics.health_map()
+
+        assert result[0]["health"] == "unknown"
+        assert result[0]["health_score"] is None
 
     async def test_owner_field(self, analytics):
         result = await analytics.health_map()
@@ -263,6 +284,7 @@ class TestForecast:
         result = await analytics.forecast()
         assert "best_case" in result
         assert result["best_case"] == 2500000.0
+        assert result["currency"] == "SAR"
 
     async def test_has_commit(self, analytics):
         result = await analytics.forecast()
@@ -292,3 +314,59 @@ class TestForecast:
     async def test_commit_leq_pipeline(self, analytics):
         result = await analytics.forecast()
         assert result["commit"] <= result["pipeline"]
+
+    async def test_forecast_groups_values_by_currency(self):
+        rows = [
+            {
+                "currency": "SAR",
+                "total_count": 2,
+                "total_value": 1000,
+                "weighted_value": 500,
+                "avg_probability": 0.5,
+            },
+            {
+                "currency": "USD",
+                "total_count": 1,
+                "total_value": 900,
+                "weighted_value": 450,
+                "avg_probability": 0.5,
+            },
+        ]
+        result = await PipelineAnalytics(
+            db=_make_session(forecast_rows=rows), tenant_id="tenant-1"
+        ).forecast()
+
+        assert result["currency"] is None
+        assert result["pipeline"] is None
+        assert result["commit"] is None
+        assert result["total_deals"] == 3
+        assert result["by_currency"] == [
+            {
+                "currency": "SAR",
+                "best_case": 1000.0,
+                "commit": 500.0,
+                "pipeline": 1000.0,
+                "gap": 500.0,
+                "avg_probability": 0.5,
+                "total_deals": 2,
+            },
+            {
+                "currency": "USD",
+                "best_case": 900.0,
+                "commit": 450.0,
+                "pipeline": 900.0,
+                "gap": 450.0,
+                "avg_probability": 0.5,
+                "total_deals": 1,
+            },
+        ]
+
+    async def test_forecast_has_no_currency_and_null_money_values_when_empty(self):
+        result = await PipelineAnalytics(
+            db=_make_session(forecast_rows=[]), tenant_id="tenant-1"
+        ).forecast()
+
+        assert result["currency"] is None
+        assert result["pipeline"] is None
+        assert result["total_deals"] == 0
+        assert result["by_currency"] == []

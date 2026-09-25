@@ -216,9 +216,10 @@ class TestExportEngine:
         assert csv == ""
 
     @pytest.mark.asyncio
-    async def test_pdf_not_implemented(self, engine, csv_report, pipeline_cube_with_rows):
-        with pytest.raises(ValueError, match="PDF export not implemented"):
-            await engine.export_report(csv_report.id, "t-1", OutputFormat.PDF)
+    async def test_pdf_export_returns_minimal_valid_pdf(self, engine, csv_report, pipeline_cube_with_rows):
+        result = await engine.export_report(csv_report.id, "t-1", OutputFormat.PDF)
+        assert result["format"] == "pdf"
+        assert result["content"].startswith("%PDF-1.4")
 
     @pytest.mark.asyncio
     async def test_export_report_csv(self, engine, csv_report, pipeline_cube_with_rows):
@@ -238,8 +239,9 @@ class TestExportEngine:
 
     @pytest.mark.asyncio
     async def test_export_report_pdf(self, engine, sample_report):
-        with pytest.raises(ValueError, match="PDF export not implemented"):
-            await engine.export_report(sample_report.id, "t-1", OutputFormat.PDF)
+        result = await engine.export_report(sample_report.id, "t-1", OutputFormat.PDF)
+        assert result["format"] == "pdf"
+        assert result["content"].startswith("%PDF-1.4")
 
     @pytest.mark.asyncio
     async def test_export_nonexistent_report(self, engine):

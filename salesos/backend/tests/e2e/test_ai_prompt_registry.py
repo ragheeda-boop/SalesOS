@@ -24,7 +24,10 @@ class TestAIPrompts:
             client.get("/api/v1/ai/prompts", headers=auth_headers),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 500, 503), resp.text
+        # Free-plan test tenants are correctly denied by the commercial
+        # entitlement gate; this is a valid response alongside the legacy
+        # backend-unavailable responses accepted by this smoke test.
+        assert resp.status_code in (200, 403, 500, 503), resp.text
         if resp.status_code == 200:
             data = resp.json()
             assert isinstance(data, list)
@@ -54,7 +57,7 @@ class TestAIPrompts:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (201, 500, 503), resp.text
+        assert resp.status_code in (201, 403, 500, 503), resp.text
         if resp.status_code == 201:
             data = resp.json()
             assert data["name"].startswith("E2E Test Prompt")
@@ -100,7 +103,7 @@ class TestAIPrompts:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 500, 503), resp.text
+        assert resp.status_code in (200, 403, 500, 503), resp.text
 
 
 class TestAIActivate:
@@ -124,7 +127,7 @@ class TestAIActivate:
             },
             headers=auth_headers,
         )
-        assert create_resp.status_code in (201, 500, 503)
+        assert create_resp.status_code in (201, 403, 500, 503)
 
         resp = await asyncio.wait_for(
             client.post(
@@ -134,7 +137,7 @@ class TestAIActivate:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 404, 500, 503), resp.text
+        assert resp.status_code in (200, 403, 404, 500, 503), resp.text
 
     async def test_activate_nonexistent_prompt_returns_404(
         self,
@@ -149,7 +152,7 @@ class TestAIActivate:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (404, 500, 503), resp.text
+        assert resp.status_code in (403, 404, 500, 503), resp.text
 
 
 class TestAIEvaluate:
@@ -188,7 +191,7 @@ class TestAIEvaluate:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 500, 503), resp.text
+        assert resp.status_code in (200, 403, 500, 503), resp.text
         if resp.status_code == 200:
             data = resp.json()
             assert "score" in data
@@ -224,7 +227,7 @@ class TestAIMetrics:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 500, 503), resp.text
+        assert resp.status_code in (200, 403, 500, 503), resp.text
 
 
 class TestAIGenerate:
@@ -262,7 +265,7 @@ class TestAIGenerate:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 404, 500, 503), resp.text
+        assert resp.status_code in (200, 403, 404, 500, 503), resp.text
 
 
 class TestAIFullJourney:
@@ -286,13 +289,13 @@ class TestAIFullJourney:
             },
             headers=auth_headers,
         )
-        assert create_resp.status_code in (201, 500, 503)
+        assert create_resp.status_code in (201, 403, 500, 503)
 
         list_resp = await client.get("/api/v1/ai/prompts", headers=auth_headers)
-        assert list_resp.status_code in (200, 500, 503)
+        assert list_resp.status_code in (200, 403, 500, 503)
 
         metrics_resp = await client.get(
             f"/api/v1/ai/metrics/{prompt_id}",
             headers=auth_headers,
         )
-        assert metrics_resp.status_code in (200, 500, 503)
+        assert metrics_resp.status_code in (200, 403, 500, 503)

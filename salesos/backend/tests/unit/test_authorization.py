@@ -65,6 +65,13 @@ class TestRoleHierarchy:
         assert Permission("company", PermissionAction.CREATE) not in auditor_perms
         assert Permission("contact", PermissionAction.READ) not in auditor_perms
 
+    def test_agent_reach_service_role_is_narrow(self):
+        service_perms = PermissionRegistry.default_roles().get("agent_reach_service", [])
+        assert set(service_perms) == {
+            Permission("agent_reach", PermissionAction.READ),
+            Permission("master-data-review", PermissionAction.CREATE),
+        }
+
 
 class TestPermissionRegistry:
     def setup_method(self):

@@ -222,6 +222,7 @@ class TestDecisionFeedback:
                     "decision_id": f"e2e-{uuid.uuid4().hex[:8]}",
                     "tenant_id": auth_headers["X-Tenant-Id"],
                     "actor_id": "e2e-tester",
+                    "timestamp": "2026-09-22T00:00:00Z",
                     "outcome": "accepted",
                     "reason": "E2E test feedback",
                 },

@@ -51,8 +51,22 @@ def _meter_factory():
 
 
 def _service(factory, *, usage=None, fail=False, tenant=TENANT_A):
+    async def _allow_budget(_tenant_id, _estimated_cost):
+        return SimpleNamespace(would_exceed=False, monthly_budget=0.0, current_spend=0.0)
+
+    async def _noop(*_args, **_kwargs):
+        return None
+
     svc = LLMService(
         default_tenant_id=tenant,
+        # Keep this unit contract independent from the process-wide tracker
+        # initialized by test_ai_foundation_f2. The quota under test is the
+        # usage-meter path below, not PostgreSQL cost persistence.
+        cost_tracker=SimpleNamespace(
+            check_budget=_allow_budget,
+            track=_noop,
+            deduct_budget=_noop,
+        ),
         usage_meter_factory=factory,
     )
     response = SimpleNamespace(

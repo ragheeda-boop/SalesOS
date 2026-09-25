@@ -188,8 +188,14 @@ async def test_postgres_event_store_append_uses_json_dumps_binds():
     store = PostgresEventStore(session)
     await store.append(_event())
 
-    assert session.execute.await_count == 1
-    params = session.execute.await_args.args[1]
+    # DEC-157: append() now pins app.tenant_id via set_config before the
+    # INSERT (two execute() calls total) — see sdk/events/store.py::_pin_tenant_guc.
+    assert session.execute.await_count == 2
+    guc_call, insert_call = session.execute.await_args_list
+    assert "set_config" in str(guc_call.args[0])
+    assert guc_call.args[1] == {"tenant_id": "t1"}
+
+    params = insert_call.args[1]
     assert isinstance(params["data"], str)
     assert isinstance(params["metadata"], str)
     assert '"decision_id"' in params["data"]

@@ -19,7 +19,7 @@ from intelligence.evaluation.runner import TestCase
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 # ═══ Groundedness scorer tests ═══

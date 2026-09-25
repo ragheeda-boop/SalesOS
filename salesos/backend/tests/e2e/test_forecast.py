@@ -27,7 +27,9 @@ class TestForecastRun:
             ),
             timeout=_TEST_TIMEOUT,
         )
-        assert resp.status_code in (200, 201, 500, 503), resp.text
+        # Empty test tenants correctly return a business validation error
+        # instead of fabricating a forecast from absent pipeline data.
+        assert resp.status_code in (200, 201, 400, 500, 503), resp.text
         if resp.status_code in (200, 201):
             data = resp.json()
             assert "snapshot_id" in data or "total_expected" in data

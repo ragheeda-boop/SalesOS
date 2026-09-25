@@ -191,10 +191,19 @@ class TestRevenueDataFormatting:
     async def test_forecast_values_are_positive(self, mock_session):
         analytics = PipelineAnalytics(mock_session, "tenant-1")
         forecast = await analytics.forecast()
-        assert forecast["best_case"] >= 0
-        assert forecast["commit"] >= 0
-        assert forecast["pipeline"] >= 0
-        assert forecast["gap"] >= 0
+        # Top-level money fields are deliberately None when the tenant has no
+        # single currency; inspect the currency buckets in that case.
+        if forecast["by_currency"]:
+            for bucket in forecast["by_currency"]:
+                assert bucket["best_case"] >= 0
+                assert bucket["commit"] >= 0
+                assert bucket["pipeline"] >= 0
+                assert bucket["gap"] >= 0
+        else:
+            assert forecast["best_case"] is None
+            assert forecast["commit"] is None
+            assert forecast["pipeline"] is None
+            assert forecast["gap"] is None
 
     async def test_expected_revenue_response_structure(self, mock_session):
         """Simulate the revenue dashboard endpoint response structure."""

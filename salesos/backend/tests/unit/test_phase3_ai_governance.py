@@ -38,7 +38,9 @@ def gov_audit(ai_audit):
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    # pytest-asyncio may close the default loop between synchronous tests.
+    # Create and close an isolated loop for each compatibility helper call.
+    return asyncio.run(coro)
 
 
 # ═══ Constants tests ═══

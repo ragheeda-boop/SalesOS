@@ -6,6 +6,8 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
 
 from app.modules.api_keys.models import ApiKey
 from app.modules.api_keys.service import ApiKeyService
@@ -260,3 +262,70 @@ class TestApiKeyRevoke:
 
         keys = await api_key_service.list_for_user(str(user_id))
         assert keys == []
+
+
+def test_api_key_middleware_exposes_verified_key_identity(monkeypatch):
+    from app.modules.api_keys import middleware as api_key_middleware
+
+    class SessionContext:
+        async def __aenter__(self):
+            return object()
+
+        async def __aexit__(self, *_args):
+            return False
+
+    class ValidatedKey:
+        id = "verified-key-id"
+        user_id = uuid.uuid4()
+        tenant_id = uuid.uuid4()
+        scopes = "agent_reach:read,master-data-review:create"
+
+    class KeyService:
+        def __init__(self, db):
+            assert db is not None
+
+        async def validate(self, raw_key):
+            assert raw_key == "sos_valid-test-key"
+            return ValidatedKey()
+
+    monkeypatch.setattr(api_key_middleware, "ApiKeyService", KeyService)
+    monkeypatch.setattr(
+        api_key_middleware.get_api_key_rate_limiter(),
+        "check_rate_limit",
+        lambda *_args: (True, 0),
+    )
+    app = FastAPI()
+    app.state.db_session_factory = SessionContext
+
+    @app.get("/whoami")
+    async def whoami(request: Request):
+        return {
+            "authenticated": request.state.api_key_authenticated,
+            "key_id": request.state.api_key_id,
+            "user_id": request.state.api_key_user_id,
+            "tenant_id": request.state.api_key_tenant_id,
+            "scopes": request.state.api_key_scopes,
+        }
+
+    app.add_middleware(api_key_middleware.ApiKeyMiddleware)
+    response = TestClient(app).get("/whoami", headers={"X-API-Key": "sos_valid-test-key"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["authenticated"] is True
+    assert body["key_id"] == "verified-key-id"
+    assert body["user_id"] == str(ValidatedKey.user_id)
+    assert body["tenant_id"] == str(ValidatedKey.tenant_id)
+    assert body["scopes"] == ["agent_reach:read", "master-data-review:create"]
+
+
+def test_tenant_context_wraps_api_key_validation_in_application_stack():
+    from app.boot.middleware import setup_middleware
+    from app.common.middleware import TenantContextMiddleware
+    from app.modules.api_keys.middleware import ApiKeyMiddleware
+
+    app = FastAPI()
+    setup_middleware(app)
+    middleware_classes = [middleware.cls for middleware in app.user_middleware]
+    assert middleware_classes.index(TenantContextMiddleware) < middleware_classes.index(
+        ApiKeyMiddleware
+    )

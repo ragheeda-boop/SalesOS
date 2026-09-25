@@ -238,6 +238,22 @@ class TestCompleteTask:
         assert result is None
 
 
+class TestGetTask:
+    @pytest.mark.asyncio
+    async def test_get_task_returns_one_tenant_scoped_row(self, service, mock_db):
+        _setup_execute_with_row(
+            mock_db,
+            _mock_row(id="task-1", title="Follow up", completed=False),
+        )
+        result = await service.get_task("task-1", str(uuid.uuid4()))
+        assert result == {"id": "task-1", "title": "Follow up", "completed": False}
+
+    @pytest.mark.asyncio
+    async def test_get_task_returns_none_when_absent_or_cross_tenant(self, service, mock_db):
+        _setup_execute_with_row(mock_db, None)
+        assert await service.get_task("task-1", str(uuid.uuid4())) is None
+
+
 class TestGetPipeline:
     @pytest.mark.asyncio
     async def test_get_pipeline_empty(self, service, mock_db):

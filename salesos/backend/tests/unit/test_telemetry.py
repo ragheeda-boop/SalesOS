@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 import pytest
 
@@ -70,6 +71,32 @@ class TestEventTracking:
         event = await telemetry_service.track("login", "t1", "u1")
         after = datetime.now(UTC)
         assert before <= event.timestamp.replace(tzinfo=UTC) <= after
+
+    @pytest.mark.asyncio
+    async def test_client_event_id_is_idempotent_per_tenant(self, telemetry_service):
+        event_id = UUID("77777777-7777-4777-8777-777777777777")
+        first = await telemetry_service.track(
+            "nba_view",
+            "tenant-a",
+            "user-a",
+            properties={"attempt": 1},
+            client_event_id=event_id,
+        )
+        retry = await telemetry_service.track(
+            "nba_view",
+            "tenant-a",
+            "user-a",
+            properties={"attempt": 2},
+            client_event_id=event_id,
+        )
+        other_tenant = await telemetry_service.track(
+            "nba_view", "tenant-b", "user-b", client_event_id=event_id
+        )
+
+        assert retry.id == first.id
+        assert retry.properties == {"attempt": 1}
+        assert other_tenant.id != first.id
+        assert len(telemetry_service.repository._events) == 2
 
 
 # ─── Event Querying ─────────────────────────────────────────────
@@ -213,6 +240,24 @@ class TestSearchSuccess:
         assert result["total_searches"] == 0
         assert result["success_rate"] == 0.0
 
+    @pytest.mark.asyncio
+    async def test_result_click_event_matches_search_by_query_id(self, telemetry_service):
+        await telemetry_service.track(
+            "search_query", "t1", "u1", properties={"query_id": "search-1"}
+        )
+        await telemetry_service.track(
+            "search_query", "t1", "u1", properties={"query_id": "search-2"}
+        )
+        await telemetry_service.track(
+            "search_result_clicked", "t1", "u1", properties={"queryId": "search-2"}
+        )
+
+        result = await telemetry_service.search_success_rate("t1")
+
+        assert result["total_searches"] == 2
+        assert result["searches_with_action"] == 1
+        assert result["success_rate"] == 50.0
+
 
 # ─── NBA Acceptance Rate ────────────────────────────────────────
 
@@ -277,7 +322,8 @@ class TestActiveUsers:
         await telemetry_service.track("login", "t1", "user-a", timestamp=now)
         await telemetry_service.track("login", "t1", "user-b", timestamp=now - timedelta(days=3))
         await telemetry_service.track("login", "t1", "user-c", timestamp=now - timedelta(days=20))
-        result = await telemetry_service.active_users(days=30)
+        await telemetry_service.track("login", "t2", "tenant-2-user", timestamp=now)
+        result = await telemetry_service.active_users("t1", days=30)
         assert result["dau"] == 1
         assert result["wau"] == 2
         assert result["mau"] == 3

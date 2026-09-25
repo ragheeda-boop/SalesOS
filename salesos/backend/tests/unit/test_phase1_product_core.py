@@ -235,7 +235,7 @@ class TestP1ReviewsDomain:
         svc = ReviewService(InMemoryReviewRepository())
         # Run async test
         import asyncio
-        review = asyncio.get_event_loop().run_until_complete(
+        review = asyncio.run(
             svc.create_review("tenant-1", ReviewType.DEAL_REVIEW, "opp-1", "opportunity")
         )
         assert review.id is not None
@@ -254,7 +254,7 @@ class TestP1ReviewsDomain:
             review = await svc.create_review("t1", ReviewType.DEAL_REVIEW, "o1", "opportunity")
             decided = await svc.decide(review.id, "user-1", "approve", "looks good")
             return decided
-        result = asyncio.get_event_loop().run_until_complete(run())
+        result = asyncio.run(run())
         assert result.status == ReviewStatus.APPROVED
         assert result.decision_count == 1
 

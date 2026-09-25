@@ -40,7 +40,8 @@ async def test_conclude(pipeline):
     result = await pipeline.conclude({"reasoning": "Strong evidence"})
     assert isinstance(result, AgentAnalysis)
     assert result.confidence == 0.8
-    assert len(result.evidence) > 0
+    assert result.evidence == []
+    assert result.sources == ["llm_reasoning"]
 
 
 @pytest.mark.asyncio

@@ -19,6 +19,7 @@ os.environ["SALESOS_TESTING"] = "true"
 
 from sdk.database import Base
 from sdk.permissions import PermissionRegistry, Role
+from app.alembic.lib.rls import ALL_TENANT_TABLES
 
 # Import all ORM models so Base.metadata.create_all creates their tables
 import domains.commercial.infrastructure.models  # noqa: F401
@@ -59,6 +60,60 @@ async def setup_database():
         await conn.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
         await conn.execute(text('CREATE EXTENSION IF NOT EXISTS pg_trgm'))
         await conn.run_sync(Base.metadata.create_all)
+        # Base.metadata.create_all does not execute Alembic's RLS DDL. Keep
+        # the ephemeral test schema aligned with the production evidence
+        # migration so tenant-isolation tests are repeatable after teardown.
+        for table, policy in (
+            ("commercial_insights", "tenant_isolation_commercial_insights"),
+            ("commercial_evidence_items", "tenant_isolation_commercial_evidence_items"),
+            ("commercial_contracts", "tenant_isolation_commercial_contracts"),
+        ):
+            await conn.execute(text(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY"))
+            await conn.execute(text(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY"))
+            await conn.execute(text(f"DROP POLICY IF EXISTS {policy} ON {table}"))
+            await conn.execute(text(
+                f"CREATE POLICY {policy} ON {table} FOR ALL "
+                "USING (tenant_id::text = current_setting('app.tenant_id', true)) "
+                "WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true))"
+            ))
+        # Base.metadata.create_all does not run the full Alembic RLS graph.
+        # Mirror the direct-tenant policies for every tenant table that is
+        # present in this ephemeral database so adversarial isolation tests
+        # exercise the same fail-closed boundary as the migrated schemas.
+        for table in ALL_TENANT_TABLES:
+            present = await conn.scalar(
+                text("SELECT to_regclass(:qualified)"),
+                {"qualified": f"public.{table}"},
+            )
+            has_tenant_id = await conn.scalar(
+                text(
+                    "SELECT 1 FROM information_schema.columns "
+                    "WHERE table_schema='public' AND table_name=:table "
+                    "AND column_name='tenant_id'"
+                ),
+                {"table": table},
+            )
+            if not present or not has_tenant_id:
+                continue
+            policy = f"tenant_isolation_{table}"
+            already = await conn.scalar(
+                text(
+                    "SELECT 1 FROM pg_policies "
+                    "WHERE schemaname='public' AND tablename=:table AND policyname=:policy"
+                ),
+                {"table": table, "policy": policy},
+            )
+            if already:
+                continue
+            await conn.execute(text(f'ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY'))
+            await conn.execute(text(f'ALTER TABLE "{table}" FORCE ROW LEVEL SECURITY'))
+            await conn.execute(
+                text(
+                    f'CREATE POLICY "{policy}" ON "{table}" FOR ALL '
+                    "USING (tenant_id::text = current_setting('app.tenant_id', true)) "
+                    "WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true))"
+                )
+            )
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS audit"))
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS audit.audit_log (
@@ -84,6 +139,11 @@ async def setup_database():
         return
     engine = create_async_engine(_db_url(), echo=False)
     async with engine.begin() as conn:
+        # A few legacy migrations create tables that are intentionally not
+        # represented in the ORM metadata used by this fixture. Drop the
+        # dependent signal table first so metadata teardown remains reliable
+        # on a reused local salesos_test database.
+        await conn.execute(text("DROP TABLE IF EXISTS company_signals, tenants CASCADE"))
         await conn.run_sync(Base.metadata.drop_all)
         await conn.execute(text("DROP SCHEMA IF EXISTS audit CASCADE"))
     await engine.dispose()

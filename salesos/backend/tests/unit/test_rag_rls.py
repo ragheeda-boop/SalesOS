@@ -73,6 +73,12 @@ async def _seed():
 
 
 async def _cleanup():
+    # The unit suite creates a fresh asyncio loop per test. Dispose pooled
+    # asyncpg connections before cleanup so a connection cannot be reused
+    # after its original loop has been closed.
+    from app.database import engine
+
+    await engine.dispose()
     for t in (T_B, T_A):
         async with async_session() as db:
             await _pin(db, t)

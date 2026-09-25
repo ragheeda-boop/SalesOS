@@ -2,6 +2,10 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
+
+def _current_period() -> date:
+    """Return the first day of the current billing month (deterministic, never stale)."""
+    return date.today().replace(day=1)
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -109,7 +113,7 @@ class TestBudgetManagement:
         session.execute = AsyncMock(return_value=make_exec_result_one({
             "tenant_id": "t1",
             "monthly_budget_cents": 2000,
-            "period_start": date(2026, 8, 1),
+            "period_start": _current_period(),
             "period_spend_cents": 500,
             "is_enforced": True,
         }))
@@ -127,7 +131,7 @@ class TestBudgetEnforcement:
         session.execute = AsyncMock(return_value=make_exec_result_one({
             "tenant_id": "t1",
             "monthly_budget_cents": 10000,
-            "period_start": date(2026, 8, 1),
+            "period_start": _current_period(),
             "period_spend_cents": 5000,
             "is_enforced": True,
         }))
@@ -144,7 +148,7 @@ class TestBudgetEnforcement:
         session.execute = AsyncMock(return_value=make_exec_result_one({
             "tenant_id": "t1",
             "monthly_budget_cents": 1000,
-            "period_start": date(2026, 8, 1),
+            "period_start": _current_period(),
             "period_spend_cents": 990,
             "is_enforced": True,
         }))
@@ -169,7 +173,7 @@ class TestBudgetEnforcement:
         session.execute = AsyncMock(return_value=make_exec_result_one({
             "tenant_id": "t1",
             "monthly_budget_cents": 1000,
-            "period_start": date(2026, 8, 1),
+            "period_start": _current_period(),
             "period_spend_cents": 99999,
             "is_enforced": False,
         }))
@@ -384,7 +388,7 @@ class TestPeriodSummary:
                 return make_exec_result_one({
                     "tenant_id": "t1",
                     "monthly_budget_cents": 5000,
-                    "period_start": date(2026, 8, 1),
+                    "period_start": _current_period(),
                     "period_spend_cents": 1200,
                     "is_enforced": True,
                 })

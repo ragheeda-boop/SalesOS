@@ -57,8 +57,17 @@ class TestPersistentDeadLetterQueue:
                 attempts=3,
             )
 
-        asyncio.get_event_loop().run_until_complete(_run())
-        mock_session.execute.assert_called_once()
+        asyncio.run(_run())
+        # DEC-157-style GUC pin (report 75) adds one execute() call ahead of
+        # the INSERT — event_dead_letters has RLS+FORCE RLS and this is the
+        # one live caller of this class (EventRuntime dead-letters on
+        # subscriber exhaustion), so every real call needs app.tenant_id
+        # pinned or the INSERT's WITH CHECK silently fails.
+        assert mock_session.execute.await_count == 2
+        guc_call, insert_call = mock_session.execute.await_args_list
+        assert "set_config" in str(guc_call.args[0])
+        assert guc_call.args[1] == {"tenant_id": "t-123"}
+        assert insert_call.args[1]["id"] == "test-id"
         mock_session.commit.assert_called_once()
 
     def test_persistent_dlq_list_all(self):
@@ -77,7 +86,7 @@ class TestPersistentDeadLetterQueue:
         async def _run():
             return await dlq.list_all("t-123")
 
-        result = asyncio.get_event_loop().run_until_complete(_run())
+        result = asyncio.run(_run())
         assert result == []
 
     def test_persistent_dlq_count(self):
@@ -96,7 +105,7 @@ class TestPersistentDeadLetterQueue:
         async def _run():
             return await dlq.count("t-123")
 
-        count = asyncio.get_event_loop().run_until_complete(_run())
+        count = asyncio.run(_run())
         assert count == 5
 
     def test_persistent_dlq_handles_persist_failure_gracefully(self):
@@ -120,7 +129,7 @@ class TestPersistentDeadLetterQueue:
             )
 
         # Should not raise
-        asyncio.get_event_loop().run_until_complete(_run())
+        asyncio.run(_run())
 
 
 # ---------------------------------------------------------------------------
@@ -203,7 +212,7 @@ class TestExhaustedAlerting:
             return await retire_exhausted(mock_session, "t-123")
 
         with patch("runtime.agent_runtime.queue.logger") as mock_logger:
-            count = asyncio.get_event_loop().run_until_complete(_run())
+            count = asyncio.run(_run())
             assert count == 1
             mock_logger.warning.assert_called_once()
             call_args = mock_logger.warning.call_args
@@ -222,7 +231,7 @@ class TestExhaustedAlerting:
         async def _run():
             return await retire_exhausted(mock_session, "t-123")
 
-        count = asyncio.get_event_loop().run_until_complete(_run())
+        count = asyncio.run(_run())
         assert count == 0
 
 

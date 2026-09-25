@@ -71,7 +71,37 @@ def mock_execute():
         "has_industry": 35,
     }
 
-    async def execute(text, params=None):
+    async def execute(statement, params=None):
+        sql = str(statement)
+        if "as won_value" in sql:
+            return FakeResult(
+                all_rows=[
+                    {
+                        "currency": "USD",
+                        "total_pipeline": 1000000.0,
+                        "won_value": 500000.0,
+                        "won_count": 3,
+                        "lost_count": 2,
+                    }
+                ]
+            )
+        if "as prev_value" in sql:
+            return FakeResult(all_rows=[{"currency": "USD", "prev_value": 800000.0}])
+        if "avg_val" in sql:
+            return FakeResult(
+                all_rows=[
+                    {
+                        "currency": "USD",
+                        "total": 10,
+                        "pipeline_value": 1000000.0,
+                        "won": 3,
+                        "lost": 2,
+                        "avg_val": 100000.0,
+                    }
+                ]
+            )
+        if "SELECT stage," in sql:
+            return FakeResult(all_rows=[])
         return FakeResult(one=dict(defaults))
 
     return execute
@@ -95,6 +125,8 @@ class TestExecutiveService:
         result = await service.get_dashboard()
         assert result.revenue.total_pipeline == 1000000.0
         assert result.revenue.total_booked == 500000.0
+        assert result.revenue.currency_consistent is True
+        assert result.revenue.by_currency[0].currency == "USD"
 
     async def test_get_dashboard_has_team_kpi(self, mock_session):
         service = ExecutiveService(mock_session, "tenant-1")
@@ -120,3 +152,48 @@ class TestExecutiveService:
         assert result.health is not None
         assert result.health.overall_health in ("good", "fair", "needs_attention")
         assert result.health.data_completeness > 0
+
+    async def test_mixed_currency_revenue_has_no_cross_currency_scalar_total(self):
+        async def execute(statement, params=None):
+            sql = str(statement)
+            if "as won_value" in sql:
+                return FakeResult(
+                    all_rows=[
+                        {
+                            "currency": "SAR",
+                            "total_pipeline": 100.0,
+                            "won_value": 40.0,
+                            "won_count": 1,
+                            "lost_count": 1,
+                        },
+                        {
+                            "currency": "USD",
+                            "total_pipeline": 200.0,
+                            "won_value": 100.0,
+                            "won_count": 2,
+                            "lost_count": 0,
+                        },
+                    ]
+                )
+            if "as prev_value" in sql:
+                return FakeResult(
+                    all_rows=[
+                        {"currency": "SAR", "prev_value": 90.0},
+                        {"currency": "USD", "prev_value": 100.0},
+                    ]
+                )
+            return FakeResult()
+
+        session = AsyncMock(spec=AsyncSession)
+        session.execute = execute
+        revenue = await ExecutiveService(session, "tenant-1").get_revenue()
+
+        assert revenue.currency_consistent is False
+        assert revenue.total_booked is None
+        assert revenue.total_pipeline is None
+        assert [(row.currency, row.total_pipeline) for row in revenue.by_currency] == [
+            ("SAR", 100.0),
+            ("USD", 200.0),
+        ]
+        assert revenue.by_currency[0].growth_percent == 11.1
+        assert revenue.by_currency[1].forecast == 200.0

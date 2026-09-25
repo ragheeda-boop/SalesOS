@@ -62,9 +62,11 @@ OPP_ROW = {"name": "ERP Project", "stage": "proposal", "value": 500000.0}
 
 def _make_service(stage="proposal"):
     opp_row = {**OPP_ROW, "stage": stage}
+    executed: list[tuple[str, dict | None]] = []
 
     async def execute(sql_str, params=None):
         text = str(sql_str)
+        executed.append((text, params))
         if "companies" in text and "activity" not in text:
             return FakeResult(FakeMappings(one=COMPANY_ROW))
         elif "company_signals" in text:
@@ -93,6 +95,7 @@ def _make_service(stage="proposal"):
 
     session = AsyncMock()
     session.execute = execute
+    session.executed = executed
     return MeetingIntelligenceService(db=session, tenant_id="t-1")
 
 
@@ -305,3 +308,15 @@ class TestGenerateSummary:
         result = await service.generate_summary({"notes": notes})
         assert len(result["action_items"]) >= 1
         assert result["sentiment"] == "positive"
+
+
+class TestBriefTenantScope:
+    async def test_every_data_query_carries_the_service_tenant(self):
+        service = _make_service()
+        await service.generate_brief("opp-1", "company-1")
+
+        assert len(service.db.executed) == 4
+        for sql, params in service.db.executed:
+            assert "tenant_id" in sql
+            assert params is not None
+            assert params["tid"] == "t-1"

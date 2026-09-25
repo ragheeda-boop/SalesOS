@@ -20,14 +20,16 @@ class TestWorkflowCRUD:
         client: AsyncClient,
         auth_headers: dict,
     ):
-        """GET /api/v1/workflows returns a list."""
+        """GET /api/v1/workflows returns a paginated envelope."""
         resp = await asyncio.wait_for(
             client.get("/api/v1/workflows", headers=auth_headers),
             timeout=_TEST_TIMEOUT,
         )
         assert resp.status_code == 200, resp.text
         data = resp.json()
-        assert isinstance(data, list)
+        assert isinstance(data, dict)
+        assert isinstance(data.get("items"), list)
+        assert data.get("total", 0) >= 0
 
     async def test_create_workflow_with_steps(
         self,
@@ -214,7 +216,9 @@ class TestWorkflowExecution:
         )
         assert resp.status_code in (200, 404, 422), resp.text
         if resp.status_code == 200:
-            assert isinstance(resp.json(), list)
+            data = resp.json()
+            assert isinstance(data, dict)
+            assert isinstance(data.get("items"), list)
 
     async def test_execute_inactive_workflow_fails(
         self,

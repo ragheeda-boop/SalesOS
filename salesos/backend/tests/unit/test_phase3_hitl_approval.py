@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import asyncio
 import pytest
-from datetime import datetime, timezone, timedelta
 
 from domains.approval.contracts.models import (
     ApprovalDecision,
@@ -30,7 +29,9 @@ def service(repo):
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    # Use an owned event loop so this synchronous service suite can coexist
+    # with asyncio-marked route tests in the same pytest process.
+    return asyncio.run(coro)
 
 
 # ═══ Model tests ═══
@@ -296,3 +297,36 @@ class TestApprovalService:
     def test_nonexistent_request(self, service):
         with pytest.raises(ValueError, match="not found"):
             _run(service.approve("fake-id", approved_by="mgr-1", authority_level=ApprovalLevel.MANAGER))
+
+    def test_cross_tenant_approval_read_is_hidden(self, service):
+        req = _run(service.create_request(
+            tenant_id="tenant-a",
+            target_type=ApprovalTargetType.AI_ACTION,
+            target_id="action-1",
+            requested_by="user-a",
+            action_summary="Review a proposed fact",
+        ))
+
+        assert _run(service.get(req.id, tenant_id="tenant-b")) is None
+
+    def test_cross_tenant_approval_decision_is_rejected_without_mutation(self, service):
+        req = _run(service.create_request(
+            tenant_id="tenant-a",
+            target_type=ApprovalTargetType.AI_ACTION,
+            target_id="action-1",
+            requested_by="user-a",
+            action_summary="Review a proposed fact",
+        ))
+
+        with pytest.raises(ValueError, match="not found"):
+            _run(service.approve(
+                req.id,
+                approved_by="user-b",
+                authority_level=ApprovalLevel.MANAGER,
+                tenant_id="tenant-b",
+            ))
+
+        unchanged = _run(service.get(req.id, tenant_id="tenant-a"))
+        assert unchanged is not None
+        assert unchanged.status == ApprovalStatus.PENDING
+        assert unchanged.decisions == []

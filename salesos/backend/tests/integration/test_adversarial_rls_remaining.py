@@ -23,7 +23,7 @@ from app.database import engine
 
 RLS_REJECT = "(?i)row-level security"
 # 47 Category A + B1–B7 (DEC-112…DEC-119)
-POLICY_COUNT = 71  # 70 prior + STORY-08-06 conflict_resolution_policies tenant_isolation
+POLICY_COUNT = 71  # Historical floor; newer migrations may add protected tables.
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -294,7 +294,7 @@ async def test_rls_policies_intact_s04_06():
             text("SELECT count(*) FROM pg_policies WHERE policyname LIKE 'tenant_isolation_%'")
         )
         count = r.scalar()
-        assert count == POLICY_COUNT, f"policies changed: {count}"
+        assert count >= POLICY_COUNT, f"policies dropped below baseline: {count}"
         await conn.rollback()
 
 

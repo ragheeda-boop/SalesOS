@@ -7,7 +7,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from app.modules.contact.exceptions import AmbiguousContactMatchError
+from app.modules.contact.repositories import ContactRepository
 from app.modules.contact.service import ContactService
+
+HTTP_CONFLICT_STATUS = 409
 
 
 @pytest.fixture
@@ -256,17 +260,25 @@ class TestContactFindByEmail:
 class TestContactBulkUpsert:
     @pytest.mark.asyncio
     async def test_bulk_upsert_creates_new(self, service, mock_db):
-        tenant_id = str(uuid.uuid4())
+        tenant_id = uuid.uuid4()
+        supplied_id = uuid.uuid4()
         records = [
-            {"email": "new@example.com", "name": "New Contact"},
+            {
+                "email": "new@example.com",
+                "name": "New Contact",
+                "id": str(supplied_id),
+                "tenant_id": str(uuid.uuid4()),
+            },
         ]
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = None
+        mock_result.scalars.return_value.all.return_value = []
         mock_db.execute.return_value = mock_result
 
-        created, updated = await service.bulk_upsert(tenant_id, records)
+        created, updated = await service.bulk_upsert(str(tenant_id), records)
         assert len(created) == 1
         assert len(updated) == 0
+        assert created[0].tenant_id == tenant_id
+        assert created[0].id != supplied_id
 
     @pytest.mark.asyncio
     async def test_bulk_upsert_updates_existing(self, service, mock_db):
@@ -276,7 +288,7 @@ class TestContactBulkUpsert:
         existing_contact.name = "Old Name"
 
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = existing_contact
+        mock_result.scalars.return_value.all.return_value = [existing_contact]
         mock_db.execute.return_value = mock_result
 
         records = [{"email": "existing@example.com", "name": "New Name"}]
@@ -307,9 +319,9 @@ class TestContactBulkUpsert:
         existing.name = "Existing"
 
         mock_result_existing = MagicMock()
-        mock_result_existing.scalar_one_or_none.return_value = existing
+        mock_result_existing.scalars.return_value.all.return_value = [existing]
         mock_result_new = MagicMock()
-        mock_result_new.scalar_one_or_none.return_value = None
+        mock_result_new.scalars.return_value.all.return_value = []
 
         mock_db.execute.side_effect = [mock_result_existing, mock_result_new]
 
@@ -320,3 +332,59 @@ class TestContactBulkUpsert:
         created, updated = await service.bulk_upsert(tenant_id, records)
         assert len(created) == 1
         assert len(updated) == 1
+
+    @pytest.mark.asyncio
+    async def test_bulk_upsert_rejects_ambiguous_email_match(self, service, mock_db):
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [MagicMock(), MagicMock()]
+        mock_db.execute.return_value = mock_result
+
+        with pytest.raises(AmbiguousContactMatchError) as error:
+            await service.bulk_upsert(
+                str(uuid.uuid4()), [{"email": "shared@example.com", "name": "New"}]
+            )
+
+        assert error.value.status_code == HTTP_CONFLICT_STATUS
+
+    @pytest.mark.asyncio
+    async def test_bulk_upsert_cannot_reassign_tenant_or_company(
+        self, service, mock_db
+    ):
+        tenant_id = uuid.uuid4()
+        existing_contact = MagicMock()
+        existing_contact.id = uuid.uuid4()
+        existing_contact.tenant_id = tenant_id
+        existing_contact.company_id = uuid.uuid4()
+        existing_contact.email = "existing@example.com"
+        existing_contact.name = "Old Name"
+        original_id = existing_contact.id
+        original_company_id = existing_contact.company_id
+
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = [existing_contact]
+        mock_db.execute.return_value = mock_result
+
+        await service.bulk_upsert(str(tenant_id), [{
+            "email": "existing@example.com",
+            "name": "New Name",
+            "tenant_id": str(uuid.uuid4()),
+            "id": str(uuid.uuid4()),
+            "company_id": str(uuid.uuid4()),
+        }])
+
+        assert existing_contact.id == original_id
+        assert existing_contact.tenant_id == tenant_id
+        assert existing_contact.company_id == original_company_id
+        assert existing_contact.name == "New Name"
+
+    @pytest.mark.asyncio
+    async def test_repository_bulk_upsert_rejects_ambiguous_email_match(self, mock_db):
+        repository = ContactRepository(mock_db)
+        repository.find_by_tenant_and_email = AsyncMock(
+            return_value=[MagicMock(), MagicMock()]
+        )
+
+        with pytest.raises(AmbiguousContactMatchError):
+            await repository.bulk_upsert(
+                str(uuid.uuid4()), [{"email": "shared@example.com", "name": "New"}]
+            )

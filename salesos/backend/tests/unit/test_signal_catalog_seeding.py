@@ -117,6 +117,11 @@ async def test_real_shipped_packs_load():
     base = Path("/app/knowledge-packs")
     if not base.exists():  # host-run fallback
         pytest.skip("knowledge-packs volume not mounted")
+    # Also skip when the mount is present but empty (Windows Docker Desktop
+    # requires D:\\ drive sharing to be enabled in Docker Desktop Resource settings).
+    pack_dirs = [p for p in base.iterdir() if p.is_dir()]
+    if not pack_dirs:
+        pytest.skip("knowledge-packs volume mounted but empty (enable D:\\ drive sharing in Docker Desktop)")
     info = await seed_signal_catalog_from_packs()
     assert info["ok"] is True
     assert info["seeded"] >= 3  # construction, financial-services, healthcare
