@@ -1,0 +1,22 @@
+{
+  "created_at_utc": "2026-09-22T13:09:38.710914+00:00",
+  "official_v07": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_FINAL_v0.7.csv",
+  "official_v07_sha256_unchanged": "9772be62111ff40d664678de497449d7134e4def7e01057494bcddae88b5c9ec",
+  "proposal_input": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_PROPOSED_v0.8.csv",
+  "proposal_input_sha256": "330fc5c429aa4c85b9b60bd44a13dce8932759247bbee27de5a7e9237ce680c9",
+  "derived_final_v08": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_FINAL_v0.8.csv",
+  "derived_final_v08_sha256": "a64f669f45b5e816241ac15b1e5ed210a2c4d0bd94e383e42d1f0436f1c9d372",
+  "rows": 47192,
+  "exact_rows_applied": 412,
+  "status_counts": {
+    "RESOLVED_VIA_MA_TO_GCID_MAP": 44974,
+    "UNRESOLVED_MA_NOT_IN_MASTER_V10_NEEDS_REVIEW": 702,
+    "RESOLVED_VIA_EXACT_NAME_DOMAIN_MASTER_V10": 412,
+    "NO_ACCOUNT_LINK": 1104
+  },
+  "database_writes": 0,
+  "production_writes": 0,
+  "external_calls": 0,
+  "official_v07_modified": false,
+  "remaining_unresolved_legacy_rows": 702
+}

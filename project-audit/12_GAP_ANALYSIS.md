@@ -1,4 +1,6 @@
 # 12 — Gap Analysis — تحليل الفجوات
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Method:** every "promised" claim from README / PRODUCT_BIBLE / marketing-adjacent docs, cross-checked against code + tests + config + gate packs. Gaps ranked by impact.
 
@@ -11,7 +13,7 @@
 | # | Claim | Where claimed | Reality | Gap type | Severity |
 |---|-------|---------------|---------|---------|----------|
 | G-01 | "Production GA" ready | Historical `docs/vnext/GO_NO_GO_DECISION.md` (superseded) | `FINAL_GO_NOGO_ASSESSMENT.md` 2026-09-05 says **NOT DECLARED**; audit `00-EXECUTIVE-SUMMARY.md` **NO-GO** | Marketing overclaim, resolved | LOW (already reconciled internally) |
-| G-02 | "AI-native OS" / "Copilot production-ready" | Historical language | `AI_HONESTY.md` §1: NO; `feature_ai_copilot` = True in config but mandate says False. Provider DEV-ONLY (AI Horde) | Marketing overclaim, live | **HIGH** |
+| G-02 | "AI-native OS" / "Copilot production-ready" | Historical language | ~~`feature_ai_copilot` = True in config but mandate says False~~ → **RESOLVED 2026-09-12/13**: default **False** (config.py:162), 12 test files/15 asserts `is False`, 101/101 Docker PASS, AI_HONESTY aligned. Provider remains DEV-ONLY (AI Horde) — production no-go stands for any `True` path | Marketing overclaim, live → flag CLOSED; provider gap remains | **HIGH → MEDIUM** |
 | G-03 | `README.md` "Domains: AI Copilot / Decision Center / Knowledge Graph / Communication Hub 🟢 Live" | `README.md` §Domains | KG OFFLINE per ADR-108; Copilot provider DEV-ONLY; Decision Center FE package STUB; Comm Hub OAuth staging pending | Marketing overclaim | **HIGH** |
 | G-04 | "MUHIDE production data live" | Session summaries reference 296,746 ingestion | Only in `salesos_test` DB. Production `salesos` has different 141,221-row population. Phase 7 BLOCKED | Data promise unrealized | **HIGH — product-critical** |
 | G-05 | "Multi-product platform (AuditOS / DecisionOS / LocalContentOS)" | Vision docs | Zero code | Vision-vs-reality gap | HIGH if said in sales |
@@ -69,7 +71,7 @@
 - Dual FE shell (`/v3` + `/(dashboard)`) creates IA + QA drift
 
 ### 3.2 Engineering gaps
-- 4,748-file git working-tree deletion state on `fix/login-and-keys`
+- ~~4,748-file git working-tree deletion state~~ → **index unpoisoned 2026-09-12**; residual: 25 D / 37 M / 512 untracked (named-path triage), plain `git status` breaks on `engineering-os` submodule
 - Migration count reconciliation across docs (109 disk vs 96/97 docs)
 - Sentry DSN empty (no live error stream)
 - Neo4j deployed but offline (governance)
@@ -126,7 +128,7 @@
 
 Priority-ordered — this is the definitive gap-closure list:
 
-1. **P0** — Reconcile `feature_ai_copilot` + `AI_HONESTY.md` + README (0.5 day)
+1. **P0** — ~~Reconcile `feature_ai_copilot` + `AI_HONESTY.md` + README (0.5 day)~~ → **flag DONE 2026-09-12/13** (default `False`, AI_HONESTY aligned); residual: rewrite README
 2. **P0** — Enable Railway backup schedule (< 1 day, needs Railway Owner)
 3. **P0** — Sign production LLM contract (2–4 weeks)
 4. **P0** — OAuth staging + production Google Cloud Console (< 1 day, needs GCP admin)
@@ -157,3 +159,22 @@ Some claims should be permanently retired, not "closed":
 ---
 
 *Gap analysis — evidence-cited. See `17_NEXT_ACTIONS.md` for time-boxed close plans and `19_RISK_REGISTER.md` for risk classification.*
+**File-specific update:** Open gaps are release blockers, not missing product narrative: frontend toolchain, Phase 7 closure, staging, operations and compliance.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

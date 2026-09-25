@@ -1,4 +1,6 @@
 # 19 — Risk Register
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Rating scale:** Impact 1-5, Likelihood 1-5, Score = Impact × Likelihood. **Higher score = higher priority.**
 
@@ -13,8 +15,8 @@
 | **R-07** | Product | Design Partner churn (or all three cancel) | 4 | 3 | 12 | Pilot fails to demonstrate value at 90-day mark | Weekly check-ins with each partner; document success criteria upfront; drop early if wrong ICP | Founder + PO | OPEN |
 | **R-08** | Technical | Master Data / ER quality degrades on real production tenant vs `salesos_test` | 4 | 3 | 12 | Phase 7-A → 7-B write-through reveals gaps not seen in test | Phase 6 dry-run + 12 safety validation checks; phase-gated production write | TL + Data | OPEN — controls active |
 | **R-09** | Documentation | Dual-source-of-truth drift (PROJECT_BIBLE vs PRODUCT_BIBLE, README vs reality, AI_HONESTY vs feature flag) | 3 | 4 | 12 | Public claims diverge from code state; enforcement gap | Sprint 0 P0 items 2 + 5 + 6; monthly ADR audit | TL | OPEN |
-| **R-10** | Repo | 4,748 staged deletions on `fix/login-and-keys` merged accidentally | 5 | 2 | 10 | `git commit -am` from current branch state | Sprint 0 P0 item 1; branch protection on master | Founder | OPEN |
-| **R-11** | Provider | AI Copilot enabled to external tenants while DEV-only provider still active | 5 | 2 | 10 | `feature_ai_copilot=True` + real prospect uses production | Sprint 0 P0 item 2; add explicit env-var gate for external tenants | Founder + PO | OPEN |
+| **R-10** | Repo | ~~4,748 staged deletions on `fix/login-and-keys` merged accidentally~~ → **MITIGATED 2026-09-12** (`git reset HEAD -- .`; index == HEAD, 0 staged deletes). Residual LOW: 25 D / 37 M / 512 untracked need named-path triage; plain `git status` breaks on `engineering-os` submodule | 5 | 2 | 10→2 | `git commit -am` / `git add -A` from current branch state | Branch protection on master; named-path staging only | Founder | **CLOSED** |
+| **R-11** | Provider | AI Copilot enabled to external tenants while DEV-only provider still active → **CONTROLLED 2026-09-12/13**: `feature_ai_copilot` default **False** (config.py:162), gated; flags laboratory-only; provider stays DEV-ONLY | 5 | 2 | 10→2 | `feature_ai_copilot=True` + real prospect uses production | Council gate on any `True` flip (18 §5); explicit env-var gate for external tenants | Founder + PO | **MITIGATED** |
 | **R-12** | Ops | Production backup schedule not enabled (data loss on incident) | 5 | 2 | 10 | Production DB corruption before backup schedule live | Sprint 0 P0 item 4; verify Railway managed backup + external offsite | DevOps | OPEN — human blocked |
 | **R-13** | Compliance | HITL SLA breach on production tenant | 3 | 3 | 9 | Approvals queue > 24h p95 | Assign back-up reviewer; SLA dashboard; alert on breach | PO | OPEN — controls partial |
 | **R-14** | Business | Marketing overclaim ("AI-native" or "autonomous") triggering credibility damage | 4 | 2 | 8 | Prospect asks "does it really do X?" and it doesn't | Sprint 1 P1 item 11 (honest marketing page); AI_HONESTY.md enforcement in copy | Founder | OPEN |
@@ -63,3 +65,31 @@
 ---
 
 *Risk register — 30 items, priority-ordered, honest, actionable.*
+
+## Google Maps source/provider gate — 2026-09-21
+
+Current Google Maps terms prohibit scraping/extracting Maps content for use outside Maps and prohibit use of Maps Core Services for a listings/directory service or to create/augment an advertising product. Places API output also cannot be retained as a durable SalesOS lead dataset; the persistent place_id exception does not extend to company fields. The standalone business/google-maps-scraper-kit is therefore **not approved as a SalesOS lead source**, and its CSV/JSON output must not feed Master Data, Fact Review, or CRM. SalesOS already rejects google_maps as an Agent Reach research channel; a new explicit proposal-classifier regression locks that boundary. No Maps provider was called. Durable spend reservations have since been implemented and verified only on salesos_test; they remain unconfigured, so no provider can run. See [report 30](30_PROVIDER_SPEND_BUDGET_GATE_2026-09-21.md) and [report 29](29_GOOGLE_MAPS_PROVIDER_GATE_2026-09-21.md). Phase 7 remains BLOCKED, production NOT APPROVED, and roadmap remains **46%** (52/113 last full census; not re-censused).
+
+
+## Evidence relevance control update — 2026-09-21
+
+The risk of attaching an unrelated value to valid Agent Reach evidence is reduced by a whole-phrase lexical gate. Residual risk remains: captured summaries can be inaccurate and lexical presence is not semantic verification. Keep cited-claim trust, human review, and no-auto-apply boundary. See report 31.
+**File-specific update:** Highest risks are Phase 7 data promotion, dependency/toolchain integrity, provider credentials, backups/DR, SSO/Stripe and PDPL.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

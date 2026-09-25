@@ -1,4 +1,6 @@
 # 03 — Product Strategy — استراتيجية المنتج
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Purpose:** أين نأخذ SalesOS في 12 شهراً، بأدلة من الكود الفعلي وأصول البيانات، وليس بتمنيات.
 
@@ -21,10 +23,10 @@ Reason from evidence: the codebase is already broad (37 modules, 40+18 domain pa
 **Goal:** Turn the CLOSED-on-paper product into ONE working Saudi B2B pilot on real data with one design-partner customer.
 
 **Non-negotiables:**
-1. Reconcile `feature_ai_copilot` / `AI_HONESTY.md` / README — one honest posture, sign it
+1. ~~Reconcile `feature_ai_copilot` / `AI_HONESTY.md` / README — one honest posture, sign it~~ → flag reconciled to **False** 2026-09-12/13 (config.py:162, 12 test files/15 asserts `is False`, 101/101 Docker PASS, AI_HONESTY aligned); remaining = rewrite `README.md` Domains table.
 2. Sign a production LLM contract (OpenAI Enterprise / Azure OpenAI / hosted-in-KSA) — kill AI Horde in production paths
 3. Enable Railway managed backup schedule (row 3b) — DR cannot be BLOCKED-HUMAN in production
-4. Repair `fix/login-and-keys` git working tree (4,748 staged deletions)
+4. ~~Repair `fix/login-and-keys` git working tree (4,748 staged deletions)~~ → **index UNPOISONED 2026-09-12** (`git reset HEAD -- .`; 0 staged deletes); remaining = named-path triage of 25 D / 37 M / 512 untracked; never `git add -A`.
 5. Complete OAuth staging (Google Cloud Console) — SSO cannot be blocked at pilot start
 6. Cut FE scope to v3 shell only — deprecate `/(dashboard)/*` routes visibly
 7. **Design-partner pilot** — sign one Saudi B2B customer (BD or investment team) on a 90-day evidence-based pilot with real Muhide subset
@@ -156,3 +158,22 @@ This is already the operating principle in `AGENTS.md` and `AI_HONESTY.md`. It i
 ---
 
 *Strategy — evidence-grounded. See `06_MVP_SCOPE.md` for exact scope cut and `09_PRODUCT_ROADMAP.md` for calendar.*
+**File-specific update:** Strategy remains conditional on closing data trust, staging proof and operating controls before commercial scale.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

@@ -1,4 +1,6 @@
 # 07 — GTM Strategy — استراتيجية الوصول للسوق
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Reality check:** لا يوجد GTM موثَّق في المستودع اليوم. هذا الملف يقترح خطة قابلة للتنفيذ مبنية على قدرات المنتج الحقيقية والسوق السعودي — **RECOMMENDATION**، ليست حقائق موقَّعة.
 
@@ -174,3 +176,22 @@ For **Enterprise** (SAR 500k+): 4–9 months.
 ---
 
 *GTM — RECOMMENDATION-labeled. See `08_SALES_PLAYBOOK.md` for how to actually close.*
+**File-specific update:** GTM execution remains pilot-first until the staging connector and production approval sequence closes.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

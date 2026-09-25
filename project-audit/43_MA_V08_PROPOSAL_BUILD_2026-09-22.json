@@ -1,0 +1,31 @@
+{
+  "created_at_utc": "2026-09-22T12:55:11.754113+00:00",
+  "database_writes": 0,
+  "official_input": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_FINAL_v0.7.csv",
+  "official_input_sha256": "9772be62111ff40d664678de497449d7134e4def7e01057494bcddae88b5c9ec",
+  "review_manifest": "D:\\AISalesOS\\project-audit\\41_MA_UNRESOLVED_HUMAN_REVIEW_2026-09-22.csv",
+  "review_manifest_sha256": "139122198e5e6815ef75e774840b8e1cfcaed943916a09592a640fa007cade15",
+  "proposal_output": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_PROPOSED_v0.8.csv",
+  "proposal_output_sha256": "330fc5c429aa4c85b9b60bd44a13dce8932759247bbee27de5a7e9237ce680c9",
+  "input_rows": 47192,
+  "unresolved_rows_reviewed": 1114,
+  "proposed_exact_rows": 412,
+  "statuses": {
+    "UNCHANGED_EXISTING_LINK": 44974,
+    "NOT_APPLIED_ESCALATE_DOMAIN_AMBIGUOUS": 133,
+    "NOT_APPLIED_ESCALATE_MA_MULTI_CANDIDATE": 133,
+    "NOT_APPLIED_REVIEW_UNIQUE_DOMAIN": 242,
+    "NOT_APPLIED_ESCALATE_NO_DETERMINISTIC_CANDIDATE": 76,
+    "PROPOSED_EXACT_NAME_DOMAIN_NO_MA_CONFLICT": 412,
+    "NOT_APPLIED_REVIEW_UNIQUE_NAME": 114,
+    "NOT_APPLICABLE_NO_ACCOUNT_LINK": 1104,
+    "NOT_APPLIED_ESCALATE_NAME_AMBIGUOUS": 4
+  },
+  "apply_status": "PROPOSAL_ONLY_NOT_APPLIED",
+  "safety": [
+    "v0.7 was read only and not overwritten",
+    "no database or production write",
+    "only exact name+domain rows with no MA-level conflict received a proposed ID",
+    "all other unresolved rows retain an explicit non-applied status"
+  ]
+}

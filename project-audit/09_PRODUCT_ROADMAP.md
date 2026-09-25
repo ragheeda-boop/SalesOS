@@ -1,4 +1,6 @@
 # 09 — Product Roadmap — خارطة الطريق
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Scope:** 12 months, tied to the 3-layer strategy in `03_PRODUCT_STRATEGY.md` (Consolidate → Prove → Scale). Every item is either **evidence-anchored** (already coded/tested) or **RECOMMENDATION** (proposal).
 
@@ -19,8 +21,8 @@ Repair · Reconcile · Legal · Backup · Phase 7 · DP MOU × 3 · Convert 1–
 
 | # | Item | Owner | Evidence path | Status |
 |---|------|-------|--------------|--------|
-| Q4-01 | Reconcile `feature_ai_copilot` + `AI_HONESTY.md` + `README.md` domain table | Founder | `config.py`, `AI_HONESTY.md`, `README.md` | pending |
-| Q4-02 | Repair `fix/login-and-keys` git working tree | Founder | `git status` | pending |
+| Q4-01 | ~~Reconcile `feature_ai_copilot` + `AI_HONESTY.md` + `README.md` domain table~~ → **flag DONE 2026-09-12/13**; residual README rewrite | Founder | `config.py`, `AI_HONESTY.md`, `README.md` | flag CLOSED / README pending |
+| Q4-02 | ~~Repair `fix/login-and-keys` git working tree~~ → **index repaired 2026-09-12**; named-path triage of 25 D / 37 M / 512 untracked | Founder | `git status --porcelain --ignore-submodules=all` | index CLOSED / triage pending |
 | Q4-03 | Sign production LLM contract (OpenAI Enterprise / Azure OpenAI / hosted-KSA) | Founder | vendor MSA + Stripe/invoice | pending |
 | Q4-04 | Enable Railway managed backup schedule | Founder + Railway | Railway dashboard evidence | pending |
 | Q4-05 | Complete OAuth staging (Google Cloud Console) | Founder | live callback test | pending |
@@ -188,3 +190,31 @@ Revisit the roadmap **immediately** if any of these fires:
 ---
 
 *Roadmap — calendar-anchored, evidence-cited. See `10_KPI_FRAMEWORK.md` for what to measure weekly.*
+
+## Google Maps source/provider gate — 2026-09-21
+
+Current Google Maps terms prohibit scraping/extracting Maps content for use outside Maps and prohibit use of Maps Core Services for a listings/directory service or to create/augment an advertising product. Places API output also cannot be retained as a durable SalesOS lead dataset; the persistent place_id exception does not extend to company fields. The standalone business/google-maps-scraper-kit is therefore **not approved as a SalesOS lead source**, and its CSV/JSON output must not feed Master Data, Fact Review, or CRM. SalesOS already rejects google_maps as an Agent Reach research channel; a new explicit proposal-classifier regression locks that boundary. No Maps provider was called. Durable spend reservations have since been implemented and verified only on salesos_test; they remain unconfigured, so no provider can run. See [report 30](30_PROVIDER_SPEND_BUDGET_GATE_2026-09-21.md) and [report 29](29_GOOGLE_MAPS_PROVIDER_GATE_2026-09-21.md). Phase 7 remains BLOCKED, production NOT APPROVED, and roadmap remains **46%** (52/113 last full census; not re-censused).
+
+
+## Evidence-to-value implementation overlay — 2026-09-21
+
+Basic lexical support is implemented in the Agent Reach proposal bridge. Provider-specific and semantic validation, trusted provider execution, human Fact Review, and the separate atomic CRM apply remain roadmap work. No capability recensus: 46% (52/113 last full census). See report 31.
+**File-specific update:** Roadmap progress is now 85/113 (75.2%); remaining work is mostly trust, operations, integrations and release gates.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

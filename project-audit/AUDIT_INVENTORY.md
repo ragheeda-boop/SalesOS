@@ -1,4 +1,8 @@
+  **CURRENT STATUS — 2026-09-24:** Canonical current state is report [57](57_CAPABILITY_REGISTER_RECONCILIATION_2026-09-23.md) (132-row register + mechanical verification), [58](58_EFFECTIVENESS_FORCE_RLS_CLOSURE_2026-09-23.md) (FORCE RLS on `account_funnel`/`score_observations`), [59](59_ORPHAN_KEEP_TABLES_RLS_GAP_2026-09-23.md) (14 live orphan-keep tables correction), and **report [89](89_BOOKKEEPING_RECONCILIATION_2026-09-24.md)** (2026-09-24 bookkeeping: register re-verified against R58–R88 — **zero row flips, 124/132 = 93.9% COMPLETE proposed, 8 BLOCKED rows (40/46/52/53/59/60/131/132) unchanged, zero CODE-CLOSABLE** — and all four mechanical checks re-run on current source: **129 migration files (126 at R57 + R58/R68/R75), single Alembic head `f2e3d4c5b6a7` with a clean empty→head upgrade; on a fresh ephemeral DB migrated to head 211 public tables with 139 RLS / 138 FORCE (139 incl. partitioned parent) / 139 policies (136 `tenant_isolation_*` + 3 legacy), 0 RLS-without-policy, 0 policy-without-RLS, `ALL_TENANT_TABLES`=66 in both files, `rls.py` SHA matches container; feature flags unchanged (`feature_ai_copilot` and the other 4 = False, entitlement/quota enforcement = True); v3=49 / legacy=78 pages**; report signed (PO) 2026-09-24 for bookkeeping only). **PO Phase-A decisions ([report 91](91_PO_PHASE_A_DECISION_RECORD_2026-09-24.md), 2026-09-24):** A1 **ACCEPTED** — the 132-row register is the single source of truth; **124/132 = 93.9% is now the operational figure** and the historical 89/113 is retired as an unaudited historical scalar; bare-scalar tracking stops. A2 **RELEASED Phase 7 implementation** with explicitly tracked risk (supersedes 2026-08-29 planning-only Option B); the 2,661 P3 pairs (never auto-merge) and 36 short-CR (never auto-adjudicate) remain pending human review, and production (G8) is not opened. A3 **ACCEPTED** P2 sampling 3% / 1% stratified; acceptance threshold still PO-set. Reports 60–88 (2026-09-23/24) are quality/bug findings with register effect **None/UNCHANGED**. **Data-state re-check (report 89 session):** the Phase 6 review population (54,185) lives **only** in evidence CSVs — `salesos_test` currently has 0 rows in `md_review_candidates`/`md_identity_classifications`/`md_source_rows` and 180,000/296,746 `md_global_companies` (integration teardown truncates `md_*`; restore via `muhide_ingest_real.py` + `muhide_v1_enrichment.py`). **Human-gate enablement ([report 90](90_HUMAN_GATE_INDEX_2026-09-24.md), 2026-09-24):** full 16-gate index produced; review workbooks created read-only at `docs/data/phase6/review/` — `REVIEW_36_SUSPICIOUS_SHORT_CR.csv` (36 separator-list accounts), `REVIEW_P3_PAIRS_2661.csv` (all 2,661 fuzzy pairs, all `final_review_required=YES`), `README.md`. No gate opened by the index itself (PO decisions did the openings), no review performed, no DB/code/production change. **Register operational figure is now 124/132 = 93.9%** (accepted A1); **production (G8) NOT APPROVED and NOT OPEN.** Historical content below is retained for traceability.
 # AUDIT INVENTORY — AQLIYA / SalesOS
+  **أحدث متابعة 2026-09-22:** صفحات البيانات اختُبرت على `salesos_test` عند `q9r0s1t2u3v4` (التقرير 22). لاحقًا تقدمت قاعدة الاختبار وحدها إلى `r1s2t3u4v5w6` لإضافة idempotency للتحليلات؛ راجع التقرير 25. Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
+
+  بقية المخزون لقطة من يوم التدقيق؛ نتائج المتصفح موثقة في التقرير 22، وجولة idempotency اللاحقة وحدودها موثقة في التقرير 25. العدد التاريخي 109 migration files في لقطة 12 سبتمبر؛ checkout الحالي يحوي 113 ملف revision بصيغة Python (114 ملفًا إجمالًا)، منها migration telemetry الجديدة.
 
 **Audit start:** 2026-09-12 (Sat)
 **Audited workspace:** `D:\AISalesOS`
@@ -6,7 +10,7 @@
 **Method:** Discover → Inventory → Verify → Map → Reconcile → Analyze → Strategize → Prioritize → Report
 **Write scope:** `D:\AISalesOS\project-audit\` only
 
-> Every item below was inspected via `Read`, `Grep`, `Glob`, `Shell` (read-only), or listed directly. Documentation is NOT treated as proof of implementation. Code is NOT treated as proof of production.
+  Every item below was inspected via `Read`, `Grep`, `Glob`, `Shell` (read-only), or listed directly. Documentation is NOT treated as proof of implementation. Code is NOT treated as proof of production.
 
 ---
 
@@ -22,7 +26,7 @@
 | `.env.local` | Config | Local dev only (git-ignored expected) | Read-only inspection; not exfiltrated |
 | `docker-compose.yml` (root) | Infra | Lighter local/dev-only stack | 11 KB — dual with `salesos/docker-compose.yml` (staging/prod-shaped) |
 | `Dockerfile.railway` / `.celery` | Infra | Railway prod build | Referenced from `railway.json` |
-| `railway.json` / `railway.beat.json` / `railway.worker.json` | Infra | Railway service configs | preDeployCommand drift noted in `FINAL_GO_NOGO_ASSESSMENT.md` |
+| `railway.json` / `railway.beat.json` / `railway.worker.json` | Infra | Railway service configs | **File-side canonical (post-audit):** root `railway.json` HAS `preDeployCommand: alembic upgrade head`; `salesos/railway.json` = **STALE pointer stub** (`canonicalFile: ../railway.json`, old contents at `docs/archive/railway.json.stale`); live dashboard UNKNOWN |
 | `.github/workflows/` | CI | 9 workflows (ci.yml 39 KB, deploy.yml 28 KB, staging/prod, docker-smoke, e2e-stage7, fitness-ci-subset, release-gates, security-scan) | Fixed 2026-07-30: moved from `salesos/.github/` to root |
 | `.gitleaks.toml`, `.semgrepignore`, `.trivyignore` | Security | Scanner ignore lists | Present |
 | `.gitmodules` | Repo | `engineering-os` submodule | 119 B |
@@ -112,7 +116,7 @@ Read in full (627 lines). Router registrations (grouped):
 
 Read from `salesos/backend/app/config.py`:
 
-- `feature_ai_copilot: bool = True` — flipped 2026-08-19 (per code comment). **Contradicts `AI_HONESTY.md`** which mandates `False` for GA. Reconciliation note: Phase 3 gate is marked CLOSED per AGENTS.md, but AI_HONESTY was not updated.
+- `feature_ai_copilot: bool = False` — **post-audit reconciled 2026-09-12/13** (PO-recon revert comment in config.py:160). Was `True` at snapshot (flipped 2026-08-19); now matches `AI_HONESTY.md` mandate. 12 test files/15 asserts `is False`; 101/101 Docker PASS; zero leftover `True` in non-test code.
 - `feature_signal_marketplace_postgres: bool = False` — Postgres marketplace off; in-memory
 - `feature_crm_kanban: bool = False`
 - `feature_httponly_access_cookie: bool = False`
@@ -168,10 +172,10 @@ Home, companies (list + detail + 360), contacts (list + detail), people (list + 
 - `docs/audit/current-state/` (19 files — 2026-07-15 snapshot; stale for page counts)
 - `docs/adr/index.md`, `docs/api/OPENAPI.md`, `docs/PROJECT_BIBLE.md`, `docs/DOMAIN_MAP.md`, `docs/CAPABILITY_CATALOG.md`, `docs/DECISION_LOG.md`, etc.
 
-**Doc supersession is documented in-place.** However, contradictions exist:
-1. `README.md` claims Copilot/Decision Center/Knowledge Graph/Communication Hub all "🟢 Live" — contradicts `AI_HONESTY.md` + `NEO4J_GOVERNANCE_GAP.md`.
-2. Migration count differs: on-disk 109 vs AGENTS.md 96 vs FINAL 97.
-3. `feature_ai_copilot=True` in code vs `AI_HONESTY.md` mandate `False`.
+**Doc supersession is documented in-place.** Contradictions **updated post-audit (2026-09-13):**
+1. `README.md` claims Copilot/Decision Center/Knowledge Graph/Communication Hub all "🟢 Live" — contradicts `AI_HONESTY.md` + `NEO4J_GOVERNANCE_GAP.md` (unchanged; README rewrite is a P2 residual).
+2. Migration count differs: on-disk 109 vs AGENTS.md 96 vs FINAL 97 (unchanged).
+3. ~~`feature_ai_copilot=True` in code vs `AI_HONESTY.md` mandate `False`~~ → **RESOLVED 2026-09-12/13**: default `False`, tests `is False`, AI_HONESTY aligned.
 
 ---
 
@@ -190,19 +194,18 @@ Home, companies (list + detail + 360), contacts (list + detail), people (list + 
 
 ---
 
-## 9. Git repository state (READ-ONLY inspection)
+## 9. Git repository state (READ-ONLY inspection + POST-AUDIT UPDATE)
 
 - **Branch:** `fix/login-and-keys` (checked out)
 - **Remote:** `origin  https://github.com/ragheeda-boop/SalesOS.git`
-- **HEAD commit:** `3bfa6adb  fix: login redirect, CSP dev mode, duplicate React keys`
-- **Base:** ahead of `origin/master` by 2 commits (`3bfa6adb`, `e881bebf`); nothing behind
+- **HEAD commit (snapshot):** `3bfa6adb  fix: login redirect, CSP dev mode, duplicate React keys`
+- **HEAD commit (post-audit 2026-09-13):** `951a86f1  docs: record tick 32 commit hash in loop state` — 69 local commits since snapshot, **none pushed**
 - **Dependabot branches:** 15+ open PRs on remote for docker/GHA/npm updates
-- **Working tree — CRITICAL FINDING:**
-  - Staged: **4,748 files marked deleted** in `git status`
-  - Untracked: **27 directories/files** (essentially the entire workspace: `.ai/`, `.engineering/`, `.github/`, `salesos/`, `docs/`, `packages/`, root files) recorded as `??`
-  - Files exist on disk (verified via `Get-ChildItem`)
-  - This is consistent with a `git rm --cached -r .` or equivalent index rebuild that was never reversed
-  - **NOT modified by this audit.** Reported as a repo-hygiene critical finding.
+- **Working tree — CRITICAL FINDING (snapshot) → REPAIRED (post-audit):**
+  - Snapshot: **4,748 files marked deleted** in `git status`, 27 top-level `??` entries, consistent with `git rm --cached -r .` never reversed.
+  - **Post-audit (2026-09-12, A1): `git reset HEAD -- .` → index == HEAD, 0 staged deletes.** The purge-on-commit danger is **gone**.
+  - **Residual (still to triage by name):** **25 unstaged D** (files really gone from disk), **37 unstaged M**, **512 untracked**. **Never `git add -A`.**
+  - **Status trap:** plain `git status` **aborts silently** on the broken `engineering-os` submodule; always use `git status --porcelain --ignore-submodules=all`.
 
 ---
 
@@ -210,7 +213,7 @@ Home, companies (list + detail + 360), contacts (list + detail), people (list + 
 
 | Flag | Default | Notes |
 |------|---------|-------|
-| `feature_ai_copilot` | **True** | Config says True; AI_HONESTY.md still mandates False for GA — **contradiction unresolved** |
+| `feature_ai_copilot` | **False** | **Post-audit reconciled 2026-09-12/13** — default `False` (config.py:162); 12 test files/15 asserts `is False`; 101/101 Docker PASS; AI_HONESTY.md aligned. Lab via `FEATURE_AI_COPILOT=true`. |
 | `feature_signal_marketplace_postgres` | False | Runtime-flippable |
 | `feature_crm_kanban` | False | Non-GA |
 | `feature_httponly_access_cookie` | False | Half-break flag |
@@ -254,4 +257,54 @@ Home, companies (list + detail + 360), contacts (list + detail), people (list + 
 
 ## 14. What was NOT inspected — see `AUDIT_LIMITATIONS.md`
 
-See sibling document for detailed limitations (live hosting, MCPs, DB rows, browser QA, full test re-execution, node_modules, .venv, private secrets, all 4,748 docs files, every ADR).
+See sibling document for detailed limitations (live hosting, MCPs, DB rows, browser QA, full test re-execution, node_modules, .venv, private secrets, every ADR). The "4,748 docs files" reference is superseded — index was unpoisoned 2026-09-12 (see §9 post-audit).
+
+## Current overlay — Agent Reach bridge — 2026-09-21
+
+The internal Agent Reach-to-Fact Review adapter and authenticated human proposal route are documented in [report 27](27_AGENT_REACH_FACT_REVIEW_BRIDGE_2026-09-21.md). The route is proposal-only, requires `agent_reach:READ` and `master-data-review:CREATE`, and is proven by **66/66 focused checks** plus the OpenAPI contract on `salesos_test`. It does not invoke a provider, establish an automated Minder caller, or mutate CRM.
+
+## Google Maps source/provider gate — 2026-09-21
+
+Current Google Maps terms prohibit scraping/extracting Maps content for use outside Maps and prohibit use of Maps Core Services for a listings/directory service or to create/augment an advertising product. Places API output also cannot be retained as a durable SalesOS lead dataset; the persistent place_id exception does not extend to company fields. The standalone business/google-maps-scraper-kit is therefore **not approved as a SalesOS lead source**, and its CSV/JSON output must not feed Master Data, Fact Review, or CRM. SalesOS already rejects google_maps as an Agent Reach research channel; a new explicit proposal-classifier regression locks that boundary. No Maps provider was called. Durable spend reservations have since been implemented and verified only on salesos_test; they remain unconfigured, so no provider can run. See [report 30](30_PROVIDER_SPEND_BUDGET_GATE_2026-09-21.md) and [report 29](29_GOOGLE_MAPS_PROVIDER_GATE_2026-09-21.md). Phase 7 remains BLOCKED, production NOT APPROVED, and roadmap remains **46%** (52/113 last full census; not re-censused).
+
+
+## New verification report
+
+| File | Scope | Status |
+|---|---|---|
+| 30_PROVIDER_SPEND_BUDGET_GATE_2026-09-21.md | Durable provider spend budget ledger, concurrency and lifecycle tests, test database safety, stopped Maps scraper status | Complete; test-only; no provider enabled |
+
+
+## Additional verification report
+
+| File | Scope | Status |
+|---|---|---|
+| 31_AGENT_REACH_VALUE_SUPPORT_GATE_2026-09-21.md | Proposed-value lexical relevance screen, tenant DB regression, trust boundary | Complete; review-only; no CRM write |
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.
+
+## Current report map — Refresh 49
+
+| Reports | Scope | Current interpretation |
+|---|---|---|
+| 32–35 | Capability closures and verification loops | Code-scope progress reached 85/113; operational gates separate |
+| 36–40 | Phase 7 snapshot, P2 review and capture routes | Review evidence/capture only; no canonical promotion |
+| 41–46 | P1/Fuzzy/Short-CR/MA review and derived files | 792 deterministic proposals; unresolved/escalated cases preserved |
+| 47 | Phase 7 gate acceptance | Safe hold; GP-to-person promotion contract required |
+| 48 | Production readiness loop | Scoped verification pass; production no-go |
+| 49 | Full audit refresh | Current canonical snapshot and all remaining release gates |

@@ -1,4 +1,7 @@
 # 11 — Capability Matrix — مصفوفة القدرات
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
+> **مواءمة الرؤية مع الكود:** راجع [مصفوفة SalesOS Roadmap-to-Repository](24_SALESOS_ROADMAP_CAPABILITY_MATRIX_2026-09-20.md) للحالة الأحدث لقدرات Revenue OS، بما في ذلك تحديث Odoo من المصدر الحالي. هذه المصفوفة مكمّلة ولا تمحو السجل التاريخي أدناه.
 
 **Legend:**
 - `Status`: COMPLETE / PARTIAL / PLANNED / MOCK / BROKEN / NOT STARTED / UNKNOWN / DEPRECATED
@@ -82,7 +85,7 @@ Columns: Capability | Business Purpose | Frontend | Backend | Database | Integra
 | Observability | Prometheus /metrics + structured logs + SLA monitor | `/metrics` endpoint | `runtime/admin_router`, `_check_kafka_status()` shared | | | | Live | Internal | COMPLETE | Phase 4 | Sentry DSN empty (no live error stream) | P1 |
 | Background Jobs | Lease/recover + EXHAUSTED alerting | Celery worker + beat services | `celery_app.py` + task queue in Postgres | Alembic `f4aee055fd6e_create_agent_tasks` | | IL-2B.2 evidence + Phase 4 | Live (2 Railway services) | Internal | COMPLETE | Phase 4 | | P0 keep |
 | Backup / Restore | pg_dump + Neo4j backup + DR drill scripts | Ops | `infra/scripts/*.sh`, `infra/docker/backup/Dockerfile` | | | DR sim non-prod | **Managed schedule OFF** | Internal | PARTIAL | Phase 4 + `OPS01` signature pack | **Enable managed schedule** | P0 |
-| Deployment | Railway + Vercel canonical; K8s quarantined | | `Dockerfile.railway` + `vercel.json` + 9 GH workflows | | | | Live | | COMPLETE | Phase 4 | preDeployCommand drift, OAuth staging | P0 |
+| Deployment | Railway + Vercel canonical; K8s quarantined | | `Dockerfile.railway` + `vercel.json` + 9 GH workflows | | | | Live | | COMPLETE | Phase 4 | canonical root `railway.json` HAS `alembic upgrade head` (`salesos` = STALE stub; live UNKNOWN), OAuth staging | P0 |
 
 ### 1.6 Identity / Auth / RBAC
 
@@ -218,3 +221,30 @@ All 11 stories are **fixture-based** — do not sell as "live enrichment" withou
 ---
 
 *Capability matrix — evidence-anchored. See `12_GAP_ANALYSIS.md` for what's promised vs what's real.*
+
+## Current code-scope delta — 2026-09-21
+
+The historical detailed matrix above is supplemented by [implementation loop 32](32_IMPLEMENTATION_LOOP_2026-09-21.md) and [implementation loop 33](33_IMPLEMENTATION_LOOP_2026-09-22.md). Loop 32 moved the derived count from 52/113 to 60/113. Loop 33 closes eight additional code-scope rows: durable Prompt Library, durable AI Policies, encrypted PostgreSQL AI Memory, owner-only AI Model Tier configuration, CRM-grounded Account Intelligence evidence snapshots, Evidence Chain producer/consumer, currency-safe Executive Revenue reporting, and persisted Contract lifecycle. The derived score is now **68/113 = 60%**. This remains a delta-only census; it does not establish production readiness, Phase 7 completion, provider availability, or human approval of Master Data.
+
+## Loop 34 overlay — 2026-09-22
+
+Seventeen code-and-test capability closures are recorded in report 34. The derived delta is **85/113 = 75.2%** from the prior 68/113 code-scope baseline. The score is not a production-readiness claim: Phase 7 remains blocked, production is not approved, external providers were not called, and Odoo/Notion live credentials and authenticated partner proof remain open.
+**File-specific update:** Capability completion is 85/113; operational and human gates are tracked separately and do not count as code-scope completion.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

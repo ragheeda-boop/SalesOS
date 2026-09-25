@@ -1,4 +1,6 @@
 # 15 — Repository & File Audit
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Purpose:** classify every notable directory, identify duplicates / stale / dead / hygiene issues. **No deletions performed.** Recommendations only.
 
@@ -184,23 +186,23 @@
 
 ---
 
-## 6. Git repository state (CRITICAL)
+## 6. Git repository state (POST-AUDIT VERIFIED 2026-09-13)
 
-- Branch: `fix/login-and-keys` (ahead of origin/master by 2 commits)
+> **Snapshot state (`3bfa6adb`, 2026-09-12) recorded below for history, then the post-audit verification.**
+
+**At snapshot (2026-09-12):**
+- Branch: `fix/login-and-keys`
 - HEAD: `3bfa6adb`
 - Status: **4,748 files staged as deleted**; **27 top-level entries untracked**
-- Files exist on disk
 - Diagnosis: consistent with `git rm --cached -r .` never reversed
-- **DANGER:** any `git commit` from current state will purge the tracked tree
-- **Recommendation (not executed by this audit):**
-  ```
-  # 1. Backup current disk state (already stable — files exist)
-  # 2. Reset index without touching working tree
-  git reset HEAD -- .
-  # 3. Re-verify status; now files should show as tracked/modified/unchanged based on real diff
-  # 4. Only then commit / push
-  ```
-- **Dependabot:** 15+ open remote branches for docker/GHA/npm updates — process after index repair
+- **DANGER:** any `git commit` from that state would purge the tracked tree (NOTE — **REPAIRED POST-AUDIT, see below**)
+
+**Post-audit verification (2026-09-12/13) — index UNPOISONED:**
+- **`git reset HEAD -- .` executed (A1, GIT_HYGIENE-2026-09-12.md) → index == HEAD, 0 staged deletes.** The "commit wipes the tree" danger is **gone**.
+- Working tree is **NOT clean**: **25 unstaged D** (files really gone from disk — top-level stale markers: `get-docker.sh`, `setup.ps1`, `start.bat`, `salesos/.gitignore`, `salesos/README.md`, `ARB_*`, `ODOO_*`, `security-audit-report*`, `benchmark.db`, …) + **37 unstaged M** (backend/frontend/AGENTS.md) + **512 untracked** (new modules, migrations, scripts, tests, benchmarks/results, docs).
+- **Named-path staging required — never `git add -A`** (poisoned unstaged state would commit unintended deletions).
+- **`git status` trap:** plain `git status` **aborts silently** — broken `engineering-os` submodule returns `fatal: not a git repository`; must use `git status --porcelain --ignore-submodules=all` for a truthful view.
+- Dependabot: 15+ open remote branches for docker/GHA/npm updates — still pending named-path review.
 
 ---
 
@@ -291,3 +293,22 @@ Confirmed present in root `.gitignore` (per `AGENTS.md` §10): `cookies.txt`, `l
 ---
 
 *Repository audit — read-only, hygiene-focused. Cleanup is recommended, NOT executed by this audit.*
+**File-specific update:** Repository inventory is historical plus this current addendum; uncommitted changes remain and no release commit was created.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

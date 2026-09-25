@@ -1,4 +1,6 @@
 # 14 — Deployment & Hosting Audit
+> **أحدث متابعة 2026-09-20:** الصفحات المصادق عليها لبيانات SalesOS اختُبرت على `salesos_test` عند migration head `q9r0s1t2u3v4`؛ أُصلحت pagination في P3 وP1/P2. راجع التقرير [22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للأعداد والحدود الحالية.
+> يحتفظ هذا المستند بتحليله المؤرخ. نتائج browser QA لا تفتح Phase 7 ولا تغيّر قرار الإنتاج؛ Phase 7 ما زالت BLOCKED والإنتاج NOT APPROVED.
 
 **Scope:** where and how SalesOS runs, from static config only. **Live services NOT probed this audit.**
 
@@ -36,7 +38,7 @@
 - Start command: dispatches by `RAILWAY_SERVICE_NAME` — cases: `*celery-worker*`, `*celery-beat*`, default `uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`
 - Healthcheck: `/health`
 - Restart policy: ON_FAILURE, max 3 retries
-- **preDeployCommand:** NOT set in `railway.json` on disk (should be `alembic upgrade head` per FINAL_GO_NOGO recommendation; live Railway is set to `init_db()` — drift)
+- **preDeployCommand:** **file-side canonical (post-audit verified)** — root `railway.json` (`Dockerfile.railway`) **HAS** `preDeployCommand: alembic upgrade head` (matches FINAL_GO_NOGO recommendation); `salesos/railway.json` is an explicit **STALE pointer stub** (`NOTICE: STALE — NOT USED BY RAILWAY`, canonical = `../railway.json`, old contents archived at `docs/archive/railway.json.stale`). **Live Railway dashboard value UNKNOWN** (ops gate — `UNKNOWN` label preserved).
 
 ### 2.2 `railway.worker.json` / `railway.beat.json`
 
@@ -119,7 +121,7 @@ Backup service (Postgres + Neo4j backup scripts). COPY paths fixed per Phase 4 P
 3. On success, deploy-production / deploy-staging invokes `railway up --ci -y`
 4. Railway builds Dockerfile.railway
 5. Railway spins up new service revision
-6. preDeployCommand runs (drift: `init_db()` on live vs `alembic upgrade head` in `railway.json`)
+6. preDeployCommand runs (**file-side canonical post-audit**: root `railway.json` = `alembic upgrade head`; `salesos/railway.json` = STALE stub NOT used — **live dashboard UNKNOWN**)
 7. Health check `/health` polled
 8. If healthy → traffic shift
 9. `/api/v1/version` verifiable — returns `schema_version` + `build_commit`
@@ -224,7 +226,7 @@ At 10 tenants: roughly 2×–3× the above.
 1. **P0** — Enable Railway managed backup schedule (row 3b)
 2. **P0** — Sign production LLM contract + provision secret
 3. **P0** — Set up OAuth staging + production in Google Cloud Console
-4. **P0** — Align live `preDeployCommand` with `railway.json` (or vice versa) to close drift
+4. **P0** — Confirm live Railway dashboard `preDeployCommand` matches root `railway.json` (`alembic upgrade head`); `salesos/railway.json` is a STALE stub by design (post-audit file-side status)
 5. **P1** — Provision Stripe live keys after pricing signed
 6. **P1** — Provision Sentry DSN + enable live error stream
 7. **P1** — Set up public status page (Betterstack / statuspage.io / self-hosted on Vercel)
@@ -238,3 +240,22 @@ At 10 tenants: roughly 2×–3× the above.
 ---
 
 *Deployment audit — read-only, config-based. Live probes recommended in a follow-up audit.*
+**File-specific update:** Hosting is not Production GO: frontend verification, backups, SSO, Stripe, PDPL, monitoring and DR remain open.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

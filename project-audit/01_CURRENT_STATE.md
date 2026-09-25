@@ -1,4 +1,11 @@
+> **CURRENT STATUS — 2026-09-22:** Canonical current state is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md): roadmap 85/113 (75.2%), backend scoped verification PASS, Phase 7 test-only and non-canonical, frontend toolchain blocked in this checkout, production NOT APPROVED. Historical content below is retained for traceability.
 # 01 — Current State — الوضع الحالي / End-to-end honest snapshot
+> **أحدث تحقق 2026-09-20:** تم عرض Master Data مصادقًا على `salesos_test` بعد استكمال migration lineage إلى `q9r0s1t2u3v4`. الواجهة عرضت 296,746 شركة و1,124 شخصًا، وفحوص الاستيراد وER وCRM عرضت حالات فارغة صحيحة للـtenant المؤقت. pagination لطوابير P3 وP1/P2 أُصلحت واختُبرت في Chromium. التفاصيل في [التقرير 22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md).
+> الأرقام والحواجز الأقدم في التقرير 21 وهذا الملف تظل سجلًا تاريخيًا؛ هي لا تصف حالة test baseline بعد استكمال الترحيل. لا تغيير على بوابة Phase 7 أو اعتماد الإنتاج.
+
+> هذا الملف يحفظ لقطة التدقيق المؤرخة؛ استخدم [التقرير 22](22_AUTHENTICATED_DATA_AND_BROWSER_VERIFICATION_2026-09-20.md) للحالة الأحدث. Phase 7 ما زالت **BLOCKED** والإنتاج **NOT APPROVED**.
+
+> **متابعة 2026-09-21:** مسار مقترحات Agent Reach أصبح يدعم JWT بشريًا أو API key مقيدًا لمستخدم خدمة. اختبار حقيقي لوسيط API keys وRLS نجح على `salesos_test` ضمن 123/123 فحصًا مركّزًا؛ المفاتيح العابرة للمستأجر أو الزائدة الصلاحيات، واستخدام JWT لحساب الخدمة في المسارات البشرية، مرفوضة. لا يوجد حساب خدمة/مفتاح فعلي، ولا مزوّد خارجي أو اعتماد إنتاجي. راجع [التقرير 27](27_AGENT_REACH_FACT_REVIEW_BRIDGE_2026-09-21.md). هذا لا يغلق ميزانية المزود أو قبول Phase 7 أو قرار الإنتاج.
 
 **Date:** 2026-09-12
 **Method:** Cross-reference of code (`salesos/`), governance (`AGENTS.md`, `docs/audit/ga-engineering-audit/`), ADRs, phase evidence packs, and static configs. **Live systems NOT probed this audit** (see `AUDIT_LIMITATIONS.md`).
@@ -62,7 +69,7 @@
 
 **FACT — grounded discipline:** All 13 Copilot agents use a shared `EvidencePack` loader that: (a) pins RLS via `set_config('app.tenant_id', …, true)` (DEC-085), (b) enforces PII strip (positions/counts only, no names/emails/phones), (c) uses value banding on money fields, (d) returns honest UNKNOWN/INSUFFICIENT EVIDENCE when data absent, (e) does NOT call the LLM when evidence path is empty. Live probes confirmed cross-tenant isolation and zero fabrication. See `AGENTS.md` §19–§22.
 
-**CONTRADICTION:** `feature_ai_copilot: bool = True` in `salesos/backend/app/config.py:162` — flipped 2026-08-19 per code comment. `AI_HONESTY.md` §2 still lists default as **False** and mandates keeping it False for GA. Marketing must not claim Copilot GA. Reconcile by either reverting the default or re-signing `AI_HONESTY.md`.
+**FACT — flag reconciled (post-audit 2026-09-13):** `feature_ai_copilot: bool = False` in `salesos/backend/app/config.py:162` (PO recon comment 2026-09-12 reverts default; lab via `FEATURE_AI_COPILOT=true`). 12 backend test files / 15 asserts now `is False`; **101/101 Docker PASS** on flag-affected suites; zero leftover `True` in non-test code; `AI_HONESTY.md` aligned. Original contradiction (True vs False mandate) is **RESOLVED**.
 
 ### 2.4 Phase 4 — Platform
 
@@ -76,7 +83,7 @@
 | 6 | Backup / Restore | CLOSED | Scripts functional; `infra/docker/backup/Dockerfile` COPY paths fixed; DR drill simulated (non-prod) |
 | 7 | Deployment | CLOSED | Railway (backend + celery-worker + celery-beat) + Vercel (frontend) canonical; K8s quarantined per DEC-149 |
 
-**RESIDUAL:** Railway managed backup schedule NOT enabled (row 3b BLOCKED-HUMAN); `preDeployCommand` drift (live uses `init_db()`, `railway.json` says `alembic upgrade head`); OAuth staging pending Google Cloud Console.
+**RESIDUAL:** Railway managed backup schedule NOT enabled (row 3b BLOCKED-HUMAN); **`preDeployCommand` file-side canonical**: root `railway.json` (`Dockerfile.railway`) HAS `preDeployCommand: alembic upgrade head`; `salesos/railway.json` is a STALE pointer stub (NOT used, archived at `docs/archive/railway.json.stale`); live Railway dashboard value **UNKNOWN** (ops). OAuth staging pending Google Cloud Console.
 
 ### 2.5 Productization (2026-09-05 gate)
 
@@ -129,14 +136,15 @@
 
 | Aspect | Reality |
 |--------|---------|
-| Branch | `fix/login-and-keys` — ahead of `origin/master` by 2 commits |
-| HEAD | `3bfa6adb  fix: login redirect, CSP dev mode, duplicate React keys` |
-| Working tree | **CRITICAL:** 4,748 files staged as deleted; 27 top-level entries untracked (`??`). Files exist on disk. Pattern consistent with `git rm --cached -r .` never reversed. **A commit from this state would purge the repository.** |
-| Untracked at root | `.ai/`, `.engineering/`, `.github/`, `salesos/`, `docs/`, `packages/`, `assets/`, `infrastructure/`, `migration-log/`, `archive/`, `salesos_test_export/`, `scripts/`, plus root `.env.example`, `README.md`, `AGENTS.md`, `PRODUCT_BIBLE.md`, `RUNBOOK.md`, `docker-compose.yml`, `Dockerfile.railway`, `Dockerfile.railway.celery`, `railway.json`, `railway.beat.json`, `railway.worker.json`, `.gitattributes`, `.gitignore`, `.gitmodules`, `.semgrepignore`, `.trivyignore`, `.vercelignore` |
-| Dependabot | 15+ open remote branches for GHA/docker/npm updates |
+| Branch | `fix/login-and-keys` — **local commits behind only** (69 commits since 2026-09-12 snapshot, **none pushed**); ahead/behind `origin/master` unverified this update |
+| HEAD | `951a86f1  docs: record tick 32 commit hash in loop state` (moved from snapshot `3bfa6adb`) |
+| Index | **UNPOISONED (post-audit):** `git reset HEAD -- .` cleared all **4,748 staged deletes** (09-12); index == HEAD, 0 staged deletes. **Never `git add -A`** — named-path staging only. |
+| Working tree | **NOT clean:** **25 unstaged D** (files really gone from disk: `get-docker.sh`, `setup.ps1`, `start.bat`, `salesos/.gitignore`, `salesos/README.md`, `ARB_*`, `ODOO_*`, `security-audit-report*`, `benchmark.db`, …) + **37 unstaged M** (backend/frontend/AGENTS.md) + **512 untracked**. No commit-wipes-tree danger remains. |
+| Status trap | Plain `git status` **aborts silently** (broken `engineering-os` submodule → `fatal: not a git repository`). Always use `git status --porcelain --ignore-submodules=all`. |
+| Dependabot | 15+ open remote branches for GHA/docker/npm updates — untouched by post-audit work |
 | Submodules | `engineering-os` per `.gitmodules` |
 
-**Action required (outside this audit's write scope):** the repo must be repaired via `git reset HEAD --` and re-adds (or `git restore --staged .` then careful re-tracking) BEFORE any commit is made. This audit does NOT perform that operation.
+**Action required (OUTSIDE snapshot scope; EXECUTED 2026-09-12 post-snapshot):** the index was repaired via `git reset HEAD -- .`/`git restore --staged .` then careful re-tracking (A1 in `GIT_HYGIENE-2026-09-12.md`). The audit snapshot itself did NOT perform it. Remaining deliberate work: human triage of 25 D / 37 M / 512 untracked via named-path staging, never `git add -A`.
 
 ---
 
@@ -229,7 +237,7 @@
 
 | # | Contradiction | Where | Recommended resolution |
 |---|--------------|-------|------------------------|
-| C-01 | `feature_ai_copilot=True` vs `AI_HONESTY.md` mandate False | `config.py:162` vs `AI_HONESTY.md` §2 | Either revert to False, or rewrite AI_HONESTY with signed PRC evidence |
+| C-01 | ~~`feature_ai_copilot=True` vs `AI_HONESTY.md` mandate False~~ → **RESOLVED 2026-09-12/13** | `config.py:162` vs `AI_HONESTY.md` §2 | Reverted to **False** (12 test files/15 asserts `is False`; 101/101 Docker PASS); residual: README rewrite |
 | C-02 | README "🟢 Live" for Copilot/KG/Decision Center/Comm Hub vs AI_HONESTY + ADR-108 + FE-STUB | `README.md` §Domains | Rewrite README Domain table with honest labels |
 | C-03 | Migration count: 109 on disk vs AGENTS.md "96" vs FINAL "97" | disk vs docs | Reconcile in AGENTS.md session summary |
 | C-04 | "Production GA NOT DECLARED" (FINAL) vs README "🟢 Live" | disk | README needs "pilot-ready with conditions" banner |
@@ -272,3 +280,75 @@
 1. **Engineering:** SalesOS is a **serious, well-architected, evidence-governed product**, with Product-Core + Intelligence + AI + Platform layers all landed as code and tested — this is not vaporware.
 2. **Business:** But it has **zero paying customers proven this audit, no signed pricing, no live production LLM, no external pentest, no active DR backup schedule, and its flagship Saudi data asset is stuck behind an unfinished human-review workstream**.
 3. **Verdict:** It is **`pilot-ready with conditions`** — perfect for a founder-led design-partner pilot with 1–3 named Saudi B2B tenants, and **not** production-GA sellable-as-SaaS until the human decisions in §8 and Phase 7 close.
+
+## Latest implementation check — 2026-09-21
+
+The current Fact Review slice and the shared decision-platform TypeScript contracts have been checked in an isolated C: verification copy because the D: checkout is FAT32 with limited free space. Full `npm run typecheck` passes; Next build exits 0 and generated 111/111 routes; one non-fatal EPERM warning applies to standalone tracing of the linked dependency directory. Fact Review's mocked browser flow is verified, but live JWT/RBAC browser-to-test-DB proof is still unknown. No production/provider/deployment writes. Phase 7 remains BLOCKED and production NOT APPROVED; roadmap **46%** (last census 52/113).
+
+
+
+## Corrected full frontend verification — 2026-09-21
+
+The first C: run used the root lab decision package as the frontend alias and is superseded. The corrected mirror hash-matches all 1,024 current frontend `src` files and 230 frontend package files; the alias points to a separate copy of the real frontend STUB. TypeScript passes with zero diagnostics; Jest passes 323/323 suites (2,768 passed, 1 skipped); Next exits 0 and generates 111/111 routes. Build warnings are non-fatal: module-type interpretation and `EPERM` tracing the linked `node_modules` directory. Fact Review browser proof remains mocked; live JWT/RBAC browser-to-test-DB proof is unknown. No production/provider/deployment writes. Phase 7 BLOCKED, production NOT APPROVED; roadmap **46%** (last census 52/113; not re-censused).
+
+
+## Fact Review signed-auth verification — 2026-09-21
+
+A new ASGI integration uses real RS256 access tokens, `TenantContextMiddleware`, database role lookup, `PermissionEnforcer`, and tenant GUC/RLS against `salesos_test`. It proves unauthenticated 401, regular-user 403, tenant mismatch 403, and tenant-specific list isolation. It also proves JWT actor attribution, manual-evidence downgrading, independent review, and `crm_applied=false`. PostgreSQL integration is 2/2 and focused units 40/40; every fixture was rolled back and test keys stayed under pytest `tmp_path`. The test found and fixed a review retry race caused by tied transaction timestamps. Browser-to-live-API proof remains open; no production write. Phase 7 BLOCKED, production NOT APPROVED; roadmap **46%** (52/113 last census).
+
+## Fact Review browser guard — 2026-09-21
+
+The temporary frontend source mirror was used for a browser check. The protected V3 Fact Review route redirects to login and encodes the requested page in `callbackUrl`. Login now honors that callback, still supports legacy `next`, and rejects cross-origin targets. TypeScript passes, full Jest passes (324 suites; 2,776 passed, 1 skipped), build emits 111/111 routes, and a source OpenAPI registration contract passes. The shared API on port 8000 is a stale container from a separate checkout; its OpenAPI lacks the endpoint and unauthenticated GET is 404. It targets a database named `salesos`; no login, restart, or durable DB write was attempted. Real authenticated browser/API verification is still open.
+
+An isolated API process from D source on port 8001 (lifespan disabled, placeholder `salesos_test` DSN) exposed the expected route and returned 401 to an unauthenticated GET before connecting to PostgreSQL. The process is stopped. This confirms route registration and the anonymous authorization boundary in a real HTTP server; authenticated browser/API proof remains open.
+
+## Fact Review authenticated browser/API correction — 2026-09-21
+
+The open browser gate above is now closed for the **proposal-list read path**. A test-only RS256 admin session passed the V3 page middleware, Next proxy, current D-source Fact Review API, role check, and tenant GUC/RLS against `salesos_test`; the browser rendered the expected proposal and evidence. The fixture transaction was rolled back and read-only residue counts were zero. One transient first-run cold-compilation 500 did not reproduce after a clean server restart. This does not prove browser decision actions, production login, trusted producer integration, or CRM apply. See [report 26](26_FACT_REVIEW_BROWSER_API_VERIFICATION_2026-09-21.md). Phase 7 remains BLOCKED; production remains NOT APPROVED; roadmap stays 46% (last census 52/113).
+## Agent Reach proposal bridge — 2026-09-21
+
+The backend now has an internal adapter from stored Agent Reach evidence to Fact Review proposals. It checks tenant GUC and expiry, requires an exact normalized company-name match, strips URL query/fragment, excludes raw payload, and fixes evidence at `CITED_CLAIM` / `UNKNOWN`. Same-input retries are idempotent and the Company row remains unchanged. The scoped regression passes **42/42** on `salesos_test`; its DB integration fixtures roll back. The adapter is not registered as an endpoint or wired to a production caller. It does not enforce producer auth/permissions/budget or prove that a caller-supplied field value appears in the source. See [report 27](27_AGENT_REACH_FACT_REVIEW_BRIDGE_2026-09-21.md).
+
+### Authenticated route follow-up — 2026-09-21
+
+The preceding adapter-only statement is superseded for route existence: `POST /api/v1/facts/proposals/from-agent-reach` now accepts saved evidence through a JWT-authenticated human request requiring `agent_reach:READ` and `master-data-review:CREATE`. Admin access, ordinary-user denial, independent review, tenant RLS and no CRM mutation pass in the real signed-token PostgreSQL integration. Focused bridge/API/auth/RLS regression is **66/66** and OpenAPI contract **1/1** on `salesos_test`. This does not add an automated Minder identity or provider call. Phase 7 remains BLOCKED; production NOT APPROVED; roadmap **46%** (52/113, not recensused).
+
+## Fact Review browser decision completion — 2026-09-21
+
+Authenticated reviewer action now passes from the V3 page through the current API and PostgreSQL `salesos_test`: the reason-gated approval rendered as Approved, the reviewer and timestamp were present, the audit event retained the reason, and Company city remained NULL. All synthetic database rows were removed and verified absent. The browser was seeded with a short-lived test JWT; normal login/OAuth was not exercised. Providers and production were not touched. See [report 28](28_FACT_REVIEW_BROWSER_DECISION_2026-09-21.md). Roadmap remains **46%** (last census 52/113); Phase 7 BLOCKED; production NOT APPROVED.
+
+## Google Maps source/provider gate — 2026-09-21
+
+Current Google Maps terms prohibit scraping/extracting Maps content for use outside Maps and prohibit use of Maps Core Services for a listings/directory service or to create/augment an advertising product. Places API output also cannot be retained as a durable SalesOS lead dataset; the persistent place_id exception does not extend to company fields. The standalone business/google-maps-scraper-kit is therefore **not approved as a SalesOS lead source**, and its CSV/JSON output must not feed Master Data, Fact Review, or CRM. SalesOS already rejects google_maps as an Agent Reach research channel; a new explicit proposal-classifier regression locks that boundary. No Maps provider was called. Durable spend reservations have since been implemented and verified only on salesos_test; they remain unconfigured, so no provider can run. See [report 30](30_PROVIDER_SPEND_BUDGET_GATE_2026-09-21.md) and [report 29](29_GOOGLE_MAPS_PROVIDER_GATE_2026-09-21.md). Phase 7 remains BLOCKED, production NOT APPROVED, and roadmap remains **46%** (52/113 last full census; not re-censused).
+
+
+## Agent Reach value-support update — 2026-09-21
+
+A bounded lexical screen now prevents obviously unsupported string values from entering Fact Review proposals. Semantic truth/source validation and provider-specific value normalization remain open; the check does not change trust level or permit CRM writes. See report 31.
+
+## Product implementation delta — 2026-09-21
+
+New V3 surfaces and tenant-scoped APIs close eight code-scope rows from the last verified 52/113 baseline; the derived current progress is **60/113 = 53%**, with eight more completions required to reach 60%. This was a scoped delta, not a full audit of all 113 rows. The full Jest suite passes (337 suites, 2,830 passed, 1 skipped), TypeScript passes, and the optimized Next build generates 119 routes. Browser checking covered only protected-route redirects. No database/provider/deployment write; Phase 7 BLOCKED and production NOT APPROVED. See [report 32](32_IMPLEMENTATION_LOOP_2026-09-21.md).
+
+## Loop 34 progress — 2026-09-22
+
+Code-scope implementation is now **85/113 = 75.2%** after 17 bounded closures. Operational and human gates remain separate; Phase 7 BLOCKED and production NOT APPROVED.
+**File-specific update:** This file is the current-state layer: test and production database boundaries, Phase 7 queues and frontend verification limitations are now explicit.
+
+
+---
+
+## Current audit addendum — 2026-09-22 / Audit Refresh 49
+
+**Status authority:** This addendum supersedes stale progress percentages and current-state claims in this file while preserving the historical narrative above. The complete current snapshot is [Audit Refresh 49](49_AUDIT_REFRESH_2026-09-22.md), with execution evidence in [Production Readiness Loop 45](48_PRODUCTION_READINESS_LOOP_2026-09-22.md).
+
+- Current code-scope roadmap: **85/113 = 75.2% (75%)**.
+- Backend health: /health HTTP 200; database, cache, graph and Redis connected.
+- Scoped evidence: focused product **69/69**, Phase 5 CR **7/7**, ER pipeline **10/10**, compileall and diff checks PASS.
+- Phase 7 remains controlled and non-canonical: P2 sample 1,213 at 0.00% internal material error; P1 6,904 captured; Fuzzy 2,661 captured without merge; Short-CR 11 unresolved escalation; MA staging 1,114 rows on salesos_test only (792 PROPOSED / 322 ESCALATED).
+- Production database remained read-only: 107 policies total, 106 tenant-isolation named; commercial contracts have RLS and FORCE RLS; no Phase 7 proposal table or write in salesos.
+- Frontend source inventory is 49 V3 pages and 78 legacy pages. Local dependency repair failed with EISDIR/EPERM; TypeScript, Next build and authenticated browser are **not release evidence** in this checkout.
+- No provider call, CRM apply, production migration, deployment, commit or push occurred.
+- Production approval remains **NOT APPROVED** pending frontend toolchain, Phase 7 owner closure, staging connector E2E, backup/restore, monitoring/DR, SSO, Stripe, PDPL and final PO/Data/DevOps sign-off.
+
+Current detailed evidence: report 49 and report 48.

@@ -1,0 +1,19 @@
+{
+  "created_at_utc": "2026-09-22T13:19:49.122075+00:00",
+  "input_v08": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_FINAL_v0.8.csv",
+  "input_v08_sha256": "a64f669f45b5e816241ac15b1e5ed210a2c4d0bd94e383e42d1f0436f1c9d372",
+  "output_v09": "C:\\Users\\raghe\\Documents\\Muhide\\Claude outputs\\03_Master_Contacts_FINAL_v0.9.csv",
+  "output_v09_sha256": "d33826aeec402810e71654e8ceda46c9038f5a393bc890a13b04427d50624a9b",
+  "manifest": "D:\\AISalesOS\\project-audit\\45_MA_APOLLO_PASS_2026-09-22.csv",
+  "manifest_sha256": "c9083a5900c560686efc3c1d26737df825f7275d3a592b84b5043a22a0bc1b1d",
+  "remaining_rows_reviewed": 702,
+  "rows_applied": 347,
+  "counts": {
+    "REVIEW_NO_APOLLO_MATCH": 20,
+    "APOLLO_UNIQUE_MA_CONSISTENT": 347,
+    "ESCALATE_APOLLO_MULTI_GID": 335
+  },
+  "database_writes": 0,
+  "production_writes": 0,
+  "external_calls": 0
+}
