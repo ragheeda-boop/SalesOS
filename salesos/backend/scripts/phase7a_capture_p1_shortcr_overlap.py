@@ -87,6 +87,7 @@ async def main(apply: bool) -> int:
                 disposition="CONFIRM",
                 reviewer=REVIEWER,
                 notes=NOTES,
+                evidence={"reason": "D3 CONFIRM: already Short-CR CONFIRMED_ARTIFACT"},
             )
         after = {
             table: (await session.execute(text(f"SELECT COUNT(*) FROM {table}"))).scalar()

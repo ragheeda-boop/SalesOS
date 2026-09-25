@@ -5,13 +5,11 @@ import json
 
 import pytest
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.modules.master_data.phase7.review_queue import ReviewQueueService
 from app.modules.master_data.phase7.schemas import (
     P3PairDisposition,
-    ShortCRDisposition,
-    TriageDisposition,
 )
 
 PG_URL = "postgresql+asyncpg://salesos:salesos_dev_password@localhost:5432/salesos_test"
@@ -20,9 +18,6 @@ PG_URL = "postgresql+asyncpg://salesos:salesos_dev_password@localhost:5432/sales
 # md_review_candidates is unique on (global_entity_id, candidate_type, reason),
 # so a dedicated reason string both isolates and cleans up the fixture.
 _TEST_CANDIDATE_REASON = "test: phase7a dangling subject with no company row"
-
-# Evidence-marker values for the additive-merge test.
-_FIRST_PASS, _SECOND_PASS = 1, 2
 
 # Phase 6 tables that must remain unchanged.
 PHASE6_TABLES = [
@@ -102,7 +97,7 @@ class TestPhase7ARecordOnly:
 
     @pytest.mark.asyncio
     async def test_no_phase6_change_after_disposition(self, session):
-        svc = ReviewQueueService(session)
+        svc = ReviewQueueService(session, unsafe_allow_test_subjects=True)
         keys = [
             ("P3_PAIR", "test:pair:nophase6change"),
             ("SHORT_CR", "test:short:nocrpromo"),
@@ -117,6 +112,7 @@ class TestPhase7ARecordOnly:
                 await svc.record_disposition(
                     queue_type=qt, subject_key=sk,
                     disposition=_valid_disposition(qt), reviewer="test", notes="record-only",
+                    evidence={"reason": "test capture, no Phase 6 side effect"},
                 )
             after = {}
             for t in PHASE6_TABLES:
@@ -134,6 +130,7 @@ class TestPhase7ARecordOnly:
             await svc.record_disposition(
                 queue_type="P3_PAIR", subject_key="test:invalid:disp",
                 disposition="AUTO_MERGE", reviewer="test",
+                evidence={"reason": "expect rejection"},
             )
         assert "AUTO_MERGE" not in {d.value for d in P3PairDisposition}
 
@@ -145,6 +142,7 @@ class TestPhase7ARecordOnly:
             res = await svc.record_disposition(
                 queue_type="TRIAGE", subject_key=keys[0][1],
                 disposition="REVIEW", reviewer="test", notes="real-company check",
+                evidence={"reason": "real-company context check"},
             )
             assert res["queue_type"] == "TRIAGE"
             assert res["status"] == "dispositioned"
@@ -157,10 +155,12 @@ class TestPhase7ARecordOnly:
         key = ("P3_PAIR", "test:idempotent:pair")
         try:
             await svc.record_disposition(
-                queue_type="P3_PAIR", subject_key=key[1], disposition="MATCH", reviewer="a"
+                queue_type="P3_PAIR", subject_key=key[1], disposition="MATCH", reviewer="a",
+                evidence={"reason": "idempotency check a"},
             )
             await svc.record_disposition(
-                queue_type="P3_PAIR", subject_key=key[1], disposition="MATCH", reviewer="b"
+                queue_type="P3_PAIR", subject_key=key[1], disposition="MATCH", reviewer="b",
+                evidence={"reason": "idempotency check b"},
             )
             count = await session.execute(
                 text("SELECT COUNT(*) FROM md_review_queue_state WHERE queue_type='P3_PAIR' AND subject_key=:k"),
@@ -195,6 +195,7 @@ class TestPhase7ARecordOnly:
                 disposition="ACCEPT_SAMPLE",
                 reviewer="test-p2-reviewer",
                 notes="0.00% observed material error; sample hash verified.",
+                evidence={"reason": "sample accepted", "sample_n": 0},
             )
             assert result["status"] == "dispositioned"
             assert result["disposition"] == "ACCEPT_SAMPLE"
@@ -214,6 +215,7 @@ class TestPhase7ARecordOnly:
                 subject_key="not-a-uuid",
                 disposition="REVIEW",
                 reviewer="test",
+                evidence={"reason": "expect rejection"},
             )
 
     @pytest.mark.asyncio
@@ -226,6 +228,7 @@ class TestPhase7ARecordOnly:
                 disposition="ACCEPT_SAMPLE",
                 reviewer="test",
                 notes="evidence",
+                evidence={"reason": "expect rejection"},
             )
 
     @pytest.mark.asyncio
@@ -246,6 +249,7 @@ class TestPhase7ARecordOnly:
             result = await svc.record_disposition(
                 queue_type=key[0], subject_key=key[1], disposition="CONFIRM_EXACT",
                 reviewer="test-ma-reviewer", notes="candidate evidence; proposal only",
+                evidence={"reason": "candidate evidence; proposal only"},
             )
             assert result["status"] == "dispositioned"
             assert result["disposition"] == "CONFIRM_EXACT"
@@ -278,7 +282,7 @@ class TestQueueLinkageWriteThrough:
                 queue_type=key[0], subject_key=key[1], disposition="REVIEW",
                 reviewer="test-linkage",
                 notes="linkage write-through",
-                evidence={"reason": "corroboration", "reviewed_via": "workbook"},
+                evidence={"reason": "corroboration", "detail": "reviewed_via=workbook"},
             )
             # 1.1: canonical identity is persisted, not just returned.
             assert res["global_company_id"] == gid
@@ -292,7 +296,7 @@ class TestQueueLinkageWriteThrough:
             m = row.mappings().one()
             assert m["gid"] == gid, "global_company_id was not persisted"
             assert m["evidence_ref"]["reason"] == "corroboration"
-            assert m["evidence_ref"]["reviewed_via"] == "workbook"
+            assert m["evidence_ref"]["detail"] == "reviewed_via=workbook"
             assert m["evidence_ref"]["linkage_status"] == "RESOLVED"
         finally:
             await _cleanup_test_rows(session, [key])
@@ -319,7 +323,7 @@ class TestQueueLinkageWriteThrough:
                 queue_type=key[0], subject_key=key[1],
                 disposition="UNRESOLVED_ESCALATE", reviewer="test-cr-linkage",
                 notes="short-CR crosswalk check",
-                evidence={"cr_class": "SEPARATOR_LIST", "valid_cr_count": 1},
+                evidence={"reason": "separator-list CR", "cr_class": "SEPARATOR_LIST", "valid_cr_count": 1},
             )
             assert res["global_company_id"] == target["global_company_id"]
             assert res["evidence_ref"]["cr_class"] == "SEPARATOR_LIST"
@@ -338,7 +342,8 @@ class TestQueueLinkageWriteThrough:
             res = await svc.record_disposition(
                 queue_type="P3_PAIR", subject_key=key[1], disposition="ESCALATE",
                 reviewer="test-p3-linkage", notes="no source rows for pair sides",
-                evidence={"pair_id": "FZ-TEST-999999-888888", "evidence_type": "FUZZY"},
+                evidence={"reason": "no source rows for pair sides",
+                         "pair_id": "FZ-TEST-999999-888888", "evidence_type": "FUZZY"},
             )
             assert res["global_company_id"] is None, "P3 must not fabricate a company id"
             assert res["evidence_ref"]["linkage_status"] == "SOURCE_ROWS_UNRESOLVED"
@@ -377,6 +382,7 @@ class TestQueueLinkageWriteThrough:
             res = await svc.record_disposition(
                 queue_type=key[0], subject_key=key[1], disposition="ESCALATE",
                 reviewer="test-p3-recapture", notes="re-review",
+                evidence={"reason": "re-review, linkage status must not downgrade"},
             )
             assert res["evidence_ref"]["linkage_status"] == "MISSING_SIDE_B"
         finally:
@@ -384,21 +390,24 @@ class TestQueueLinkageWriteThrough:
 
     @pytest.mark.asyncio
     async def test_evidence_merge_preserves_prior_provenance(self, session):
-        """The ON CONFLICT merge is additive: re-capturing does not erase
-        evidence recorded by an earlier pass."""
+        """The ON CONFLICT merge is additive: re-capturing with a smaller
+        evidence bag does not erase fields recorded by an earlier pass that
+        the new capture does not resupply. `reason` is required on every
+        capture (report 116 W1), so this exercises the merge via a field the
+        second pass omits (`domain_relation`), not `reason` itself."""
         svc = ReviewQueueService(session)
         key = ("TRIAGE", "test:merge:provenance")
         try:
             await svc.record_disposition(
                 queue_type=key[0], subject_key=key[1], disposition="REVIEW",
-                reviewer="a", evidence={"pass": _FIRST_PASS, "reason": "first"},
+                reviewer="a", evidence={"reason": "first", "domain_relation": "SAME_BASE"},
             )
             res = await svc.record_disposition(
                 queue_type=key[0], subject_key=key[1], disposition="REVIEW",
-                reviewer="b", evidence={"pass": _SECOND_PASS},
+                reviewer="b", evidence={"reason": "second"},
             )
-            assert res["evidence_ref"]["reason"] == "first", "prior evidence was lost"
-            assert res["evidence_ref"]["pass"] == _SECOND_PASS
+            assert res["evidence_ref"]["domain_relation"] == "SAME_BASE", "prior evidence was lost"
+            assert res["evidence_ref"]["reason"] == "second"
         finally:
             await _cleanup_test_rows(session, [key])
 
@@ -434,6 +443,7 @@ class TestUnresolvableSubjectRejected:
                 await svc.record_disposition(
                     queue_type=key[0], subject_key=key[1], disposition="REVIEW",
                     reviewer="test", notes="must be refused",
+                    evidence={"reason": "expect rejection"},
                 )
             # Nothing may be written for a refused subject.
             count = await session.execute(
@@ -457,6 +467,7 @@ class TestUnresolvableSubjectRejected:
             await svc.record_disposition(
                 queue_type="SHORT_CR", subject_key="not-a-ma-id",
                 disposition="CONFIRMED_ARTIFACT", reviewer="test", notes="bad key",
+                evidence={"reason": "expect rejection"},
             )
 
     @pytest.mark.asyncio
@@ -467,6 +478,7 @@ class TestUnresolvableSubjectRejected:
             await svc.record_disposition(
                 queue_type="SHORT_CR", subject_key="MA-9999999",
                 disposition="CONFIRMED_ARTIFACT", reviewer="test", notes="unmapped MA",
+                evidence={"reason": "expect rejection"},
             )
 
     @pytest.mark.asyncio
@@ -490,7 +502,8 @@ class TestUnresolvableSubjectRejected:
             res = await svc.record_disposition(
                 queue_type=key[0], subject_key=key[1], disposition="ACCEPT_SAMPLE",
                 reviewer="test-stratum", notes="0.00% observed error",
-                evidence={"sample_n": 0, "stratum": "SALES_READY_WITH_REVIEW"},
+                evidence={"reason": "stratum accepted", "sample_n": 0,
+                         "stratum": "SALES_READY_WITH_REVIEW"},
             )
             assert res["global_company_id"] is None
             assert res["evidence_ref"]["stratum"] == "SALES_READY_WITH_REVIEW"

@@ -40,6 +40,7 @@ G3_MAP = {
     "UNRESOLVED_ESCALATE": "UNRESOLVED_ESCALATE",
 }
 G4_MAP = {"CORRECT": "CONFIRM", "MATERIAL_ERROR": "ESCALATE", "CANNOT_VERIFY": "REVIEW"}
+_ERROR_TYPES = {"NOT_EXIST", "WRONG_IDENTITY", "WRONG_DOMAIN", "WRONG_CR", "OTHER"}
 G4_FILES = (
     "G4_P1_FIELD_CONFLICT_FULL.csv",
     "G4_P1_WEAK_IDENTITY_FULL.csv",
@@ -74,7 +75,8 @@ def plan() -> tuple[list[dict], dict]:
             continue
         writes.append({"queue_type": QUEUE_SHORT_CR, "subject_key": row["ma_id"],
                        "disposition": G3_MAP[h[0]], "reviewer": h[1],
-                       "notes": f"G3 workbook {h[2]}: {h[0]}. {_col(row, 'notes')}"})
+                       "notes": f"G3 workbook {h[2]}: {h[0]}. {_col(row, 'notes')}",
+                       "evidence": {"reason": h[0], "detail": _col(row, "notes")[:2000] or None}})
     for name in G4_FILES:
         for row in _rows(name):
             h = _human(row)
@@ -84,9 +86,13 @@ def plan() -> tuple[list[dict], dict]:
             if h[0] not in G4_MAP:
                 report["invalid"].append((name, row["ma_id"], h[0]))
                 continue
+            err = _col(row, "error_type")
+            err_type = err.split()[0] if err and err.split()[0] in _ERROR_TYPES else None
             writes.append({"queue_type": QUEUE_P1, "subject_key": row["global_company_id"],
                            "disposition": G4_MAP[h[0]], "reviewer": h[1],
-                           "notes": f"{name} {h[2]}: {h[0]} {_col(row, 'error_type')}. {_col(row, 'notes')}"})
+                           "notes": f"{name} {h[2]}: {h[0]} {err}. {_col(row, 'notes')}",
+                           "evidence": {"reason": h[0], "error_type": err_type,
+                                        "detail": _col(row, "notes")[:2000] or None}})
     g5 = [r for r in _rows("G5_SRWR_REAL_WORLD_SPOT_CHECK.csv") if _human(r)]
     errors = sum(1 for r in g5 if _human(r)[0] == "MATERIAL_ERROR")
     unverified = sum(1 for r in g5 if _human(r)[0] == "CANNOT_VERIFY")

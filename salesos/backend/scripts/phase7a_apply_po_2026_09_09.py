@@ -100,6 +100,7 @@ async def main(dry_run: bool) -> int:
                 disposition="SEPARATE",
                 reviewer=REVIEWER,
                 notes=NOTE_SEPARATE,
+                evidence={"reason": "D1 SEPARATE_ALL: different CR = distinct legal entity"},
             )
         print(f"D1 SEPARATE targets found: {separate_ok}/9")
 
@@ -128,6 +129,7 @@ async def main(dry_run: bool) -> int:
                 disposition="CONFIRM",
                 reviewer=REVIEWER,
                 notes=NOTE_CONFIRM,
+                evidence={"reason": "D3 CONFIRM: already Short-CR CONFIRMED_ARTIFACT"},
             )
         print(f"D3b TRIAGE CONFIRM targets found: {confirm_ok}/4")
 

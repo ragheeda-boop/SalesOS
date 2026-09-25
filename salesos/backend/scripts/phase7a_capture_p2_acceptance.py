@@ -64,6 +64,8 @@ async def main() -> int:
                 disposition=P2SampleDisposition.ACCEPT_SAMPLE.value,
                 reviewer=REVIEWER,
                 notes=notes_common + " " + result,
+                evidence={"reason": "Deterministic sample accepted", "stratum": subject,
+                          "detail": result},
             )
         after = dict(
             (r["table_name"], int(r["count"]))

@@ -33,8 +33,10 @@ from app.modules.master_data.phase7.schemas import (
     P1CandidateDisposition,
     P2SampleDisposition,
     P3PairDisposition,
+    ReviewEvidence,
     ShortCRDisposition,
     TriageDisposition,
+    _assert_text_pii_free,
 )
 
 # Queue types.
@@ -109,10 +111,19 @@ class ReviewQueueService:
     app DB. A session can be injected for tests.
     """
 
-    def __init__(self, session: AsyncSession | None = None, tenant_id: str | None = None):
+    def __init__(self, session: AsyncSession | None = None, tenant_id: str | None = None, *,
+                 unsafe_allow_test_subjects: bool = False):
         self.session = session or review_async_session()
         self.tenant_id = tenant_id
         self._owns_session = session is None
+        # Report 116 W1: explicit, dependency-injected test flag replacing the
+        # `subject_key.startswith("test:")` backdoor that used to live in
+        # production code and would fire for ANY caller, not just tests.
+        # Default False: a service built the normal way (API router, scripts)
+        # can never activate the bypass regardless of what subject_key a
+        # caller sends. Only test fixtures construct the service with this
+        # flag set.
+        self._unsafe_allow_test_subjects = unsafe_allow_test_subjects
 
     # ── DB scope assertion ────────────────────────────────────────────────
 
@@ -329,7 +340,7 @@ class ReviewQueueService:
         fail to resolve, because recording their disposition would otherwise
         leave a dangling key with no accountable company.
         """
-        if subject_key.startswith("test:"):
+        if self._unsafe_allow_test_subjects and subject_key.startswith("test:"):
             return None, "SUBJECT_NOT_A_COMPANY"
 
         if queue_type == QUEUE_P1:
@@ -399,27 +410,41 @@ class ReviewQueueService:
     async def record_disposition(self, *, queue_type: str, subject_key: str,
                                  disposition: str, reviewer: str,
                                  notes: str | None = None,
-                                 evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+                                 evidence: dict[str, Any] | ReviewEvidence) -> dict[str, Any]:
         """CAPTURE a review disposition into md_review_queue_state.
 
         This is record-only: it updates the state row's status/disposition and
         NEVER triggers a merge, CR promotion, or classification change. It is
         idempotent on (queue_type, subject_key).
 
-        `evidence` is an optional structured, PII-free dict merged into
-        `evidence_ref`. `global_company_id` is resolved from the subject itself
-        and only ever asserted when the subject resolves to a REAL Global
-        Company; a subject that cannot be resolved is captured with a NULL
-        `global_company_id` plus `evidence_ref.linkage_status`, never with a
-        guessed or borrowed ID.
+        `evidence` is REQUIRED and typed (report 116 W1 — an intentional
+        API-breaking change from the prior optional free-form dict). A plain
+        dict is accepted for callers that build one directly (scripts, older
+        tests) and is validated against `ReviewEvidence` here — this is the
+        single enforcement point for both the HTTP API and direct script/test
+        callers, so neither path can bypass the required-`reason` / typed-
+        field / PII-impossible-by-construction guarantee. `global_company_id`
+        is resolved from the subject itself and only ever asserted when the
+        subject resolves to a REAL Global Company; a subject that cannot be
+        resolved is captured with a NULL `global_company_id` plus
+        `evidence_ref.linkage_status`, never with a guessed or borrowed ID.
         """
         await self._assert_write_db()
         if queue_type not in _DISPOSITIONS:
             raise ValueError(f"unknown queue_type: {queue_type}")
         if disposition not in _DISPOSITIONS[queue_type]:
             raise ValueError(f"invalid disposition {disposition!r} for {queue_type}")
+        if isinstance(evidence, ReviewEvidence):
+            typed_evidence = evidence
+        elif isinstance(evidence, dict):
+            typed_evidence = ReviewEvidence.model_validate(evidence)
+        else:
+            raise ValueError("evidence must be a ReviewEvidence or an equivalent dict")
+        if notes:
+            _assert_text_pii_free(notes, field="notes")
         if queue_type == QUEUE_P2_SAMPLE and not (
-            subject_key in P2_SAMPLE_SUBJECTS or subject_key.startswith("test:")
+            subject_key in P2_SAMPLE_SUBJECTS
+            or (self._unsafe_allow_test_subjects and subject_key.startswith("test:"))
         ):
             raise ValueError("P2 sample subject_key must name an approved stratum")
         if queue_type == QUEUE_P2_SAMPLE and not (notes or "").strip():
@@ -442,7 +467,7 @@ class ReviewQueueService:
             queue_type, subject_key
         )
 
-        evidence_ref = dict(evidence or {})
+        evidence_ref = typed_evidence.model_dump(exclude_none=True)
         evidence_ref.setdefault("linkage_status", default_linkage)
 
         row_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"p7a:{queue_type}:{subject_key}"))

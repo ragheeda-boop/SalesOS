@@ -23,8 +23,8 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from app.dependencies import get_db_session, verify_token
-from app.modules.master_data.phase7.review_router import router as phase7a_router
 from app.modules.master_data.phase7.review_router import get_service
+from app.modules.master_data.phase7.review_router import router as phase7a_router
 
 
 class _StubService:
@@ -164,7 +164,8 @@ async def test_disposition_post_path_matches_frontend(app, _bypass_permission_ch
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/master-data/review-queue/P3_PAIR/1%3A2/disposition",
-            json={"disposition": "MATCH", "reviewer": "test-reviewer"},
+            json={"disposition": "MATCH", "reviewer": "test-reviewer",
+                  "evidence": {"reason": "path-routing smoke test"}},
             headers=headers,
             timeout=5,
         )

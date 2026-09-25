@@ -7,9 +7,9 @@ from pydantic import ValidationError
 
 from app.modules.master_data.phase7.review_queue import (
     _DISPOSITIONS,
+    QUEUE_MA_UNRESOLVED,
     QUEUE_P1,
     QUEUE_P2_SAMPLE,
-    QUEUE_MA_UNRESOLVED,
     QUEUE_P3,
     QUEUE_SHORT_CR,
     QUEUE_TRIAGE,
@@ -76,19 +76,27 @@ class TestNoSideEffectByDesign:
         assert not ({"merge", "promote_cr", "reclassify", "new_classification"} & fields)
 
     def test_evidence_is_pii_free_enforced(self):
+        """report 116 W1: PII is impossible by construction — `evidence` is a
+        typed, whitelisted model (`extra="forbid"`), so a key that isn't on
+        the whitelist at all (email/contact/rows/full_name, ...) is rejected
+        outright rather than silently stored, and the two free-text fields
+        (reason/detail) are additionally scanned for email/phone-shaped
+        values under any key."""
         from app.modules.master_data.phase7.schemas import ReviewQueueDisposition
         for bad in ({"email": "x@y.z"}, {"contact": {"phone": "+20"}},
-                    {"reason": "ok", "rows": [{"full_name": "Jane"}]}):
-            with pytest.raises(ValidationError, match="PII"):
+                    {"reason": "ok", "rows": [{"full_name": "Jane"}]},
+                    {"reason": "contact ali@example.com about this"}):
+            with pytest.raises(ValidationError):
                 ReviewQueueDisposition(
                     disposition="CONFIRM", reviewer="t", evidence=bad
                 )
-        # Company-level facts are accepted.
+        # Company-level facts on the whitelisted, typed fields are accepted.
         ok = ReviewQueueDisposition(
             disposition="CONFIRM", reviewer="t",
             evidence={"reason": "corroboration", "domain_relation": "shared"},
         )
-        assert ok.evidence == {"reason": "corroboration", "domain_relation": "shared"}
+        assert ok.evidence.reason == "corroboration"
+        assert ok.evidence.domain_relation == "shared"
 
     def test_disposition_route_contract(self):
         """Router registers record-only endpoints; verify the service signature
@@ -106,8 +114,10 @@ class TestNoSideEffectByDesign:
                 "notes", "evidence"} == params
         # Nothing that could act on master data.
         assert not ({"merge", "promote_cr", "reclassify", "new_classification"} & params)
-        # Backwards compatible: every new param is optional.
-        assert sig.parameters["evidence"].default is None
+        # report 116 W1: evidence is now REQUIRED (an intentional API-breaking
+        # change) — a caller can no longer omit it and skip the typed/PII/
+        # required-reason guarantee.
+        assert sig.parameters["evidence"].default is inspect.Parameter.empty
 
 
 class TestCRPartitionLogic:

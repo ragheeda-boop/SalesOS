@@ -107,6 +107,7 @@ async def main(dry_run: bool) -> int:
                 disposition=disposition,
                 reviewer=REVIEWER_LABEL,
                 notes=note,
+                evidence={"reason": note[:300]},
             )
 
         print()

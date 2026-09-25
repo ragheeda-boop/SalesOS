@@ -6,20 +6,22 @@ workbench + record-only disposition capture. Writes ONLY to
 promotion, no merge, no production, no Apollo/external API.
 """
 
+from app.modules.master_data.phase7.review_queue import ReviewQueueService
 from app.modules.master_data.phase7.schemas import (
     MAUnresolvedDisposition,
     P1CandidateDisposition,
     P2SampleDisposition,
     P3PairDisposition,
+    ReviewEvidence,
     ReviewQueueDisposition,
     ShortCRDisposition,
     TriageDisposition,
 )
-from app.modules.master_data.phase7.review_queue import ReviewQueueService
 
 __all__ = [
     "ReviewQueueService",
     "ReviewQueueDisposition",
+    "ReviewEvidence",
     "P3PairDisposition",
     "P1CandidateDisposition",
     "P2SampleDisposition",
