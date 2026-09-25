@@ -3095,3 +3095,21 @@ Phase 6 unchanged. G2 and G4 still blocked. What changed is that the reported nu
 ### Files changed this session
 - `project-audit/116_SESSION_HANDOFF_EN_2026-09-26.md` - NEW
 - `AGENTS.md` §156
+
+## 157. Session Summary (2026-09-26) — W1: typed, whitelisted review evidence model
+
+| Action | Result | Details |
+|---|:---:|---|
+| PO ratification | **RECORDED** | Ragheed Almadani, 2026-09-26, "نعم": ratifies keeping the SHORT_CR listing count at 1 (releasing the 12 `CONFIRMED_ARTIFACT` accounts), matching the headline `usable_accounts=7,768`. |
+| Loop authorization | **RECORDED** | "يلا ادخل في لوب تطوير 5 ساعات ولك كل الموافقات" — dynamic-mode `/loop`, self-paced, standing approval for W1→W2→W7b per report 116 §11's ordering. Explicit instruction preserved: no auto-merge/auto-resolution/cluster-certify attempts. |
+| W1 (typed evidence model) | **DONE** | `ReviewEvidence` (Pydantic, `extra="forbid"`) replaces the free-form `evidence: dict`. Required `reason`; constrained `error_type` (NOT_EXIST/WRONG_IDENTITY/WRONG_DOMAIN/WRONG_CR/OTHER); typed `domain_relation`/`cr_class`/`candidate_domain`/`similarity_score`/`source_count`/`valid_cr_count`/`pair_id`/`evidence_type`/`sample_n`/`stratum`/`linkage_status`/`detail`. `record_disposition`'s `evidence` param is now required (accepts a `ReviewEvidence` or an equivalent dict, validated once for both the HTTP API and direct script/test callers). |
+| PII gap #1 closed | **DONE** | Value-level regex scan (email + phone-shaped patterns) on the two free-text fields (`reason`, `detail`) and on the legacy `notes` column — catches PII in a *value*, not just under a blocklisted *key*. Identifier fields (`pair_id`, `cr_class`, `candidate_domain`, ...) are deliberately NOT value-scanned (real pair ids look like `FZ-00001-315216-318033` and would false-positive a naive phone-number heuristic); their safety comes from being fixed-purpose typed fields with no PII slot at all. |
+| PII gap #2 closed | **DONE** | `reason` is mandatory on every new capture, closing the "591/643 G4 rows have no error_type" gap for all future captures (does not retroactively fix the 591 historical rows). |
+| PII gap #3 closed | **DONE** | `test:` subject-key bypass in `_resolve_company_link`/P2_SAMPLE gated behind an explicit `ReviewQueueService(..., unsafe_allow_test_subjects=True)` constructor flag (default `False`) — removed from reachable production-code paths. |
+| Callers updated | **5 scripts + 2 test files** | `phase7a_apply_shortcr_deterministic_rule.py`, `phase7a_apply_po_2026_09_09.py`, `phase7a_capture_p1_shortcr_overlap.py`, `phase7a_capture_p2_acceptance.py`, `phase7a_capture_gate_workbooks.py` (now also passes `error_type` through from the G4 workbook column); `test_phase7a_review_queue_db.py` (13 call sites), `test_phase7a_review_queue.py` (PII/route-contract tests rewritten for the new model), `test_phase7a_review_router_http.py` (1 HTTP body). |
+| New tests | **15, `test_phase7_review_evidence.py`** | Locks in: required `reason`; `extra="forbid"` rejects unknown/renamed keys; PII regex on `reason`/`detail`; identifier fields NOT phone-scanned; no field named name/email/phone/address exists at all; `error_type` vocabulary constrained; `record_disposition` validates a plain dict the same as a `ReviewEvidence` instance; the `test:` bypass defaults closed. |
+| Verification | **PASS** | Focused Phase 7 suite 78/78; `phase7a_traceability_qa.py` 8/8 PASS; `phase7a_invariant_snapshot.py` unchanged (`md_review_queue_state` still 3,342); Ruff clean; a real PII-regex false positive (pair ids look like phone numbers) was found and fixed during verification, not asserted away. |
+| Commit | **`b77c9377`** | `feat(phase7)!: typed, whitelisted review evidence model (W1)` — marked as a breaking API change per report 116's own instruction. Not pushed yet this iteration. |
+| Next | **W2** (real e2e router→service→DB, replacing the stub) | Then W7b (persist the 14-cluster dispersion report). Per report 116 §11's explicit ordering; no auto-merge/auto-resolution attempted. |
+
+Full evidence: this section; source report `project-audit/116_SESSION_HANDOFF_EN_2026-09-26.md`.
