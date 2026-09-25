@@ -39,9 +39,13 @@ async def test_summary_and_listing_over_http(app):
         r = await c.get(f"{BASE}/summary", headers=HEADERS)
         assert r.status_code == 200
         body = r.json()
-        assert body["usable_accounts"] == 0
+        # rec. I (report 111/112): registry-anchored SRWR accepted 2026-09-25.
+        assert body["usable_accounts"] == 7_768
         assert body["ready_accounts"] == 21_609
-        assert all(g["status"] == "OPEN" for g in body["gates"].values())
+        assert body["gates"]["G5:SALES_READY_WITH_REVIEW"]["status"] == "CLOSED"
+        assert body["gates"]["G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY"]["status"] == "OPEN"
+        assert all(g["status"] == "OPEN" for k, g in body["gates"].items()
+                   if k != "G5:SALES_READY_WITH_REVIEW")
 
         r = await c.get(f"{BASE}/accounts", params={"blocker": "PENDING_SHORT_CR_ADJUDICATION",
                                                     "page_size": 50}, headers=HEADERS)
@@ -51,7 +55,7 @@ async def test_summary_and_listing_over_http(app):
         assert all("PENDING_SHORT_CR_ADJUDICATION" in i["blockers"] for i in body["items"])
 
         r = await c.get(f"{BASE}/accounts", params={"usable": "true"}, headers=HEADERS)
-        assert r.status_code == 200 and r.json()["total"] == 0
+        assert r.status_code == 200 and r.json()["total"] == 7_768
 
         r = await c.get(f"{BASE}/accounts", params={"page_size": 5000}, headers=HEADERS)
         assert r.status_code == 422

@@ -2927,3 +2927,28 @@ Evidence: `project-audit/110_G5_RULES_REAL_RUN_AND_RE_REVIEW_2026-09-25.md`.
 | Next (PO) | — | I: split acceptance (registry-anchored SRWR vs Apollo-only); J: placeholder-name blocker; K: optional Apollo collision check. Commits 4–7 still need an explicit choice. |
 
 Evidence: `project-audit/111_DISPLAY_DOMAIN_CCTLD_AND_G5_150_REVIEW_2026-09-25.md`.
+
+## 151. Session Summary (2026-09-25) — Protective commits, batches 4–7 (owner-approved "Commit as-is")
+
+| Action | Result | Details |
+|---|:---:|---|
+| Batches 1–3 | **COMMITTED** | `0367e39d` (.gitignore + `_keys/`), `4adee846` (30 migrations), `be960736` (Master Data platform) |
+| Batches 4–7 | **COMMITTED** | `b1d9d40e` backend, `ce05281f` scripts, `03329923` tests, `7f263e6c` frontend, `4ee5fb90` docs (155 files) |
+| Checks | **PASS** | Explicit-path staging, no `git add -A`; secret-pattern and >1 MB scans per batch; no push |
+| Excluded on purpose | **NOT COMMITTED** | `docs/data/**` (real company data, ignored by `data/`); secrets/keys; nested duplicate copies `docs/docs` (471 MB), `.ai/.ai`, `.github/.github`, `assets/assets`, `.engineering/.engineering`, `infrastructure/infrastructure`, `migration-log/migration-log` (apparent copy accident; owner to decide deletion) |
+| Still open | **OWNER DECISION** | 25 deletions; decision lab package edits (`salesos/packages/platform/decision/**`, §57/58); scratch TSV/debug files under `salesos/backend/`; pushed HS256 token rotation (report 100) |
+
+## 152. Session Summary (2026-09-25) — Rules I/J applied (G5 split + placeholder blocker); G3 write blocked
+
+| Action | Result | Details |
+|---|:---:|---|
+| PO approval | **RECORDED** | Ragheed Almadani, 25/09/2026, "موافق على توصياك": approves rec. I (split SRWR acceptance), J (placeholder-name blocker), K (defer Apollo-collision check). |
+| Rule I | **IMPLEMENTED** | `G5:SALES_READY_WITH_REVIEW` split by identity basis: registry-anchored (non-Apollo-only) **CLOSED**; new `G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY` stays **OPEN**. |
+| Rule J | **IMPLEMENTED** | `PLACEHOLDER_ACCOUNT_NAME` blocker for the 22 `FeedLicMigrationAccountNameAr` accounts (exact match). 12 of these are SRWR/non-Apollo and would have silently become usable under rec. I alone without this rule. |
+| Live effect | **7,768 usable** | Of 21,609 ready (0 → 7,768). `P2_STRATUM_NOT_ACCEPTED` now 7,807 (Apollo-only only, was 15,746). `OUT_OF_MARKET` 2,876 and `NON_COMMERCIAL_SEGMENT` 164 unaffected. |
+| Verification | **PASS** | Unit 11/11 (rewritten); DB integration against real `salesos_test` 3/3 + HTTP 1/1, using live-computed figures (not hand-derived); keyword regression 28/28; frontend TypeScript/ESLint/Jest clean (2 new Arabic blocker labels added). |
+| Methodology note | **FLAGGED, not fixed** | `md_source_rows` (unlike its Master Data siblings) carries a real tenant RLS+FORCE policy; `review_queue.py`'s dedicated engine uses the owner/BYPASSRLS role, so this isn't a live gap today, but a future tenant-restricted-role caller would need an explicit GUC pin. |
+| G3 (5 accounts) | **CAPTURED** | Evidence-based CR-validity reasoning (SFDA-UNN pattern + SOCPA name-consistency signals) approved by PO ("يلا موافق", 2026-09-25) after the classifier blocked the first write attempt. Recorded via the capture tool: 3 `CONFIRMED_ARTIFACT` + 2 `UNRESOLVED_ESCALATE`, verified in `md_review_queue_state`. G3 gate itself stays open (2 of 5 unresolved; the separate 36-account short-CR queue is untouched). |
+| Production / Phase 7 | **UNCHANGED** | No production write, no commit, no push. Phase 7 remains BLOCKED; production remains **NOT APPROVED**. |
+
+Full evidence: `project-audit/112_G5_SPLIT_ACCEPTANCE_AND_PLACEHOLDER_RULE_2026-09-25.md`.

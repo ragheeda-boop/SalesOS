@@ -32,6 +32,16 @@ SHORT_CR_PENDING = "PENDING_SHORT_CR_ADJUDICATION"  # G3
 CR_AMBIGUOUS_MULTI = "CR_SUSPICIOUS_MULTI"  # G3 population by classification
 NON_COMMERCIAL = "NON_COMMERCIAL_SEGMENT"  # G5-3 (report 104/106)
 OUT_OF_MARKET = "OUT_OF_MARKET"  # G5 review (reports 109/110)
+PLACEHOLDER_NAME = "PLACEHOLDER_ACCOUNT_NAME"  # rec. J (report 111 §4; PO 2026-09-25)
+
+# rec. J (report 111): a source/migration artifact name, never a real company.
+# Confirmed exact-match, 22 accounts (report 112 §1). Reversible list.
+PLACEHOLDER_NAMES = frozenset({"FeedLicMigrationAccountNameAr"})
+EXCLUDE_PLACEHOLDER_NAMES = True
+
+
+def is_placeholder_name(name: str | None) -> bool:
+    return (name or "").strip() in PLACEHOLDER_NAMES
 
 # PO decision G5-3 (report 106): non-profits (NCNP register) and government
 # bodies (.gov.sa) form a separate, non-commercial segment excluded from
@@ -90,8 +100,18 @@ GATES: dict[str, Gate] = {
     "G2": Gate("G2", "OPEN", "report 90 §1; report 91 §2 (P3 pairs never auto-merged)"),
     "G3": Gate("G3", "OPEN", "report 90 §1; report 91 §4.2 (government-ID hard veto)"),
     "G4": Gate("G4", "OPEN", "report 90 §1 (P1 Tier A/B review)"),
+    # rec. I (report 111 §4): split SRWR acceptance by identity basis. Registry-
+    # anchored (SFDA / multi-source) measured 1.2% / 0% error (n=151, report 111
+    # §3) — accepted by PO Ragheed Almadani, 2026-09-25 ("موافق على توصياك").
+    # Apollo-only measured 7.4% (name collisions with foreign same-name
+    # companies, report 111 §3) — stays open pending rec. K or a second signal.
     "G5:SALES_READY_WITH_REVIEW": Gate(
-        "G5:SALES_READY_WITH_REVIEW", "OPEN", "report 91 §3 (3% sample; threshold PO-set)"
+        "G5:SALES_READY_WITH_REVIEW", "CLOSED",
+        "report 111 rec. I; PO 2026-09-25 (registry-anchored SRWR: SFDA 1.2%, multi-source 0%, n=151)",
+    ),
+    "G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY": Gate(
+        "G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY", "OPEN",
+        "report 111 §3-4 (Apollo-only SRWR error 7.4%, n=54); PO 2026-09-25 keeps open pending rec. K",
     ),
     "G5:ENRICHMENT_REQUIRED": Gate(
         "G5:ENRICHMENT_REQUIRED", "OPEN", "report 91 §3 (1% sample; threshold PO-set)"
@@ -113,6 +133,8 @@ def account_blockers(
     in_pending_short_cr: bool,
     non_commercial: bool = False,
     out_of_market: bool = False,
+    apollo_only: bool = False,
+    canonical_name: str | None = None,
     gates: dict[str, Gate] = GATES,
 ) -> list[str]:
     """Every reason this account may not be treated as sales-usable (empty = usable)."""
@@ -121,7 +143,13 @@ def account_blockers(
         blockers.append(NOT_READY)
     if review_priority == "P1" and _open("G4", gates):
         blockers.append(P1_REVIEW_OPEN)
-    if review_priority == "P2" and _open(f"G5:{sales_readiness}", gates):
+    if review_priority == "P2" and sales_readiness == "SALES_READY_WITH_REVIEW":
+        # rec. I split: Apollo-only SRWR is gated separately from the
+        # registry-anchored (SFDA/multi-source) rest of the stratum.
+        gate_key = "G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY" if apollo_only else "G5:SALES_READY_WITH_REVIEW"
+        if _open(gate_key, gates):
+            blockers.append(P2_STRATUM_NOT_ACCEPTED)
+    elif review_priority == "P2" and _open(f"G5:{sales_readiness}", gates):
         blockers.append(P2_STRATUM_NOT_ACCEPTED)
     if in_pending_p3_pair and _open("G2", gates):
         blockers.append(P3_PAIR_PENDING)
@@ -133,6 +161,8 @@ def account_blockers(
         blockers.append(NON_COMMERCIAL)
     if out_of_market and EXCLUDE_OUT_OF_MARKET:
         blockers.append(OUT_OF_MARKET)
+    if EXCLUDE_PLACEHOLDER_NAMES and is_placeholder_name(canonical_name):
+        blockers.append(PLACEHOLDER_NAME)
     return blockers
 
 
@@ -195,6 +225,8 @@ async def _load(session: AsyncSession, gates: dict[str, Gate] = GATES) -> list[d
             out_of_market=is_out_of_market(
                 apollo_only=r["apollo_only"], city=r["city"], domain=r["domain"]
             ),
+            apollo_only=r["apollo_only"],
+            canonical_name=r["canonical_name"],
             gates=gates,
         )
         out.append({

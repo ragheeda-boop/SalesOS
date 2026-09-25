@@ -20,6 +20,8 @@ const BLOCKER_LABELS: Record<string, string> = {
   PENDING_SHORT_CR_ADJUDICATION: "سجل تجاري قصير معلّق (G3)",
   CR_SUSPICIOUS_MULTI: "سجل تجاري متعدد القيم (G3)",
   NON_COMMERCIAL_SEGMENT: "جهة غير تجارية (جمعية/حكومية)",
+  OUT_OF_MARKET: "خارج السوق المستهدف",
+  PLACEHOLDER_ACCOUNT_NAME: "اسم حساب وهمي (خطأ ترحيل بيانات)",
 };
 
 type UsableFilter = "all" | "usable" | "blocked";

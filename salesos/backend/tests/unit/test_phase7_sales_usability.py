@@ -10,9 +10,11 @@ from app.modules.master_data.phase7.usability import (
     P1_REVIEW_OPEN,
     P2_STRATUM_NOT_ACCEPTED,
     P3_PAIR_PENDING,
+    PLACEHOLDER_NAME,
     SHORT_CR_PENDING,
     Gate,
     account_blockers,
+    is_placeholder_name,
 )
 
 
@@ -27,20 +29,47 @@ def _closed(*keys):
     return {k: (Gate(k, "CLOSED", "test") if k in keys else g) for k, g in GATES.items()}
 
 
-def test_every_shipped_gate_is_open():
-    assert all(g.status == "OPEN" for g in GATES.values())
+def test_gate_status_matches_current_shipped_decisions():
+    # rec. I (report 111; PO 2026-09-25): registry-anchored SRWR accepted,
+    # Apollo-only SRWR stays open. Every other gate remains open.
+    closed = {"G5:SALES_READY_WITH_REVIEW"}
+    for key, gate in GATES.items():
+        expected = "CLOSED" if key in closed else "OPEN"
+        assert gate.status == expected, f"{key} expected {expected}, got {gate.status}"
 
 
 def test_p1_ready_account_blocked_while_g4_open():
     assert _b() == [P1_REVIEW_OPEN]
 
 
-def test_p2_account_blocked_until_its_own_stratum_is_accepted():
-    kw = dict(sales_readiness="SALES_READY_WITH_REVIEW", review_priority="P2")
+def test_p2_registry_anchored_srwr_accepted_by_default():
+    # rec. I: SFDA/multi-source (apollo_only=False) SRWR gate is closed already.
+    kw = dict(sales_readiness="SALES_READY_WITH_REVIEW", review_priority="P2", apollo_only=False)
+    assert _b(**kw) == []
+    # Accepting/closing the enrichment stratum's gate is independent.
+    assert _b(**kw, gates=_closed("G5:ENRICHMENT_REQUIRED")) == []
+
+
+def test_p2_apollo_only_srwr_still_blocked_pending_second_signal():
+    # rec. I: Apollo-only SRWR is gated separately and stays open (7.4% error, report 111 §3).
+    kw = dict(sales_readiness="SALES_READY_WITH_REVIEW", review_priority="P2", apollo_only=True)
     assert _b(**kw) == [P2_STRATUM_NOT_ACCEPTED]
-    # Accepting the other stratum does not unlock this one.
-    assert _b(**kw, gates=_closed("G5:ENRICHMENT_REQUIRED")) == [P2_STRATUM_NOT_ACCEPTED]
-    assert _b(**kw, gates=_closed("G5:SALES_READY_WITH_REVIEW")) == []
+    # Closing the registry-anchored gate does not unlock Apollo-only.
+    assert _b(**kw, gates=_closed("G5:SALES_READY_WITH_REVIEW")) == [P2_STRATUM_NOT_ACCEPTED]
+    assert _b(**kw, gates=_closed("G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY")) == []
+
+
+def test_placeholder_name_blocks_even_when_every_gate_is_closed():
+    # rec. J (report 111 §4; PO 2026-09-25): migration-artifact names, 22 accounts.
+    assert is_placeholder_name("FeedLicMigrationAccountNameAr") is True
+    assert is_placeholder_name(" FeedLicMigrationAccountNameAr ") is True
+    assert is_placeholder_name("Acme Trading Co") is False
+    assert is_placeholder_name(None) is False
+    closed = {k: Gate(k, "CLOSED", "test") for k in GATES}
+    kwargs = dict(sales_readiness="SALES_READY", review_priority="P1", cr_class="SAFE",
+                  in_pending_p3_pair=False, in_pending_short_cr=False, gates=closed)
+    assert account_blockers(canonical_name="FeedLicMigrationAccountNameAr", **kwargs) == [PLACEHOLDER_NAME]
+    assert account_blockers(canonical_name="Acme Trading Co", **kwargs) == []
 
 
 def test_pending_review_populations_block_even_when_priority_gates_close():

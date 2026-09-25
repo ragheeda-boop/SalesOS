@@ -1,8 +1,9 @@
 """Phase 7 sales-usability against the restored salesos_test (read-only).
 
-Expected figures come from the Phase 6 run (report 94/96): 5,710 SALES_READY
-accounts (all P1) and 37,312 SALES_READY_WITH_REVIEW (all P2). With every
-review gate open, none may be treated as sales-usable.
+Expected figures come from the current active version (report 111, report 112
+rec. I/J; PO 2026-09-25): 5,863 SALES_READY (all P1, still fully blocked by G4)
+and 15,746 SALES_READY_WITH_REVIEW (all P2). Rec. I closed the registry-
+anchored (non-Apollo-only) SRWR gate; Apollo-only SRWR stays open.
 """
 
 from __future__ import annotations
@@ -31,26 +32,37 @@ async def service():
 
 
 @pytest.mark.asyncio
-async def test_no_account_is_usable_while_gates_are_open(service):
+async def test_p1_fully_blocked_p2_registry_anchored_srwr_accepted(service):
+    # rec. I (report 111/112; PO 2026-09-25): the registry-anchored (non-
+    # Apollo-only) part of SRWR is accepted; Apollo-only SRWR stays blocked;
+    # P1 is untouched (still fully blocked by G4).
     s = await service.get_sales_usability_summary()
     assert s["ready_accounts"] == 21_609
-    assert s["usable_accounts"] == 0
+    assert s["usable_accounts"] == 7_768
     assert s["by_readiness"]["SALES_READY"] == {"total": 5_863, "usable": 0}
-    assert s["by_readiness"]["SALES_READY_WITH_REVIEW"] == {"total": 15_746, "usable": 0}
+    assert s["by_readiness"]["SALES_READY_WITH_REVIEW"] == {"total": 15_746, "usable": 7_768}
     assert s["by_blocker"]["P1_REVIEW_GATE_OPEN"] == 5_863
-    assert s["by_blocker"]["P2_STRATUM_NOT_ACCEPTED"] == 15_746
+    assert s["by_blocker"]["P2_STRATUM_NOT_ACCEPTED"] == 7_807  # Apollo-only SRWR only
+    assert s["by_blocker"]["OUT_OF_MARKET"] == 2_876
+    assert s["by_blocker"]["NON_COMMERCIAL_SEGMENT"] == 164
+    assert s["by_blocker"]["PLACEHOLDER_ACCOUNT_NAME"] == 22  # rec. J
+    assert s["gates"]["G5:SALES_READY_WITH_REVIEW"]["status"] == "CLOSED"
+    assert s["gates"]["G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY"]["status"] == "OPEN"
 
 
 @pytest.mark.asyncio
-async def test_closing_priority_gates_still_holds_back_pending_review_accounts(service):
-    gates = {k: Gate(k, "CLOSED", "test") if k in ("G4", "G5:SALES_READY_WITH_REVIEW") else g
-             for k, g in GATES.items()}
+async def test_closing_remaining_gates_still_holds_back_pending_review_accounts(service):
+    # Close G4 and the Apollo-only SRWR gate too (rec. K / a second signal,
+    # not yet implemented) — what's left must be genuine pending-review or
+    # segment/data-quality holds, never a priority-gate artifact.
+    close = {"G4", "G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY"}
+    gates = {k: Gate(k, "CLOSED", "test") if k in close else g for k, g in GATES.items()}
     s = await usability_summary(service.session, gates)
     accounts = await _load(service.session, gates)
     blocked = [a for a in accounts if not a["usable"]]
     pending_only = {"PENDING_P3_FUZZY_PAIR", "PENDING_SHORT_CR_ADJUDICATION", "CR_SUSPICIOUS_MULTI",
-                    "NON_COMMERCIAL_SEGMENT", "OUT_OF_MARKET"}
-    assert s["usable_accounts"] > 0
+                    "NON_COMMERCIAL_SEGMENT", "OUT_OF_MARKET", "PLACEHOLDER_ACCOUNT_NAME"}
+    assert s["usable_accounts"] > 7_768  # strictly more than rec. I alone unlocks
     assert s["usable_accounts"] + len(blocked) == s["ready_accounts"]
     assert blocked, "expected some ready accounts to sit in a pending review population"
     assert all(set(a["blockers"]) <= pending_only for a in blocked)
