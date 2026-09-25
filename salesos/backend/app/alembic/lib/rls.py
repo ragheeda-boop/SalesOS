@@ -9,6 +9,7 @@ This module contains the **same** functions and constants, duplicated
 here so that the production Docker image does not need the ``scripts/``
 package.
 """
+
 from __future__ import annotations
 
 SESSION_VAR = "app.tenant_id"
@@ -26,8 +27,17 @@ ALL_TENANT_TABLES: list[str] = [
     "companies",
     "contacts",
     "company_features",
+    # ── Governed fact ledger ──
+    "evidence_records",
+    "canonical_facts",
+    "fact_evidence",
+    "canonical_fact_events",
     # ── Commercial ──
     "commercial_opportunities",
+    "commercial_opportunity_notes",
+    "commercial_quotas",
+    "commercial_quota_snapshots",
+    "commercial_territories",
     "commercial_stage_entries",
     "commercial_pipeline_definitions",
     "commercial_activity_sessions",
@@ -41,10 +51,19 @@ ALL_TENANT_TABLES: list[str] = [
     "meetings",
     "emails",
     "commercial_recommendations",
+    "commercial_reviews",
+    "commercial_insights",
+    "commercial_evidence_items",
     "opportunity_contacts",
     "activity_attributions",
     "odoo_external_ids",
     "company_signals",
+    # ── Seller decision lifecycle ──
+    "nba_feedback",
+    "action_outcomes",
+    "sales_followups",
+    # ── Customer Success ──
+    "customer_survey_responses",
     # ── Revenue ──
     "opportunities",
     "tasks",
@@ -137,10 +156,43 @@ DB05_DEFERRED_8_TENANT_TABLES: list[str] = [
     "revenue_analytics_snapshots",
 ]
 
+# ---------------------------------------------------------------------------
+# DEC-157 — the 14 live DEC-130f orphan-keep tables, no prior RLS
+# ---------------------------------------------------------------------------
+#
+# ``domain_events`` and ``activity_records`` both have a *nullable*
+# ``tenant_id`` column, same shape as ``admin_ai_costs``/``admin_jobs``
+# (DB-05 Slice 4, migration d1a8c35e7f09). Following that same accepted
+# precedent and ``b7e2f65a3f07``'s explicit rejection of an
+# ``OR tenant_id IS NULL`` bypass: no carve-out here either. A NULL-tenant
+# row becomes invisible under any tenant GUC, fail-closed, same as every
+# other Category A table. Callers that construct a tenant-less domain event
+# or activity record (e.g. ``ActivityRuntime.on_domain_event`` when the
+# inbound event lacks ``tenant_id``) must supply a real tenant to write
+# under RLS; this migration does not add a bypass for that case.
+
+DEC_157_ORPHAN_KEEP_TENANT_TABLES: list[str] = [
+    "company_funding_events",
+    "company_job_postings",
+    "company_intent_rfps",
+    "company_intent_visits",
+    "company_intent_content",
+    "company_intent_contacts",
+    "company_products",
+    "company_deals",
+    "company_payments",
+    "company_policies",
+    "decisions",
+    "decision_feedback_loop",
+    "domain_events",
+    "activity_records",
+]
+
 
 # ---------------------------------------------------------------------------
 # SQL generators
 # ---------------------------------------------------------------------------
+
 
 def generate_policy_sql(
     table: str,
@@ -186,14 +238,12 @@ def generate_join_policy_sql(
     """
     policy_name = policy_name or f"tenant_isolation_{child_table}"
     parent_pk_expr = (
-        f"p.{parent_pk_column}::text"
-        if cast_parent_pk_to_text
-        else f"p.{parent_pk_column}"
+        f"p.{parent_pk_column}::text" if cast_parent_pk_to_text else f"p.{parent_pk_column}"
     )
     exists_pred = (
         f"EXISTS (\n"
         f'        SELECT 1 FROM "{parent_table}" p\n'
-        f"        WHERE {parent_pk_expr} = \"{child_table}\".{fk_column}\n"
+        f'        WHERE {parent_pk_expr} = "{child_table}".{fk_column}\n'
         f"          AND p.{parent_tenant_column}::text = "
         f"current_setting('{session_var}', true)\n"
         f"    )"

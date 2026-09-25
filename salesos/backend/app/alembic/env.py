@@ -17,6 +17,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.common.models import Base
 from app.config import settings
 
+# Register the governed fact ledger without importing app.database (which
+# creates live async engines during Alembic startup).
+import app.modules.facts.models  # noqa: F401
+
 # Prefer app.common.models.Base (metadata only). Importing app.database would
 # create async engines at module import (~40s cold) and historically contributed
 # to Docker `alembic current` hangs after MigrationContext setup.
