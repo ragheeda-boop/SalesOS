@@ -1,6 +1,7 @@
 """REST endpoints for Entity Resolution module."""
 
 from fastapi import APIRouter, Depends, Path, Query, Request
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import PaginatedResponse
@@ -125,6 +126,40 @@ async def get_golden_by_cr(
     service: EntityResolutionService = Depends(get_service),
 ):
     return await service.get_golden_by_cr(tenant_id, cr_number)
+
+
+@router.get(
+    "/matches",
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))],
+)
+async def list_matches(
+    status: str | None = Query(None, description="Filter by match status"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db_session),
+):
+    offset = (page - 1) * page_size
+    where = "WHERE 1=1"
+    params: dict[str, object] = {"limit": page_size, "offset": offset}
+    if status:
+        where += " AND match_status = :status"
+        params["status"] = status
+
+    count_params = {k: v for k, v in params.items() if k not in ("limit", "offset")}
+    total_result = await db.execute(text(f"SELECT COUNT(*) FROM md_entity_matches {where}"), count_params)
+    rows_result = await db.execute(
+        text(f"SELECT * FROM md_entity_matches {where} ORDER BY created_at DESC LIMIT :limit OFFSET :offset"),
+        params,
+    )
+    items = [dict(row) for row in rows_result.mappings().all()]
+    total = total_result.scalar() or 0
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": items,
+        "has_next": offset + page_size < total,
+    }
 
 
 @router.get(
