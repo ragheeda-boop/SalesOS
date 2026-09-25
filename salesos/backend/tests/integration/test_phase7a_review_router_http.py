@@ -28,24 +28,61 @@ from app.modules.master_data.phase7.review_router import get_service
 
 
 class _StubService:
-    """Canned, DB-free stand-in for ReviewQueueService."""
+    """Canned, DB-free stand-in for ReviewQueueService.
+
+    Figures are the real salesos_test populations (verified 2026-09-26), not
+    invented ones. The previous stub claimed 5,753 / 46,736, which matched no
+    query: the true strata are 5,903 CORROBORATION_REVIEW and 33,654
+    PRIORITIZATION_PP2 out of 53,644 total. A stub that lies about the
+    population lets a data assertion pass against fiction.
+    """
+
+    # Real, from md_review_queue_state / md_review_candidates on salesos_test.
+    P3_TOTAL = 2_661
+    SHORT_CR_TOTAL = 36
+    TRIAGE_TOTAL = 53_644
+    TRIAGE_COUNTS = {
+        "P1:CORROBORATION_REVIEW": 5_903,
+        "P2:PRIORITIZATION_PP2": 33_654,
+    }
 
     async def list_p3_pairs(self, *, status=None, batch=None, offset=0, limit=500):
-        return [{"id": "x", "subject_key": "1:2", "status": "pending"}], 2661
+        return [
+            {
+                "id": "00000000-0000-4000-8000-000000000001",
+                "subject_key": "1:2",
+                "global_company_id": "00000000-0000-4000-8000-0000000000a1",
+                "global_company_id_b": None,
+                "status": "dispositioned",
+                "disposition": "ESCALATE",
+            }
+        ], self.P3_TOTAL
 
     async def get_p3_count(self):
-        return 2661
+        return self.P3_TOTAL
 
     async def list_short_cr(self):
-        return [{"master_account_id": "MA-0000001", "cr_number_raw": "1;2",
-                  "valid_cr_count": 0, "rejected_tokens": ["1", "2"],
-                  "global_company_id": None}] * 36
+        return [
+            {
+                "master_account_id": "MA-0000001",
+                "cr_number_raw": "1;2",
+                "valid_cr_count": 0,
+                "rejected_tokens": ["1", "2"],
+                "global_company_id": None,
+            }
+        ] * self.SHORT_CR_TOTAL
 
     async def list_triage_candidates(self, *, candidate_type=None, offset=0, limit=500):
-        return [{"global_company_id": "g1", "candidate_type": "P1", "reason": "CORROBORATION_REVIEW"}], 53644
+        return [
+            {
+                "global_company_id": "00000000-0000-4000-8000-0000000000a1",
+                "candidate_type": "P1",
+                "reason": "CORROBORATION_REVIEW",
+            }
+        ], self.TRIAGE_TOTAL
 
     async def get_triage_counts(self):
-        return {"P1:CORROBORATION_REVIEW": 5753, "P2:PRIORITIZATION_PP2": 46736}
+        return dict(self.TRIAGE_COUNTS)
 
     async def record_disposition(self, *, queue_type, subject_key, disposition, reviewer,
                                  notes=None, evidence=None):

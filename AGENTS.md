@@ -3013,3 +3013,63 @@ The §154 backfill was one-off. The defect lived in `record_disposition` itself,
 `test_phase7_sales_usability_db.py::test_p1_fully_blocked_p2_registry_anchored_srwr_accepted` and `test_phase7_sales_usability_http.py::test_summary_and_listing_over_http` fail **identically with these changes stashed** (confirmed via `git stash`). The latter asserts a hard-coded `usable_accounts == 7_768` against an actual 7,916 — population drift, not this work.
 
 Full evidence: `project-audit/114_QUEUE_LINKAGE_BACKFILL_AND_P3_GAP_ROOT_CAUSE_2026-09-25.md`.
+
+---
+
+## 155. Session Summary (2026-09-26) - P0: escalated is not resolved; DB-level linkage enforcement
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| Root cause of 2 "pre-existing" failures | **FOUND - it was a P0** | `_FACTS_SQL` decided "pending human review" from `status='pending'` alone; `record_disposition` had moved all 2,661 P3 rows to `status='dispositioned'` with `disposition='ESCALATE'`, so the blocker vanished |
+| Impact | **148 accounts released on a false premise** | P3-linked companies in the ready population = 148, all `MISSING_SIDE_B` (G2 population). 7,768 + 148 = 7,916 = observed `usable_accounts`. Clean identity, no drift |
+| Fix | **DONE** | Block on `disposition`, not `status`. P3 blocks unless `CONFIRM`/`SEPARATE`; SHORT_CR blocks while pending/`UNRESOLVED_ESCALATE`; `CONFIRMED_ARTIFACT` is a resolution |
+| Result | **7,768 by principle** | Predicate corrected; PO figure fell out. Not fitted. `PENDING_P3_FUZZY_PAIR: 148` + `PENDING_SHORT_CR_ADJUDICATION: 1` visible again |
+| Prior misdiagnosis | **CORRECTED** | The earlier "pre-existing" verdict came from a `git stash` check, which reverts code but not DB writes. A stash baseline proves nothing about data state |
+| PO assertion conflict | **1 corrected, needs ratification** | Listing test asserted SHORT_CR total 13 (all pending then); 12 since adjudicated `CONFIRMED_ARTIFACT`, and PO headline 7,768 already required them released (else 7,756). Two PO figures were mutually inconsistent; headline kept, listing set to 1 |
+| FK enforcement | **ADDED** | `fk_md_review_queue_state_company` + `_company_b` -> `md_global_companies(id)`, `NO ACTION`. Was application-only, so a dangling link was always possible |
+| FK proof | **VERIFIED** | 2,598 + 898 populated, 0 dangling; dangling insert rejected by both; legal link accepted; 0 probe rows persist |
+| Traceability QA gate | **8/8 PASS** | Q1 evidence well-formed, Q2 no dangling, Q3 P1 linkage, Q4 P3 linkage_status vs real NULL-ness, Q5 SHORT_CR states, Q6 escalation blocks, Q7 Phase 6 floors, Q8 FKs present |
+| 38 remaining rows labelled | **DONE** | 36 SHORT_CR -> `RESOLVED`; 2 P2_SAMPLE -> `SUBJECT_NOT_A_COMPANY` + v5 basis transcribed from each row's own `notes`. 38 written, 0 on re-run |
+| The 52 MATERIAL_ERROR | **NOT CORRECTABLE from the record** | `evidence_url` 0/52, `exact_match_field` 0/52, no authoritative replacement value. A "wrong domain" verdict names the defect, not the correct value |
+| Correction plan | **REQUIREMENTS + GATES** | `phase7a_material_error_plan.py` emits per-row ask + CSV. Apply path verified to refuse empty mapping, partial mapping (1 of 52), and `--commit` without approval. 0 corrections applied |
+| Stub honesty defect | **FIXED** | HTTP stub claimed 5,753 / 46,736 (matched no query; true 5,903 / 33,654 of 53,644) and returned `{"id":"x"}` instead of a `P3PairRow`. Replaced with verified figures + real shapes |
+| `Body(...)` | **NORMALIZED** | `body: X = ...` worked only by inference |
+| Own mistake, caught by own gate | **DISCLOSED** | FK probe used `async with c.transaction()` which COMMITS on clean exit, persisting 1 junk row despite a comment claiming rollback. QA gate failed Q1/Q3 immediately. Probe fixed, row removed, queue back to 3,342 |
+| Tests | **84 passed, 0 failed** | Phase 7 unit 56 passed / 2 skipped; integration 28 passed (was 26 passed / 2 failed) |
+| Phase 6 | **UNCHANGED** | source_rows 909,967 / companies 296,746 / classifications 1,483,730 / candidates 54,754 / mappings 314,413 / provenance 1,524,717 |
+
+### Key engineering notes
+- **`status` is not a resolution flag.** Any queue predicate that infers "unresolved" from `status` alone will silently release escalated work the moment a disposition is recorded. Only an affirmative resolution clears a blocker.
+- **A stash-based baseline proves nothing about database state.** Phase 6/7 regression isolation must reason about the data.
+- **Coverage of a stub is not evidence about the data.** A stub with invented totals lets a data assertion pass against fiction; real figures are cheap.
+- **A transaction context manager commits on clean exit.** Probes that must leave no trace need an explicit rollback.
+- **The QA gate found a real defect on its first run** (the 2 empty `P2_SAMPLE` evidence rows), which is the argument for having it.
+
+### Files changed this session
+- `salesos/backend/app/modules/master_data/phase7/usability.py` - P0 fix: block on disposition, not status
+- `salesos/backend/app/modules/master_data/phase7/review_router.py` - `Body(...)` + import
+- `salesos/backend/scripts/phase7a_schema_gate.py` - 2 FK constraints, idempotent, asserted
+- `salesos/backend/scripts/phase7a_traceability_qa.py` - NEW, 8 hard gates
+- `salesos/backend/scripts/phase7a_invariant_snapshot.py` - NEW, read-only fingerprint
+- `salesos/backend/scripts/phase7a_fk_probe.py` - NEW, FK proof
+- `salesos/backend/scripts/phase7a_stamp_remaining_labels.py` - NEW, labels the last 38
+- `salesos/backend/scripts/phase7a_material_error_plan.py` - NEW, requirements + refusal gates
+- `salesos/backend/tests/unit/test_phase7_unresolved_semantics.py` - NEW, 8 tests
+- `salesos/backend/tests/integration/test_phase7_sales_usability_http.py` - stale 13 -> 1, documented
+- `salesos/backend/tests/integration/test_phase7a_review_router_http.py` - stub truth
+- `project-audit/115_*.md` + `115_MATERIAL_ERROR_CORRECTION_REQUIREMENTS.csv` - NEW
+
+### Remaining human actions
+| Priority | Action | Owner |
+|----------|--------|-------|
+| P0 | **Ratify** the SHORT_CR listing correction 13 -> 1 | PO |
+| P0 | Supply authoritative domains for the 32 `WRONG_DOMAIN` rows - the 52 cannot be corrected without them | PO+Data |
+| P0 | Supply defect descriptions + correct values for the 20 `OTHER` rows | PO+Data |
+| P1 | Sign off the 2 FK constraints before any production promotion | PO+DevOps |
+| P1 | G4: 5,920 open P1 (5,606 unreviewed + 314 `CANNOT_VERIFY`); 66% of the fully-reviewed strata are `CANNOT_VERIFY`, so the deciding evidence was never captured | PO+Data |
+| P1 | G2: 1,763 P3 pairs - blocked on the original candidates file, never ingested | Data |
+| P1 | W1 typed evidence model (PII impossible by construction) + W2 real end-to-end test - not started | Eng |
+| P1 | Production G9-G16; `production_approved=false` | DevOps+PO |
+
+### Session status: **NO GATE CLOSED. NO PRODUCTION APPROVAL.**
+Phase 6 unchanged. G2 and G4 still blocked. What changed is that the reported numbers are now true and the invariant is enforced by the database.

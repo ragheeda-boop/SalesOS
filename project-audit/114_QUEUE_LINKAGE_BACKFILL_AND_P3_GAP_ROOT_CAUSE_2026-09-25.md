@@ -192,7 +192,8 @@ Docs:
 - `project-audit/114_QUEUE_LINKAGE_BACKFILL_AND_P3_GAP_ROOT_CAUSE_2026-09-25.md` — this file
 - `AGENTS.md` §154
 
-**Nothing is committed.** The working tree carries these changes uncommitted,
-alongside pre-existing unrelated modifications; stage explicit paths only, never
-`git add -A`. Production remains **NOT APPROVED**.
+**Committed** as `72c0320c` (10 explicit paths; the working tree also carries
+pre-existing unrelated modifications, so stage explicit paths only, never
+`git add -A`). Follow-up: report 115 records a P0 in the disposition path and
+`56f2ebc9`. Production remains **NOT APPROVED**.
 

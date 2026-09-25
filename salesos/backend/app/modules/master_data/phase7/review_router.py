@@ -15,7 +15,7 @@ No business logic changed: every handler below calls the exact same
 `ReviewQueueService` methods as before, unchanged in `review_queue.py`.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 
 from app.config import settings
 from app.dependencies import require_permission_dep
@@ -216,7 +216,7 @@ async def export_triage(service: ReviewQueueService = Depends(get_service)):
 async def record_disposition(
     queue_type: str = Path(...),
     subject_key: str = Path(...),
-    body: ReviewQueueDisposition = ...,
+    body: ReviewQueueDisposition = Body(...),
     service: ReviewQueueService = Depends(get_service),
 ):
     """Capture a review disposition (record-only; no merge/CR/classification side effect)."""

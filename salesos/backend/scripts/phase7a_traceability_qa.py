@@ -169,6 +169,23 @@ async def q7(c: asyncpg.Connection) -> int:
     return bad
 
 
+@check("Q8 linkage foreign keys present on the queue")
+async def q8(c: asyncpg.Connection) -> int:
+    """The application guard is not enough; the DB must enforce it too."""
+    have = {
+        r["conname"]
+        for r in await c.fetch(
+            "SELECT conname FROM pg_constraint "
+            "WHERE conrelid = 'md_review_queue_state'::regclass AND contype = 'f'"
+        )
+    }
+    want = {"fk_md_review_queue_state_company", "fk_md_review_queue_state_company_b"}
+    missing = want - have
+    for m in sorted(missing):
+        print(f"      ! missing FK {m}")
+    return len(missing)
+
+
 async def main() -> int:
     c = await asyncpg.connect(DSN)
     db = await c.fetchval("SELECT current_database()")
@@ -177,7 +194,7 @@ async def main() -> int:
     for name, fn in CHECKS:
         try:
             bad = await fn(c)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"  ERROR  {name}: {exc}")
             failures += 1
             continue

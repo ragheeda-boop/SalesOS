@@ -39,9 +39,49 @@ REVIEW_STATE_DDL = """
         reviewed_at TIMESTAMPTZ,
         notes TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        CONSTRAINT uq_md_review_queue_state UNIQUE (queue_type, subject_key)
+        CONSTRAINT uq_md_review_queue_state UNIQUE (queue_type, subject_key),
+        CONSTRAINT fk_md_review_queue_state_company
+            FOREIGN KEY (global_company_id) REFERENCES md_global_companies (id),
+        CONSTRAINT fk_md_review_queue_state_company_b
+            FOREIGN KEY (global_company_id_b) REFERENCES md_global_companies (id)
     )
 """
+
+# Applied to pre-existing tables too (CREATE TABLE IF NOT EXISTS is a no-op once
+# the table exists, so the inline constraints above would never land on an
+# already-materialized queue). NO ACTION is deliberate: a company that still has
+# an open review row must not be deletable, which matches the Phase 6
+# never-delete discipline. Idempotent via a catalog check.
+FOREIGN_KEYS = [
+    """
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+             WHERE conname = 'fk_md_review_queue_state_company'
+               AND conrelid = 'md_review_queue_state'::regclass
+        ) THEN
+            ALTER TABLE md_review_queue_state
+                ADD CONSTRAINT fk_md_review_queue_state_company
+                FOREIGN KEY (global_company_id) REFERENCES md_global_companies (id);
+        END IF;
+    END $$
+    """,
+    """
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+             WHERE conname = 'fk_md_review_queue_state_company_b'
+               AND conrelid = 'md_review_queue_state'::regclass
+        ) THEN
+            ALTER TABLE md_review_queue_state
+                ADD CONSTRAINT fk_md_review_queue_state_company_b
+                FOREIGN KEY (global_company_id_b) REFERENCES md_global_companies (id);
+        END IF;
+    END $$
+    """,
+]
 
 INDEXES = [
     "CREATE INDEX IF NOT EXISTS ix_md_review_queue_state_qtype ON md_review_queue_state (queue_type, status)",
@@ -71,6 +111,16 @@ async def main() -> int:
         await conn.execute(REVIEW_STATE_DDL)
         for sql in INDEXES:
             await conn.execute(sql)
+        for sql in FOREIGN_KEYS:
+            await conn.execute(sql)
+        expected_fks = 2
+        fks = await conn.fetch(
+            "SELECT conname FROM pg_constraint "
+            "WHERE conrelid = 'md_review_queue_state'::regclass AND contype = 'f' "
+            "ORDER BY conname"
+        )
+        print(f"foreign keys on md_review_queue_state: {[r['conname'] for r in fks]}")
+        assert len(fks) == expected_fks, f"expected {expected_fks} foreign keys, found {len(fks)}"
 
         after = set(
             r["tablename"]
