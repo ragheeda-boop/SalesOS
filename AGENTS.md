@@ -3073,3 +3073,25 @@ Full evidence: `project-audit/114_QUEUE_LINKAGE_BACKFILL_AND_P3_GAP_ROOT_CAUSE_2
 
 ### Session status: **NO GATE CLOSED. NO PRODUCTION APPROVAL.**
 Phase 6 unchanged. G2 and G4 still blocked. What changed is that the reported numbers are now true and the invariant is enforced by the database.
+
+---
+
+## 156. Session Summary (2026-09-26) - English handoff for the next instance
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| Handoff document | **ADDED** | `project-audit/116_SESSION_HANDOFF_EN_2026-09-26.md` - single entry point for the next Claude instance |
+| Contents | **COMPLETE** | 11 sections: read-first rules, state-at-a-glance, the P0 explained, what was DONE with per-file tables, the 52-row situation, test-honesty fixes, the open backlog, the PO ratification item, what is NOT done, invariants that must not break, human-blocked items, and ordered next actions |
+| Explicit falsification recorded | **DONE** | The 14-cluster verdict-dispersion result is written into the handoff so the next instance does not re-attempt cluster-and-certify: verdicts are mixed inside every cluster and 591/643 rows carry no `error_type` |
+| Backlog restated honestly | **DONE** | G4 open is **5,920** (5,606 unreviewed + 314 `CANNOT_VERIFY`), not 5,606. Only 329 of the 643 reviewed rows are terminal |
+| Invariants pinned | **DONE** | The 6 Phase 6 row counts plus `md_review_queue_state` as the only writable table, with the verify commands |
+| Remaining work scoped | **W1 / W2 / W7b** | W1 typed evidence model (PII-by-value, mandatory reason, `test:` backdoor, no size limit) is highest value and NOT STARTED; W2 real e2e; W7b persist the falsification evidence |
+
+### Key engineering notes
+- A handoff is only useful if it records what was **falsified**, not just what was built. The cluster-and-certify negative result is the most expensive thing learned this session and is now durable.
+- "5,606 remaining" was an undercount. `REVIEW` means *could not verify*, so the true G4 open figure is 5,920. Any future status report must use 5,920.
+- The next instance is told explicitly not to attempt auto-merge, auto-resolution, or cluster certification, and why.
+
+### Files changed this session
+- `project-audit/116_SESSION_HANDOFF_EN_2026-09-26.md` - NEW
+- `AGENTS.md` §156
