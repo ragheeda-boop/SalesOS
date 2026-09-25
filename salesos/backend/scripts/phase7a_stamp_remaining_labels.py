@@ -36,6 +36,9 @@ DSN = os.environ.get(
     "postgresql://salesos:salesos_dev_password@localhost:5432/salesos_test",
 )
 
+TARGET_QUEUE_TYPES = ("SHORT_CR", "P2_SAMPLE")
+PREVIEW_ROWS = 5
+
 # Transcribed from the P2 rows' own `notes` (PHASE7A_P2_MASTER_COMPARISON_V5.json,
 # reports 91 A3 / 93 / 139). Not new judgement.
 P2_EVIDENCE = {
@@ -81,10 +84,10 @@ async def main() -> int:
         print(f"  {k:<14} {pre[k]:,}")
 
     targets = await c.fetch(
-        """
+        f"""
         SELECT id, queue_type, subject_key, global_company_id
           FROM md_review_queue_state
-         WHERE queue_type IN ('SHORT_CR', 'P2_SAMPLE')
+         WHERE queue_type IN ({', '.join(repr(t) for t in TARGET_QUEUE_TYPES)})
            AND NOT (evidence_ref ? 'linkage_status')
          ORDER BY queue_type, subject_key
         """
@@ -92,8 +95,8 @@ async def main() -> int:
     print(f"\ntargets: {len(targets)}")
     for t in targets[:5]:
         print(f"  {t['queue_type']:<12} {t['subject_key']}")
-    if len(targets) > 5:
-        print(f"  ... and {len(targets) - 5} more")
+    if len(targets) > PREVIEW_ROWS:
+        print(f"  ... and {len(targets) - PREVIEW_ROWS} more")
 
     if not targets:
         print("\nnothing to do (idempotent)")

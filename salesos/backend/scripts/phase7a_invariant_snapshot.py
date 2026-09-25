@@ -30,7 +30,7 @@ async def main() -> None:
         try:
             fp[t] = await c.fetchval(f"SELECT count(*) FROM {t}")
             print(f"  {t:<34} {fp[t]:>10,}")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"  {t:<34} ERROR {exc}")
 
     print("\n== Phase 7 queue ==")
@@ -67,7 +67,7 @@ async def main() -> None:
         f"SELECT queue_type, disposition, count(*) AS n FROM {PHASE7_TABLE} "
         f"GROUP BY 1,2 ORDER BY 1,2"
     ):
-        print(f"  {r['queue_type']:<20} {str(r['disposition']):<16} {r['n']:>6}")
+        print(f"  {r['queue_type']:<20} {r['disposition']!s:<16} {r['n']:>6}")
 
     print("\n== fingerprint ==")
     print(json.dumps(fp, indent=1, sort_keys=True))
