@@ -17,6 +17,7 @@ from typing import Any, Optional
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import apply_tenant_guc
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +103,7 @@ class DecisionFeedbackLoop:
         self._entries.append(entry)
 
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             await session.execute(
                 sa_text("""
                     INSERT INTO decision_feedback_loop

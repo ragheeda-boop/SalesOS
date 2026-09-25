@@ -1,33 +1,29 @@
 """STORY-12-03 — AI Memory HTTP (CAP-063 conversation-level MVP).
 
 Opt-in tenant memory. feature_ai_copilot is gated by settings.feature_ai_copilot.
-Phase 3 HITL/evaluation gates closed 2026-08-19.
+Conversation turns are encrypted before tenant-scoped PostgreSQL persistence.
 """
 
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, verify_token
+from app.dependencies import get_current_tenant_id, get_db_session, verify_token
 from app.modules.tenant_studio.ai_memory import (
     DEFAULT_MAX_TURNS,
     DEFAULT_RETENTION_HOURS,
     AiMemoryError,
 )
-from app.modules.tenant_studio.ai_memory_store import (
-    DEFAULT_AI_MEMORY_STORE,
-    MemAiMemoryStore,
-)
+from app.modules.tenant_studio.postgres_ai_memory_store import PostgresAiMemoryStore
 
 router = APIRouter(prefix="/studio/ai-memory", tags=["AI Studio"])
 _AUTH = [Depends(verify_token)]
-
-_STORE = DEFAULT_AI_MEMORY_STORE
-
 
 class MemorySettingsBody(BaseModel):
     enabled: bool = False
@@ -41,8 +37,8 @@ class MemoryTurnBody(BaseModel):
 
 
 class AdversarialProbeBody(BaseModel):
-    owner_tenant_id: str = Field(..., min_length=1, max_length=64)
-    attacker_tenant_id: str = Field(..., min_length=1, max_length=64)
+    owner_tenant_id: UUID
+    attacker_tenant_id: UUID
     conversation_id: str = Field(..., min_length=1, max_length=128)
 
 
@@ -91,14 +87,14 @@ async def ai_memory_meta() -> dict[str, Any]:
             "memory deferred (DEC-007)."
         ),
         "provider_cache": "tenant-bound fixture keys (pcm:…:t=<tenant_id>:…)",
-        "encryption": "fixture-hmac-sha256-v1 tenant-bound at-rest envelope (not KMS)",
-        "deletion_policy": "DELETE /conversations/{id} + retention_hours auto-purge",
+        "encryption": "Fernet application encryption with tenant-derived keys; requires AI_MEMORY_ENCRYPTION_KEY",
+        "deletion_policy": "DELETE /conversations/{id}, opt-out purge, and retention_hours auto-purge",
         "policy_count_delta": 0,
         "feature_ai_copilot": bool(settings.feature_ai_copilot),
         "honesty": (
-            "In-memory CI store; opt-in per tenant. Live LLM / RAG GO / "
-            "cross-session memory not claimed. Gated by settings.feature_ai_copilot. "
-            "FE Decision package is STUB."
+            "Encrypted tenant-scoped PostgreSQL persistence; opt-in per tenant. "
+            "Live LLM / RAG GO / cross-session recall not claimed. Copilot remains "
+            "gated by settings.feature_ai_copilot. Key rotation is an operator-managed prerequisite."
         ),
     }
 
@@ -106,8 +102,9 @@ async def ai_memory_meta() -> dict[str, Any]:
 @router.get("/settings", response_model=MemorySettingsResponse, dependencies=_AUTH)
 async def get_memory_settings(
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> MemorySettingsResponse:
-    row = _STORE.get_settings(tenant_id=str(tenant_id))
+    row = await PostgresAiMemoryStore(db).get_settings(tenant_id=str(tenant_id))
     return MemorySettingsResponse.model_validate(row.as_dict())
 
 
@@ -115,24 +112,30 @@ async def get_memory_settings(
 async def put_memory_settings(
     body: MemorySettingsBody,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> MemorySettingsResponse:
     try:
-        row = _STORE.set_settings(
+        row = await PostgresAiMemoryStore(db).set_settings(
             tenant_id=str(tenant_id),
             enabled=body.enabled,
             max_turns=body.max_turns,
             retention_hours=body.retention_hours,
         )
     except AiMemoryError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        status = 503 if "encryption key is not configured" in str(exc) else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
     return MemorySettingsResponse.model_validate(row.as_dict())
 
 
 @router.get("/conversations", response_model=list[ConversationMemoryResponse], dependencies=_AUTH)
 async def list_conversations(
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> list[ConversationMemoryResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    try:
+        rows = await PostgresAiMemoryStore(db).list_for_tenant(tenant_id=str(tenant_id))
+    except AiMemoryError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     return [ConversationMemoryResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -145,16 +148,18 @@ async def append_turn(
     conversation_id: str,
     body: MemoryTurnBody,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> ConversationMemoryResponse:
     try:
-        row = _STORE.append_turn(
+        row = await PostgresAiMemoryStore(db).append_turn(
             tenant_id=str(tenant_id),
             conversation_id=conversation_id,
             role=body.role,
             content=body.content,
         )
     except AiMemoryError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        status = 503 if "encryption key is not configured" in str(exc) else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
     return ConversationMemoryResponse.model_validate(row.as_dict())
 
 
@@ -166,14 +171,16 @@ async def append_turn(
 async def get_conversation(
     conversation_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> ConversationMemoryResponse:
     try:
-        row = _STORE.get_conversation(
+        row = await PostgresAiMemoryStore(db).get_conversation(
             tenant_id=str(tenant_id),
             conversation_id=conversation_id,
         )
     except AiMemoryError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        status = 503 if "encryption key is not configured" in str(exc) else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
     if row is None:
         raise HTTPException(status_code=404, detail="conversation memory not found")
     return ConversationMemoryResponse.model_validate(row.as_dict())
@@ -183,9 +190,10 @@ async def get_conversation(
 async def delete_conversation(
     conversation_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
     try:
-        ok = _STORE.delete_conversation(
+        ok = await PostgresAiMemoryStore(db).delete_conversation(
             tenant_id=str(tenant_id),
             conversation_id=conversation_id,
         )
@@ -200,19 +208,18 @@ async def delete_conversation(
 async def adversarial_probe(
     body: AdversarialProbeBody,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
-    """CI/ops probe helper — does not invent live LLM. Auth required."""
-    _ = tenant_id  # caller must be authenticated; probe uses explicit tenant ids
+    """Development-only tenant isolation probe; never usable as cross-tenant access."""
+    if str(settings.env).lower() in {"production", "prod", "staging"}:
+        raise HTTPException(status_code=404, detail="probe is unavailable")
+    if body.owner_tenant_id != UUID(tenant_id):
+        raise HTTPException(status_code=403, detail="probe owner must match authenticated tenant")
     try:
-        return _STORE.adversarial_isolation_report(
-            owner_tenant_id=body.owner_tenant_id,
-            attacker_tenant_id=body.attacker_tenant_id,
+        return await PostgresAiMemoryStore(db).adversarial_isolation_report(
+            owner_tenant_id=str(body.owner_tenant_id),
+            attacker_tenant_id=str(body.attacker_tenant_id),
             conversation_id=body.conversation_id,
         )
     except AiMemoryError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-def bind_store(store: MemAiMemoryStore) -> None:
-    global _STORE  # noqa: PLW0603
-    _STORE = store

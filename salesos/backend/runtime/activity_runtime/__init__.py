@@ -41,6 +41,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import apply_tenant_guc
+
 _activity_metadata = MetaData()
 
 activity_records = Table(
@@ -200,6 +202,7 @@ class ActivityRuntime:
         self.metrics.ingested += 1
 
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             await session.execute(insert(activity_records).values(**_insert_values(record)))
             await session.commit()
 
@@ -225,6 +228,10 @@ class ActivityRuntime:
         self.metrics.ingested += len(activities)
 
         async with self._session_factory() as session:
+            # All records in one batch share the caller's authenticated
+            # tenant_id (enforced at the router boundary); pin once.
+            if activities:
+                await apply_tenant_guc(session, activities[0].tenant_id)
             for a in activities:
                 await session.execute(insert(activity_records).values(**_insert_values(a)))
             await session.commit()
@@ -262,6 +269,7 @@ class ActivityRuntime:
         )
 
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             total = (
                 await session.scalar(
                     select(func.count()).select_from(activity_records).where(where)
@@ -341,6 +349,7 @@ class ActivityRuntime:
         cnt = func.count().label("cnt")
 
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             total = (
                 await session.scalar(
                     select(func.count()).select_from(activity_records).where(where)

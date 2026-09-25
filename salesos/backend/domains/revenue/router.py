@@ -1,8 +1,7 @@
 """Revenue Planning Router — Forecast, Quota, Territory endpoints.
 
-P1-6: Forecast now uses Postgres-backed repository (per-request via DI).
-Quota and Territory remain in-memory until Postgres repos + migrations are added.
-Router is now mounted in boot/routers.py under /api/v1/revenue-planning.
+Forecast, quota, and territory services use Postgres repositories per request.
+Router is mounted in boot/routers.py under /api/v1/revenue-planning.
 """
 
 from __future__ import annotations
@@ -34,7 +33,7 @@ from pydantic import BaseModel, Field
 router = APIRouter()
 
 # ── Per-request service factories (P1-6) ──
-# Forecast: Postgres-backed. Quota/Territory: in-memory (pending Postgres repos).
+# All Revenue Planning service factories use Postgres repositories when available.
 
 
 def _forecast_svc(db: AsyncSession = Depends(get_db_session)) -> ForecastService:
@@ -314,6 +313,33 @@ async def list_quotas(
          "attainment_percent": q.attainment_percent, "period": q.period.value,
          "status": q.status.value}
         for q in quotas
+    ]
+
+
+@router.get("/quotas/snapshots", dependencies=[Depends(require_permission_dep("quota", PermissionAction.READ))])
+async def list_quota_snapshots(
+    tenant_id: str = Depends(get_current_tenant_id),
+    quota_svc: QuotaService = Depends(_quota_svc),
+    limit: int = Query(10, ge=1, le=100),
+):
+    snapshots = await quota_svc.list_snapshots(tenant_id, limit)
+    return [
+        {
+            "id": snapshot.id,
+            "period_label": snapshot.period_label,
+            "quota_count": len(snapshot.quotas),
+            "total_target": snapshot.total_target,
+            "total_attained": snapshot.total_attained,
+            "overall_attainment": snapshot.overall_attainment,
+            "team": {
+                "rep_count": snapshot.team.rep_count,
+                "reps_on_track": snapshot.team.reps_on_track,
+                "reps_at_risk": snapshot.team.reps_at_risk,
+                "reps_missed": snapshot.team.reps_missed,
+            } if snapshot.team else None,
+            "created_at": snapshot.created_at,
+        }
+        for snapshot in snapshots
     ]
 
 

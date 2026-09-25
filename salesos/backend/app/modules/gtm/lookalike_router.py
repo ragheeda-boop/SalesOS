@@ -17,6 +17,7 @@ from app.modules.gtm.lookalike_store import (
     DEFAULT_LOOKALIKE_STORE,
     MemLookalikeStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/lookalikes", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -78,15 +79,17 @@ async def run_lookalikes(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> LookalikeResponse:
     try:
-        row = _STORE.run(
-            tenant_id=str(tenant_id),
-            name=body.name,
-            company_name=body.company_name,
-            industry=body.industry or None,
-            city=body.city or None,
-            employees_count=body.employees_count,
-            limit=body.limit,
-            model_id=body.id,
+        row = await aresolve(
+            _STORE.run(
+                tenant_id=str(tenant_id),
+                name=body.name,
+                company_name=body.company_name,
+                industry=body.industry or None,
+                city=body.city or None,
+                employees_count=body.employees_count,
+                limit=body.limit,
+                model_id=body.id,
+            )
         )
     except LookalikeError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -99,7 +102,7 @@ async def run_lookalikes(
 async def list_lookalikes(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[LookalikeResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [LookalikeResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -108,7 +111,7 @@ async def get_lookalike(
     model_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> LookalikeResponse:
-    row = _STORE.get(model_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(model_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="lookalike model not found")
     return LookalikeResponse.model_validate(row.as_dict())

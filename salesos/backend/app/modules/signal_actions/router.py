@@ -5,14 +5,15 @@ Flow: Evidence -> Signals -> Qualification -> Priority -> NBA -> Sales Action
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
-import logging
-
 from app.database import async_session
-from app.dependencies import get_current_tenant_id, require_permission_dep
+from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep
+from app.modules.effectiveness import EffectivenessService
 from sdk.permissions import PermissionAction
 
 logger = logging.getLogger(__name__)
@@ -22,9 +23,6 @@ from .models import ActionType, SignalPriority
 from .nba import generate_nba
 from .priority import score_account
 from .qualification import qualify_signal
-
-# Observation pipeline — wired to real signal→action→outcome flow
-from app.modules.effectiveness import EffectivenessService
 
 router = APIRouter(prefix="/api/v1/signal-actions", tags=["Signal Actions"])
 
@@ -74,7 +72,7 @@ class CompleteRequest(BaseModel):
 # ── Endpoints ────────────────────────────────────────────────────
 
 
-@router.post("/qualify")
+@router.post("/qualify", summary="Qualify a single signal", description="Qualify a signal and return its priority score based on type, confidence, and source count.")
 async def qualify_signal_endpoint(
     body: QualifyRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -94,7 +92,7 @@ async def qualify_signal_endpoint(
     return {"success": True, "qualification": qual.to_dict()}
 
 
-@router.post("/qualify-batch")
+@router.post("/qualify-batch", summary="Qualify multiple signals", description="Qualify multiple signals at once and return priority scores for each.")
 async def qualify_batch(
     body: QualifyBatchRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -117,7 +115,7 @@ async def qualify_batch(
     return {"success": True, "count": len(quals), "qualifications": quals}
 
 
-@router.post("/score")
+@router.post("/score", summary="Score an account", description="Score an account by qualifying its signals, computing intent priority, and generating a next-best action.")
 async def score_account_endpoint(
     body: ScoreRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -188,16 +186,25 @@ async def score_account_endpoint(
     }
 
 
-@router.post("/execute")
+@router.post(
+    "/execute",
+    summary="Create a CRM task from a next-best action",
+    description="Create a tenant-scoped CRM follow-up task and action audit. No external communication is sent.",
+)
 async def execute_action(
     body: ExecuteRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
     _rbac: None = Depends(require_permission_dep("signal_actions", PermissionAction.CREATE)),
 ):
-    """Execute a sales action (persist audit trail)."""
+    """Create a CRM follow-up task for an NBA and persist its audit trail."""
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated user is required")
     from datetime import UTC, datetime
 
-    from .models import ActionType as AT, ActionUrgency as AU, NextBestAction
+    from .models import ActionType as AT
+    from .models import ActionUrgency as AU
+    from .models import NextBestAction
 
     nba = NextBestAction(
         id=body.nba_id,
@@ -213,7 +220,7 @@ async def execute_action(
         channel=body.channel,
         suggested_message=body.suggested_message,
     )
-    action = await _executor.execute(nba, tenant_id)
+    action = await _executor.execute(nba, tenant_id, user_id)
 
     # ── Observation: record first_action in account_funnel ──
     try:
@@ -231,7 +238,7 @@ async def execute_action(
     return {"success": True, "action": action.to_dict()}
 
 
-@router.post("/complete")
+@router.post("/complete", summary="Complete an action", description="Mark a sales action as completed with outcome (positive, neutral, negative) and notes.")
 async def complete_action(
     body: CompleteRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -277,7 +284,7 @@ async def complete_action(
     return {"success": True}
 
 
-@router.get("/actions")
+@router.get("/actions", summary="List sales actions", description="List sales actions for the tenant with optional company and status filters.")
 async def list_actions(
     company: str | None = None,
     status: str | None = None,
@@ -292,7 +299,7 @@ async def list_actions(
     }
 
 
-@router.get("/dashboard")
+@router.get("/dashboard", summary="Get signal actions dashboard", description="Get dashboard metrics: priority accounts, pending/completed actions, signal breakdown by type.")
 async def dashboard(
     tenant_id: str = Depends(get_current_tenant_id),
     _rbac: None = Depends(require_permission_dep("signal_actions", PermissionAction.READ)),

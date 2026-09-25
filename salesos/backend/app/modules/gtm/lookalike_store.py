@@ -96,4 +96,7 @@ class MemLookalikeStore:
         )
 
 
-DEFAULT_LOOKALIKE_STORE = MemLookalikeStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_LOOKALIKE_STORE = PostgresGtmStore(capability="lookalike")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from .schemas import AgentAnalysis, EvidenceItem
+from .schemas import AgentAnalysis
 from .agents.llm import LLMResponse
 
 
@@ -88,7 +88,9 @@ class ReasoningPipeline:
         return AgentAnalysis(
             analysis=response.content,
             confidence=0.8,
-            evidence=[EvidenceItem(fact=response.content, source="reasoning", confidence=0.8)],
+            # LLM-generated synthesis is a conclusion, not independent evidence.
+            # Keep its provenance in `sources`; do not feed it back as evidence.
+            evidence=[],
             sources=["llm_reasoning"],
         )
 

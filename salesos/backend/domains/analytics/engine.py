@@ -25,6 +25,7 @@ from domains.analytics.models import (
     PermissionLevel,
 )
 from domains.analytics.repository import InMemoryReportRepository
+from domains.analytics.pdf_export import render_report_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +143,7 @@ class ReportEngine:
             if output_format == OutputFormat.CSV:
                 output_data = self._render_csv(raw_data)
             elif output_format == OutputFormat.PDF:
-                raise ValueError("PDF export not implemented")
+                output_data = render_report_pdf(raw_data)
             else:
                 output_data = json.dumps(raw_data, indent=2, default=str)
 

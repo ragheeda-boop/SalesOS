@@ -24,8 +24,11 @@ class MeetingIntelligenceService:
         """Generate pre-meeting intelligence brief."""
         # Company info
         company = await self.db.execute(
-            sa_text("SELECT name_ar, name_en, industry, city, activity_description FROM companies WHERE id::text = :cid"),
-            {"cid": company_id},
+            sa_text(
+                "SELECT name_ar, name_en, industry, city, activity_description "
+                "FROM companies WHERE id::text = :cid AND tenant_id::text = :tid"
+            ),
+            {"cid": company_id, "tid": self.tenant_id},
         )
         co = company.mappings().one_or_none()
         company_name = co["name_ar"] if co else ""
@@ -34,10 +37,14 @@ class MeetingIntelligenceService:
         signals = await self.db.execute(
             sa_text("""
                 SELECT title, description, created_at FROM company_signals
-                WHERE company_id = (SELECT company_id FROM commercial_opportunities WHERE id = :oid)
+                WHERE tenant_id::text = :tid
+                  AND company_id = (
+                    SELECT company_id::uuid FROM commercial_opportunities
+                    WHERE id = :oid AND tenant_id::text = :tid
+                  )
                 ORDER BY created_at DESC LIMIT 5
             """),
-            {"oid": opportunity_id},
+            {"oid": opportunity_id, "tid": self.tenant_id},
         )
         recent_signals = [
             f"{s['title']}: {s['description'][:100]}" if s["description"] else s["title"]
@@ -53,8 +60,11 @@ class MeetingIntelligenceService:
 
         # Opportunity info
         opp = await self.db.execute(
-            sa_text("SELECT name, stage, value FROM commercial_opportunities WHERE id = :oid"),
-            {"oid": opportunity_id},
+            sa_text(
+                "SELECT name, stage, value FROM commercial_opportunities "
+                "WHERE id = :oid AND tenant_id::text = :tid"
+            ),
+            {"oid": opportunity_id, "tid": self.tenant_id},
         )
         op = opp.mappings().one_or_none()
 

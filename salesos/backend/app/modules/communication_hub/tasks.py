@@ -51,18 +51,40 @@ def hub_calendar_sync_all(self) -> dict[str, Any]:
     return _run(_hub_calendar_sync_all())
 
 
-async def _hub_gmail_sync_all() -> dict[str, Any]:
-    from app.database import async_session
-    from app.modules.communication_hub.gmail_sync import GmailSyncError, GmailSyncService
+async def _active_accounts_all_tenants() -> list:
+    """Active Google accounts across tenants without bypassing RLS.
+
+    google_accounts is FORCE-RLS, so an unpinned listing sees nothing (report
+    84). PO decision B8 (report 99) requires least privilege: rather than a
+    BYPASSRLS/owner session — or a SECURITY DEFINER function, which under
+    FORCE RLS would need an RLS-bypassing owner to see anything — enumerate
+    tenants (not RLS-scoped) and list each tenant's accounts under its own pin.
+    """
+    from sqlalchemy import text
+
+    from app.database import apply_tenant_guc, async_session
     from app.modules.communication_hub.repository import GoogleAccountRepository
+
+    async with async_session() as db:
+        tenant_ids = [str(r[0]) for r in (await db.execute(text("SELECT id FROM tenants"))).all()]
+    accounts: list = []
+    for tid in tenant_ids:
+        async with async_session() as db:
+            await apply_tenant_guc(db, tid)
+            accounts.extend(await GoogleAccountRepository(db).list_active())
+    return accounts
+
+
+async def _hub_gmail_sync_all() -> dict[str, Any]:
+    from app.database import apply_tenant_guc, async_session
+    from app.modules.communication_hub.gmail_sync import GmailSyncError, GmailSyncService
 
     synced = 0
     failed = 0
-    async with async_session() as db:
-        accounts = await GoogleAccountRepository(db).list_active()
-    for account in accounts:
+    for account in await _active_accounts_all_tenants():
         try:
             async with async_session() as db:
+                await apply_tenant_guc(db, str(account.tenant_id))
                 svc = GmailSyncService(db, account.tenant_id, account.user_id)
                 await svc.sync(days_lookback=7, max_results=100)
             synced += 1
@@ -76,20 +98,18 @@ async def _hub_gmail_sync_all() -> dict[str, Any]:
 
 
 async def _hub_calendar_sync_all() -> dict[str, Any]:
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from app.modules.communication_hub.calendar_sync import (
         CalendarSyncError,
         CalendarSyncService,
     )
-    from app.modules.communication_hub.repository import GoogleAccountRepository
 
     synced = 0
     failed = 0
-    async with async_session() as db:
-        accounts = await GoogleAccountRepository(db).list_active()
-    for account in accounts:
+    for account in await _active_accounts_all_tenants():
         try:
             async with async_session() as db:
+                await apply_tenant_guc(db, str(account.tenant_id))
                 svc = CalendarSyncService(db, account.tenant_id, account.user_id)
                 await svc.sync(days_lookback=30, days_forward=30)
             synced += 1

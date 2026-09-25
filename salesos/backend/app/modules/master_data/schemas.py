@@ -6,7 +6,19 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
+
+
+def registry_number_kind(value: str | None) -> str | None:
+    if not value:
+        return None
+    digits = "".join(ch for ch in value if ch.isdigit())
+    if len(digits) == 10 and digits.startswith("7"):
+        return "UNIFIED_NATIONAL_NUMBER"
+    if len(digits) == 10:
+        return "COMMERCIAL_REGISTRATION"
+    return "UNKNOWN"
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Global Company
@@ -42,6 +54,17 @@ class GlobalCompanyResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime | None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def cr_number_kind(self) -> str | None:
+        """What the stored ``cr_number`` actually is (report 109).
+
+        97% of the 10-digit values start with 7: the unified national number
+        (700 series), not a commercial registration. Display only; identity
+        classification is unchanged.
+        """
+        return registry_number_kind(self.cr_number)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

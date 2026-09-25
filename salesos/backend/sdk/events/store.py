@@ -25,6 +25,23 @@ from sqlalchemy.schema import Table
 
 from sdk.events.base import DomainEvent, EventStore
 
+
+async def _pin_tenant_guc(session: AsyncSession, tenant_id: str | None) -> None:
+    """DEC-085: pin app.tenant_id via set_config (transaction-local).
+
+    Duplicated (not imported) from app.database.apply_tenant_guc: sdk/ is a
+    lower layer that app/ depends on, and app.database imports from
+    app.common.models -> sdk.database -> sdk.events, so importing app.database
+    here creates a circular import. This mirrors the same SQL exactly.
+    """
+    if not tenant_id:
+        return
+    await session.execute(
+        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": tenant_id},
+    )
+
+
 _domain_events_metadata = MetaData()
 
 domain_events = Table(
@@ -62,6 +79,7 @@ class PostgresEventStore(EventStore):
 
         Explicit ``id`` avoids depending on ``uuid_generate_v4()`` being installed.
         """
+        await _pin_tenant_guc(self._session, event.tenant_id or None)
         await self._session.execute(
             sa_text(
                 """
@@ -90,12 +108,16 @@ class PostgresEventStore(EventStore):
             },
         )
 
-    async def read_stream(self, aggregate_type: str, aggregate_id: str) -> list[DomainEvent]:
+    async def read_stream(
+        self, aggregate_type: str, aggregate_id: str, tenant_id: str
+    ) -> list[DomainEvent]:
+        await _pin_tenant_guc(self._session, tenant_id)
         stmt = (
             select(domain_events)
             .where(
                 domain_events.c.aggregate_type == aggregate_type,
                 domain_events.c.aggregate_id == aggregate_id,
+                domain_events.c.tenant_id == tenant_id,
             )
             .order_by(domain_events.c.occurred_at.asc())
         )
@@ -103,9 +125,17 @@ class PostgresEventStore(EventStore):
         return [self._row_to_event(row) for row in result.fetchall()]
 
     async def read_by_type(
-        self, event_type: str, since: datetime | None = None, limit: int = 100
+        self,
+        event_type: str,
+        tenant_id: str,
+        since: datetime | None = None,
+        limit: int = 100,
     ) -> list[DomainEvent]:
-        stmt = select(domain_events).where(domain_events.c.event_type == event_type)
+        await _pin_tenant_guc(self._session, tenant_id)
+        stmt = select(domain_events).where(
+            domain_events.c.event_type == event_type,
+            domain_events.c.tenant_id == tenant_id,
+        )
         if since is not None:
             stmt = stmt.where(domain_events.c.occurred_at >= since)
         stmt = stmt.order_by(domain_events.c.occurred_at.desc()).limit(limit)

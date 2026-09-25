@@ -97,7 +97,12 @@ async def _update_company(
             if val is not None:
                 updates[field_name] = val
         try:
-            company = await svc.update_company(company_id, updates, tenant_id=tenant_id)
+            company = await svc.update_company(
+                company_id,
+                updates,
+                tenant_id=tenant_id,
+                performed_by=str(info.context.get("user_id") or "") or None,
+            )
         except Exception:
             return None
         return CompanyType(

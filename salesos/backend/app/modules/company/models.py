@@ -81,9 +81,11 @@ class Company(BaseModel):
     name_ar: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
     name_en: Mapped[str | None] = mapped_column(String(500))
     # Comments live in code/docs only — DB has no COMMENT (DEC-130g; no COMMENT DDL)
-    cr_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    cr_number: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     cr_type: Mapped[str | None] = mapped_column(String(50))
-    status: Mapped[str] = mapped_column(String(50), default="active", index=True)
+    status: Mapped[str] = mapped_column(
+        String(50), default="active", server_default="active", nullable=False, index=True
+    )
     city: Mapped[str | None] = mapped_column(String(200), index=True)
     region: Mapped[str | None] = mapped_column(String(200))
     latitude: Mapped[float | None] = mapped_column(Float)
@@ -96,7 +98,7 @@ class Company(BaseModel):
     address: Mapped[str | None] = mapped_column(Text)
 
     capital: Mapped[float | None] = mapped_column(Float)
-    currency: Mapped[str | None] = mapped_column(String(10), default="SAR")
+    currency: Mapped[str | None] = mapped_column(String(10), default="SAR", server_default="SAR")
     employees_count: Mapped[int | None] = mapped_column(Integer)
 
     activity_description: Mapped[str | None] = mapped_column(Text)
@@ -109,11 +111,11 @@ class Company(BaseModel):
     incorporation_date: Mapped[date | None] = mapped_column(Date)
     expiry_date: Mapped[date | None] = mapped_column(Date)
 
-    is_golden_record: Mapped[bool] = mapped_column(Boolean, default=False)
-    confidence_score: Mapped[float | None] = mapped_column(Float, default=0.0)
+    is_golden_record: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    confidence_score: Mapped[float | None] = mapped_column(Float, default=0.0, server_default="0.0")
     source_ids: Mapped[list | None] = mapped_column(JSONB, default=list)
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 

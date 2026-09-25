@@ -109,4 +109,7 @@ class MemMarketSizingStore:
         )
 
 
-DEFAULT_MARKET_SIZING_STORE = MemMarketSizingStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_MARKET_SIZING_STORE = PostgresGtmStore(capability="market_sizing")

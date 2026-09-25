@@ -6,6 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.attributes import set_committed_value
 
 from app.common.exceptions import DuplicateError, NotFoundError, is_tenant_isolation_failure
 from sdk.audit import AuditTrail
@@ -138,7 +139,7 @@ class CompanyService:
         self,
         tenant_id: str,
         name_ar: str,
-        cr_number: str,
+        cr_number: str | None = None,
         name_en: str | None = None,
         status: str = "active",
         city: str | None = None,
@@ -150,15 +151,18 @@ class CompanyService:
         activity_description: str | None = None,
         activity_code: str | None = None,
         legal_form: str | None = None,
+        performed_by: str | None = None,
     ) -> Company:
-        existing = await self.db.execute(
-            select(Company).where(
-                Company.tenant_id == tenant_id,
-                Company.cr_number == cr_number,
+        cr_number = (cr_number or "").strip() or None
+        if cr_number:
+            existing = await self.db.execute(
+                select(Company).where(
+                    Company.tenant_id == tenant_id,
+                    Company.cr_number == cr_number,
+                )
             )
-        )
-        if existing.scalar_one_or_none():
-            raise DuplicateError("Company", "cr_number", cr_number)
+            if existing.scalar_one_or_none():
+                raise DuplicateError("Company", "cr_number", cr_number)
 
         company = Company(
             tenant_id=uuid.UUID(tenant_id),
@@ -178,6 +182,11 @@ class CompanyService:
         )
         self.db.add(company)
         await self.db.flush()
+        # New instances have no related contacts yet, but the response schema
+        # serializes the relationship.  Mark the collection as loaded so
+        # async response validation never triggers a lazy SQL query outside
+        # SQLAlchemy's greenlet context.
+        set_committed_value(company, "contacts", [])
 
         audit = AuditTrail(self.db)
         await audit.record(
@@ -185,6 +194,7 @@ class CompanyService:
             entity_type="company",
             entity_id=str(company.id),
             action="created",
+            performed_by=performed_by,
         )
         if self.event_bus:
             try:
@@ -215,7 +225,11 @@ class CompanyService:
         # App-layer tenant filter (defense-in-depth; RLS is not enough alone).
         result = await self.db.execute(
             select(Company)
-            .options(selectinload(Company.branches), selectinload(Company.licenses))
+            .options(
+                selectinload(Company.branches),
+                selectinload(Company.licenses),
+                selectinload(Company.contacts),
+            )
             .where(Company.id == cid, Company.tenant_id == tid)
         )
         company = result.scalar_one_or_none()
@@ -223,7 +237,14 @@ class CompanyService:
             raise NotFoundError("Company", company_id)
         return company
 
-    async def update_company(self, company_id: str, updates: dict, *, tenant_id: str) -> Company:
+    async def update_company(
+        self,
+        company_id: str,
+        updates: dict,
+        *,
+        tenant_id: str,
+        performed_by: str | None = None,
+    ) -> Company:
         company = await self.get_company(company_id, tenant_id)
         for key, value in updates.items():
             if value is not None and hasattr(company, key):
@@ -238,6 +259,7 @@ class CompanyService:
             entity_id=company_id,
             action="updated",
             changes=updates,
+            performed_by=performed_by,
         )
         if self.event_bus:
             try:
@@ -1012,12 +1034,28 @@ class CompanyService:
         )
 
         if query:
+            from app.modules.contact.models import Contact
+
             like = f"%{query}%"
+            contact_hit = sa.exists(
+                select(Contact.id).where(
+                    Contact.company_id == Company.id,
+                    Contact.tenant_id == uuid.UUID(tenant_id),
+                    or_(
+                        Contact.name.ilike(like),
+                        Contact.name_ar.ilike(like),
+                        Contact.email.ilike(like),
+                        Contact.phone.ilike(like),
+                        Contact.mobile.ilike(like),
+                    ),
+                )
+            )
             condition = or_(
                 Company.name_ar.ilike(like),
                 Company.name_en.ilike(like),
                 Company.cr_number.ilike(like),
                 Company.city.ilike(like),
+                contact_hit,
             )
             base = base.where(condition)
             count_base = count_base.where(condition)
@@ -1186,11 +1224,12 @@ class CompanyService:
         for record in records:
             try:
                 cr_number = record.get("cr_number") or record.get("CR_number")
-                if not cr_number:
-                    errors.append({"record": record, "error": "Missing cr_number"})
+                cr_number = (str(cr_number).strip() if cr_number else "") or None
+                if not cr_number and not (record.get("name_ar") or record.get("name")):
+                    errors.append({"record": record, "error": "Missing name_ar (CR optional)"})
                     continue
 
-                existing_company = existing_companies.get(cr_number)
+                existing_company = existing_companies.get(cr_number) if cr_number else None
 
                 if existing_company:
                     for key, value in record.items():
@@ -1212,6 +1251,7 @@ class CompanyService:
                             k: v for k, v in record.items() if hasattr(Company, k) and v is not None
                         },
                     }
+                    company_data["cr_number"] = cr_number
                     company = Company(**company_data)
                     self.db.add(company)
                     created += 1

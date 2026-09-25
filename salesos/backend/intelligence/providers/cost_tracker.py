@@ -96,6 +96,16 @@ class PeriodSummary:
     is_enforced: bool
 
 
+async def _pin_tenant(session: AsyncSession, tenant_id: str | None) -> None:
+    # DEC-085: tenant_llm_budgets / llm_cost_entries are FORCE-RLS; an unpinned
+    # session sees zero rows and every INSERT fails WITH CHECK. Local helper
+    # (not app.database.apply_tenant_guc) to avoid an intelligence -> app import cycle.
+    if tenant_id:
+        await session.execute(
+            text("SELECT set_config('app.tenant_id', :tid, true)"), {"tid": str(tenant_id)}
+        )
+
+
 # ── CostTracker ─────────────────────────────────────────────────────
 
 class CostTracker:
@@ -117,6 +127,7 @@ class CostTracker:
         enforced: bool = True,
     ) -> BudgetConfig:
         async with self._db_session_factory() as session:
+            await _pin_tenant(session, tenant_id)
             period_start = date.today().replace(day=1)
             await session.execute(
                 text("""
@@ -144,6 +155,7 @@ class CostTracker:
 
     async def get_budget(self, tenant_id: str) -> BudgetConfig | None:
         async with self._db_session_factory() as session:
+            await _pin_tenant(session, tenant_id)
             row = await session.execute(
                 text("""
                     SELECT tenant_id, monthly_budget_cents, period_start,
@@ -177,6 +189,7 @@ class CostTracker:
         """
         async with self._db_session_factory() as session:
             async with session.begin():
+                await _pin_tenant(session, tenant_id)
                 row = await session.execute(
                     text("""
                         SELECT tenant_id, monthly_budget_cents, period_start,
@@ -253,6 +266,7 @@ class CostTracker:
         cost_cents = int(cost * 100)
         async with self._db_session_factory() as session:
             async with session.begin():
+                await _pin_tenant(session, tenant_id)
                 await session.execute(
                     text("""
                         UPDATE tenant_llm_budgets
@@ -301,6 +315,7 @@ class CostTracker:
         )
 
         async with self._db_session_factory() as session:
+            await _pin_tenant(session, tenant_id)
             await session.execute(
                 text("""
                     INSERT INTO llm_cost_entries
@@ -346,6 +361,7 @@ class CostTracker:
         model: str | None = None,
     ) -> list[CostRecord]:
         async with self._db_session_factory() as session:
+            await _pin_tenant(session, tenant_id)
             clauses = []
             params: dict[str, Any] = {"limit": limit}
             if tenant_id:
@@ -402,6 +418,7 @@ class CostTracker:
         since: datetime | None = None,
     ) -> float:
         async with self._db_session_factory() as session:
+            await _pin_tenant(session, tenant_id)
             if since:
                 row = await session.execute(
                     text("""
@@ -428,13 +445,15 @@ class CostTracker:
         tenant_id: str,
     ) -> PeriodSummary:
         period_start = date.today().replace(day=1)
-        period_end = date.today().replace(day=28) if date.today().month == 12 \
-            else date.today().replace(month=date.today().month + 1, day=1)
+        today = date.today()
+        period_end = (date(today.year + 1, 1, 1) if today.month == 12
+                      else today.replace(month=today.month + 1, day=1))
 
         budget = await self.get_budget(tenant_id)
         spend = await self.get_spend(tenant_id)
 
         async with self._db_session_factory() as session:
+            await _pin_tenant(session, tenant_id)
             row = await session.execute(
                 text("""
                     SELECT COUNT(*) as total_calls,

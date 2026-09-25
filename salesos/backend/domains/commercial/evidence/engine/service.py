@@ -14,8 +14,13 @@ from datetime import datetime, timezone
 from typing import Any
 
 from ..contracts.models import (
-    Insight, InsightCategory, EvidenceItem, EvidenceType,
-    EvidenceSource, ConfidenceLevel,
+    ConfidenceLevel,
+    EvidenceItem,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceType,
+    Insight,
+    InsightCategory,
 )
 from ..contracts.repository import EvidenceRepository
 
@@ -82,6 +87,7 @@ class EvidenceService:
         source_id: str = "",
         source_name: str = "",
         data: dict | None = None,
+        evidence_kind: EvidenceKind | None = None,
     ) -> EvidenceItem:
         """Add a piece of evidence to an existing insight."""
         insight = await self._repository.get_insight(insight_id)
@@ -101,6 +107,7 @@ class EvidenceService:
             description=description,
             confidence=confidence,
             confidence_level=level,
+            evidence_kind=evidence_kind,
             data=data or {},
         )
         await self._repository.save_evidence(insight_id, evidence)

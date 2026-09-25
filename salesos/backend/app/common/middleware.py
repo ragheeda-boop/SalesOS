@@ -519,6 +519,8 @@ class CsrfEnforcementMiddleware:
             "/api/v1/identity/register",
             "/api/v1/identity/login",
             "/api/v1/identity/owner/login",
+            "/api/v1/identity/local-login",
+            "/api/auth/callback/credentials",
             "/api/v1/identity/forgot-password",
             "/api/v1/identity/reset-password",
             "/api/v1/identity/refresh",

@@ -53,14 +53,14 @@ class RetrievalService:
         sql = text("""
             SELECT
                 c.id, c.document_id, c.content, c.chunk_index, c.metadata,
-                1 - (c.embedding <=> :vector::vector) AS score,
+                1 - (c.embedding <=> CAST(:vector AS vector)) AS score,
                 d.tenant_id, d.source_type, d.source_id, d.title, d.content AS doc_content,
                 d.metadata AS doc_metadata, d.created_at
             FROM rag_document_chunks c
             JOIN rag_documents d ON d.id = c.document_id
             WHERE d.tenant_id = :tenant_id
-              AND 1 - (c.embedding <=> :vector::vector) >= :min_score
-            ORDER BY c.embedding <=> :vector::vector
+              AND 1 - (c.embedding <=> CAST(:vector AS vector)) >= :min_score
+            ORDER BY c.embedding <=> CAST(:vector AS vector)
             LIMIT :top_k
         """)
         try:
@@ -117,14 +117,14 @@ class RetrievalService:
         sql = text("""
             SELECT
                 c.id, c.document_id, c.content, c.chunk_index, c.metadata,
-                1 - (c.embedding <=> :vector::vector) AS vector_score,
+                1 - (c.embedding <=> CAST(:vector AS vector)) AS vector_score,
                 ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', :query_text)) AS text_score,
                 d.tenant_id, d.source_type, d.source_id, d.title, d.content AS doc_content,
                 d.metadata AS doc_metadata, d.created_at
             FROM rag_document_chunks c
             JOIN rag_documents d ON d.id = c.document_id
             WHERE d.tenant_id = :tenant_id
-            ORDER BY (1 - (c.embedding <=> :vector::vector)) * 0.7 +
+            ORDER BY (1 - (c.embedding <=> CAST(:vector AS vector))) * 0.7 +
                       ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', :query_text)) * 0.3 DESC
             LIMIT :top_k
         """)
@@ -224,7 +224,7 @@ class RetrievalService:
         try:
             doc_sql = text("""
                 INSERT INTO rag_documents (id, tenant_id, source_type, source_id, title, content, metadata, created_at)
-                VALUES (:id, :tenant_id, :source_type, :source_id, :title, :content, :metadata::jsonb, :created_at)
+                VALUES (:id, :tenant_id, :source_type, :source_id, :title, :content, CAST(:metadata AS jsonb), :created_at)
                 ON CONFLICT (id) DO UPDATE
                 SET title = EXCLUDED.title,
                     content = EXCLUDED.content,
@@ -246,7 +246,7 @@ class RetrievalService:
 
             chunk_sql = text("""
                 INSERT INTO rag_document_chunks (id, document_id, content, embedding, chunk_index, metadata)
-                VALUES (:id, :document_id, :content, :embedding::vector, :chunk_index, :metadata::jsonb)
+                VALUES (:id, :document_id, :content, CAST(:embedding AS vector), :chunk_index, CAST(:metadata AS jsonb))
                 ON CONFLICT (id) DO UPDATE
                 SET content = EXCLUDED.content,
                     embedding = EXCLUDED.embedding,

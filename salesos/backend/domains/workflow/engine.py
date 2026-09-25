@@ -389,7 +389,11 @@ class WorkflowEngine:
 
         results: list[dict[str, Any]] = []
         for idx, res in enumerate(branch_results):
-            if isinstance(res, Exception):
+            # return_exceptions=True can surface BaseException subclasses that
+            # are not Exception (e.g. asyncio.CancelledError) — catch both so a
+            # cancelled/errored branch never lands a raw exception object in a
+            # list callers expect to contain only result dicts.
+            if isinstance(res, BaseException):
                 results.append({"branch_index": idx, "error": str(res), "status": "failed"})
             else:
                 results.append(res)

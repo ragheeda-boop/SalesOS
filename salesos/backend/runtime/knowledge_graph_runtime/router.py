@@ -142,7 +142,7 @@ async def custom_graph_query(
             sa_text("""
                 SELECT c.id, c.name_ar, c.name_en, c.cr_number, c.status, c.city, c.region,
                     (SELECT COUNT(*) FROM contacts WHERE company_id = c.id) as contact_count,
-                    (SELECT COUNT(*) FROM commercial_opportunities WHERE company_id = c.id) as opp_count
+                    (SELECT COUNT(*) FROM commercial_opportunities WHERE company_id = c.id::text) as opp_count
                 FROM companies c
                 WHERE c.tenant_id = :tid AND c.is_active = true
                 ORDER BY c.created_at DESC
@@ -167,7 +167,7 @@ async def custom_graph_query(
             {"tid": tenant_id, "lim": limit},
         )
         result["items"] = [dict(r) for r in rows.mappings().all()]
-        result["total"] = len(items)
+        result["total"] = len(result["items"])
 
     elif entity_type == "contract":
         rows = await db.execute(
@@ -182,7 +182,7 @@ async def custom_graph_query(
             {"tid": tenant_id, "lim": limit},
         )
         result["items"] = [dict(r) for r in rows.mappings().all()]
-        result["total"] = len(items)
+        result["total"] = len(result["items"])
 
     return result
 
@@ -221,19 +221,19 @@ async def companies_without_activity(
             SELECT c.id, c.name_ar, c.name_en, c.cr_number, c.status, c.city,
                 (SELECT MAX(a.timestamp)
                  FROM activity_records a
-                 WHERE a.entity_type = 'company' AND a.entity_id = c.id) as last_activity
+                 WHERE a.entity_type = 'company' AND a.entity_id = c.id::text) as last_activity
             FROM companies c
             WHERE c.tenant_id = :tid
               AND c.is_active = true
               AND (
                   SELECT MAX(a.timestamp)
                   FROM activity_records a
-                  WHERE a.entity_type = 'company' AND a.entity_id = c.id
+                  WHERE a.entity_type = 'company' AND a.entity_id = c.id::text
               ) IS DISTINCT FROM NULL
               AND (
                   SELECT MAX(a.timestamp)
                   FROM activity_records a
-                  WHERE a.entity_type = 'company' AND a.entity_id = c.id
+                  WHERE a.entity_type = 'company' AND a.entity_id = c.id::text
               ) < :cutoff
             ORDER BY last_activity ASC
             LIMIT :lim

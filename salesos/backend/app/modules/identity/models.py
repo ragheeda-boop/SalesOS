@@ -20,7 +20,10 @@ class Tenant(BaseModel):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False)
     domain: Mapped[str | None] = mapped_column(String(255), unique=True)
-    plan: Mapped[str] = mapped_column(String(50), default="free")
+    # Keep ORM and direct SQL inserts aligned with the baseline migration.
+    # The server default is required by RLS/integration probes that create
+    # tenants through SQL rather than the ORM constructor.
+    plan: Mapped[str] = mapped_column(String(50), default="free", server_default="free", nullable=False)
     # STORY-04-01 Owner Platform extension (opaque catalog id; keep plan label)
     plan_id: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
     region: Mapped[str | None] = mapped_column(String(32), nullable=True, default=None)
@@ -31,9 +34,9 @@ class Tenant(BaseModel):
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # STORY-04-04: soft-delete retention clock (column; settings key kept as dual-write)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    settings: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)
-    features: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
+    settings: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict, server_default="{}")
+    features: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict, server_default="{}")
     subscription_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     users: Mapped[list["User"]] = relationship(

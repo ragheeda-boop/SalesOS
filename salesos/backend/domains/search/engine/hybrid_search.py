@@ -41,6 +41,8 @@ from typing import Any
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import apply_tenant_guc
+
 logger = logging.getLogger(__name__)
 
 # RRF constant — controls rank decay. Higher k = less penalty for lower ranks.
@@ -211,6 +213,10 @@ class HybridSearchEngine:
     ) -> list[HybridSearchResult]:
         """Full-text search using PostgreSQL tsvector/tsquery with GIN index."""
         async with self._session_factory() as session:
+            # companies has RLS+FORCE RLS; without this pin the tenant_id
+            # predicate below is never satisfied and this silently returns
+            # 0 rows regardless of how much matching data exists.
+            await apply_tenant_guc(session, tenant_id)
             await session.execute(
                 sa_text("SET LOCAL statement_timeout = '5s'")
             )
@@ -229,8 +235,10 @@ class HybridSearchEngine:
 
             if filters:
                 for field_name, value in filters.items():
+                    # was "activity" — companies has no such column, only
+                    # activity_description; renamed to match (report 82).
                     allowed = ("city", "region", "industry", "status",
-                               "legal_form", "activity")
+                               "legal_form", "activity_description")
                     if field_name in allowed:
                         conditions.append("c." + field_name + " = :fltr_" + field_name)
                         params["fltr_" + field_name] = value
@@ -282,6 +290,9 @@ class HybridSearchEngine:
             return []
 
         async with self._session_factory() as session:
+            # companies has RLS+FORCE RLS; same pin requirement as
+            # _fulltext_search() above.
+            await apply_tenant_guc(session, tenant_id)
             await session.execute(
                 sa_text("SET LOCAL statement_timeout = '5s'")
             )
@@ -291,13 +302,18 @@ class HybridSearchEngine:
                     SELECT c.id::text, c.name_ar, c.name_en, c.cr_number,
                            c.city, c.region, c.industry, c.status,
                            c.activity_description,
-                           1 - (c.embedding_vector <=> :emb::vector) AS similarity
+                           1 - (c.embedding_vector <=> CAST(:emb AS vector)) AS similarity
                     FROM companies c
                     WHERE c.tenant_id = :tid
                       AND c.embedding_vector IS NOT NULL
-                    ORDER BY c.embedding_vector <=> :emb::vector
+                    ORDER BY c.embedding_vector <=> CAST(:emb AS vector)
                     LIMIT :lim
                 """),
+                # :emb::vector (not CAST(...)) is not recognized as a bind
+                # parameter at all by SQLAlchemy's text() scanner — a bind
+                # name immediately followed by "::" is left as literal
+                # uncompiled text, producing a PostgresSyntaxError on every
+                # real call (same quirk as report 75's :name::jsonb).
                 {"emb": str(embedding), "tid": tenant_id, "lim": limit},
             )
 

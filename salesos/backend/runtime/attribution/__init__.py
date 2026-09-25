@@ -25,6 +25,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.database import apply_tenant_guc
 from sdk.database import Base
 
 logger = logging.getLogger(__name__)
@@ -148,11 +149,17 @@ class AttributionEngine:
             for match in re.finditer(pattern, subject + " " + body, re.IGNORECASE):
                 opp_ref = match.group(1).strip()
                 async with self._session_factory() as session:
+                    await apply_tenant_guc(session, tenant_id)
                     from sqlalchemy import select, text
+                    # opp_ref is extracted via regex from raw, attacker-controlled
+                    # email subject/body text — must never be string-interpolated
+                    # into SQL (was a real SQL injection: a crafted subject like
+                    # "[OPP-x%' UNION SELECT ...--]" would have executed).
                     r = await session.execute(
                         select(text("id, name")).select_from(text("commercial_opportunities"))
-                        .where(text(f"id LIKE '%{opp_ref}%' OR name ILIKE '%{opp_ref}%'"))
-                        .limit(1)
+                        .where(text("id LIKE :pattern OR name ILIKE :pattern"))
+                        .limit(1),
+                        {"pattern": f"%{opp_ref}%"},
                     )
                     row = r.fetchone()
                     if row:
@@ -173,13 +180,19 @@ class AttributionEngine:
         # ── Step 2: contact_match via opportunity_contacts ──
         if related_contact_ids:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 from sqlalchemy import select, text
-                contact_ids_str = ",".join(f"'{cid}'" for cid in related_contact_ids[:10])
+                # related_contact_ids ultimately derives from synced email
+                # metadata — bind every value, never interpolate into SQL.
+                capped_ids = related_contact_ids[:10]
+                id_params = {f"cid{i}": cid for i, cid in enumerate(capped_ids)}
+                in_clause = ",".join(f":{key}" for key in id_params)
                 r = await session.execute(
                     select(text("DISTINCT opportunity_id, contact_id, role"))
                     .select_from(text("opportunity_contacts"))
-                    .where(text(f"contact_id IN ({contact_ids_str})"))
-                    .limit(5)
+                    .where(text(f"contact_id IN ({in_clause})"))
+                    .limit(5),
+                    id_params,
                 )
                 oc_rows = r.fetchall()
                 if oc_rows:
@@ -208,14 +221,20 @@ class AttributionEngine:
         # ── Step 3: company_match via related_company_ids ──
         if related_company_ids:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 from sqlalchemy import select, text
-                cids = ",".join(f"'{cid}'" for cid in related_company_ids[:5])
+                # related_company_ids ultimately derives from synced email
+                # metadata — bind every value, never interpolate into SQL.
+                capped_cids = related_company_ids[:5]
+                cid_params = {f"cid{i}": cid for i, cid in enumerate(capped_cids)}
+                in_clause = ",".join(f":{key}" for key in cid_params)
                 r = await session.execute(
                     select(text("id, name, stage, value"))
                     .select_from(text("commercial_opportunities"))
-                    .where(text(f"company_id IN ({cids}) AND status = 'open'"))
+                    .where(text(f"company_id IN ({in_clause}) AND status = 'open'"))
                     .order_by(text("created_at DESC"))
-                    .limit(3)
+                    .limit(3),
+                    cid_params,
                 )
                 opps = r.fetchall()
                 if opps:
@@ -236,12 +255,16 @@ class AttributionEngine:
         # ── Step 4: domain_match + Company → Opportunities ──
         if domain:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 from sqlalchemy import select, text
+                # domain is the sender's email address domain — attacker
+                # controlled — bind it, never interpolate into SQL.
                 r = await session.execute(
                     select(text("id, name_ar, cr_number"))
                     .select_from(text("companies"))
-                    .where(text(f"email ILIKE '%{domain}%' OR website ILIKE '%{domain}%'"))
-                    .limit(1)
+                    .where(text("email ILIKE :pattern OR website ILIKE :pattern"))
+                    .limit(1),
+                    {"pattern": f"%{domain}%"},
                 )
                 company_row = r.fetchone()
                 if company_row:
@@ -249,9 +272,10 @@ class AttributionEngine:
                     r2 = await session.execute(
                         select(text("id, name, stage, value"))
                         .select_from(text("commercial_opportunities"))
-                        .where(text(f"company_id = '{company_id}' AND status = 'open'"))
+                        .where(text("company_id = :cid AND status = 'open'"))
                         .order_by(text("created_at DESC"))
-                        .limit(3)
+                        .limit(3),
+                        {"cid": str(company_id)},
                     )
                     opps = r2.fetchall()
                     if opps:
@@ -310,6 +334,7 @@ class AttributionEngine:
         """Run attribution for unprocessed events. Shadow mode."""
         processed = 0
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             from sqlalchemy import select, text
 
             # Get events not yet attributed
@@ -341,6 +366,13 @@ class AttributionEngine:
                     if existing.fetchone():
                         continue  # idempotent skip
 
+                    # CAST(:x AS jsonb), not :x::jsonb — SQLAlchemy's text()
+                    # bind-param scanner does not recognize a name immediately
+                    # followed by "::" as a bind parameter at all (confirmed
+                    # in isolation): every one of these four params was being
+                    # silently left as literal, uncompiled ":name::jsonb" text,
+                    # so this INSERT raised a hard PostgresSyntaxError on
+                    # every real call.
                     await session.execute(text("""
                         INSERT INTO activity_attributions (
                             id, tenant_id, activity_type, activity_id, activity_source_table,
@@ -349,9 +381,9 @@ class AttributionEngine:
                             algorithm_version, resolution_state, alternative_candidates
                         ) VALUES (
                             gen_random_uuid(), :tid, :at, :aid, :ast,
-                            :oid, :rm, :rc::jsonb,
-                            :ev::jsonb, :cf, :cb::jsonb,
-                            :av, :rs, :ac::jsonb
+                            :oid, :rm, CAST(:rc AS jsonb),
+                            CAST(:ev AS jsonb), :cf, CAST(:cb AS jsonb),
+                            :av, :rs, CAST(:ac AS jsonb)
                         )
                     """), {
                         "tid": str(tenant_id), "at": result.activity_type,
@@ -364,5 +396,11 @@ class AttributionEngine:
                         "ac": json.dumps(result.alternative_candidates) if result.alternative_candidates else None,
                     })
                     processed += 1
+
+            # Without this, every INSERT above is silently discarded on
+            # normal context-manager exit (AsyncSession.__aexit__ closes,
+            # it does not commit) — the whole method would run, report a
+            # nonzero processed count, and persist nothing.
+            await session.commit()
         logger.info("Attribution shadow batch: tenant=%s processed=%d", tenant_id, processed)
         return processed

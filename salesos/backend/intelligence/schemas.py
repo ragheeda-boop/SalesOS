@@ -6,12 +6,20 @@ from pydantic import BaseModel, Field
 class EvidenceItem(BaseModel):
     fact: str = Field(description="حقيقة محددة مستخرجة من التحليل")
     source: str = Field(description="مصدر المعلومة (قاعدة بيانات، علاقة، إشارة)")
-    confidence: float = Field(ge=0, le=1, description="مدى الثقة في هذه الحقيقة (0-1)")
+    confidence: float = Field(
+        ge=0,
+        le=1,
+        description="ثقة النموذج المعلنة (للاسترشاد فقط، وليست قوة دليل أو إذنًا لاعتماد الحقيقة)",
+    )
 
 
 class AgentAnalysis(BaseModel):
     analysis: str = Field(description="التحليل النصي الكامل")
-    confidence: float = Field(ge=0, le=1, description="درجة الثقة الإجمالية (0-1)")
+    confidence: float = Field(
+        ge=0,
+        le=1,
+        description="ثقة النموذج المعلنة (للاسترشاد فقط، ولا تستخدم كقوة دليل)",
+    )
     evidence: list[EvidenceItem] = Field(default_factory=list, description="قائمة الحقائق المستندة إلى بيانات")
     sources: list[str] = Field(default_factory=list, description="مصادر البيانات المستخدمة في التحليل")
 

@@ -3,11 +3,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.modules.contact.schemas import ContactResponse
+
 
 class CompanyCreate(BaseModel):
     name_ar: str = Field(..., min_length=1, max_length=500)
     name_en: str | None = None
-    cr_number: str = Field(..., min_length=1, max_length=50)
+    cr_number: str | None = Field(default=None, max_length=50)
     cr_type: str | None = None
     status: str = "active"
     city: str | None = None
@@ -39,7 +41,7 @@ class CompanyResponse(BaseModel):
     id: UUID
     name_ar: str
     name_en: str | None
-    cr_number: str
+    cr_number: str | None
     cr_type: str | None
     status: str
     city: str | None
@@ -66,6 +68,7 @@ class CompanyResponse(BaseModel):
     tags: list | None
     created_at: datetime
     updated_at: datetime
+    contacts: list[ContactResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -74,7 +77,7 @@ class CompanyListResponse(BaseModel):
     id: UUID
     name_ar: str
     name_en: str | None
-    cr_number: str
+    cr_number: str | None
     status: str
     city: str | None
     region: str | None

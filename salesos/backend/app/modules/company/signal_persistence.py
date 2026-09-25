@@ -12,12 +12,15 @@ Design constraints:
 """
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime, UTC
 from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import apply_tenant_guc
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +77,7 @@ async def upsert_signals(
                     VALUES
                         (:tid, :cid, :stype, :title, :desc,
                          :sev, :src, :status, :conf,
-                         :now, :now, :meta)
+                         :now, :now, CAST(:meta AS jsonb))
                     ON CONFLICT (tenant_id, company_id, signal_type)
                     DO UPDATE SET
                         last_seen_at = :now,
@@ -95,7 +98,11 @@ async def upsert_signals(
                     "status": STATUS_ACTIVE,
                     "conf": confidence,
                     "now": now,
-                    "meta": str(metadata) if metadata else "{}",
+                    # metadata is jsonb; str(dict) produces Python repr
+                    # (single-quoted keys), which is not valid JSON and
+                    # made every real call with a non-empty metadata dict
+                    # fail (caught by the except below, persisted=0).
+                    "meta": json.dumps(metadata) if metadata else "{}",
                 },
             )
             persisted += 1
@@ -107,6 +114,16 @@ async def upsert_signals(
             )
 
     await db.commit()
+    # apply_tenant_guc pins app.tenant_id transaction-locally (is_local=true,
+    # DEC-085) — the commit above ends that transaction and silently clears
+    # it. company/service.py's Company 360 view calls read_signals() on
+    # this SAME injected, request-scoped session right after upsert_signals()
+    # to build the "lifecycle-enriched" response; without re-pinning here,
+    # that read is invisibly RLS-blocked and always returns [] — the
+    # persisted signals this function just wrote can never be read back in
+    # the same request. Cheap and idempotent for callers (e.g. the signal
+    # marketplace runtime bridge) that don't reuse the session afterward.
+    await apply_tenant_guc(db, tenant_id)
     return persisted
 
 
@@ -180,6 +197,7 @@ async def expire_stale_signals(
              "active": STATUS_ACTIVE, "days": stale_days},
         )
         await db.commit()
+        await apply_tenant_guc(db, tenant_id)  # see upsert_signals() for why
         return result.rowcount
     except Exception as exc:
         logger.warning(
@@ -206,6 +224,7 @@ async def acknowledge_signal(
             {"status": STATUS_ACKNOWLEDGED, "sid": signal_id, "tid": tenant_id},
         )
         await db.commit()
+        await apply_tenant_guc(db, tenant_id)  # see upsert_signals() for why
         return result.rowcount > 0
     except Exception:
         return False
@@ -228,6 +247,7 @@ async def resolve_signal(
             {"status": STATUS_RESOLVED, "sid": signal_id, "tid": tenant_id},
         )
         await db.commit()
+        await apply_tenant_guc(db, tenant_id)  # see upsert_signals() for why
         return result.rowcount > 0
     except Exception:
         return False

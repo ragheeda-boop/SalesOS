@@ -51,6 +51,15 @@ class ApprovalService:
         event.event_type = event_type
         await self._event_bus.publish(event)
 
+    async def _get_request(
+        self, request_id: str, tenant_id: str | None = None
+    ) -> ApprovalRequest:
+        request = await self._repository.get(request_id)
+        if not request or (tenant_id is not None and request.tenant_id != tenant_id):
+            # Keep cross-tenant IDs indistinguishable from missing IDs.
+            raise ValueError(f"Approval request {request_id} not found")
+        return request
+
     async def create_request(
         self,
         tenant_id: str,
@@ -96,10 +105,10 @@ class ApprovalService:
         approved_by: str,
         authority_level: ApprovalLevel = ApprovalLevel.SELF,
         comments: str = "",
+        *,
+        tenant_id: str | None = None,
     ) -> ApprovalRequest:
-        request = await self._repository.get(request_id)
-        if not request:
-            raise ValueError(f"Approval request {request_id} not found")
+        request = await self._get_request(request_id, tenant_id)
         if request.is_terminal:
             raise ValueError(f"Cannot approve request in status: {request.status.value}")
 
@@ -135,10 +144,10 @@ class ApprovalService:
         rejected_by: str,
         authority_level: ApprovalLevel = ApprovalLevel.SELF,
         comments: str = "",
+        *,
+        tenant_id: str | None = None,
     ) -> ApprovalRequest:
-        request = await self._repository.get(request_id)
-        if not request:
-            raise ValueError(f"Approval request {request_id} not found")
+        request = await self._get_request(request_id, tenant_id)
         if request.is_terminal:
             raise ValueError(f"Cannot reject request in status: {request.status.value}")
 
@@ -168,10 +177,10 @@ class ApprovalService:
         request_id: str,
         escalated_by: str,
         comments: str = "",
+        *,
+        tenant_id: str | None = None,
     ) -> ApprovalRequest:
-        request = await self._repository.get(request_id)
-        if not request:
-            raise ValueError(f"Approval request {request_id} not found")
+        request = await self._get_request(request_id, tenant_id)
         if request.is_terminal:
             raise ValueError(f"Cannot escalate request in status: {request.status.value}")
 
@@ -194,10 +203,10 @@ class ApprovalService:
         })
         return result
 
-    async def cancel(self, request_id: str) -> ApprovalRequest:
-        request = await self._repository.get(request_id)
-        if not request:
-            raise ValueError(f"Approval request {request_id} not found")
+    async def cancel(
+        self, request_id: str, *, tenant_id: str | None = None
+    ) -> ApprovalRequest:
+        request = await self._get_request(request_id, tenant_id)
         if request.is_terminal:
             raise ValueError(f"Cannot cancel request in status: {request.status.value}")
 
@@ -205,9 +214,15 @@ class ApprovalService:
         request.updated_at = datetime.now(timezone.utc)
         return await self._repository.save(request)
 
-    async def check_expiration(self, request_id: str) -> ApprovalRequest | None:
+    async def check_expiration(
+        self, request_id: str, *, tenant_id: str | None = None
+    ) -> ApprovalRequest | None:
         request = await self._repository.get(request_id)
-        if not request or request.is_terminal:
+        if (
+            not request
+            or (tenant_id is not None and request.tenant_id != tenant_id)
+            or request.is_terminal
+        ):
             return None
         if request.expires_at and datetime.now(timezone.utc) > request.expires_at:
             request.status = ApprovalStatus.EXPIRED
@@ -221,8 +236,13 @@ class ApprovalService:
             return request
         return None
 
-    async def get(self, request_id: str) -> ApprovalRequest | None:
-        return await self._repository.get(request_id)
+    async def get(
+        self, request_id: str, *, tenant_id: str | None = None
+    ) -> ApprovalRequest | None:
+        request = await self._repository.get(request_id)
+        if request and tenant_id is not None and request.tenant_id != tenant_id:
+            return None
+        return request
 
     async def list_pending(
         self, tenant_id: str, assigned_to: str | None = None

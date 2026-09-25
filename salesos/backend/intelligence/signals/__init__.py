@@ -1,7 +1,8 @@
-from typing import Optional, Any
-from datetime import datetime, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Optional
+
 from ..business_objects import SignalType
 
 
@@ -130,6 +131,7 @@ class SignalEngine:
                 RecommendationCategory.RESEARCH,
             ],
             SignalType.FUNDING: [
+                RecommendationCategory.NEXT_BEST_ACTION,
                 RecommendationCategory.OPPORTUNITY,
                 RecommendationCategory.OUTREACH,
             ],
@@ -171,7 +173,7 @@ class SignalEngine:
                 "بحث", f"البحث عن معلومات إضافية حول {signal.title}"
             ),
             RecommendationCategory.OUTREACH: (
-                "تواصل", f"التواصل مع صانع القرار"
+                "تواصل", "التواصل مع صانع القرار"
             ),
         }
 

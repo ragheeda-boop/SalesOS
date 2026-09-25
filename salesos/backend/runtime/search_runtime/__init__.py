@@ -37,6 +37,35 @@ from sqlalchemy import text as sa_text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.types import UserDefinedType
+
+
+class _PgVectorColType(UserDefinedType):
+    """pgvector column type for the lightweight query stub below.
+
+    A bare String column made the `<->` distance operator's bind parameter
+    compile as `::VARCHAR`, which Postgres has no `vector <-> varchar`
+    operator for (`UndefinedFunctionError`). This mirrors
+    `app.modules.company.models._PgVector` without importing the ORM model
+    (keeping this module's declared "avoid private MetaData island" goal).
+    """
+
+    cache_ok = True
+
+    def get_col_spec(self, **_kw: Any) -> str:
+        return "vector(3072)"
+
+    def bind_processor(self, dialect: Any) -> Any:
+        def process(value: Any) -> Any:
+            if value is None:
+                return None
+            # asyncpg has no native codec for a bare Python list here (the
+            # column has no explicit ::cast, which is what lets Postgres
+            # implicitly cast an unknown-type text literal to vector for
+            # the <-> operator) — send pgvector's own text literal instead.
+            return "[" + ",".join(str(float(x)) for x in value) + "]"
+        return process
+
 
 # Lightweight table()/column() — avoid private MetaData island (EAB-001-P1-DRIFT-01).
 # companies already lives on shared Base; this is a query stub only.
@@ -52,15 +81,14 @@ companies = table(
     column("industry", String),
     column("status", String),
     column("legal_form", String),
-    column("activity", String),
     column("is_active", Boolean),
     column("phone", String),
     column("email", String),
-    column("activity_description", String),
+    column("activity_description", String),  # ALLOWED_FILTER_FIELDS was "activity" — no such column
     column("created_at", DateTime(timezone=True)),
     column("updated_at", DateTime(timezone=True)),
     column("search_vector", TSVECTOR),
-    column("embedding", String),  # pgvector column; String avoids dialect dependency
+    column("embedding_vector", _PgVectorColType()),  # real pgvector column name
 )
 
 
@@ -195,7 +223,9 @@ class SearchRuntime:
 
     ALLOWED_FILTER_FIELDS: ClassVar[frozenset[str]] = frozenset({
         "city", "region", "industry", "status", "legal_form",
-        "activity", "is_active", "created_at", "updated_at",
+        # was "activity" — companies has no such column, only
+        # activity_description; renamed to match (report 79).
+        "activity_description", "is_active", "created_at", "updated_at",
         "cr_number", "phone", "email",
     })
 
@@ -356,7 +386,7 @@ class SearchRuntime:
             text = f"{company['name_ar']} {company.get('name_en', '')} {company.get('activity_description', '')} {company.get('city', '')}"
             embedding = await self._embedding_service.embed(text)
 
-            distance = companies.c.embedding.op("<->")(bindparam("emb"))
+            distance = companies.c.embedding_vector.op("<->")(bindparam("emb"))
             similarity = (literal(1.0) / (literal(1.0) + distance)).label("similarity")
             neighbors_stmt = (
                 select(
@@ -371,7 +401,7 @@ class SearchRuntime:
                 .where(
                     companies.c.tenant_id == tenant_id,
                     companies.c.id != company_id,
-                    companies.c.embedding.is_not(None),
+                    companies.c.embedding_vector.is_not(None),
                 )
                 .order_by(distance)
                 .limit(limit)
@@ -503,7 +533,7 @@ class SearchRuntime:
                                strategy=SearchStrategy.SEMANTIC, took_ms=0)
 
         embedding = await self._embedding_service.embed(query)
-        distance = companies.c.embedding.op("<->")(bindparam("emb"))
+        distance = companies.c.embedding_vector.op("<->")(bindparam("emb"))
         similarity = (literal(1.0) / (literal(1.0) + distance)).label("similarity")
         stmt = (
             select(
@@ -518,7 +548,7 @@ class SearchRuntime:
             )
             .where(
                 companies.c.tenant_id == tenant_id,
-                companies.c.embedding.is_not(None),
+                companies.c.embedding_vector.is_not(None),
             )
             .order_by(distance)
             .limit(limit)

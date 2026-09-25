@@ -14,6 +14,8 @@ from typing import Any, Callable, Optional
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import apply_tenant_guc
+
 
 @dataclass
 class RetrievalResult:
@@ -174,15 +176,20 @@ class HybridRetriever:
                 return []
 
             async with self._session_factory() as session:
+                # companies has RLS+FORCE RLS; without this pin the WHERE
+                # tenant_id = :tid clause is never satisfied (current_setting
+                # returns NULL) and this silently returns 0 rows instead of
+                # erroring, regardless of how much matching data exists.
+                await apply_tenant_guc(session, tenant_id)
                 rows = await session.execute(
                     sa_text("""
                         SELECT id, name_ar, name_en, cr_number, city, industry,
-                               embedding <=> :vec AS distance
+                               embedding_vector <=> :vec AS distance
                         FROM companies
                         WHERE tenant_id = :tid
-                          AND embedding IS NOT NULL
+                          AND embedding_vector IS NOT NULL
                           AND is_active = true
-                        ORDER BY embedding <=> :vec
+                        ORDER BY embedding_vector <=> :vec
                         LIMIT :lim
                     """),
                     {"vec": str(embedding), "tid": tenant_id, "lim": limit},
@@ -222,6 +229,9 @@ class HybridRetriever:
         t0 = time.monotonic()
         try:
             async with self._session_factory() as session:
+                # companies has RLS+FORCE RLS; pin app.tenant_id or every
+                # real search silently returns 0 rows regardless of data.
+                await apply_tenant_guc(session, tenant_id)
                 # Use tsvector for BM25-like ranking
                 rows = await session.execute(
                     sa_text("""

@@ -1,4 +1,4 @@
-"""STORY-12-02 — In-memory AI Policies store (no Alembic / FORCE RLS)."""
+"""STORY-12-02 — In-memory AI Policies domain helper used by unit tests."""
 
 from __future__ import annotations
 

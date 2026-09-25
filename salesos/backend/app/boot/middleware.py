@@ -33,7 +33,6 @@ def setup_middleware(app: FastAPI) -> None:
     # Inner of TenantContext so ContextVar tenant_id is already set (STORY-04-03 / 06-02).
     app.add_middleware(EntitlementEnforcementMiddleware)
     app.add_middleware(SuspendedTenantWriteGuardMiddleware)
-    app.add_middleware(TenantContextMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(CsrfEnforcementMiddleware)
     app.add_middleware(MetricsMiddleware)
@@ -54,6 +53,10 @@ def setup_middleware(app: FastAPI) -> None:
     from app.modules.api_keys.middleware import ApiKeyMiddleware
 
     app.add_middleware(ApiKeyMiddleware)
+
+    # TenantContext must wrap API-key validation: api_keys has tenant RLS, and
+    # the caller supplies X-Tenant-Id which the validated key is checked against.
+    app.add_middleware(TenantContextMiddleware)
 
     # Outermost — must wrap all other middleware for CORS on errors/OPTIONS.
     # `allowed_hosts` settings are CORS *origins* (scheme://host[:port]). TrustedHost

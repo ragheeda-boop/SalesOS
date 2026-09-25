@@ -16,6 +16,7 @@ Failed records go to dead letter queue configurable per-stage.
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 from collections.abc import Callable
@@ -24,6 +25,7 @@ from enum import Enum
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.database import apply_tenant_guc
 from app.modules.company.repositories import CompanyRepository
 from app.modules.entity_resolution.models import GoldenRecord
 from app.modules.entity_resolution.repositories import DeadLetterRepository, GoldenRecordRepository
@@ -402,6 +404,9 @@ class DataFabricPipeline:
         if valid_records:
             try:
                 async with self._session_factory() as session:
+                    # golden_records / companies are FORCE-RLS; unpinned, every
+                    # insert fails WITH CHECK and nothing is ingested.
+                    await apply_tenant_guc(session, tenant_id)
                     resolution = EntityResolutionService(
                         db=session,
                         event_bus=self._event_runtime,
@@ -475,6 +480,9 @@ class DataFabricPipeline:
                                 await self._send_to_dlq(session, tenant_id, source_slug, "knowledge_graph", rec, ke, cr_number)
 
                     await session.commit()
+                    # The pin is transaction-local; Stage 8 reads golden_records
+                    # on this same session after the commit.
+                    await apply_tenant_guc(session, tenant_id)
 
                     # Stage 8: Feature store recompute (separate session to avoid long tx)
                     if self._feature_store and companies_created > 0:
@@ -504,6 +512,7 @@ class DataFabricPipeline:
         # Audit trail
         try:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 audit = AuditTrail(session)
                 await audit.record(
                     tenant_id=tenant_id,
@@ -644,8 +653,8 @@ class DataFabricPipeline:
             try:
                 embedding = await self._embedding_service.embed(text_to_embed)
                 await session.execute(
-                    text("UPDATE companies SET embedding = :emb WHERE id = :cid"),
-                    {"emb": embedding, "cid": company_id},
+                    text("UPDATE companies SET embedding_vector = CAST(:emb AS vector) WHERE id = :cid"),
+                    {"emb": json.dumps(embedding), "cid": company_id},
                 )
                 if self._vector_store:
                     await self._vector_store.upsert(VectorRecord(
@@ -700,6 +709,7 @@ class DataFabricPipeline:
         """Standalone DLQ writer — opens its own session."""
         try:
             async with self._session_factory() as s:
+                await apply_tenant_guc(s, tenant_id)
                 repo = DeadLetterRepository(s)
                 await repo.add(
                     tenant_id=tenant_id,
@@ -719,6 +729,7 @@ class DataFabricPipeline:
     async def retry_dlq(self, tenant_id: str, limit: int = 50) -> dict:
         """Retry failed records from the dead letter queue."""
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             repo = DeadLetterRepository(session)
             pending = await repo.get_pending_retries(tenant_id, limit=limit)
 
@@ -736,6 +747,7 @@ class DataFabricPipeline:
                         continue
 
                     async with self._session_factory() as inner_session:
+                        await apply_tenant_guc(inner_session, tenant_id)
                         resolution = EntityResolutionService(
                             db=inner_session,
                             event_bus=self._event_runtime,

@@ -121,6 +121,12 @@ class PermissionRegistry:
                     "quote",
                     "proposal",
                     "contract",
+                    "review",
+                    "approval",
+                    "master-data",
+                    "master-data-review",
+                    "agent_reach",
+                    "signal_actions",
                     "task",
                 ]
                 for a in PermissionAction
@@ -154,7 +160,14 @@ class PermissionRegistry:
                 Permission("review", PermissionAction.CREATE),
                 Permission("review", PermissionAction.READ),
                 Permission("review", PermissionAction.UPDATE),
+                Permission("approval", PermissionAction.CREATE),
+                Permission("approval", PermissionAction.READ),
+                Permission("approval", PermissionAction.UPDATE),
+                Permission("master-data", PermissionAction.READ),
                 Permission("contract", PermissionAction.READ),
+                Permission("signal_actions", PermissionAction.CREATE),
+                Permission("signal_actions", PermissionAction.READ),
+                Permission("signal_actions", PermissionAction.UPDATE),
                 Permission("forecast", PermissionAction.READ),
                 Permission("quota", PermissionAction.READ),
                 Permission("territory", PermissionAction.READ),
@@ -184,7 +197,12 @@ class PermissionRegistry:
                 Permission("quote", PermissionAction.READ),
                 Permission("proposal", PermissionAction.READ),
                 Permission("review", PermissionAction.READ),
+                Permission("approval", PermissionAction.READ),
+                Permission("master-data", PermissionAction.READ),
                 Permission("contract", PermissionAction.READ),
+                Permission("signal_actions", PermissionAction.CREATE),
+                Permission("signal_actions", PermissionAction.READ),
+                Permission("signal_actions", PermissionAction.UPDATE),
                 Permission("forecast", PermissionAction.READ),
                 Permission("quota", PermissionAction.READ),
                 Permission("territory", PermissionAction.READ),
@@ -193,6 +211,12 @@ class PermissionRegistry:
                 Permission("company", PermissionAction.READ),
                 Permission("company", PermissionAction.CREATE),
                 Permission("contact", PermissionAction.READ),
+            ],
+            # Minder/Agent Reach producer principal. This role is intentionally
+            # narrow and is not assignable through the ordinary invite/user APIs.
+            "agent_reach_service": [
+                Permission("agent_reach", PermissionAction.READ),
+                Permission("master-data-review", PermissionAction.CREATE),
             ],
             "auditor": [
                 Permission("company", PermissionAction.READ),

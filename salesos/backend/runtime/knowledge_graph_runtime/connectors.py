@@ -5,7 +5,9 @@ Each connector implements: auth → fetch → transform → store → error hand
 
 from __future__ import annotations
 
+import json
 import time
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -14,6 +16,19 @@ from typing import Any, Callable, Optional
 
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import apply_tenant_guc
+
+# companies.id is a Postgres uuid column; external connector ids (e.g. "crm-001")
+# are not valid uuids. Deriving a deterministic uuid5 from
+# (tenant_id, connector_type, external_id) preserves this file's intended
+# idempotent ON CONFLICT (id) DO UPDATE upsert (same external id -> same row)
+# without requiring a schema change for a raw external-id column.
+_CONNECTOR_UUID_NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-4789-a012-3456789abcde")
+
+
+def _derive_company_id(tenant_id: str, connector_type: str, source_id: str) -> str:
+    return str(uuid.uuid5(_CONNECTOR_UUID_NAMESPACE, f"{tenant_id}:{connector_type}:{source_id}"))
 
 
 class ConnectorStatus(str, Enum):
@@ -244,13 +259,15 @@ class CrmConnector(BaseConnector):
     async def store(self, records: list[ConnectorRecord], tenant_id: str) -> int:
         stored = 0
         async with self._session_factory() as session:
+            # companies has RLS+FORCE RLS; every write needs app.tenant_id pinned.
+            await apply_tenant_guc(session, tenant_id)
             for record in records:
                 try:
                     td = record.transformed_data
                     await session.execute(
                         sa_text("""
-                            INSERT INTO companies (id, tenant_id, name_en, name_ar, city, is_active, source)
-                            VALUES (:id, :tid, :name_en, :name_ar, :city, true, 'crm')
+                            INSERT INTO companies (id, tenant_id, name_en, name_ar, city, is_active, source_ids)
+                            VALUES (:id, :tid, :name_en, :name_ar, :city, true, CAST(:source_ids AS jsonb))
                             ON CONFLICT (id) DO UPDATE SET
                                 name_en = EXCLUDED.name_en,
                                 name_ar = EXCLUDED.name_ar,
@@ -258,11 +275,12 @@ class CrmConnector(BaseConnector):
                                 updated_at = NOW()
                         """),
                         {
-                            "id": record.source_id,
+                            "id": _derive_company_id(tenant_id, self.connector_type.value, record.source_id),
                             "tid": tenant_id,
                             "name_en": td.get("name_en", ""),
                             "name_ar": td.get("name_ar", ""),
                             "city": td.get("city", ""),
+                            "source_ids": json.dumps([self.connector_type.value]),
                         },
                     )
                     stored += 1
@@ -350,23 +368,30 @@ class ErpConnector(BaseConnector):
     async def store(self, records: list[ConnectorRecord], tenant_id: str) -> int:
         stored = 0
         async with self._session_factory() as session:
+            # companies has RLS+FORCE RLS; every write needs app.tenant_id pinned.
+            await apply_tenant_guc(session, tenant_id)
             for record in records:
                 try:
                     td = record.transformed_data
                     await session.execute(
                         sa_text("""
-                            INSERT INTO companies (id, tenant_id, name_en, capital, is_active, source)
-                            VALUES (:id, :tid, :name_en, :capital, true, 'erp')
+                            INSERT INTO companies (id, tenant_id, name_en, name_ar, capital, is_active, source_ids)
+                            VALUES (:id, :tid, :name_en, :name_ar, :capital, true, CAST(:source_ids AS jsonb))
                             ON CONFLICT (id) DO UPDATE SET
                                 name_en = EXCLUDED.name_en,
                                 capital = EXCLUDED.capital,
                                 updated_at = NOW()
                         """),
                         {
-                            "id": record.source_id,
+                            "id": _derive_company_id(tenant_id, self.connector_type.value, record.source_id),
                             "tid": tenant_id,
                             "name_en": td.get("name_en", ""),
+                            # companies.name_ar is NOT NULL; ERP has no Arabic name
+                            # field of its own, so fall back to the English name
+                            # (matches CrmConnector.transform()'s own fallback).
+                            "name_ar": td.get("name_ar", td.get("name_en", "")),
                             "capital": td.get("order_total", 0),
+                            "source_ids": json.dumps([self.connector_type.value]),
                         },
                     )
                     stored += 1
@@ -451,13 +476,15 @@ class MarketFeedConnector(BaseConnector):
     async def store(self, records: list[ConnectorRecord], tenant_id: str) -> int:
         stored = 0
         async with self._session_factory() as session:
+            # companies has RLS+FORCE RLS; every write needs app.tenant_id pinned.
+            await apply_tenant_guc(session, tenant_id)
             for record in records:
                 try:
                     td = record.transformed_data
                     await session.execute(
                         sa_text("""
-                            INSERT INTO companies (id, tenant_id, name_en, industry, capital, is_active, source)
-                            VALUES (:id, :tid, :name_en, :industry, :capital, true, 'market_feed')
+                            INSERT INTO companies (id, tenant_id, name_en, name_ar, industry, capital, is_active, source_ids)
+                            VALUES (:id, :tid, :name_en, :name_ar, :industry, :capital, true, CAST(:source_ids AS jsonb))
                             ON CONFLICT (id) DO UPDATE SET
                                 name_en = EXCLUDED.name_en,
                                 industry = EXCLUDED.industry,
@@ -465,11 +492,16 @@ class MarketFeedConnector(BaseConnector):
                                 updated_at = NOW()
                         """),
                         {
-                            "id": record.source_id,
+                            "id": _derive_company_id(tenant_id, self.connector_type.value, record.source_id),
                             "tid": tenant_id,
                             "name_en": td.get("name_en", ""),
+                            # companies.name_ar is NOT NULL; the market feed has no
+                            # Arabic name field of its own, so fall back to the
+                            # English name (matches CrmConnector's own fallback).
+                            "name_ar": td.get("name_ar", td.get("name_en", "")),
                             "industry": td.get("industry", ""),
                             "capital": td.get("market_cap", 0),
+                            "source_ids": json.dumps([self.connector_type.value]),
                         },
                     )
                     stored += 1

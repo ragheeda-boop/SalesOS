@@ -42,7 +42,7 @@ def get_signal_service(
     )
 
 
-@router.get("", response_model=SignalListResponse)
+@router.get("", response_model=SignalListResponse, summary="List available signals", description="List available signals with optional domain and pack filters.")
 async def list_signals(
     domain: str | None = Query(None, description="Filter by domain"),
     pack_id: str | None = Query(None, description="Filter by Knowledge Pack ID"),
@@ -74,7 +74,7 @@ async def list_signals(
     )
 
 
-@router.get("/{signal_id}", response_model=SignalResponse)
+@router.get("/{signal_id}", response_model=SignalResponse, summary="Get a signal", description="Get a single signal definition by ID.")
 async def get_signal(
     signal_id: str,
     service: SignalMarketplaceService = Depends(get_signal_service),
@@ -101,7 +101,7 @@ async def get_signal(
     )
 
 
-@router.post("/subscribe", response_model=SubscribeResponse, status_code=201)
+@router.post("/subscribe", response_model=SubscribeResponse, status_code=201, summary="Subscribe to a signal", description="Subscribe a company to a signal for monitoring. Returns subscription details.")
 async def subscribe(
     body: SubscribeRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -128,7 +128,7 @@ async def subscribe(
     )
 
 
-@router.delete("/subscribe/{sub_id}")
+@router.delete("/subscribe/{sub_id}", summary="Unsubscribe from a signal", description="Remove a signal subscription by subscription ID.")
 async def unsubscribe(
     sub_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -140,7 +140,7 @@ async def unsubscribe(
     return {"message": "Unsubscribed", "subscription_id": sub_id}
 
 
-@router.get("/subscriptions", response_model=list[SubscribeResponse])
+@router.get("/subscriptions", response_model=list[SubscribeResponse], summary="List subscriptions", description="List all signal subscriptions for the current tenant.")
 async def list_subscriptions(
     tenant_id: str = Depends(get_current_tenant_id),
     service: SignalMarketplaceService = Depends(get_signal_service),
@@ -160,7 +160,7 @@ async def list_subscriptions(
     ]
 
 
-@router.get("/feed", response_model=SignalFeedResponse)
+@router.get("/feed", response_model=SignalFeedResponse, summary="Get signal event feed", description="Get the signal event feed with optional acknowledgment filter and limit.")
 async def get_feed(
     limit: int = Query(50, ge=1, le=200),
     acknowledged: bool | None = Query(None),
@@ -186,7 +186,7 @@ async def get_feed(
     )
 
 
-@router.post("/{event_id}/acknowledge", response_model=AcknowledgeResponse)
+@router.post("/{event_id}/acknowledge", response_model=AcknowledgeResponse, summary="Acknowledge a signal event", description="Mark a signal event as acknowledged by the tenant.")
 async def acknowledge(
     event_id: str,
     tenant_id: str = Depends(get_current_tenant_id),

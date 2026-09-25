@@ -1,4 +1,4 @@
-"""STORY-12-03 — In-memory AI Memory store (no Alembic / FORCE RLS)."""
+"""STORY-12-03 — In-memory AI Memory test fixture; production routes use PostgreSQL."""
 
 from __future__ import annotations
 

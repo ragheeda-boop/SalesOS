@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import func, or_, select, text
+from sqlalchemy import exists, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domains.search.contracts.models import SearchQuery, SearchResult, SearchSort
@@ -23,6 +23,38 @@ class CompanySearchRepository(SearchRepository[Any]):
 
         self._Company = Company
         self.db = db
+
+    def _has_any_contact(self, company_model, tenant_id: str):
+        from app.modules.contact.models import Contact
+
+        return exists(
+            select(Contact.id).where(
+                Contact.company_id == company_model.id,
+                Contact.tenant_id == uuid.UUID(tenant_id),
+            )
+        )
+
+    def _contact_match(self, company_model, tenant_id: str, needle: str):
+        """True if a tenant contact already linked to the company matches needle.
+
+        Contactability only — does not invent company relationships.
+        """
+        from app.modules.contact.models import Contact
+
+        like = f"%{needle}%"
+        return exists(
+            select(Contact.id).where(
+                Contact.company_id == company_model.id,
+                Contact.tenant_id == uuid.UUID(tenant_id),
+                or_(
+                    Contact.name.ilike(like),
+                    Contact.name_ar.ilike(like),
+                    Contact.email.ilike(like),
+                    Contact.phone.ilike(like),
+                    Contact.mobile.ilike(like),
+                ),
+            )
+        )
 
     def _build_base(self, query: SearchQuery):
         Company = self._Company
@@ -40,6 +72,7 @@ class CompanySearchRepository(SearchRepository[Any]):
                             Company.cr_number.ilike(f"%{token}%"),
                             Company.city.ilike(f"%{token}%"),
                             Company.activity_description.ilike(f"%{token}%"),
+                            self._contact_match(Company, query.tenant_id, token),
                         )
                     )
                 if token_conditions:
@@ -51,13 +84,24 @@ class CompanySearchRepository(SearchRepository[Any]):
                         or_(
                             Company.name_ar.ilike(f"%{phrase}%"),
                             Company.name_en.ilike(f"%{phrase}%"),
+                            self._contact_match(Company, query.tenant_id, phrase),
                         )
                     )
 
             ff = parsed.field_filters
             if "cr" in ff or "cr_number" in ff:
-                cr_val = ff.get("cr") or ff["cr_number"]
-                stmt = stmt.where(Company.cr_number.ilike(f"%{cr_val}%"))
+                cr_val = str(ff.get("cr") or ff["cr_number"]).strip().lower()
+                if cr_val in {"none", "pending", "empty", "null", "awaiting"}:
+                    stmt = stmt.where(Company.cr_number.is_(None))
+                elif cr_val in {"has", "set", "present"}:
+                    stmt = stmt.where(Company.cr_number.is_not(None))
+                else:
+                    stmt = stmt.where(Company.cr_number.ilike(f"%{cr_val}%"))
+            contacts_val = str(ff.get("contacts") or ff.get("has_contact") or "").strip().lower()
+            if contacts_val in {"yes", "y", "1", "true", "has"}:
+                stmt = stmt.where(self._has_any_contact(Company, query.tenant_id))
+            elif contacts_val in {"no", "n", "0", "false", "none"}:
+                stmt = stmt.where(~self._has_any_contact(Company, query.tenant_id))
             if "city" in ff:
                 stmt = stmt.where(Company.city.ilike(f"%{ff['city']}%"))
             if "region" in ff:

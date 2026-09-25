@@ -172,6 +172,7 @@ import app.modules.communication_hub.models  # noqa: F401  # DEC-130g
 import app.modules.company.models  # noqa: F401
 import app.modules.contact.models  # noqa: F401
 import app.modules.entity_resolution.models  # noqa: F401
+import app.modules.facts.models  # noqa: F401
 import app.modules.identity.models  # noqa: F401
 import app.modules.signal_marketplace.db_models  # noqa: F401
 import app.modules.sso.models  # noqa: F401
@@ -401,9 +402,7 @@ async def _run_migrations_if_needed() -> None:
 
     # ── Step 1: Load Alembic script directory (discovery) ──────────────
     try:
-        _cfg = AlembicConfig(
-            _os.path.join(_os.path.dirname(__file__), "..", "alembic.ini")
-        )
+        _cfg = AlembicConfig(_os.path.join(_os.path.dirname(__file__), "..", "alembic.ini"))
         _cfg.set_main_option("sqlalchemy.url", settings.resolved_database_url)
         _script = ScriptDirectory.from_config(_cfg)
         _head = _script.get_current_head()
@@ -428,9 +427,7 @@ async def _run_migrations_if_needed() -> None:
     try:
         _alembic_version = table("alembic_version", column("version_num"))
         async with owner_engine.connect() as conn:
-            _result = await conn.execute(
-                select(_alembic_version.c.version_num).limit(1)
-            )
+            _result = await conn.execute(select(_alembic_version.c.version_num).limit(1))
             _row = _result.fetchone()
         current = _row[0] if _row is not None else None
     except Exception as exc:

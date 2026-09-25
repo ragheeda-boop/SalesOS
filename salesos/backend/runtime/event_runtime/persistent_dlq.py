@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import text
 
+from app.database import apply_tenant_guc
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,6 +37,14 @@ class PersistentDeadLetterQueue:
         now = failed_at or datetime.now(timezone.utc)
         try:
             async with self._session_factory() as session:
+                # event_dead_letters has RLS+FORCE RLS; this is the one live
+                # caller of this class (EventRuntime._dispatch on exhaustion)
+                # — without this pin, every real dead-letter INSERT fails its
+                # WITH CHECK and is caught below, silently discarding the
+                # persistent-storage guarantee this class exists for (the
+                # in-memory DeadLetterQueue still holds it, so nothing is
+                # lost until a process restart).
+                await apply_tenant_guc(session, tenant_id)
                 await session.execute(
                     text("""
                         INSERT INTO event_dead_letters
@@ -66,6 +76,7 @@ class PersistentDeadLetterQueue:
     async def list_all(self, tenant_id: str, limit: int = 100) -> list[dict]:
         try:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 result = await session.execute(
                     text("""
                         SELECT id, event_id, event_type, subscriber_name, error,
@@ -86,6 +97,7 @@ class PersistentDeadLetterQueue:
     async def count(self, tenant_id: str) -> int:
         try:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 result = await session.execute(
                     text("SELECT COUNT(*)::int FROM event_dead_letters WHERE tenant_id = :tenant_id"),
                     {"tenant_id": tenant_id},
@@ -95,16 +107,21 @@ class PersistentDeadLetterQueue:
         except Exception:
             return 0
 
-    async def mark_replayed(self, entry_id: str) -> None:
+    async def mark_replayed(self, entry_id: str, tenant_id: str) -> None:
+        # tenant_id was missing from this signature entirely — added here
+        # since this method (like the rest of this class besides add()) has
+        # zero callers anywhere in the codebase today (confirmed via
+        # repo-wide grep), so widening the signature is safe.
         try:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
                 await session.execute(
                     text("""
                         UPDATE event_dead_letters
                         SET replayed_at = :now
-                        WHERE id = :id
+                        WHERE id = :id AND tenant_id = :tenant_id
                     """),
-                    {"id": entry_id, "now": datetime.now(timezone.utc)},
+                    {"id": entry_id, "tenant_id": tenant_id, "now": datetime.now(timezone.utc)},
                 )
                 await session.commit()
         except Exception as e:
@@ -113,11 +130,19 @@ class PersistentDeadLetterQueue:
     async def purge_old(self, tenant_id: str, older_than_days: int = 30) -> int:
         try:
             async with self._session_factory() as session:
+                await apply_tenant_guc(session, tenant_id)
+                # make_interval(days => :days), not INTERVAL ':days days' —
+                # a bind parameter inside a quoted string literal is not a
+                # valid asyncpg positional parameter (confirmed in isolation:
+                # "the server expects 0 arguments for this query, 1 was
+                # passed"). Every real call raised, was caught by this
+                # method's own except, and silently returned 0 — meaning
+                # dead-lettered events were never actually purged.
                 result = await session.execute(
                     text("""
                         DELETE FROM event_dead_letters
                         WHERE tenant_id = :tenant_id
-                          AND failed_at < NOW() - INTERVAL ':days days'
+                          AND failed_at < NOW() - make_interval(days => :days)
                           AND replayed_at IS NOT NULL
                     """),
                     {"tenant_id": tenant_id, "days": older_than_days},

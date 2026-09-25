@@ -88,9 +88,9 @@ class GroundingService:
             async with self._db_session_factory() as session:
                 rows = await session.execute(
                     text("""
-                        SELECT id::text, name, email, phone, position, department, is_decision_maker
+                        SELECT id::text, name, email, phone, position, department, is_primary
                         FROM contacts WHERE company_id::text = :cid
-                        ORDER BY is_decision_maker DESC NULLS LAST
+                        ORDER BY is_primary DESC NULLS LAST
                     """),
                     {"cid": company_id},
                 )
@@ -104,9 +104,10 @@ class GroundingService:
             async with self._db_session_factory() as session:
                 rows = await session.execute(
                     text("""
-                        SELECT id::text, title, stage, amount, probability, expected_close_date
-                        FROM opportunities WHERE company_id::text = :cid
-                        ORDER BY amount DESC NULLS LAST
+                        SELECT id, name AS title, stage, value AS amount, probability,
+                               expected_close_date
+                        FROM commercial_opportunities WHERE company_id = :cid
+                        ORDER BY value DESC NULLS LAST
                     """),
                     {"cid": company_id},
                 )
@@ -136,9 +137,12 @@ class GroundingService:
             from sqlalchemy import text
             async with self._db_session_factory() as session:
                 rows = await session.execute(
+                    # PO decision B5 (report 99): company_signals is the live store.
                     text("""
-                        SELECT id::text, signal_type, title, description, intensity, priority, detected_at
-                        FROM buying_signals
+                        SELECT id::text, signal_type, title, description,
+                               confidence_score AS intensity, severity AS priority,
+                               COALESCE(last_seen_at, first_seen_at, created_at) AS detected_at
+                        FROM company_signals
                         WHERE company_id::text = :cid
                         ORDER BY detected_at DESC LIMIT 20
                     """),
@@ -153,11 +157,14 @@ class GroundingService:
             from sqlalchemy import text
             async with self._db_session_factory() as session:
                 rows = await session.execute(
+                    # PO decision B5 (report 99): activity_records is the live store.
                     text("""
-                        SELECT id::text, event_type, description, occurred_at
-                        FROM timeline_events
-                        WHERE company_id::text = :cid
-                        ORDER BY occurred_at DESC LIMIT 20
+                        SELECT id, action AS event_type,
+                               COALESCE(metadata->>'description', action) AS description,
+                               "timestamp" AS occurred_at
+                        FROM activity_records
+                        WHERE entity_type = 'company' AND entity_id = :cid
+                        ORDER BY "timestamp" DESC LIMIT 20
                     """),
                     {"cid": company_id},
                 )

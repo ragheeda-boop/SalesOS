@@ -146,11 +146,16 @@ class SignalPipeline:
 
                 signal_type = SignalType.WORKFLOW_COMPLETED.value
                 ts = getattr(exec_, "completed_at", None) or exec_.get("completed_at", None)
+                step_results = (
+                    getattr(exec_, "step_results", [])
+                    if hasattr(exec_, "step_results")
+                    else exec_.get("step_results", [])
+                )
 
                 signals.append(self._make_signal(
                     employee_id, tenant_id, signal_type,
                     SignalSource.WORKFLOW.value,
-                    getattr(exec_, "step_results", []) if hasattr(exec_, "step_results") else exec_.get("step_results", []),
+                    {"step_results": step_results},
                     ts,
                 ))
         except Exception as exc:

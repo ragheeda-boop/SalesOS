@@ -189,7 +189,9 @@ class NBAEngine:
     ) -> dict[str, NBAResult]:
         """Load cached NBA results for multiple opportunities in 1 query."""
         from sqlalchemy import text as sa_text
+        from app.database import apply_tenant_guc
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             rows = await session.execute(
                 sa_text("""
                     SELECT company_id, score, signals, explanation, computed_at
@@ -218,7 +220,9 @@ class NBAEngine:
     ) -> dict[str, NormalizedSignal | None]:
         """Load all opportunities + activities in 2 queries total."""
         from sqlalchemy import text as sa_text
+        from app.database import apply_tenant_guc
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             rows = await session.execute(
                 sa_text("""
                     SELECT o.*, c.name_ar as company_name_ar, c.industry, c.city,
@@ -238,7 +242,7 @@ class NBAEngine:
 
             activities = await session.execute(
                 sa_text("""
-                    SELECT id, entity_id, action, timestamp, description
+                    SELECT id, entity_id, action, timestamp, metadata
                     FROM activity_records
                     WHERE tenant_id = :tid AND entity_id = ANY(:eids)
                     ORDER BY timestamp DESC
@@ -307,35 +311,18 @@ class NBAEngine:
         await self._emit_event(nba, tenant_id)
         return nba
 
-    async def record_feedback(
-        self, opportunity_id: str, nba_id: str, user_id: str,
-        action: str, reason: str | None = None,
-    ):
-        """Record user feedback on an NBA recommendation."""
-        from sqlalchemy import text
-        async with self._session_factory() as session:
-            await session.execute(
-                text("""
-                    INSERT INTO nba_feedback (id, nba_id, opportunity_id, user_id, action, reason, created_at)
-                    VALUES (:id, :nba_id, :opp_id, :user_id, :action, :reason, NOW())
-                """),
-                {
-                    "id": str(uuid.uuid4()),
-                    "nba_id": nba_id,
-                    "opp_id": opportunity_id,
-                    "user_id": user_id,
-                    "action": action,
-                    "reason": reason or "",
-                },
-            )
-            await session.commit()
+    # Feedback is recorded by the HITL path (app.modules.signal_actions.hitl_service
+    # .FeedbackService) — PO decision B4, report 99. The former record_feedback()
+    # here wrote nonexistent nba_feedback columns (report 92) and was removed.
 
     # ── Pipeline stages ─────────────────────────────────────────
 
     async def _normalize(self, opportunity_id: str, tenant_id: str) -> NormalizedSignal | None:
         """Load opportunity and enrich with company context + recent activities."""
         from sqlalchemy import text
+        from app.database import apply_tenant_guc
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             row = await session.execute(
                 text("""
                     SELECT o.*, c.name_ar as company_name_ar, c.industry, c.city,
@@ -353,7 +340,7 @@ class NBAEngine:
             # Recent activities
             activities = await session.execute(
                 text("""
-                    SELECT id, action, timestamp, description
+                    SELECT id, action, timestamp, metadata
                     FROM activity_records
                     WHERE tenant_id = :tid AND entity_id = :eid
                     ORDER BY timestamp DESC LIMIT 20
@@ -542,7 +529,9 @@ class NBAEngine:
     async def _load_cached(self, opportunity_id: str, tenant_id: str) -> NBAResult | None:
         """Check opportunity_features table for cached NBA."""
         from sqlalchemy import text
+        from app.database import apply_tenant_guc
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             row = await session.execute(
                 text("""
                     SELECT score, signals, explanation, computed_at
@@ -566,20 +555,23 @@ class NBAEngine:
 
     async def _cache_result(self, nba: NBAResult, tenant_id: str):
         """Store NBA result in company_features for caching."""
+        import json
         from sqlalchemy import text
+        from app.database import apply_tenant_guc
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             await session.execute(
                 text("""
                     INSERT INTO company_features (tenant_id, company_id, feature_name, score, signals, explanation, computed_at)
-                    VALUES (:tid, :cid, 'nba', :score, :signals, :explanation, NOW())
+                    VALUES (:tid, :cid, 'nba', :score, CAST(:signals AS jsonb), :explanation, NOW())
                     ON CONFLICT (tenant_id, company_id, feature_name)
-                    DO UPDATE SET score = :score, signals = :signals, explanation = :explanation, computed_at = NOW()
+                    DO UPDATE SET score = :score, signals = CAST(:signals AS jsonb), explanation = :explanation, computed_at = NOW()
                 """),
                 {
                     "tid": tenant_id,
                     "cid": nba.opportunity_id,
                     "score": nba.confidence,
-                    "signals": {"action": nba.action, "reason": nba.reason},
+                    "signals": json.dumps({"action": nba.action, "reason": nba.reason}),
                     "explanation": nba.reason,
                 },
             )

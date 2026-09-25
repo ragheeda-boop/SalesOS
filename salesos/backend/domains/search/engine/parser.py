@@ -103,4 +103,18 @@ class QueryParser:
 
     @staticmethod
     def default() -> QueryParser:
-        return QueryParser(known_fields={"cr", "cr_number", "city", "region", "status", "activity", "phone", "email", "legal_form"})
+        return QueryParser(
+            known_fields={
+                "cr",
+                "cr_number",
+                "city",
+                "region",
+                "status",
+                "activity",
+                "phone",
+                "email",
+                "legal_form",
+                "contacts",
+                "has_contact",
+            }
+        )

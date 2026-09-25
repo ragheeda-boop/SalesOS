@@ -5,7 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import NotFoundError
 
+from .exceptions import AmbiguousContactMatchError
 from .models import Contact
+
+_CONTACT_BULK_CREATE_FIELDS = {
+    "company_id", "name", "name_ar", "email", "phone", "mobile", "position",
+    "position_ar", "department", "is_primary", "source", "confidence_score",
+    "tags", "extra_metadata",
+}
+_CONTACT_BULK_UPDATE_FIELDS = _CONTACT_BULK_CREATE_FIELDS - {"company_id", "email"}
 
 
 class ContactService:
@@ -134,23 +142,30 @@ class ContactService:
             if not email:
                 continue
 
-            existing = await self.db.execute(
+            result = await self.db.execute(
                 select(Contact).where(
                     Contact.tenant_id == uuid.UUID(tenant_id),
                     Contact.email == email,
                 )
             )
-            existing_contact = existing.scalar_one_or_none()
+            existing_contacts = list(result.scalars().all())
+            if len(existing_contacts) > 1:
+                raise AmbiguousContactMatchError()
+            existing_contact = existing_contacts[0] if existing_contacts else None
 
             if existing_contact:
                 for key, value in record.items():
-                    if value is not None and hasattr(existing_contact, key):
+                    if value is not None and key in _CONTACT_BULK_UPDATE_FIELDS:
                         setattr(existing_contact, key, value)
                 updated.append(existing_contact)
             else:
                 contact = Contact(
                     tenant_id=uuid.UUID(tenant_id),
-                    **{k: v for k, v in record.items() if hasattr(Contact, k) and v is not None},
+                    **{
+                        key: value
+                        for key, value in record.items()
+                        if key in _CONTACT_BULK_CREATE_FIELDS and value is not None
+                    },
                 )
                 self.db.add(contact)
                 created.append(contact)

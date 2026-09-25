@@ -8,7 +8,7 @@ Endpoints:
   POST /api/v1/search/ai                 — AI-powered semantic search
 """
 
-from datetime import datetime
+import base64
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -20,6 +20,27 @@ from runtime.search_runtime import SearchStrategy
 router = APIRouter(dependencies=[Depends(verify_token)])
 
 
+def _encode_offset_cursor(offset: int) -> str:
+    # SearchRuntime.search() only supports a plain numeric offset (no
+    # keyset WHERE clause in any of its fulltext/semantic/hybrid query
+    # paths), unlike sdk.pagination's id+sort_value keyset cursor. Reusing
+    # that generic codec here previously meant `cursor` was decoded... by
+    # nothing — `decode_cursor` was imported but never called, so `offset`
+    # was hardcoded to 0 and every "next page" request silently returned
+    # page 1 again. This local codec matches what the API can actually do.
+    return base64.urlsafe_b64encode(str(offset).encode()).decode()
+
+
+def _decode_offset_cursor(cursor: str) -> int:
+    try:
+        offset = int(base64.urlsafe_b64decode(cursor.encode()).decode())
+    except (ValueError, UnicodeDecodeError):
+        raise HTTPException(status_code=422, detail="Invalid cursor") from None
+    if offset < 0:
+        raise HTTPException(status_code=422, detail="Invalid cursor")
+    return offset
+
+
 @router.get("/search")
 async def search(
     request: Request,
@@ -27,19 +48,20 @@ async def search(
     q: str = Query(..., min_length=1, description="Search query"),
     strategy: str = Query("hybrid", pattern="^(fulltext|semantic|graph|hybrid)$"),
     limit: int = Query(20, ge=1, le=50),
-    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
+    cursor: str | None = Query(None, description="Opaque offset cursor from a previous response's next_cursor"),
     include_facets: bool = Query(False),
     city: Optional[str] = None,
     region: Optional[str] = None,
     industry: Optional[str] = None,
     status: Optional[str] = None,
 ):
-    from sdk.pagination import decode_cursor, encode_cursor
     import hashlib, json as _json
 
     sr = getattr(request.app.state, "search_runtime", None)
     if not sr:
         raise HTTPException(status_code=503, detail="Search Runtime not initialized")
+
+    offset = _decode_offset_cursor(cursor) if cursor else 0
 
     filters = {}
     if city:
@@ -65,7 +87,7 @@ async def search(
         strategy=SearchStrategy(strategy),
         filters=filters or None,
         limit=limit + 1,
-        offset=0,
+        offset=offset,
         include_facets=include_facets,
     )
 
@@ -73,11 +95,7 @@ async def search(
     if has_next:
         result.items = result.items[:limit]
 
-    next_cursor = None
-    if has_next and result.items:
-        last = result.items[-1]
-        created_at = getattr(last, "created_at", None) or datetime.utcnow().isoformat()
-        next_cursor = encode_cursor(str(last.id), created_at)
+    next_cursor = _encode_offset_cursor(offset + limit) if has_next else None
 
     response = {
         "query": q,

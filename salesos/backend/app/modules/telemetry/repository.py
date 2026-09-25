@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import func as sa_func
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import TelemetryEvent
@@ -16,6 +17,37 @@ class PostgresTelemetryRepository(TelemetryRepository):
         self._session = session
 
     async def create(self, event: TelemetryEvent) -> TelemetryEvent:
+        if event.client_event_id is not None:
+            statement = (
+                pg_insert(TelemetryEvent)
+                .values(
+                    tenant_id=event.tenant_id,
+                    user_id=event.user_id,
+                    client_event_id=event.client_event_id,
+                    event_type=event.event_type,
+                    properties=event.properties,
+                    timestamp=event.timestamp,
+                )
+                .on_conflict_do_nothing(
+                    index_elements=[
+                        TelemetryEvent.tenant_id,
+                        TelemetryEvent.client_event_id,
+                    ]
+                )
+                .returning(TelemetryEvent.id)
+            )
+            result = await self._session.execute(statement)
+            event.id = result.scalar_one_or_none()
+            if event.id is None:
+                existing = await self._session.execute(
+                    select(TelemetryEvent).where(
+                        TelemetryEvent.tenant_id == event.tenant_id,
+                        TelemetryEvent.client_event_id == event.client_event_id,
+                    )
+                )
+                return existing.scalar_one()
+            return event
+
         self._session.add(event)
         await self._session.flush()
         return event

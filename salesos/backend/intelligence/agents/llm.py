@@ -96,6 +96,19 @@ class LLMService:
         except RuntimeError:
             self._cost_tracker = cost_tracker
 
+    async def _check_budget_fail_open(self, tenant_id: str, estimated_cost: float):
+        # Fail-open by decision (report 96): the budget is a cost control, not a
+        # security boundary; a budget-store outage must not take AI features down.
+        try:
+            return await self._cost_tracker.check_budget(tenant_id, estimated_cost)
+        except Exception as exc:
+            logger.warning(
+                "LLM budget check unavailable; allowing call (fail-open)",
+                extra={"event": "budget_check_failed_open", "tenant_id": tenant_id,
+                       "error": type(exc).__name__},
+            )
+            return None
+
     def _resolved_base_url(self) -> str | None:
         if self._base_url_override:
             return self._base_url_override
@@ -189,10 +202,8 @@ class LLMService:
         # ── F2: Pre-call budget check ─────────────────────────────
         if effective_tenant and self._cost_tracker:
             est_cost = estimate_cost(resolved_model, 500, 500)
-            budget_check = await self._cost_tracker.check_budget(
-                effective_tenant, est_cost
-            )
-            if budget_check.would_exceed and budget_check.monthly_budget > 0:
+            budget_check = await self._check_budget_fail_open(effective_tenant, est_cost)
+            if budget_check and budget_check.would_exceed and budget_check.monthly_budget > 0:
                 return LLMResponse(
                     content="",
                     model=resolved_model,
@@ -209,7 +220,7 @@ class LLMService:
         elapsed = (time.monotonic() - start) * 1000
 
         # ── F2: Canonical cost tracking ───────────────────────────
-        if tenant_id and self._cost_tracker:
+        if effective_tenant and self._cost_tracker:
             try:
                 await self._cost_tracker.track(
                     tenant_id=effective_tenant,
@@ -324,10 +335,8 @@ class LLMService:
         # ── F2: Pre-call budget check for streaming ───────────────
         if tenant_id and self._cost_tracker:
             est_cost = estimate_cost(resolved_model, 500, 500)
-            budget_check = await self._cost_tracker.check_budget(
-                tenant_id, est_cost
-            )
-            if budget_check.would_exceed and budget_check.monthly_budget > 0:
+            budget_check = await self._check_budget_fail_open(tenant_id, est_cost)
+            if budget_check and budget_check.would_exceed and budget_check.monthly_budget > 0:
                 yield StreamEvent(
                     type="error",
                     error=f"Budget exceeded: ${budget_check.current_spend:.4f} / ${budget_check.monthly_budget:.2f}",
@@ -387,10 +396,8 @@ class LLMService:
         resolved_model = model or provider.model_name
         if tenant_id and self._cost_tracker:
             est_cost = estimate_cost(resolved_model, 200, 0)
-            budget_check = await self._cost_tracker.check_budget(
-                tenant_id, est_cost
-            )
-            if budget_check.would_exceed and budget_check.monthly_budget > 0:
+            budget_check = await self._check_budget_fail_open(tenant_id, est_cost)
+            if budget_check and budget_check.would_exceed and budget_check.monthly_budget > 0:
                 return []
 
         start = time.monotonic()

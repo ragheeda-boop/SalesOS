@@ -6,7 +6,8 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import and_, func, or_, select, text
+from sqlalchemy import and_, cast, func, or_, select, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -19,7 +20,11 @@ from domains.commercial.contract.repo import ContractKPIs
 from domains.commercial.contract.repo import ContractRepository
 from domains.commercial.opportunity.contracts.models import Opportunity, OpportunityStage, OpportunityStatus, PipelineDefinition
 from domains.commercial.opportunity.contracts.repository import OpportunityRepository
-from domains.commercial.pipeline.contracts.models import PipelineDefinition as PipelineDef, StageEntry
+from domains.commercial.pipeline.contracts.models import (
+    PipelineDefinition as PipelineDef,
+    StageDefinition,
+    StageEntry,
+)
 from domains.commercial.pipeline.contracts.repository import PipelineKPIs, PipelineRepository
 from domains.commercial.proposal.contracts.models import Proposal, ProposalStatus
 from domains.commercial.proposal.contracts.repository import ProposalKPIs, ProposalRepository
@@ -51,7 +56,7 @@ from .models import (
     ContractModel, DecisionContextModel, EmailModel, ForecastSnapshotModel,
     MeetingModel, OpportunityContactModel, OpportunityModel,
     PipelineDefinitionModel, PolicyModel, ProposalModel, QuoteLineModel,
-    QuoteModel, QuotaModel, RecommendationModel, ReviewModel, StageEntryModel,
+    QuoteModel, QuotaModel, QuotaSnapshotModel, RecommendationModel, ReviewModel, StageEntryModel,
     TerritoryModel,
 )
 
@@ -202,15 +207,30 @@ class PostgresPipelineRepository(PipelineRepository):
         model = result.scalar_one_or_none()
         if not model:
             return None
-        stages = [OpportunityStage(**s) for s in (model.stages or [])]
-        p = PipelineDef(tenant_id=model.tenant_id, stages=stages)
-        p.id = model.id
-        return p
+        stages = [StageDefinition(**s) for s in (model.stages or [])]
+        return PipelineDef(
+            id=model.id,
+            tenant_id=model.tenant_id,
+            name=model.name,
+            # The legacy table stores one display name; keep the Arabic name
+            # valid until the schema gains a dedicated name_ar column.
+            name_ar=model.name,
+            stages=stages,
+        )
 
     async def list_definitions(self, tenant_id: str) -> list:
         stmt = select(PipelineDefinitionModel).where(PipelineDefinitionModel.tenant_id == tenant_id)
         result = await self.session.execute(stmt)
-        return [PipelineDef(tenant_id=r.tenant_id) for r in result.scalars().all()]
+        return [
+            PipelineDef(
+                id=r.id,
+                tenant_id=r.tenant_id,
+                name=r.name,
+                name_ar=r.name,
+                stages=[StageDefinition(**s) for s in (r.stages or [])],
+            )
+            for r in result.scalars().all()
+        ]
 
     async def save_stage_entry(self, entry: StageEntry) -> StageEntry:
         model = StageEntryModel(
@@ -254,15 +274,49 @@ class PostgresPipelineRepository(PipelineRepository):
         ) for r in result.scalars().all()]
 
     async def compute_kpis(self, pipeline_id: str, opportunities: list) -> PipelineKPIs:
+        """Compute the same KPI contract as the in-memory repository.
+
+        The PostgreSQL adapter previously constructed an older, incompatible
+        ``PipelineKPIs`` shape (``won_count``, ``total_value`` …).  Keep the
+        persistence adapter contract-aligned so API reads work for both empty
+        and populated pipelines.
+        """
+        pipeline = await self.get_definition(pipeline_id)
+        if not pipeline:
+            return PipelineKPIs(pipeline_id=pipeline_id)
+
         total = len(opportunities)
-        won = sum(1 for o in opportunities if o.status == OpportunityStatus.WON)
-        lost = sum(1 for o in opportunities if o.status == OpportunityStatus.LOST)
-        active = total - won - lost
+        pipeline_value = sum(getattr(o, "value", 0) for o in opportunities)
+        weighted = sum(
+            getattr(o, "weighted_value", None)
+            if getattr(o, "weighted_value", None) is not None
+            else getattr(o, "value", 0) * getattr(o, "probability", 0)
+            for o in opportunities
+        )
+
+        def _status_value(opportunity: object) -> str:
+            status = getattr(opportunity, "status", None)
+            return getattr(status, "value", status) or ""
+
+        won = sum(1 for o in opportunities if _status_value(o) == "won")
+        lost = sum(1 for o in opportunities if _status_value(o) == "lost")
+        closed = won + lost
+
+        stage_counts: dict[str, int] = {}
+        stage_values: dict[str, float] = {}
+        for opportunity in opportunities:
+            stage = getattr(opportunity, "stage", "unknown")
+            stage_counts[stage] = stage_counts.get(stage, 0) + 1
+            stage_values[stage] = stage_values.get(stage, 0.0) + getattr(opportunity, "value", 0)
+
         return PipelineKPIs(
-            total_opportunities=total, won_count=won, lost_count=lost,
-            active_count=active, win_rate=won / total if total > 0 else 0,
-            total_value=sum(o.value for o in opportunities),
-            weighted_value=sum(o.weighted_value for o in opportunities),
+            pipeline_id=pipeline_id,
+            total_opportunities=total,
+            pipeline_value=pipeline_value,
+            weighted_pipeline=weighted,
+            stage_counts=stage_counts,
+            stage_values=stage_values,
+            win_rate=round(won / closed, 2) if closed else 0.0,
         )
 
 
@@ -601,9 +655,11 @@ class PostgresContractRepository(ContractRepository):
         result = await self.session.execute(stmt)
         total, active, expired = result.one()
         return ContractKPIs(
-            total_contracts=total or 0, active_count=active or 0,
-            expired_count=expired or 0, renewal_rate=0.85,
-            total_value=0.0,
+            total_contracts=total or 0,
+            active_contracts=active or 0,
+            expiring_soon=expired or 0,
+            renewal_rate=0.85,
+            total_contract_value=0.0,
         )
 
     def _to_domain(self, model: ContractModel) -> Contract:
@@ -714,11 +770,25 @@ class PostgresAnalyticsRepository(AnalyticsRepository):
         self.session = session
 
     async def save(self, snapshot: AnalyticsSnapshot) -> AnalyticsSnapshot:
+        # ``AnalyticsSnapshot`` is the revenue analytics contract and stores
+        # measured KPI values as a list.  The older commercial table keeps a
+        # JSON object, so serialize the complete value record by KPI id rather
+        # than reading the obsolete ``snapshot.kpis``/``insights`` fields.
+        kpis = {
+            value.kpi_id: {
+                "value": value.value,
+                "previous_value": value.previous_value,
+                "change": value.change,
+                "change_percent": value.change_percent,
+                "dimension": value.dimension,
+                "note": value.note,
+            }
+            for value in snapshot.values
+        }
         model = AnalyticsSnapshotModel(
             id=snapshot.id, tenant_id=snapshot.tenant_id,
-            period_start=snapshot.period_start, period_end=snapshot.period_end,
-            kpis={k: {"value": v.value, "category": v.category.value, "label": v.label, "trend": v.trend} for k, v in snapshot.kpis.items()},
-            insights=snapshot.insights,
+            period_start=snapshot.period_start.date(), period_end=snapshot.period_end.date(),
+            kpis=kpis, insights=[],
         )
         self.session.add(model)
         await self.session.flush()
@@ -748,14 +818,22 @@ class PostgresAnalyticsRepository(AnalyticsRepository):
         return self._to_domain(model) if model else None
 
     def _to_domain(self, model: AnalyticsSnapshotModel) -> AnalyticsSnapshot:
-        kpis = {}
+        values = []
         for k, v in (model.kpis or {}).items():
-            kpis[k] = KPIValue(value=v.get("value", 0), category=MetricCategory(v.get("category", "revenue")), label=v.get("label", k), trend=v.get("trend", "stable"))
+            values.append(KPIValue(
+                kpi_id=k,
+                value=v.get("value", 0),
+                previous_value=v.get("previous_value", 0),
+                change=v.get("change", 0),
+                change_percent=v.get("change_percent", 0),
+                dimension=v.get("dimension", ""),
+                note=v.get("note", ""),
+            ))
         return AnalyticsSnapshot(
             id=model.id, tenant_id=model.tenant_id,
-            period_start=model.period_start, period_end=model.period_end,
-            kpis=kpis, insights=model.insights or [],
-            created_at=model.created_at,
+            period_start=datetime.combine(model.period_start, datetime.min.time(), tzinfo=timezone.utc),
+            period_end=datetime.combine(model.period_end, datetime.min.time(), tzinfo=timezone.utc),
+            values=values, generated_at=model.created_at,
         )
 
 
@@ -1211,7 +1289,7 @@ class PostgresReviewRepository(ReviewRepository):
 
 # ── P1-6: Quota + Territory Postgres Repositories ──
 
-from domains.revenue.quota.models import Quota, QuotaPeriod, QuotaSnapshot, QuotaStatus
+from domains.revenue.quota.models import Quota, QuotaPeriod, QuotaSnapshot, QuotaStatus, TeamAggregate
 from domains.revenue.quota.repo import QuotaRepository
 
 from domains.revenue.territory.models import Territory
@@ -1297,11 +1375,37 @@ class PostgresQuotaRepository(QuotaRepository):
         return self._to_domain(model) if model else None
 
     async def save_snapshot(self, snapshot: QuotaSnapshot) -> QuotaSnapshot:
-        # Snapshots stored in-memory — no separate table yet
-        return snapshot
+        existing = await self.session.execute(
+            select(QuotaSnapshotModel).where(QuotaSnapshotModel.id == snapshot.id)
+        )
+        model = existing.scalar_one_or_none()
+        if model:
+            return self._snapshot_to_domain(model)
+
+        model = QuotaSnapshotModel(
+            id=snapshot.id,
+            tenant_id=snapshot.tenant_id,
+            period_label=snapshot.period_label,
+            quotas=[self._quota_to_snapshot_json(quota) for quota in snapshot.quotas],
+            team=self._team_to_snapshot_json(snapshot.team),
+            total_target=snapshot.total_target,
+            total_attained=snapshot.total_attained,
+            overall_attainment=snapshot.overall_attainment,
+            created_at=snapshot.created_at,
+        )
+        self.session.add(model)
+        await self.session.flush()
+        return self._snapshot_to_domain(model)
 
     async def list_snapshots(self, tenant_id: str, limit: int = 10) -> list[QuotaSnapshot]:
-        return []
+        stmt = (
+            select(QuotaSnapshotModel)
+            .where(QuotaSnapshotModel.tenant_id == tenant_id)
+            .order_by(QuotaSnapshotModel.created_at.desc())
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return [self._snapshot_to_domain(model) for model in result.scalars().all()]
 
     def _to_domain(self, model: QuotaModel) -> Quota:
         return Quota(
@@ -1314,6 +1418,82 @@ class PostgresQuotaRepository(QuotaRepository):
             status=QuotaStatus(model.status),
             metadata=model.extra_metadata or {},
             created_at=model.created_at, updated_at=model.updated_at,
+        )
+
+    @staticmethod
+    def _quota_to_snapshot_json(quota: Quota) -> dict[str, Any]:
+        return {
+            "id": quota.id,
+            "tenant_id": quota.tenant_id,
+            "rep_id": quota.rep_id,
+            "rep_name": quota.rep_name,
+            "period": quota.period.value,
+            "target_amount": quota.target_amount,
+            "attained_amount": quota.attained_amount,
+            "start_date": quota.start_date.isoformat(),
+            "end_date": quota.end_date.isoformat(),
+            "status": quota.status.value,
+            "created_at": quota.created_at.isoformat(),
+            "updated_at": quota.updated_at.isoformat(),
+            "metadata": quota.metadata,
+        }
+
+    @staticmethod
+    def _quota_from_snapshot_json(data: dict[str, Any]) -> Quota:
+        return Quota(
+            id=data["id"],
+            tenant_id=data["tenant_id"],
+            rep_id=data["rep_id"],
+            rep_name=data.get("rep_name", ""),
+            period=QuotaPeriod(data.get("period", QuotaPeriod.QUARTERLY.value)),
+            target_amount=float(data.get("target_amount", 0.0)),
+            attained_amount=float(data.get("attained_amount", 0.0)),
+            start_date=datetime.fromisoformat(data["start_date"]),
+            end_date=datetime.fromisoformat(data["end_date"]),
+            status=QuotaStatus(data.get("status", QuotaStatus.ACTIVE.value)),
+            created_at=datetime.fromisoformat(data["created_at"]),
+            updated_at=datetime.fromisoformat(data["updated_at"]),
+            metadata=data.get("metadata") or {},
+        )
+
+    @staticmethod
+    def _team_to_snapshot_json(team: TeamAggregate | None) -> dict[str, Any] | None:
+        if team is None:
+            return None
+        return {
+            "tenant_id": team.tenant_id,
+            "total_targets": team.total_targets,
+            "total_attained": team.total_attained,
+            "overall_attainment_percent": team.overall_attainment_percent,
+            "rep_count": team.rep_count,
+            "reps_on_track": team.reps_on_track,
+            "reps_at_risk": team.reps_at_risk,
+            "reps_missed": team.reps_missed,
+        }
+
+    @staticmethod
+    def _team_from_snapshot_json(data: dict[str, Any] | None) -> TeamAggregate | None:
+        if data is None:
+            return None
+        return TeamAggregate(
+            tenant_id=data["tenant_id"],
+            total_targets=float(data.get("total_targets", 0.0)),
+            total_attained=float(data.get("total_attained", 0.0)),
+            overall_attainment_percent=float(data.get("overall_attainment_percent", 0.0)),
+            rep_count=int(data.get("rep_count", 0)),
+            reps_on_track=int(data.get("reps_on_track", 0)),
+            reps_at_risk=int(data.get("reps_at_risk", 0)),
+            reps_missed=int(data.get("reps_missed", 0)),
+        )
+
+    def _snapshot_to_domain(self, model: QuotaSnapshotModel) -> QuotaSnapshot:
+        return QuotaSnapshot(
+            id=model.id,
+            tenant_id=model.tenant_id,
+            period_label=model.period_label,
+            quotas=[self._quota_from_snapshot_json(item) for item in (model.quotas or [])],
+            team=self._team_from_snapshot_json(model.team),
+            created_at=model.created_at,
         )
 
 
@@ -1379,7 +1559,7 @@ class PostgresTerritoryRepository(TerritoryRepository):
     async def find_territory_for_account(self, tenant_id: str, account_id: str) -> Territory | None:
         stmt = select(TerritoryModel).where(
             TerritoryModel.tenant_id == tenant_id,
-            TerritoryModel.account_ids.op("??")(text("'[]'")).contains(account_id),
+            cast(TerritoryModel.account_ids, JSONB).contains([account_id]),
         )
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
@@ -1490,7 +1670,10 @@ class PostgresEvidenceRepository:
             description=evidence.description,
             confidence=evidence.confidence,
             confidence_level=evidence.confidence_level.value,
-            extra_data=evidence.data,
+            extra_data={
+                **(evidence.data or {}),
+                **({"evidence_kind": evidence.evidence_kind.value} if evidence.evidence_kind else {}),
+            },
             created_at=evidence.recorded_at, updated_at=evidence.recorded_at,
         )
         self.session.add(model)
@@ -1546,8 +1729,14 @@ class PostgresEvidenceRepository:
 
     def _evidence_to_domain(self, model) -> EvidenceItem:
         from domains.commercial.evidence.contracts.models import (
-            EvidenceItem, EvidenceType, EvidenceSource, ConfidenceLevel,
+            EvidenceItem, EvidenceType, EvidenceSource, ConfidenceLevel, EvidenceKind,
         )
+        extra_data = dict(model.extra_data or {})
+        raw_kind = extra_data.pop("evidence_kind", None)
+        try:
+            evidence_kind = EvidenceKind(raw_kind) if raw_kind else None
+        except (TypeError, ValueError):
+            evidence_kind = None
         return EvidenceItem(
             id=model.id,
             evidence_type=EvidenceType(model.evidence_type),
@@ -1560,6 +1749,7 @@ class PostgresEvidenceRepository:
             description=model.description,
             confidence=model.confidence,
             confidence_level=ConfidenceLevel(model.confidence_level),
-            data=model.extra_data or {},
+            evidence_kind=evidence_kind,
+            data=extra_data,
             recorded_at=model.created_at,
         )

@@ -1,12 +1,23 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class RevenueKPI(BaseModel):
+class RevenueByCurrency(BaseModel):
+    currency: str
     total_booked: float = 0.0
     total_pipeline: float = 0.0
     weighted_pipeline: float = 0.0
     forecast: float = 0.0
     growth_percent: float = 0.0
+
+
+class RevenueKPI(BaseModel):
+    total_booked: float | None = 0.0
+    total_pipeline: float | None = 0.0
+    weighted_pipeline: float | None = 0.0
+    forecast: float | None = 0.0
+    growth_percent: float | None = 0.0
+    currency_consistent: bool = True
+    by_currency: list[RevenueByCurrency] = Field(default_factory=list)
 
 
 class TeamKPI(BaseModel):
@@ -32,11 +43,12 @@ class HealthKPI(BaseModel):
 
 class PipelineHealth(BaseModel):
     total_deals: int = 0
-    total_value: float = 0.0
+    total_value: float | None = 0.0
     won_deals: int = 0
     lost_deals: int = 0
     win_rate: float = 0.0
-    avg_deal_size: float = 0.0
+    avg_deal_size: float | None = 0.0
+    by_currency: list[dict] = Field(default_factory=list)
     by_stage: list[dict] = []
 
 

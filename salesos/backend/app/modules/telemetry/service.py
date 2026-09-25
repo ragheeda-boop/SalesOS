@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 from .models import TelemetryEvent
 
@@ -13,6 +14,8 @@ EVENT_TYPES = frozenset(
         "search_query",
         "nba_view",
         "nba_accept",
+        "nba_executed",
+        "nba_outcome_recorded",
         "nba_reject",
         "workflow_run",
         "workflow_complete",
@@ -21,8 +24,26 @@ EVENT_TYPES = frozenset(
         "api_call",
         "login",
         "logout",
+        "widget_rendered",
+        "widget_interacted",
+        "opportunity_created",
+        "opportunity_stage_changed",
+        "search_result_clicked",
+        "company_viewed",
+        "company_dna_viewed",
+        "pilot_feedback_submitted",
     }
 )
+
+
+def _search_event_id(properties: dict[str, Any] | None) -> str | None:
+    if not properties:
+        return None
+    for key in ("search_id", "searchId", "query_id", "queryId"):
+        value = properties.get(key)
+        if isinstance(value, (str, int)) and str(value):
+            return str(value)
+    return None
 
 
 class TelemetryRepository(ABC):
@@ -68,6 +89,18 @@ class InMemoryTelemetryRepository(TelemetryRepository):
         self._counter = 0
 
     async def create(self, event: TelemetryEvent) -> TelemetryEvent:
+        if event.client_event_id is not None:
+            existing = next(
+                (
+                    item
+                    for item in self._events
+                    if item.tenant_id == event.tenant_id
+                    and item.client_event_id == event.client_event_id
+                ),
+                None,
+            )
+            if existing is not None:
+                return existing
         self._counter += 1
         event.id = self._counter
         self._events.append(event)
@@ -160,6 +193,7 @@ class TelemetryService:
         user_id: str,
         properties: dict[str, Any] | None = None,
         timestamp: datetime | None = None,
+        client_event_id: UUID | None = None,
     ) -> TelemetryEvent:
         event = TelemetryEvent(
             event_type=event_type,
@@ -167,6 +201,7 @@ class TelemetryService:
             user_id=user_id,
             properties=properties or {},
             timestamp=timestamp or datetime.now(UTC),
+            client_event_id=client_event_id,
         )
         return await self.repository.create(event)
 
@@ -201,12 +236,22 @@ class TelemetryService:
             "nba_view": "توصيات NBA",
             "nba_accept": "قبول NBA",
             "nba_reject": "رفض NBA",
+            "nba_executed": "تنفيذ NBA",
+            "nba_outcome_recorded": "نتيجة NBA",
             "workflow_run": "تشغيل سير العمل",
             "workflow_complete": "إكمال سير العمل",
             "rag_query": "استعلام RAG",
             "report_run": "تقارير",
             "api_call": "استدعاءات API",
             "login": "تسجيل دخول",
+            "widget_rendered": "عرض عناصر الواجهة",
+            "widget_interacted": "التفاعل مع عناصر الواجهة",
+            "opportunity_created": "إنشاء الفرص",
+            "opportunity_stage_changed": "تحديث مراحل الفرص",
+            "search_result_clicked": "النقر على نتائج البحث",
+            "company_viewed": "عرض الشركات",
+            "company_dna_viewed": "عرض ملف الشركة",
+            "pilot_feedback_submitted": "ملاحظات التجربة",
         }
 
         for e in events:
@@ -233,11 +278,21 @@ class TelemetryService:
         events = await self.repository.get_all_events(tenant_id)
         searches = [e for e in events if e.event_type == "search_query"]
         total_searches = len(searches)
+        clicked_search_ids = {
+            search_id
+            for event in events
+            if event.event_type == "search_result_clicked" and event.properties
+            if (search_id := _search_event_id(event.properties)) is not None
+        }
         searches_with_action = sum(
             1
             for e in searches
             if e.properties
-            and (e.properties.get("clicked") is True or e.properties.get("result_clicked") is True)
+            and (
+                e.properties.get("clicked") is True
+                or e.properties.get("result_clicked") is True
+                or _search_event_id(e.properties) in clicked_search_ids
+            )
         )
         rate = round(searches_with_action / total_searches * 100, 1) if total_searches > 0 else 0.0
         return {
@@ -329,7 +384,7 @@ class TelemetryService:
             "avg_time_to_action_display": self._format_duration(avg_seconds),
         }
 
-    async def active_users(self, days: int = 7) -> dict[str, Any]:
+    async def active_users(self, tenant_id: str, days: int = 7) -> dict[str, Any]:
         now = datetime.now(UTC)
         dau_cutoff = now - timedelta(days=1)
         wau_cutoff = now - timedelta(days=7)
@@ -340,6 +395,7 @@ class TelemetryService:
         monthly: set[str] = set()
 
         all_events = await self.repository.get_all_events_in_range(
+            tenant_id=tenant_id,
             to_date=now,
         )
         for e in all_events:

@@ -31,11 +31,51 @@ P3_PAIR_PENDING = "PENDING_P3_FUZZY_PAIR"  # G2
 SHORT_CR_PENDING = "PENDING_SHORT_CR_ADJUDICATION"  # G3
 CR_AMBIGUOUS_MULTI = "CR_SUSPICIOUS_MULTI"  # G3 population by classification
 NON_COMMERCIAL = "NON_COMMERCIAL_SEGMENT"  # G5-3 (report 104/106)
+OUT_OF_MARKET = "OUT_OF_MARKET"  # G5 review (reports 109/110)
 
 # PO decision G5-3 (report 106): non-profits (NCNP register) and government
 # bodies (.gov.sa) form a separate, non-commercial segment excluded from
 # sales-usable. Reversible by setting this to False.
 EXCLUDE_NON_COMMERCIAL = True
+
+# G5 review (report 110): an account known only from Apollo whose city is not a
+# Saudi city is a foreign company, not a Saudi sales target. Empty city = kept.
+EXCLUDE_OUT_OF_MARKET = True
+_SAUDI_CITIES_PATH = (
+    __import__("pathlib").Path(__file__).resolve().parents[1] / "phase6" / "data" / "saudi_cities.txt"
+)
+
+
+def _load_saudi_cities() -> frozenset[str]:
+    with open(_SAUDI_CITIES_PATH, encoding="utf-8") as fh:
+        return frozenset(
+            line.strip().lower() for line in fh if line.strip() and not line.startswith("#")
+        )
+
+
+SAUDI_CITIES = _load_saudi_cities()
+
+
+# Two-letter TLDs widely used as generic names; they say nothing about country.
+_GENERIC_CCTLDS = frozenset({"co", "io", "me", "ai", "tv", "cc", "ly", "so", "ws", "fm", "gg", "to", "am", "is", "it", "in"})
+
+
+def foreign_cctld(domain: str | None) -> bool:
+    """True if the domain ends in a non-Saudi country-code TLD (e.g. .com.bd, .cn)."""
+    labels = [x for x in (domain or "").strip().lower().rstrip(".").split(".") if x]
+    if len(labels) < 2:
+        return False
+    tld = labels[-1]
+    return len(tld) == 2 and tld != "sa" and tld not in _GENERIC_CCTLDS
+
+
+def is_out_of_market(*, apollo_only: bool, city: str | None, domain: str | None = None) -> bool:
+    if not apollo_only:
+        return False
+    c = (city or "").strip().lower()
+    if c:
+        return c not in SAUDI_CITIES
+    return foreign_cctld(domain)  # empty city: fall back to the domain's country code
 
 
 @dataclass(frozen=True)
@@ -72,6 +112,7 @@ def account_blockers(
     in_pending_p3_pair: bool,
     in_pending_short_cr: bool,
     non_commercial: bool = False,
+    out_of_market: bool = False,
     gates: dict[str, Gate] = GATES,
 ) -> list[str]:
     """Every reason this account may not be treated as sales-usable (empty = usable)."""
@@ -90,6 +131,8 @@ def account_blockers(
         blockers.append(CR_AMBIGUOUS_MULTI)
     if non_commercial and EXCLUDE_NON_COMMERCIAL:
         blockers.append(NON_COMMERCIAL)
+    if out_of_market and EXCLUDE_OUT_OF_MARKET:
+        blockers.append(OUT_OF_MARKET)
     return blockers
 
 
@@ -103,23 +146,30 @@ WITH p3 AS (
 ), scr AS (
     SELECT global_company_id AS id FROM md_review_queue_state
      WHERE queue_type = 'SHORT_CR' AND status = 'pending' AND global_company_id IS NOT NULL
-), ncnp AS (
-    SELECT DISTINCT m.global_entity_id AS id
+), src AS (
+    SELECT m.global_entity_id AS id,
+           bool_or(s.raw_payload->>'Source System' = 'NCNP') AS has_ncnp,
+           bool_and(s.raw_payload->>'Source System' = 'Apollo Accounts') AS apollo_only
       FROM md_source_rows s
       JOIN md_legacy_id_mappings m
         ON m.legacy_id_type = 'LEGACY_MUHIDE_MA_ID'
        AND m.legacy_id = s.raw_payload->>'Master Account ID'
-     WHERE s.source_id = 'muhide_source_map' AND s.raw_payload->>'Source System' = 'NCNP'
+     WHERE s.source_id = 'muhide_source_map'
+     GROUP BY m.global_entity_id
 )
-SELECT ic.global_entity_id, g.slug, g.canonical_name, g.domain, g.city,
+SELECT ic.global_entity_id, g.slug, g.canonical_name,
+       CASE WHEN ic.signals ? 'display_domain' THEN ic.signals->>'display_domain'
+            ELSE g.domain END AS domain,
+       g.city,
        ic.sales_readiness, ic.review_priority, ic.cr_class,
        (p3.id IS NOT NULL) AS in_p3, (scr.id IS NOT NULL) AS in_scr,
-       (ncnp.id IS NOT NULL OR lower(coalesce(g.domain, '')) LIKE '%.gov.sa') AS non_commercial
+       (coalesce(src.has_ncnp, false) OR lower(coalesce(g.domain, '')) LIKE '%.gov.sa') AS non_commercial,
+       coalesce(src.apollo_only, false) AS apollo_only
   FROM md_identity_classifications ic
   JOIN md_global_companies g ON g.id = ic.global_entity_id
   LEFT JOIN p3 ON p3.id = ic.global_entity_id
   LEFT JOIN scr ON scr.id = ic.global_entity_id
-  LEFT JOIN ncnp ON ncnp.id = ic.global_entity_id
+  LEFT JOIN src ON src.id = ic.global_entity_id
  WHERE ic.sales_readiness = ANY(:ready)
    AND ic.classification_version = :version
  ORDER BY g.canonical_name, ic.global_entity_id
@@ -142,6 +192,9 @@ async def _load(session: AsyncSession, gates: dict[str, Gate] = GATES) -> list[d
             in_pending_p3_pair=r["in_p3"],
             in_pending_short_cr=r["in_scr"],
             non_commercial=r["non_commercial"],
+            out_of_market=is_out_of_market(
+                apollo_only=r["apollo_only"], city=r["city"], domain=r["domain"]
+            ),
             gates=gates,
         )
         out.append({

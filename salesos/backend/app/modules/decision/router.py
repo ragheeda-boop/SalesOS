@@ -41,7 +41,7 @@ _PLATFORM_ALT = (
     "EAB-001-P0-DUP-01 / DECISION-API-SOT.md."
 )
 
-router = APIRouter(prefix="/api/v1/decision")
+router = APIRouter(prefix="/api/v1/decision", tags=["Decision Platform"])
 
 API_VERSION = "1.0.0"
 SOT_ROLE = "alternate"  # not center; not runtime
@@ -290,7 +290,7 @@ async def evaluate_batch(
     )
 
 
-@router.get("/{decision_id}/explain", response_model=ExplainResponseAPI)
+@router.get("/{decision_id}/explain", response_model=ExplainResponseAPI, summary="Explain a decision", description="Get detailed explainability for a specific decision by ID.")
 async def explain_decision(
     decision_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -433,7 +433,7 @@ async def get_history(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/recommendations", response_model=RecommendationsResponseAPI)
+@router.get("/recommendations", response_model=RecommendationsResponseAPI, summary="List recommendations", description="List decision recommendations with optional entity, type, and status filters.")
 async def get_recommendations(
     tenant_id: str = Depends(get_current_tenant_id),
     entity_id: str | None = Query(None),
@@ -534,7 +534,7 @@ async def get_recommendations(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/scores", response_model=ScoresResponseAPI)
+@router.get("/scores", response_model=ScoresResponseAPI, summary="Get entity scores", description="Get scoring breakdown for a specific entity (intent, risk, relationship, etc.).")
 async def get_scores(
     tenant_id: str = Depends(get_current_tenant_id),
     entity_id: str = Query(...),
@@ -574,7 +574,7 @@ async def get_scores(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/evidence", response_model=EvidenceResponseAPI)
+@router.get("/evidence", response_model=EvidenceResponseAPI, summary="Get evidence items", description="Get evidence items for a specific entity with optional type filter and pagination.")
 async def get_evidence(
     tenant_id: str = Depends(get_current_tenant_id),
     entity_id: str = Query(...),
@@ -631,7 +631,7 @@ async def get_evidence(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/feedback", response_model=FeedbackSubmitResponseAPI)
+@router.post("/feedback", response_model=FeedbackSubmitResponseAPI, summary="Submit decision feedback", description="Submit feedback on a decision outcome (accepted, rejected, ignored).")
 async def submit_feedback(
     body: FeedbackRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -663,7 +663,7 @@ async def submit_feedback(
     return FeedbackSubmitResponseAPI(id=fb_id, accepted=True)
 
 
-@router.get("/feedback/stats", response_model=FeedbackStatsAPI)
+@router.get("/feedback/stats", response_model=FeedbackStatsAPI, summary="Get feedback statistics", description="Get aggregated feedback statistics: acceptance rate, revenue impact, time to execution.")
 async def get_feedback_stats(
     tenant_id: str = Depends(get_current_tenant_id),
     _token: dict = Depends(verify_token),
@@ -686,7 +686,7 @@ async def get_feedback_stats(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/rules", response_model=RulesResponseAPI)
+@router.get("/rules", response_model=RulesResponseAPI, summary="List decision rules", description="List all decision rules with optional category filter.")
 async def list_rules(
     category: str | None = Query(None),
     _token: dict = Depends(verify_token),
@@ -713,7 +713,7 @@ async def list_rules(
     return RulesResponseAPI(rules=api_rules)
 
 
-@router.post("/rules", response_model=DecisionRuleAPI, status_code=201)
+@router.post("/rules", response_model=DecisionRuleAPI, status_code=201, summary="Create a decision rule", description="Create a new decision rule with conditions, action, and weight.")
 async def create_rule(
     body: RuleCreateRequest,
     _token: dict = Depends(verify_token),
@@ -759,7 +759,7 @@ async def create_rule(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/learning/quality", response_model=QualityMetricsAPI)
+@router.get("/learning/quality", response_model=QualityMetricsAPI, summary="Get learning quality metrics", description="Get quality metrics: average confidence, acceptance rate, recommendation counts by confidence level.")
 async def get_learning_quality(
     tenant_id: str = Depends(get_current_tenant_id),
     _token: dict = Depends(verify_token),
@@ -776,7 +776,7 @@ async def get_learning_quality(
     )
 
 
-@router.get("/learning/trends", response_model=LearningTrendsResponseAPI)
+@router.get("/learning/trends", response_model=LearningTrendsResponseAPI, summary="Get learning trends", description="Get trend data for learning metrics: current vs previous values, change percentages.")
 async def get_learning_trends(
     tenant_id: str = Depends(get_current_tenant_id),
     _token: dict = Depends(verify_token),

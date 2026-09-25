@@ -2,16 +2,23 @@
 
 import logging
 import os
-from datetime import UTC, date
+import uuid
+from datetime import UTC, date, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
 from app.config import settings
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    require_permission_dep,
+)
 from sdk.permissions import PermissionAction
 
 router = APIRouter()
@@ -28,6 +35,77 @@ class OpportunityUpdateBody(BaseModel):
 class OpportunityStageBody(BaseModel):
     stage: str
     reason: str | None = None
+
+
+class OpportunityNoteCreateBody(BaseModel):
+    text: str = Field(min_length=1, max_length=10_000)
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=128)
+
+
+class ContractCreateBody(BaseModel):
+    opportunity_id: str
+    quote_id: str | None = ""
+    title: str | None = ""
+
+
+class ContractSignBody(BaseModel):
+    signed_by: str | None = ""
+    signed_by_name: str | None = ""
+
+
+class ContractTerminateBody(BaseModel):
+    reason: str | None = ""
+
+
+def _iso_or_none(value: Any) -> str | None:
+    return value.isoformat() if hasattr(value, "isoformat") else None
+
+
+def _contract_response(contract: Any) -> dict[str, Any]:
+    return {
+        "id": contract.id,
+        "tenant_id": contract.tenant_id,
+        "opportunity_id": contract.opportunity_id,
+        "quote_id": contract.quote_id,
+        "quote_revision": contract.quote_revision,
+        "title": contract.title,
+        "status": contract.status.value if hasattr(contract.status, "value") else contract.status,
+        "parties": [
+            {
+                "name": p.name,
+                "role": p.role,
+                "contact_email": p.contact_email,
+                "signatory_name": p.signatory_name,
+            }
+            for p in contract.parties
+        ],
+        "obligations": [
+            {
+                "description": o.description,
+                "owner": o.owner,
+                "due_date": _iso_or_none(o.due_date),
+                "status": o.status,
+                "completed_at": _iso_or_none(o.completed_at),
+            }
+            for o in contract.obligations
+        ],
+        "effective_date": _iso_or_none(contract.effective_date),
+        "expiry_date": _iso_or_none(contract.expiry_date),
+        "renewal": {
+            "auto_renew": contract.renewal.auto_renew,
+            "notice_days": contract.renewal.notice_days,
+            "renewal_term_months": contract.renewal.renewal_term_months,
+            "max_renewals": contract.renewal.max_renewals,
+        },
+        "legal_terms": contract.legal_terms,
+        "governing_law": contract.governing_law,
+        "signed_by_provider": _iso_or_none(contract.signed_by_provider),
+        "signed_by_customer": _iso_or_none(contract.signed_by_customer),
+        "notes": contract.notes,
+        "created_at": _iso_or_none(contract.created_at),
+        "updated_at": _iso_or_none(contract.updated_at),
+        "version": contract.version,
+    }
 
 
 async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
@@ -312,6 +390,96 @@ async def get_opportunity(
     }
 
 
+def _opportunity_note_response(note: Any) -> dict[str, Any]:
+    return {
+        "id": note.id,
+        "text": note.body,
+        "author_id": note.author_id,
+        "created_at": _iso_or_none(note.created_at),
+    }
+
+
+async def _require_tenant_opportunity(
+    db: AsyncSession, opportunity_id: str, tenant_id: str
+) -> None:
+    """Check the parent explicitly, in addition to database RLS."""
+    from domains.commercial.infrastructure.models import OpportunityModel
+
+    opportunity = (
+        await db.execute(
+            select(OpportunityModel.id).where(
+                OpportunityModel.id == opportunity_id,
+                OpportunityModel.tenant_id == tenant_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+
+@router.get("/opportunities/{opportunity_id}/notes", tags=["Opportunities"])
+async def list_opportunity_notes(
+    opportunity_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
+):
+    """Return notes in creation order for a tenant-owned opportunity."""
+    from domains.commercial.infrastructure.models import OpportunityNoteModel
+
+    await _require_tenant_opportunity(db, opportunity_id, tenant_id)
+    result = await db.execute(
+        select(OpportunityNoteModel)
+        .where(
+            OpportunityNoteModel.tenant_id == tenant_id,
+            OpportunityNoteModel.opportunity_id == opportunity_id,
+        )
+        .order_by(OpportunityNoteModel.created_at.asc(), OpportunityNoteModel.id.asc())
+    )
+    return {"items": [_opportunity_note_response(note) for note in result.scalars().all()]}
+
+
+@router.post("/opportunities/{opportunity_id}/notes", status_code=201, tags=["Opportunities"])
+async def create_opportunity_note(
+    opportunity_id: str,
+    body: OpportunityNoteCreateBody,
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
+    """Persist a seller note; the client cannot set the stored author."""
+    from domains.commercial.infrastructure.models import OpportunityNoteModel
+
+    await _require_tenant_opportunity(db, opportunity_id, tenant_id)
+    if body.idempotency_key:
+        prior = (
+            await db.execute(
+                select(OpportunityNoteModel).where(
+                    OpportunityNoteModel.tenant_id == tenant_id,
+                    OpportunityNoteModel.opportunity_id == opportunity_id,
+                    OpportunityNoteModel.idempotency_key == body.idempotency_key,
+                )
+            )
+        ).scalar_one_or_none()
+        if prior is not None:
+            return _opportunity_note_response(prior)
+
+    note = OpportunityNoteModel(
+        id=str(uuid.uuid4()),
+        tenant_id=tenant_id,
+        opportunity_id=opportunity_id,
+        author_id=user_id,
+        body=body.text.strip(),
+        idempotency_key=body.idempotency_key,
+    )
+    if not note.body:
+        raise HTTPException(status_code=422, detail="Note text must contain non-whitespace characters")
+    db.add(note)
+    await db.flush()
+    return _opportunity_note_response(note)
+
+
 @router.put("/opportunities/{opportunity_id}", tags=["Opportunities"])
 async def update_opportunity(
     opportunity_id: str,
@@ -453,7 +621,10 @@ async def create_pipeline(
     from domains.commercial.pipeline.contracts.models import PipelineDefinition
 
     svc = _get_pipe(db)
-    pipe = PipelineDefinition.default_sales_pipeline(tenant_id, f"pipe-{tenant_id}")
+    # Pipeline identifiers are stored in varchar(36); use a UUID so the API
+    # cannot construct an overlong tenant-prefixed id or overwrite a tenant's
+    # existing default pipeline on a second request.
+    pipe = PipelineDefinition.default_sales_pipeline(tenant_id, str(uuid.uuid4()))
     result = await svc.create_pipeline(pipe)
     return {"id": result.id, "name": result.name, "stages": [s.name for s in result.stages]}
 
@@ -827,28 +998,155 @@ async def expire_proposal(
 
 @router.post("/contracts", status_code=201, tags=["Contracts"])
 async def create_contract(
-    opportunity_id: str = Query(...),
-    quote_id: str = Query(...),
+    body: ContractCreateBody | None = Body(None),
+    opportunity_id: str | None = Query(None),
+    quote_id: str | None = Query(None),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("contract", PermissionAction.CREATE)),
 ):
     svc = _get_contract(db)
-    c = await svc.create_contract(tenant_id, opportunity_id=opportunity_id, quote_id=quote_id)
-    return {"id": c.id, "status": c.status.value}
+    resolved_opportunity_id = body.opportunity_id if body else opportunity_id
+    resolved_quote_id = body.quote_id if body else quote_id
+    title = body.title if body else ""
+    if not resolved_opportunity_id:
+        raise HTTPException(status_code=400, detail="opportunity_id is required")
+    c = await svc.create_contract(
+        tenant_id,
+        opportunity_id=resolved_opportunity_id,
+        quote_id=resolved_quote_id or "",
+    )
+    if title:
+        c.title = title
+        c.updated_at = datetime.now(UTC)
+        c = await svc._repository.save(c)
+    return _contract_response(c)
+
+
+@router.get("/contracts", tags=["Contracts"])
+async def list_contracts(
+    status: str | None = Query(None),
+    opportunity_id: str | None = Query(None),
+    quote_id: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=500),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.READ)),
+):
+    from domains.commercial.contract.models import ContractStatus
+
+    svc = _get_contract(db)
+    contract_status: ContractStatus | None = None
+    if status:
+        try:
+            contract_status = ContractStatus(status)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail="Invalid contract status") from exc
+
+    if opportunity_id:
+        contracts = await svc._repository.get_by_opportunity(opportunity_id)
+    elif quote_id:
+        contracts = await svc._repository.get_by_quote(quote_id)
+    else:
+        contracts = await svc._repository.list_by_tenant(tenant_id, contract_status)
+
+    filtered = [c for c in contracts if c.tenant_id == tenant_id]
+    if contract_status and (opportunity_id or quote_id):
+        filtered = [c for c in filtered if c.status == contract_status]
+    offset = (page - 1) * page_size
+    items = filtered[offset : offset + page_size]
+    return {"items": [_contract_response(c) for c in items], "total": len(filtered)}
+
+
+@router.get("/contracts/stats", tags=["Contracts"])
+async def contract_stats(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.READ)),
+):
+    contracts = await _get_contract(db)._repository.list_by_tenant(tenant_id)
+    return {
+        "total": len(contracts),
+        "active": sum(1 for c in contracts if c.status.value == "active"),
+        "expiring_soon": sum(1 for c in contracts if c.expiry_date and not c.is_expired),
+        "completed": sum(1 for c in contracts if c.status.value == "completed"),
+        "terminated": sum(1 for c in contracts if c.status.value == "terminated"),
+    }
+
+
+@router.get("/contracts/{contract_id}", tags=["Contracts"])
+async def get_contract(
+    contract_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.READ)),
+):
+    contract = await _get_contract(db).get(contract_id)
+    if not contract or contract.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    return _contract_response(contract)
 
 
 @router.post("/contracts/{contract_id}/sign", tags=["Contracts"])
 async def sign_contract(
+    contract_id: str,
+    body: ContractSignBody | None = Body(None),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE)),
+):
+    svc = _get_contract(db)
+    existing = await svc.get(contract_id)
+    if not existing or existing.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    signer = body.signed_by_name or body.signed_by if body else ""
+    c = await svc.sign(contract_id, signed_by_provider=signer or "", signed_by_customer=signer or "")
+    c = await svc.activate(contract_id)
+    return _contract_response(c)
+
+
+@router.post("/contracts/{contract_id}/complete", tags=["Contracts"])
+async def complete_contract(
     contract_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE)),
 ):
     svc = _get_contract(db)
-    c = await svc.sign(contract_id)
-    c = await svc.activate(contract_id)
-    return {"id": c.id, "status": c.status.value}
+    existing = await svc.get(contract_id)
+    if not existing or existing.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    return _contract_response(await svc.complete(contract_id))
+
+
+@router.post("/contracts/{contract_id}/terminate", tags=["Contracts"])
+async def terminate_contract(
+    contract_id: str,
+    body: ContractTerminateBody | None = Body(None),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE)),
+):
+    svc = _get_contract(db)
+    existing = await svc.get(contract_id)
+    if not existing or existing.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    return _contract_response(await svc.terminate(contract_id, reason=body.reason if body else ""))
+
+
+@router.post("/contracts/{contract_id}/renew", tags=["Contracts"])
+async def renew_contract(
+    contract_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE)),
+):
+    svc = _get_contract(db)
+    existing = await svc.get(contract_id)
+    if not existing or existing.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    return _contract_response(await svc.renew(contract_id))
 
 
 # ─────────────────────────────────────────────

@@ -116,3 +116,11 @@ def test_has_content_with_field_filter():
     p = QueryParser.default()
     parsed = p.parse("cr:123")
     assert parsed.has_content
+
+
+def test_pending_cr_and_contacts_filters():
+    p = QueryParser.default()
+    parsed = p.parse("cr:pending contacts:yes")
+    assert parsed.field_filters.get("cr") == "pending"
+    assert parsed.field_filters.get("contacts") == "yes"
+    assert parsed.tokens == []

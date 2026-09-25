@@ -59,7 +59,9 @@ ALLOWED_FTS_LANGUAGES = frozenset({"arabic", "english", "simple"})
 
 ALLOWED_FILTER_FIELDS = frozenset({
     "city", "region", "industry", "status", "legal_form",
-    "activity", "is_active", "created_at", "updated_at",
+    # was "activity" — companies has no such column, only
+    # activity_description; renamed to match (report 81).
+    "activity_description", "is_active", "created_at", "updated_at",
     "cr_number", "phone", "email",
 })
 
@@ -85,11 +87,10 @@ companies = table(
     column("industry", String),
     column("status", String),
     column("legal_form", String),
-    column("activity", String),
     column("is_active", Boolean),
     column("phone", String),
     column("email", String),
-    column("activity_description", String),
+    column("activity_description", String),  # ALLOWED_FILTER_FIELDS was "activity" — no such column
     column("created_at", DateTime(timezone=True)),
     column("updated_at", DateTime(timezone=True)),
     column("search_vector", TSVECTOR),
@@ -218,7 +219,16 @@ def _finalize_search_rows(
 
 def encode_search_cursor(rank: float, updated_at: Any, row_id: str) -> str:
     """Encode a keyset cursor from (rank, updated_at, id)."""
-    raw: dict[str, Any] = {"id": row_id, "r": round(rank, 10)}
+    # No rounding: ts_rank returns Postgres `real` (float4), which once
+    # promoted to Python float64 often shows >10 apparent decimal places
+    # of binary noise. round(rank, 10) truncated that noise inconsistently,
+    # so a cursor's rank no longer exactly equaled the same row's freshly
+    # recomputed rank on the next page's query — every OR branch in
+    # _cursor_predicate() requiring rank equality then failed, and ties
+    # (identical rank+updated_at, common on bulk-inserted or similarly-
+    # scored rows) silently returned zero rows for "page 2". json.dumps
+    # round-trips a Python float exactly (repr-precision), so keep it as-is.
+    raw: dict[str, Any] = {"id": row_id, "r": rank}
     if updated_at is not None:
         raw["u"] = updated_at.isoformat() if hasattr(updated_at, "isoformat") else str(updated_at)
     return base64.urlsafe_b64encode(json.dumps(raw, separators=(",", ":")).encode()).decode()
@@ -353,10 +363,14 @@ class PostgresSearchRepository(SearchRepository[Any]):
             .order_by(rank_expr.desc(), companies.c.updated_at.desc(), companies.c.id.desc())
         )
 
-        if use_cursor:
-            stmt = stmt.limit(safe_limit + 1)
-        else:
-            stmt = stmt.limit(safe_limit).offset(offset)
+        # Always over-fetch by 1 (not just in cursor mode) so
+        # _finalize_search_rows' has_next check works on a plain first
+        # (non-cursor) page too — previously a page-1 request fetched
+        # exactly safe_limit rows, so has_next was always False and no
+        # next_cursor was ever generated even when more results existed.
+        stmt = stmt.limit(safe_limit + 1)
+        if not use_cursor:
+            stmt = stmt.offset(offset)
 
         async with self._session_factory() as session:
             await _set_tenant_guc(session, tenant_id)
@@ -413,10 +427,14 @@ class PostgresSearchRepository(SearchRepository[Any]):
             .order_by(rank_expr.desc(), companies.c.updated_at.desc(), companies.c.id.desc())
         )
 
-        if use_cursor:
-            stmt = stmt.limit(safe_limit + 1)
-        else:
-            stmt = stmt.limit(safe_limit).offset(offset)
+        # Always over-fetch by 1 (not just in cursor mode) so
+        # _finalize_search_rows' has_next check works on a plain first
+        # (non-cursor) page too — previously a page-1 request fetched
+        # exactly safe_limit rows, so has_next was always False and no
+        # next_cursor was ever generated even when more results existed.
+        stmt = stmt.limit(safe_limit + 1)
+        if not use_cursor:
+            stmt = stmt.offset(offset)
 
         async with self._session_factory() as session:
             await _set_tenant_guc(session, tenant_id)

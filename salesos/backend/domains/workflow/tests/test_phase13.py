@@ -174,6 +174,43 @@ async def test_parallel_handles_failure_in_branch():
     assert result["results"][1]["status"] == "failed"
 
 
+@pytest.mark.asyncio
+async def test_parallel_handles_cancelled_branch_without_leaking_raw_exception():
+    """Regression: asyncio.gather(..., return_exceptions=True) can surface a
+    BaseException that is not an Exception (e.g. asyncio.CancelledError).
+    _handle_parallel previously checked `isinstance(res, Exception)` only,
+    so a cancelled branch's raw exception object leaked straight into the
+    results list instead of becoming a status dict like every other branch.
+    """
+    engine = _make_engine()
+
+    async def _cancel_handler(config, context, step):
+        raise asyncio.CancelledError("branch cancelled")
+
+    engine.register_handler("cancels", _cancel_handler)
+
+    result = await engine._handle_parallel(
+        {
+            "branches": [
+                [{"step_type": "log_message", "config": {"message": "ok"}}],
+                [{"step_type": "cancels", "config": {}}],
+            ]
+        },
+        {},
+        _make_step(),
+    )
+    assert result["results"][0]["status"] == "completed"
+    second = result["results"][1]
+    assert isinstance(second, dict), "a raw exception object must never appear in results"
+    assert second["status"] == "failed"
+    assert second["branch_index"] == 1
+    # Note: asyncio internally discards a raised CancelledError's original
+    # message once the task is marked cancelled, so `error` may be "" here —
+    # the property this test guards is that `second` is a well-formed dict at
+    # all, not the specific message text.
+    assert "error" in second
+
+
 # ── B-1: Timeout Tests ──────────────────────────────────────────────────────
 
 

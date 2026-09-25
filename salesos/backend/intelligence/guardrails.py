@@ -211,3 +211,22 @@ def extract_json_from_llm_output(output: str) -> dict[str, Any] | None:
         return json.loads(content)
     except json.JSONDecodeError:
         return None
+
+
+def default_guardrails() -> dict[str, bool]:
+    """Return the canonical AI-GR catalog defaults.
+
+    The policy catalog lives in Tenant Studio, while older callers import
+    these helpers from ``intelligence.guardrails``.  Keep that public import
+    stable without duplicating the catalog or creating an import cycle.
+    """
+    from app.modules.tenant_studio.ai_policies import default_guardrails as _defaults
+
+    return _defaults()
+
+
+def normalize_guardrails(raw: dict[str, Any] | None) -> dict[str, bool]:
+    """Normalize guardrail toggles through the canonical policy catalog."""
+    from app.modules.tenant_studio.ai_policies import normalize_guardrails as _normalize
+
+    return _normalize(raw)

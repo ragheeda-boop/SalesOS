@@ -99,11 +99,24 @@ class EventStore(ABC):
         """Append an event to the store."""
 
     @abstractmethod
-    async def read_stream(self, aggregate_type: str, aggregate_id: str) -> list[DomainEvent]:
-        """Read all events for a specific aggregate (event sourcing replay)."""
+    async def read_stream(
+        self, aggregate_type: str, aggregate_id: str, tenant_id: str
+    ) -> list[DomainEvent]:
+        """Read all events for a specific aggregate (event sourcing replay).
+
+        `tenant_id` is required: neither of this interface's two read
+        methods had any caller anywhere in the codebase as of DEC-157
+        (project-audit/59, /68) — there is no evidence of a legitimate
+        cross-tenant replay use case, so both are scoped to one tenant by
+        design rather than left open for a future caller to get wrong.
+        """
 
     @abstractmethod
     async def read_by_type(
-        self, event_type: str, since: datetime | None = None, limit: int = 100
+        self,
+        event_type: str,
+        tenant_id: str,
+        since: datetime | None = None,
+        limit: int = 100,
     ) -> list[DomainEvent]:
-        """Read events filtered by type."""
+        """Read events filtered by type, scoped to one tenant."""

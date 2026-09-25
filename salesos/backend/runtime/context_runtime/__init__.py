@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime
 from typing import Any, Callable, Optional
 
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import apply_tenant_guc
 
 
 @dataclass
@@ -97,6 +99,11 @@ class ContextBuilder:
         ctx = CompanyContext()
 
         async with self._session_factory() as session:
+            # companies/company_deals/company_intent_visits all have
+            # RLS+FORCE RLS; without this pin every query below silently
+            # returns 0/no rows (RLS fails closed) even for a real,
+            # matching company - not an error, just a silently-empty context.
+            await apply_tenant_guc(session, tenant_id)
             row = await session.execute(
                 sa_text("""
                     SELECT c.*, COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'active') as license_count
@@ -171,17 +178,26 @@ class ContextBuilder:
             expiry = await session.execute(
                 sa_text("""
                     SELECT MIN(expiry_date) as nearest FROM licenses
-                    WHERE company_id = :cid AND tenant_id = :tid AND status = 'active'
+                    WHERE company_id = :cid AND status = 'active'
                 """),
-                {"cid": company_id, "tid": tenant_id},
+                # licenses has no tenant_id column at all (confirmed via \d
+                # licenses); company_id alone is sufficient scoping since it
+                # was already resolved from the tenant-scoped company above.
+                {"cid": company_id},
             )
             exp = expiry.scalar()
             if exp:
+                # licenses.expiry_date is a plain date column (asyncpg
+                # returns datetime.date); subtracting an aware datetime from
+                # a date raises TypeError. Do calendar-date math with
+                # date.today(), not a tz-aware "now".
                 if isinstance(exp, str):
-                    exp_dt = datetime.fromisoformat(exp)
+                    exp_date = date.fromisoformat(exp)
+                elif isinstance(exp, datetime):
+                    exp_date = exp.date()
                 else:
-                    exp_dt = exp
-                rc.days_to_renewal = (exp_dt - datetime.now(timezone.utc)).days
+                    exp_date = exp
+                rc.days_to_renewal = (exp_date - date.today()).days
 
         # Feature Store scores
         try:

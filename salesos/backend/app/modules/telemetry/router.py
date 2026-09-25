@@ -85,9 +85,10 @@ async def get_nba_acceptance(
 async def get_active_users(
     days: int = Query(7, ge=1, le=365),
     token: dict = Depends(verify_token),
+    tenant_id: str = Depends(get_current_tenant_id),
     service: TelemetryService = Depends(get_service),
 ):
-    return await service.active_users(days)
+    return await service.active_users(tenant_id, days)
 
 
 @router.get("/api/v1/admin/telemetry/overview")
@@ -101,7 +102,7 @@ async def get_telemetry_overview(
     nba = await service.nba_acceptance_rate(tenant_id)
     time_insight = await service.time_to_insight(tenant_id)
     time_action = await service.time_to_action(tenant_id)
-    users = await service.active_users()
+    users = await service.active_users(tenant_id)
 
     total_features = len(adoption)
     avg_adoption = (

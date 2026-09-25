@@ -20,6 +20,7 @@ from app.modules.gtm.market_sizing_store import (
     DEFAULT_MARKET_SIZING_STORE,
     MemMarketSizingStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/market-sizing", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -71,14 +72,16 @@ async def compute_market_sizing(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> MarketSizingResponse:
     try:
-        snap = _STORE.compute(
-            tenant_id=str(tenant_id),
-            name=body.name,
-            industries=list(body.industries),
-            cities=list(body.cities),
-            employees_min=body.employees_min,
-            employees_max=body.employees_max,
-            snapshot_id=body.id,
+        snap = await aresolve(
+            _STORE.compute(
+                tenant_id=str(tenant_id),
+                name=body.name,
+                industries=list(body.industries),
+                cities=list(body.cities),
+                employees_min=body.employees_min,
+                employees_max=body.employees_max,
+                snapshot_id=body.id,
+            )
         )
     except MarketSizingError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -91,7 +94,7 @@ async def compute_market_sizing(
 async def list_market_sizing(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[MarketSizingResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [MarketSizingResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -100,7 +103,7 @@ async def get_market_sizing(
     snapshot_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> MarketSizingResponse:
-    row = _STORE.get(snapshot_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(snapshot_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="market sizing snapshot not found")
     return MarketSizingResponse.model_validate(row.as_dict())

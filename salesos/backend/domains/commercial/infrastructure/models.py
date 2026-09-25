@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from sqlalchemy import (
     Boolean, Column, Date, DateTime, Enum as SAEnum,
-    Float, ForeignKey, Index, Integer, JSON, String, Text,
+    Float, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -43,6 +43,46 @@ class OpportunityModel(Base, TimestampMixin):
         Index("ix_commercial_opps_tenant_stage", "tenant_id", "stage"),
         Index("ix_commercial_opps_tenant_status", "tenant_id", "status"),
         Index("ix_commercial_opps_owner", "owner_id"),
+    )
+
+
+class OpportunityNoteModel(Base):
+    """An immutable seller note attached to one commercial opportunity.
+
+    The API derives the author from the authenticated subject. The optional
+    idempotency key makes a retried create request safe for the customer.
+    """
+
+    __tablename__ = "commercial_opportunity_notes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    opportunity_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("commercial_opportunities.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    author_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_commercial_opp_notes_tenant_opportunity_created",
+            "tenant_id",
+            "opportunity_id",
+            "created_at",
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "opportunity_id",
+            "idempotency_key",
+            name="uq_commercial_opp_note_idempotency",
+        ),
     )
 
 
@@ -413,6 +453,28 @@ class QuotaModel(Base, TimestampMixin):
     )
 
 
+class QuotaSnapshotModel(Base):
+    """Immutable, point-in-time quota state for historic revenue analysis."""
+
+    __tablename__ = "commercial_quota_snapshots"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    period_label: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    quotas: Mapped[Any] = mapped_column(JSON, nullable=False, default=list)
+    team: Mapped[Optional[Any]] = mapped_column(JSON, nullable=True)
+    total_target: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    total_attained: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    overall_attainment: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    __table_args__ = (
+        Index("ix_commercial_quota_snapshots_tenant_created", "tenant_id", "created_at"),
+    )
+
+
 class TerritoryModel(Base, TimestampMixin):
     """P1-6: Sales territory with assigned accounts."""
 
@@ -448,10 +510,12 @@ class InsightModel(Base, TimestampMixin):
     overall_confidence: Mapped[float] = mapped_column(Float, default=0.0)
     confidence_level: Mapped[str] = mapped_column(String(20), default="unknown")
     extra_metadata: Mapped[Any] = mapped_column("metadata", JSON, default=dict)
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
     __table_args__ = (
         Index("ix_commercial_insights_tenant_category", "tenant_id", "category"),
         Index("ix_commercial_insights_tenant_confidence", "tenant_id", "confidence_level"),
+        UniqueConstraint("tenant_id", "idempotency_key", name="uq_commercial_insights_tenant_idempotency"),
     )
 
 
@@ -462,6 +526,7 @@ class EvidenceItemModel(Base, TimestampMixin):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     insight_id: Mapped[str] = mapped_column(String(36), index=True)
+    tenant_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
     evidence_type: Mapped[str] = mapped_column(String(50))
     source_domain: Mapped[str] = mapped_column(String(50))
     source_type: Mapped[str] = mapped_column(String(50))

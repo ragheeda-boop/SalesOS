@@ -105,4 +105,7 @@ class MemWebsiteIntelligenceStore:
         )
 
 
-DEFAULT_WEBSITE_INTEL_STORE = MemWebsiteIntelligenceStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_WEBSITE_INTEL_STORE = PostgresGtmStore(capability="website_intelligence")

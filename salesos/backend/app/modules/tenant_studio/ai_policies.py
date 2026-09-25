@@ -1,7 +1,7 @@
 """STORY-12-02 — CAP-091 AI Policies models (reuses AI-GR-* guardrails).
 
 Tenant toggles + data-class → model-tier rules. Not Production GO.
-DEC-085 untouched. No Alembic / FORCE RLS.
+DEC-085 untouched. Persistence uses tenant RLS.
 feature_ai_copilot remains False. No live LLM / RAG GO.
 """
 

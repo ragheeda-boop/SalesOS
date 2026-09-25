@@ -6,15 +6,19 @@ proposals, reviews) and produces account-level insights with evidence citations.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+import uuid
+from dataclasses import dataclass
 
 from domains.commercial.evidence.contracts.models import (
-    InsightCategory, EvidenceType, ConfidenceLevel,
+    ConfidenceLevel,
+    EvidenceItem,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceType,
+    InsightCategory,
 )
 from domains.commercial.evidence.engine.service import EvidenceService
 from domains.commercial.memory.engine.service import CommercialMemoryService
-from domains.commercial.memory.contracts.models import MemoryEntity, MemoryEventType
 
 
 @dataclass
@@ -96,6 +100,7 @@ class AccountIntelligenceService:
                 EvidenceType.DATA_AGGREGATE, "opportunity", "table_aggregate",
                 f"{health.total_opportunities} total opportunities, {health.won_deals} won",
                 min(0.9, 0.5 + health.total_opportunities * 0.05),
+                source_id=account_id,
             ))
 
         if health.won_deals > 0:
@@ -103,6 +108,7 @@ class AccountIntelligenceService:
                 EvidenceType.FINANCIAL_SIGNAL, "revenue", "aggregate",
                 f"Won {health.won_deals} deals worth {health.total_revenue:,.0f}",
                 0.9,
+                source_id=account_id,
             ))
 
         if health.lost_deals > 0:
@@ -110,6 +116,7 @@ class AccountIntelligenceService:
                 EvidenceType.BUSINESS_RULE, "opportunity", "aggregate",
                 f"Lost {health.lost_deals} deals",
                 0.8,
+                source_id=account_id,
             ))
 
         if health.activity_frequency > 0:
@@ -117,6 +124,7 @@ class AccountIntelligenceService:
                 EvidenceType.ACTIVITY_SIGNAL, "activity", "count",
                 f"{health.activity_frequency:.1f} activities",
                 min(0.8, 0.3 + health.activity_frequency * 0.1),
+                source_id=account_id,
             ))
 
         insight = await self._evidence.record_insight(
@@ -169,15 +177,20 @@ class AccountIntelligenceService:
         source_type: str,
         description: str,
         confidence: float,
-    ) -> Any:
-        from domains.commercial.evidence.contracts.models import EvidenceItem, EvidenceSource, ConfidenceLevel
+        source_id: str,
+    ) -> EvidenceItem:
         level = ConfidenceLevel.HIGH if confidence >= 0.8 else ConfidenceLevel.MEDIUM if confidence >= 0.5 else ConfidenceLevel.LOW
-        import uuid
         return EvidenceItem(
             id=str(uuid.uuid4()),
             evidence_type=evidence_type,
-            source=EvidenceSource(source_domain=source_domain, source_type=source_type),
+            source=EvidenceSource(
+                source_domain=source_domain,
+                source_type=source_type,
+                source_id=source_id,
+                source_name="SalesOS CRM",
+            ),
             description=description,
             confidence=confidence,
             confidence_level=level,
+            evidence_kind=EvidenceKind.CRM_SYSTEM_RECORD,
         )

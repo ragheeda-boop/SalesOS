@@ -17,6 +17,7 @@ from app.modules.gtm.verification_store import (
     DEFAULT_VERIFICATION_STORE,
     MemVerificationStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/verification", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -88,7 +89,7 @@ async def run_contact_verification(
 async def list_verification(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[VerificationResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [VerificationResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -97,7 +98,7 @@ async def get_verification(
     run_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> VerificationResponse:
-    row = _STORE.get(run_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(run_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="verification run not found")
     return VerificationResponse.model_validate(row.as_dict())

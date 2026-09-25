@@ -9,6 +9,7 @@ from typing import Any, Optional
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import apply_tenant_guc
 from runtime.feature_store import FeatureComputer, FeatureResult
 
 
@@ -140,6 +141,7 @@ class FundingScoreComputer(FeatureComputer):
         round_count = 0
 
         if company_id and tenant_id:
+            await apply_tenant_guc(session, tenant_id)
             rows = await session.execute(
                 text("""
                     SELECT amount, date, round_type
@@ -238,6 +240,7 @@ class HiringScoreComputer(FeatureComputer):
         active_postings = 0
         hiring_events = []
         if company_id and tenant_id:
+            await apply_tenant_guc(session, tenant_id)
             rows = await session.execute(
                 text("""
                     SELECT role, seniority, department, posted_at
@@ -415,6 +418,7 @@ class IntentScoreComputer(FeatureComputer):
         dm_interactions = 0
 
         if company_id and tenant_id:
+            await apply_tenant_guc(session, tenant_id)
             # RFPs / tenders
             rfp_rows = await session.execute(
                 text("""
@@ -539,6 +543,7 @@ class ExpansionScoreComputer(FeatureComputer):
         days_to_renewal = 365
 
         if company_id and tenant_id:
+            await apply_tenant_guc(session, tenant_id)
             sub_rows = await session.execute(
                 text("""
                     SELECT COUNT(*) as cnt FROM public.companies
@@ -559,21 +564,26 @@ class ExpansionScoreComputer(FeatureComputer):
 
             renewal_rows = await session.execute(
                 text("""
-                    SELECT expires_at FROM public.company_licenses
-                    WHERE company_id = :cid AND tenant_id = :tid
-                    AND status = 'active'
-                    ORDER BY expires_at ASC LIMIT 1
+                    SELECT expiry_date FROM public.licenses
+                    WHERE company_id = :cid AND status = 'active'
+                    ORDER BY expiry_date ASC LIMIT 1
                 """),
-                {"cid": company_id, "tid": tenant_id},
+                {"cid": company_id},
             )
             renewal = renewal_rows.scalar_one_or_none()
             if renewal:
                 has_renewal = True
+                # `expiry_date` is a plain DATE column — asyncpg returns a
+                # date, not a datetime, so this must be a date-to-date
+                # subtraction (a tz-aware datetime cannot be subtracted from
+                # a naive date).
                 if isinstance(renewal, str):
-                    renewal_dt = datetime.fromisoformat(renewal)
+                    renewal_date = datetime.fromisoformat(renewal).date()
+                elif isinstance(renewal, datetime):
+                    renewal_date = renewal.date()
                 else:
-                    renewal_dt = renewal
-                days_to_renewal = (renewal_dt - datetime.now(timezone.utc)).days
+                    renewal_date = renewal
+                days_to_renewal = (renewal_date - datetime.now(timezone.utc).date()).days
 
         # Subsidiary count (25 pts)
         if subsidiary_count >= 5:
@@ -646,12 +656,13 @@ class RevenueScoreComputer(FeatureComputer):
         payment_reliable = False
 
         if company_id and tenant_id:
+            await apply_tenant_guc(session, tenant_id)
             lic_rows = await session.execute(
                 text("""
-                    SELECT COUNT(*) as cnt FROM public.company_licenses
-                    WHERE company_id = :cid AND tenant_id = :tid AND status = 'active'
+                    SELECT COUNT(*) as cnt FROM public.licenses
+                    WHERE company_id = :cid AND status = 'active'
                 """),
-                {"cid": company_id, "tid": tenant_id},
+                {"cid": company_id},
             )
             active_licenses = lic_rows.scalar() or 0
 

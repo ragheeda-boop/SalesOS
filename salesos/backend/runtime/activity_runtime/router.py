@@ -62,7 +62,10 @@ async def ingest_batch(
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     rt = _get_runtime(request)
-    enriched = [{**r, "tenant_id": r.get("tenant_id", tenant_id)} for r in records]
+    # The authenticated tenant_id always wins — a client-supplied "tenant_id"
+    # in the request body must never let a caller write activity records
+    # under a different tenant.
+    enriched = [{**r, "tenant_id": tenant_id} for r in records]
     results = await rt.ingest_batch(enriched)
     return {
         "ingested": len(results),

@@ -26,6 +26,8 @@ def get_service(db: AsyncSession = Depends(get_db_session)) -> RevenueService:
     "/revenue-execution/opportunities",
     response_model=OpportunityResponse,
     status_code=201,
+    summary="Create an opportunity",
+    description="Create a new revenue opportunity with estimated value, confidence, and buying intent.",
     dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.CREATE))],
 )
 async def create_opportunity(
@@ -49,6 +51,8 @@ async def create_opportunity(
 
 @router.get(
     "/revenue-execution/opportunities",
+    summary="List opportunities",
+    description="List revenue opportunities with optional stage filter and pagination.",
     dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.READ))],
 )
 async def list_opportunities(
@@ -62,6 +66,8 @@ async def list_opportunities(
 
 @router.put(
     "/revenue-execution/opportunities/{opportunity_id}/stage",
+    summary="Update opportunity stage",
+    description="Move an opportunity to a new pipeline stage.",
     dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))],
 )
 async def update_opportunity_stage(
@@ -82,6 +88,8 @@ async def update_opportunity_stage(
     "/tasks",
     response_model=TaskResponse,
     status_code=201,
+    summary="Create a task",
+    description="Create a sales task with priority, source, and optional company/opportunity links.",
     dependencies=[Depends(require_permission_dep("task", PermissionAction.CREATE))],
 )
 async def create_task(
@@ -100,7 +108,12 @@ async def create_task(
     )
 
 
-@router.get("/tasks", dependencies=[Depends(require_permission_dep("task", PermissionAction.READ))])
+@router.get(
+    "/tasks",
+    summary="List tasks",
+    description="List tasks with optional priority and opportunity filters.",
+    dependencies=[Depends(require_permission_dep("task", PermissionAction.READ))],
+)
 async def list_tasks(
     priority: str | None = Query(None),
     opportunity_id: str | None = Query(None),
@@ -110,8 +123,30 @@ async def list_tasks(
     return await service.list_tasks(tenant_id, priority, opportunity_id=opportunity_id)
 
 
+@router.get(
+    "/tasks/{task_id}",
+    response_model=TaskResponse,
+    summary="Get a task",
+    description="Get one sales task owned by the current tenant.",
+    dependencies=[Depends(require_permission_dep("task", PermissionAction.READ))],
+)
+async def get_task(
+    task_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: RevenueService = Depends(get_service),
+):
+    from fastapi import HTTPException
+
+    result = await service.get_task(task_id, tenant_id)
+    if not result:
+        raise HTTPException(404, "Task not found")
+    return result
+
+
 @router.put(
     "/tasks/{task_id}/complete",
+    summary="Complete a task",
+    description="Mark a task as completed.",
     dependencies=[Depends(require_permission_dep("task", PermissionAction.UPDATE))],
 )
 async def complete_task(
@@ -130,6 +165,8 @@ async def complete_task(
 @router.patch(
     "/tasks/{task_id}",
     response_model=TaskResponse,
+    summary="Update a task",
+    description="Update task title, priority, or due date.",
     dependencies=[Depends(require_permission_dep("task", PermissionAction.UPDATE))],
 )
 async def update_task(
@@ -161,6 +198,8 @@ async def update_task(
 @router.get(
     "/pipeline",
     response_model=PipelineResponse,
+    summary="Get pipeline overview",
+    description="Get the revenue pipeline overview with stage counts and totals.",
     dependencies=[Depends(require_permission_dep("pipeline", PermissionAction.READ))],
 )
 async def get_pipeline(

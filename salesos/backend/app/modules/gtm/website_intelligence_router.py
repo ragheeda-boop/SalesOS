@@ -22,6 +22,7 @@ from app.modules.gtm.website_intelligence_store import (
     DEFAULT_WEBSITE_INTEL_STORE,
     MemWebsiteIntelligenceStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/website-intelligence", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -101,7 +102,7 @@ async def run_website_intelligence(
 async def list_website_intelligence(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[WebsiteIntelligenceResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [WebsiteIntelligenceResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -110,7 +111,7 @@ async def get_website_intelligence(
     run_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> WebsiteIntelligenceResponse:
-    row = _STORE.get(run_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(run_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="website intelligence snapshot not found")
     return WebsiteIntelligenceResponse.model_validate(row.as_dict())

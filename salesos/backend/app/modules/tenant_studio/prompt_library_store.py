@@ -1,4 +1,4 @@
-"""STORY-12-01 — In-memory Prompt Library store (no Alembic / FORCE RLS)."""
+"""STORY-12-01 — In-memory prompt domain helper used by unit tests."""
 
 from __future__ import annotations
 
@@ -15,12 +15,18 @@ from app.modules.tenant_studio.prompt_library import (
     normalize_version,
 )
 
+MAX_PROMPT_VERSIONS = 100
+
 
 @dataclass
 class MemPromptLibraryStore:
-    """Tenant-scoped Prompt Library for CAP-089 (extends CAP-023)."""
+    """Tenant-scoped Prompt Library rules helper for CAP-089 (extends CAP-023)."""
 
     _by_id: dict[str, PromptLibraryEntry] = field(default_factory=dict)
+
+    def restore(self, entry: PromptLibraryEntry) -> None:
+        """Load one persisted entry to reuse the domain mutation rules."""
+        self._by_id[entry.id] = entry
 
     def create(
         self,
@@ -95,6 +101,8 @@ class MemPromptLibraryStore:
         ver = normalize_version(version)
         if any(v.version == ver for v in entry.versions):
             raise PromptLibraryError(f"version already exists: {ver}")
+        if len(entry.versions) >= MAX_PROMPT_VERSIONS:
+            raise PromptLibraryError(f"prompt version limit reached ({MAX_PROMPT_VERSIONS})")
         tmpl = normalize_template(template)
         now = datetime.now(UTC).isoformat()
         record = PromptVersionRecord(

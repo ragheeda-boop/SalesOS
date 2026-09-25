@@ -17,6 +17,7 @@ from app.modules.gtm.enrichment_store import (
     DEFAULT_ENRICHMENT_STORE,
     MemEnrichmentStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/enrichment", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -92,7 +93,7 @@ async def run_enrichment(
 async def list_enrichment(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[EnrichmentResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [EnrichmentResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -101,7 +102,7 @@ async def get_enrichment(
     run_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrichmentResponse:
-    row = _STORE.get(run_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(run_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="enrichment run not found")
     return EnrichmentResponse.model_validate(row.as_dict())

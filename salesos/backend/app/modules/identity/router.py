@@ -821,3 +821,8 @@ async def jwks():
     from app.modules.identity.jwks import get_jwks
 
     return get_jwks()
+
+
+from .local_login import router as local_login_router  # noqa: E402
+
+router.include_router(local_login_router)

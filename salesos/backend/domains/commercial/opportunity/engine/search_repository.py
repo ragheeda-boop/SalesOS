@@ -63,4 +63,40 @@ class OpportunitySearchRepository(SearchRepository[Any]):
         return {"total_opportunities": {"all": all_opps}}
 
     async def suggest(self, query: SearchQuery, field: str, prefix: str, limit: int = 10) -> list[str]:
-        return []
+        """Return bounded, tenant-scoped suggestions for supported fields.
+
+        The opportunity repository owns filtering and tenant scope.  This
+        adapter deliberately exposes only stable, non-derived text fields so
+        callers cannot use suggestions to probe arbitrary model attributes.
+        """
+        accessors = {
+            "name": lambda item: item.name,
+            "stage": lambda item: item.stage,
+            "status": lambda item: item.status.value,
+            "owner_id": lambda item: item.owner_id,
+            "company_id": lambda item: item.company_id,
+        }
+        accessor = accessors.get(field)
+        if accessor is None or limit <= 0:
+            return []
+
+        normalized_prefix = prefix.strip().casefold()
+        # Fetch a bounded candidate pool through the tenant-aware repository;
+        # applying `search` here would incorrectly restrict non-name fields.
+        candidate_query = OpportunityQuery(
+            tenant_id=query.tenant_id,
+            company_id=str(query.filters.get("company_id", "")),
+            owner_id=str(query.filters.get("owner_id", "")),
+            stage=str(query.filters.get("stage", "")),
+            page=1,
+            page_size=min(max(limit * 20, 100), 500),
+            sort_by="updated_at",
+            sort_order="desc",
+        )
+        result = await self._repo.query(candidate_query)
+        values: dict[str, str] = {}
+        for item in result.items:
+            value = str(accessor(item) or "").strip()
+            if value and value.casefold().startswith(normalized_prefix):
+                values.setdefault(value.casefold(), value)
+        return sorted(values.values(), key=str.casefold)[:limit]

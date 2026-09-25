@@ -20,6 +20,8 @@ from typing import Any, Callable, Optional
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import apply_tenant_guc
+
 
 class PolicyResult(str, Enum):
     ALLOW = "allow"
@@ -67,6 +69,7 @@ class PolicyEngine:
     async def evaluate(self, context: dict, company_id: str, tenant_id: str) -> list[PolicyEvaluation]:
         results: list[PolicyEvaluation] = []
         async with self._session_factory() as session:
+            await apply_tenant_guc(session, tenant_id)
             rows = await session.execute(
                 sa_text("""
                     SELECT policy_name, action, reason, severity

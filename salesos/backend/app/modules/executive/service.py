@@ -9,6 +9,7 @@ from app.modules.executive.schemas import (
     HealthKPI,
     PipelineHealth,
     RenewalKPI,
+    RevenueByCurrency,
     RevenueKPI,
     RiskKPI,
     TeamKPI,
@@ -38,25 +39,52 @@ class ExecutiveService:
             return []
 
     async def get_revenue(self) -> RevenueKPI:
-        r = await self._fetch_one(
-            "SELECT COALESCE(SUM(value), 0) as total_pipeline, "
-            "COALESCE(SUM(CASE WHEN status IN ('won','closed_won') THEN value ELSE 0 END), 0) as won_value "  # noqa: E501
-            "FROM commercial_opportunities WHERE tenant_id = :tid",
+        rows = await self._fetch_all(
+            "SELECT COALESCE(NULLIF(UPPER(TRIM(currency)), ''), 'SAR') as currency, "
+            "COALESCE(SUM(value), 0) as total_pipeline, "
+            "COALESCE(SUM(CASE WHEN status IN ('won','closed_won') THEN value ELSE 0 END), 0) as won_value, "
+            "COUNT(*) FILTER (WHERE status IN ('won','closed_won')) as won_count, "
+            "COUNT(*) FILTER (WHERE status IN ('lost','closed_lost')) as lost_count "
+            "FROM commercial_opportunities WHERE tenant_id = :tid GROUP BY 1 ORDER BY 1",
             {"tid": self.tenant_id},
         )
-        total = r.get("total_pipeline", 0.0)
-        won = r.get("won_value", 0.0)
-        prev = await self._fetch_one(
-            "SELECT COALESCE(SUM(value), 0) as prev_value FROM commercial_opportunities "
-            "WHERE tenant_id = :tid AND created_at < :d30",
+        previous_rows = await self._fetch_all(
+            "SELECT COALESCE(NULLIF(UPPER(TRIM(currency)), ''), 'SAR') as currency, "
+            "COALESCE(SUM(value), 0) as prev_value FROM commercial_opportunities "
+            "WHERE tenant_id = :tid AND created_at < :d30 GROUP BY 1",
             {"tid": self.tenant_id, "d30": self.days_30},
         )
-        prev_val = prev.get("prev_value", 0.0) or 0.0
-        growth_pct = round(((total - prev_val) / prev_val * 100), 1) if prev_val > 0 else 0.0
+        previous = {str(row.get("currency") or "SAR"): float(row.get("prev_value") or 0) for row in previous_rows}
+        by_currency = []
+        for row in rows:
+            currency = str(row.get("currency") or "SAR").upper()
+            total = float(row.get("total_pipeline") or 0)
+            won = float(row.get("won_value") or 0)
+            decided = int(row.get("won_count") or 0) + int(row.get("lost_count") or 0)
+            win_rate = int(row.get("won_count") or 0) / decided if decided else 0.0
+            prev_value = previous.get(currency, 0.0)
+            growth = round((total - prev_value) / prev_value * 100, 1) if prev_value > 0 else 0.0
+            weighted = total * max(win_rate, 0.1)
+            by_currency.append(
+                RevenueByCurrency(
+                    currency=currency,
+                    total_booked=won,
+                    total_pipeline=total,
+                    weighted_pipeline=weighted,
+                    forecast=weighted,
+                    growth_percent=growth,
+                )
+            )
+        currency_consistent = len(by_currency) <= 1
+        only = by_currency[0] if by_currency else RevenueByCurrency(currency="SAR")
         return RevenueKPI(
-            total_booked=won,
-            total_pipeline=total,
-            growth_percent=growth_pct,
+            total_booked=only.total_booked if currency_consistent else None,
+            total_pipeline=only.total_pipeline if currency_consistent else None,
+            weighted_pipeline=only.weighted_pipeline if currency_consistent else None,
+            forecast=only.forecast if currency_consistent else None,
+            growth_percent=only.growth_percent if currency_consistent else None,
+            currency_consistent=currency_consistent,
+            by_currency=by_currency,
         )
 
     async def get_team(self) -> TeamKPI:
@@ -72,26 +100,40 @@ class ExecutiveService:
         )
 
     async def get_pipeline(self) -> tuple[PipelineHealth, float]:
-        r = await self._fetch_one(
-            "SELECT COUNT(*) as total, "
-            "COALESCE(SUM(value), 0) as pipeline_value, "
-            "COALESCE(SUM(CASE WHEN status IN ('won','closed_won') THEN 1 ELSE 0 END), 0) as won, "
-            "COALESCE(SUM(CASE WHEN status IN ('lost','closed_lost') THEN 1 ELSE 0 END), 0) as lost, "  # noqa: E501
+        currency_rows = await self._fetch_all(
+            "SELECT COALESCE(NULLIF(UPPER(TRIM(currency)), ''), 'SAR') as currency, "
+            "COUNT(*) as total, COALESCE(SUM(value), 0) as pipeline_value, "
+            "COUNT(*) FILTER (WHERE status IN ('won','closed_won')) as won, "
+            "COUNT(*) FILTER (WHERE status IN ('lost','closed_lost')) as lost, "
             "COALESCE(AVG(value), 0) as avg_val "
-            "FROM commercial_opportunities WHERE tenant_id = :tid",
+            "FROM commercial_opportunities WHERE tenant_id = :tid GROUP BY 1 ORDER BY 1",
             {"tid": self.tenant_id},
         )
-        total = r.get("total", 0)
-        won = r.get("won", 0)
-        lost = r.get("lost", 0)
-        avg_val = r.get("avg_val", 0.0)
-        pipeline_value = r.get("pipeline_value", 0.0)
+        total = sum(int(row.get("total") or 0) for row in currency_rows)
+        won = sum(int(row.get("won") or 0) for row in currency_rows)
+        lost = sum(int(row.get("lost") or 0) for row in currency_rows)
+        currency_consistent = len(currency_rows) <= 1
+        only = currency_rows[0] if currency_rows else {}
+        pipeline_value = float(only.get("pipeline_value") or 0) if currency_consistent else None
+        avg_val = float(only.get("avg_val") or 0) if currency_consistent else None
+        by_currency = [
+            {
+                "currency": str(row.get("currency") or "SAR").upper(),
+                "total_deals": int(row.get("total") or 0),
+                "total_value": float(row.get("pipeline_value") or 0),
+                "won_deals": int(row.get("won") or 0),
+                "lost_deals": int(row.get("lost") or 0),
+                "avg_deal_size": float(row.get("avg_val") or 0),
+            }
+            for row in currency_rows
+        ]
         win_rate = won / (won + lost) if (won + lost) > 0 else 0.0
 
         by_stage = await self._fetch_all(
-            "SELECT stage, COUNT(*) as cnt, COALESCE(SUM(value), 0) as val "
+            "SELECT stage, COALESCE(NULLIF(UPPER(TRIM(currency)), ''), 'SAR') as currency, "
+            "COUNT(*) as cnt, COALESCE(SUM(value), 0) as val "
             "FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open' "
-            "GROUP BY stage ORDER BY cnt DESC",
+            "GROUP BY stage, 2 ORDER BY cnt DESC",
             {"tid": self.tenant_id},
         )
 
@@ -101,7 +143,8 @@ class ExecutiveService:
             won_deals=won,
             lost_deals=lost,
             win_rate=round(win_rate, 2),
-            avg_deal_size=round(avg_val, 2),
+            avg_deal_size=round(avg_val, 2) if avg_val is not None else None,
+            by_currency=by_currency,
             by_stage=by_stage,
         ), win_rate
 
@@ -209,9 +252,11 @@ class ExecutiveService:
             revenue=RevenueKPI(
                 total_booked=revenue.total_booked,
                 total_pipeline=revenue.total_pipeline,
-                weighted_pipeline=revenue.total_pipeline * max(win_rate, 0.1),
-                forecast=revenue.total_pipeline * max(win_rate, 0.1),
+                weighted_pipeline=revenue.weighted_pipeline,
+                forecast=revenue.forecast,
                 growth_percent=revenue.growth_percent,
+                currency_consistent=revenue.currency_consistent,
+                by_currency=revenue.by_currency,
             ),
             team=TeamKPI(
                 total_employees=team.total_employees,

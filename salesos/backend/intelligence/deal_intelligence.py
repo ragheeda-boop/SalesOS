@@ -6,15 +6,19 @@ reviews) and produces deal-level insights with evidence citations.
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
-from typing import Any
 
 from domains.commercial.evidence.contracts.models import (
-    InsightCategory, EvidenceType, ConfidenceLevel,
+    ConfidenceLevel,
+    EvidenceItem,
+    EvidenceKind,
+    EvidenceSource,
+    EvidenceType,
+    InsightCategory,
 )
 from domains.commercial.evidence.engine.service import EvidenceService
 from domains.commercial.memory.engine.service import CommercialMemoryService
-from domains.commercial.memory.contracts.models import MemoryEventType
 
 
 @dataclass
@@ -29,7 +33,7 @@ class DealHealth:
     stage: str = ""
     value: float = 0.0
     probability: float = 0.0
-    days_in_stage: int = 0
+    days_in_stage: float | None = 0
     activity_count: int = 0
     proposal_status: str = ""
     review_status: str = ""
@@ -54,7 +58,7 @@ class DealIntelligenceService:
         stage: str = "",
         value: float = 0.0,
         probability: float = 0.0,
-        days_in_stage: int = 0,
+        days_in_stage: float | None = 0,
         activity_count: int = 0,
         proposal_status: str = "",
         review_status: str = "",
@@ -63,7 +67,7 @@ class DealIntelligenceService:
         risk_factors = []
         opportunity_factors = []
 
-        if days_in_stage > 30:
+        if days_in_stage is not None and days_in_stage > 30:
             risk_factors.append(f"Stalled {days_in_stage} days in {stage}")
         if activity_count == 0:
             risk_factors.append("No activities recorded")
@@ -121,18 +125,21 @@ class DealIntelligenceService:
             EvidenceType.PIPELINE_SIGNAL, "opportunity", "field",
             f"Stage: {health.stage}, probability: {health.probability:.0%}, value: {health.value:,.0f}",
             min(0.9, 0.5 + health.probability * 0.4),
+            source_id=deal_id,
         ))
 
         for rf in health.risk_factors:
             evidence_items.append(self._make_evidence(
                 EvidenceType.BUSINESS_RULE, "opportunity", "rule",
                 rf, 0.8,
+                source_id=deal_id,
             ))
 
         for of in health.opportunity_factors:
             evidence_items.append(self._make_evidence(
                 EvidenceType.DATA_AGGREGATE, "opportunity", "aggregate",
                 of, 0.7,
+                source_id=deal_id,
             ))
 
         category = InsightCategory.DEAL_RISK if health.health_level == "critical" else InsightCategory.DEAL_OPPORTUNITY if health.health_level == "healthy" else InsightCategory.DEAL_RISK
@@ -165,7 +172,7 @@ class DealIntelligenceService:
 
     @staticmethod
     def _compute_health_score(
-        probability: float, value: float, days_in_stage: int,
+        probability: float, value: float, days_in_stage: float | None,
         activity_count: int, risk_count: int, opportunity_count: int,
     ) -> float:
         score = probability * 0.4
@@ -173,7 +180,7 @@ class DealIntelligenceService:
             score += min(0.2, value / 500000 * 0.2)
         if activity_count > 0:
             score += min(0.15, activity_count * 0.03)
-        if days_in_stage < 14:
+        if days_in_stage is not None and days_in_stage < 14:
             score += 0.1
         score += opportunity_count * 0.05
         score -= risk_count * 0.1
@@ -186,15 +193,20 @@ class DealIntelligenceService:
         source_type: str,
         description: str,
         confidence: float,
-    ) -> Any:
-        from domains.commercial.evidence.contracts.models import EvidenceItem, EvidenceSource, ConfidenceLevel
+        source_id: str,
+    ) -> EvidenceItem:
         level = ConfidenceLevel.HIGH if confidence >= 0.8 else ConfidenceLevel.MEDIUM if confidence >= 0.5 else ConfidenceLevel.LOW
-        import uuid
         return EvidenceItem(
             id=str(uuid.uuid4()),
             evidence_type=evidence_type,
-            source=EvidenceSource(source_domain=source_domain, source_type=source_type),
+            source=EvidenceSource(
+                source_domain=source_domain,
+                source_type=source_type,
+                source_id=source_id,
+                source_name="SalesOS CRM",
+            ),
             description=description,
             confidence=confidence,
             confidence_level=level,
+            evidence_kind=EvidenceKind.CRM_SYSTEM_RECORD,
         )

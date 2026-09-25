@@ -163,4 +163,7 @@ class MemLeadDiscoveryStore:
         )
 
 
-DEFAULT_LEAD_DISCOVERY_STORE = MemLeadDiscoveryStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_LEAD_DISCOVERY_STORE = PostgresGtmStore(capability="lead_discovery")

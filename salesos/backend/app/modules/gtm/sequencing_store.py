@@ -169,4 +169,10 @@ class MemSequencingStore:
         )
 
 
-DEFAULT_SEQUENCING_STORE = MemSequencingStore()
+from app.modules.gtm.durable_store import (
+    DEFINITION_CAPABILITY,
+    PostgresGtmStore,
+)
+
+
+DEFAULT_SEQUENCING_STORE = PostgresGtmStore(capability=DEFINITION_CAPABILITY)

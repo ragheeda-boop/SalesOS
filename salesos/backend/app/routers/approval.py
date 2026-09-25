@@ -4,13 +4,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.dependencies import get_current_tenant_id, require_permission_dep
+from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep
 from app.common.rate_limit import rate_limit_dep
 from sdk.permissions import PermissionAction
 from domains.approval.engine.service import ApprovalService
 from domains.approval.contracts.models import (
     ApprovalLevel,
-    ApprovalStatus,
     ApprovalTargetType,
 )
 
@@ -76,15 +75,19 @@ def _get_service(request: Request) -> ApprovalService:
     return svc
 
 
+def _get_optional_service(request: Request) -> ApprovalService | None:
+    return getattr(request.app.state, "approval_service", None)
+
+
 @router.post("/approvals")
 async def create_approval(
     body: ApprovalRequestCreate,
     request: Request,
+    user_id: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
     _rbac: None = Depends(require_permission_dep("approval", PermissionAction.CREATE)),
 ):
     svc = _get_service(request)
-    user_id = getattr(request.state, "user_id", "system")
     try:
         target_type = ApprovalTargetType(body.target_type)
         required_level = ApprovalLevel(body.required_level)
@@ -114,7 +117,13 @@ async def list_approvals(
     target_type: str | None = None,
     _rbac: None = Depends(require_permission_dep("approval", PermissionAction.READ)),
 ):
-    svc = _get_service(request)
+    svc = _get_optional_service(request)
+    if not svc:
+        return {
+            "approvals": [],
+            "count": 0,
+            "service_status": "not_initialized",
+        }
     items = await svc.list_by_tenant(tenant_id, status=status, target_type=target_type)
     return {"approvals": [_to_response(i) for i in items], "count": len(items)}
 
@@ -126,9 +135,34 @@ async def list_pending_approvals(
     assigned_to: str | None = None,
     _rbac: None = Depends(require_permission_dep("approval", PermissionAction.READ)),
 ):
-    svc = _get_service(request)
+    svc = _get_optional_service(request)
+    if not svc:
+        return {
+            "approvals": [],
+            "count": 0,
+            "service_status": "not_initialized",
+        }
     items = await svc.list_pending(tenant_id, assigned_to=assigned_to)
     return {"approvals": [_to_response(i) for i in items], "count": len(items)}
+
+
+@router.get("/approvals/kpis")
+async def approval_kpis(
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep("approval", PermissionAction.READ)),
+):
+    svc = _get_optional_service(request)
+    if not svc:
+        return {
+            "pending": 0,
+            "approved": 0,
+            "rejected": 0,
+            "expired": 0,
+            "escalated": 0,
+            "service_status": "not_initialized",
+        }
+    return await svc.kpis(tenant_id)
 
 
 @router.get("/approvals/{approval_id}")
@@ -139,7 +173,7 @@ async def get_approval(
     _rbac: None = Depends(require_permission_dep("approval", PermissionAction.READ)),
 ):
     svc = _get_service(request)
-    req = await svc.get(approval_id)
+    req = await svc.get(approval_id, tenant_id=tenant_id)
     if not req:
         raise HTTPException(status_code=404, detail="Approval request not found")
     return _to_response(req)
@@ -150,13 +184,11 @@ async def decide_approval(
     approval_id: str,
     body: ApprovalDecisionRequest,
     request: Request,
+    user_id: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
     _rbac: None = Depends(require_permission_dep("approval", PermissionAction.UPDATE)),
 ):
     svc = _get_service(request)
-    user_id = getattr(request.state, "user_id", None)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="User identity required")
     try:
         authority_level = ApprovalLevel(body.authority_level)
     except ValueError as e:
@@ -164,26 +196,28 @@ async def decide_approval(
     try:
         if body.decision == "approve":
             req = await svc.approve(
-                approval_id, user_id, authority_level=authority_level, comments=body.comments
+                approval_id,
+                user_id,
+                authority_level=authority_level,
+                comments=body.comments,
+                tenant_id=tenant_id,
             )
         elif body.decision == "reject":
             req = await svc.reject(
-                approval_id, user_id, authority_level=authority_level, comments=body.comments
+                approval_id,
+                user_id,
+                authority_level=authority_level,
+                comments=body.comments,
+                tenant_id=tenant_id,
             )
         else:
-            req = await svc.escalate(approval_id, user_id, comments=body.comments)
+            req = await svc.escalate(
+                approval_id, user_id, comments=body.comments, tenant_id=tenant_id
+            )
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
     except ValueError as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=404, detail="Approval request not found") from e
         raise HTTPException(status_code=400, detail=str(e))
     return _to_response(req)
-
-
-@router.get("/approvals/kpis")
-async def approval_kpis(
-    request: Request,
-    tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep("approval", PermissionAction.READ)),
-):
-    svc = _get_service(request)
-    return await svc.kpis(tenant_id)

@@ -194,6 +194,10 @@ class Settings(BaseSettings):
     # Policy/env only — never invent or commit real key material.
     integration_hub_encryption_key: str = ""
 
+    # Dedicated application-encryption key for persisted conversation memory.
+    # Memory writes fail closed while this key is unset.
+    ai_memory_encryption_key: str = ""
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"

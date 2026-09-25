@@ -23,6 +23,7 @@ from app.modules.gtm.outreach_store import (
     DEFAULT_OUTREACH_STORE,
     MemOutreachStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/outreach", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -111,7 +112,7 @@ async def create_outreach_draft(
 async def list_outreach_drafts(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[OutreachResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [OutreachResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -120,7 +121,7 @@ async def get_outreach_draft(
     run_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> OutreachResponse:
-    row = _STORE.get(run_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(run_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="outreach draft not found")
     return OutreachResponse.model_validate(row.as_dict())

@@ -122,6 +122,7 @@ class RevenueService:
                 Task.source,
                 Task.company_id,
                 Task.opportunity_id,
+                Task.due_date,
                 Task.completed,
                 Task.created_at,
             )
@@ -140,6 +141,26 @@ class RevenueService:
         )
         result = await self.db.execute(stmt)
         await self.db.commit()
+        row = result.fetchone()
+        return dict(row._mapping) if row else None
+
+    async def get_task(self, task_id: str, tenant_id: str):
+        """Return one task only when it belongs to the requesting tenant."""
+        stmt = (
+            select(
+                Task.id,
+                Task.title,
+                Task.priority,
+                Task.source,
+                Task.company_id,
+                Task.opportunity_id,
+                Task.due_date,
+                Task.completed,
+                Task.created_at,
+            )
+            .where(Task.id == task_id, Task.tenant_id == tenant_id)
+        )
+        result = await self.db.execute(stmt)
         row = result.fetchone()
         return dict(row._mapping) if row else None
 
@@ -225,6 +246,7 @@ class RevenueService:
                 Task.source,
                 Task.company_id,
                 Task.opportunity_id,
+                Task.due_date,
                 Task.completed,
                 Task.created_at,
             )

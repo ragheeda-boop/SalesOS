@@ -17,6 +17,7 @@ from app.modules.gtm.sequencing_store import (
     DEFAULT_SEQUENCING_STORE,
     MemSequencingStore,
 )
+from app.modules.gtm.durable_store import aresolve
 
 router = APIRouter(prefix="/gtm/sequences", tags=["GTM Intelligence"])
 _AUTH = [Depends(verify_token)]
@@ -96,11 +97,13 @@ async def create_sequence(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> SequenceResponse:
     try:
-        row = _STORE.create_definition(
-            tenant_id=str(tenant_id),
-            name=body.name,
-            steps=[s.model_dump() for s in body.steps],
-            definition_id=body.id,
+        row = await aresolve(
+            _STORE.create_definition(
+                tenant_id=str(tenant_id),
+                name=body.name,
+                steps=[s.model_dump() for s in body.steps],
+                definition_id=body.id,
+            )
         )
     except SequencingError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -111,7 +114,7 @@ async def create_sequence(
 async def list_sequences(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[SequenceResponse]:
-    rows = _STORE.list_definitions(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_definitions(tenant_id=str(tenant_id)))
     return [SequenceResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -119,7 +122,7 @@ async def list_sequences(
 async def list_enrollments(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[EnrollmentResponse]:
-    rows = _STORE.list_enrollments(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_enrollments(tenant_id=str(tenant_id)))
     return [EnrollmentResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -128,7 +131,7 @@ async def get_sequence(
     sequence_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> SequenceResponse:
-    row = _STORE.get_definition(sequence_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get_definition(sequence_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="sequence definition not found")
     return SequenceResponse.model_validate(row.as_dict())
@@ -150,12 +153,14 @@ async def enroll_contact(
             for k, v in {"linkedin": body.linkedin, "whatsapp": body.whatsapp}.items()
             if v.strip()
         }
-        row = _STORE.enroll(
-            tenant_id=str(tenant_id),
-            sequence_id=sequence_id,
-            contact_email=body.contact_email,
-            enrollment_id=body.id,
-            contact_handles=handles or None,
+        row = await aresolve(
+            _STORE.enroll(
+                tenant_id=str(tenant_id),
+                sequence_id=sequence_id,
+                contact_email=body.contact_email,
+                enrollment_id=body.id,
+                contact_handles=handles or None,
+            )
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="sequence definition not found") from exc
@@ -175,7 +180,9 @@ async def get_enrollment(
     enrollment_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrollmentResponse:
-    row = _STORE.get_enrollment(enrollment_id, tenant_id=str(tenant_id))
+    row = await aresolve(
+            _STORE.get_enrollment(enrollment_id, tenant_id=str(tenant_id))
+        )
     if row is None:
         raise HTTPException(status_code=404, detail="enrollment not found")
     return EnrollmentResponse.model_validate(row.as_dict())
@@ -209,7 +216,7 @@ async def pause_enrollment_http(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrollmentResponse:
     try:
-        row = _STORE.pause(enrollment_id, tenant_id=str(tenant_id))
+        row = await aresolve(_STORE.pause(enrollment_id, tenant_id=str(tenant_id)))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="enrollment not found") from exc
     except SequencingError as exc:
@@ -227,7 +234,7 @@ async def resume_enrollment_http(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrollmentResponse:
     try:
-        row = _STORE.resume(enrollment_id, tenant_id=str(tenant_id))
+        row = await aresolve(_STORE.resume(enrollment_id, tenant_id=str(tenant_id)))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="enrollment not found") from exc
     except SequencingError as exc:
@@ -245,7 +252,7 @@ async def cancel_enrollment_http(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrollmentResponse:
     try:
-        row = _STORE.cancel(enrollment_id, tenant_id=str(tenant_id))
+        row = await aresolve(_STORE.cancel(enrollment_id, tenant_id=str(tenant_id)))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="enrollment not found") from exc
     except SequencingError as exc:

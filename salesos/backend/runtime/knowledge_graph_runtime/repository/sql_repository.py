@@ -14,6 +14,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     Index,
     Integer,
     MetaData,
@@ -53,7 +54,7 @@ companies = Table(
     Column("city", String),
     Column("region", String),
     Column("employees_count", Integer),
-    Column("capital", String),
+    Column("capital", Float),
     Column("legal_form", String),
     Column("is_active", Boolean),
     # Note: companies.parent_company_id is not in the migrated schema; hierarchy

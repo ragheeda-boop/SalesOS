@@ -12,7 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
 from app.common.schemas import CursorResponse
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    require_permission_dep,
+)
 from domains.search.contracts.models import SearchQuery, SearchSort
 from domains.search.engine.planner import SearchPlanner
 from domains.search.ranking.pipeline import RankingPipeline
@@ -75,6 +80,7 @@ def get_search_planner(
 async def create_company(
     body: CompanyCreate,
     request: Request,
+    user_id: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
@@ -93,6 +99,7 @@ async def create_company(
         activity_description=body.activity_description,
         activity_code=body.activity_code,
         legal_form=body.legal_form,
+        performed_by=user_id,
     )
     record_metric("company_created_total", 1, {"tenant_id": tenant_id})
     # Invalidate search caches so new company is findable immediately.
@@ -334,11 +341,17 @@ async def update_company(
     company_id: str,
     body: CompanyUpdate,
     request: Request,
+    user_id: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
     updates = body.model_dump(exclude_unset=True)
-    result = await service.update_company(company_id, updates, tenant_id=tenant_id)
+    result = await service.update_company(
+        company_id,
+        updates,
+        tenant_id=tenant_id,
+        performed_by=user_id,
+    )
     cache = getattr(request.app.state, "cache", None)
     if cache:
         await cache.delete(f"company:{tenant_id}:{company_id}")

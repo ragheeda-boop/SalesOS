@@ -8,18 +8,23 @@ from __future__ import annotations
 
 import logging
 import uuid
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.modules.contact.models import Contact
+from domains.commercial.infrastructure.models import OpportunityContactModel, OpportunityModel
 from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityContactRepository
 from domains.commercial.opportunity.contracts.opportunity_contact_repository import (
     OpportunityContact,
     OpportunityContactQuery,
 )
+from sdk.permissions import PermissionAction
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -28,12 +33,18 @@ logger = logging.getLogger(__name__)
 class OpportunityContactCreateBody(BaseModel):
     opportunity_id: str = Field(..., min_length=1, max_length=36)
     contact_id: UUID
-    role: str | None = Field(None, max_length=50)
+    role: Literal[
+        "champion", "economic_buyer", "technical_buyer", "influencer",
+        "blocker", "sponsor", "user", "other",
+    ] | None = None
     is_primary: bool = False
 
 
 class OpportunityContactUpdateBody(BaseModel):
-    role: str | None = Field(None, max_length=50)
+    role: Literal[
+        "champion", "economic_buyer", "technical_buyer", "influencer",
+        "blocker", "sponsor", "user", "other",
+    ] | None = None
     is_primary: bool | None = None
 
 
@@ -61,12 +72,53 @@ async def _get_repo(db: AsyncSession = Depends(get_db_session)) -> PostgresOppor
     return PostgresOpportunityContactRepository(session=db)
 
 
+async def _require_tenant_relationship_parents(
+    db: AsyncSession,
+    *,
+    tenant_id: str,
+    opportunity_id: str,
+    contact_id: UUID,
+) -> None:
+    """Require the opportunity and contact to belong to the caller tenant.
+
+    The historical opportunity key is text and has no database foreign key in
+    this junction. The explicit checks prevent cross-tenant contacts or an
+    arbitrary opportunity key becoming a tenant-local stakeholder edge.
+    """
+    opportunity = (
+        await db.execute(
+            select(OpportunityModel.id).where(
+                OpportunityModel.id == opportunity_id,
+                OpportunityModel.tenant_id == tenant_id,
+            )
+        )
+    ).scalar_one_or_none()
+    contact = (
+        await db.execute(
+            select(Contact.id).where(
+                Contact.id == contact_id,
+                Contact.tenant_id == tenant_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if opportunity is None or contact is None:
+        raise HTTPException(status_code=404, detail="Opportunity or contact not found")
+
+
 @router.post("/opportunity-contacts", response_model=OpportunityContactResponse, status_code=201)
 async def create_opportunity_contact(
     body: OpportunityContactCreateBody,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     repo: PostgresOpportunityContactRepository = Depends(_get_repo),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
 ):
+    await _require_tenant_relationship_parents(
+        db,
+        tenant_id=tenant_id,
+        opportunity_id=body.opportunity_id,
+        contact_id=body.contact_id,
+    )
     oc = OpportunityContact(
         id=uuid.uuid4(),
         tenant_id=UUID(tenant_id),
@@ -92,6 +144,7 @@ async def get_opportunity_contact(
     oc_id: UUID,
     tenant_id: str = Depends(get_current_tenant_id),
     repo: PostgresOpportunityContactRepository = Depends(_get_repo),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
 ):
     result = await repo.get(oc_id)
     if not result:
@@ -109,6 +162,7 @@ async def list_opportunity_contacts(
     page_size: int = Query(20, ge=1, le=100),
     tenant_id: str = Depends(get_current_tenant_id),
     repo: PostgresOpportunityContactRepository = Depends(_get_repo),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
 ):
     query = OpportunityContactQuery(
         tenant_id=tenant_id,
@@ -132,6 +186,7 @@ async def update_opportunity_contact(
     body: OpportunityContactUpdateBody,
     tenant_id: str = Depends(get_current_tenant_id),
     repo: PostgresOpportunityContactRepository = Depends(_get_repo),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
 ):
     existing = await repo.get(oc_id)
     if not existing:
@@ -149,7 +204,6 @@ async def update_opportunity_contact(
         return _to_response(existing)
 
     from sqlalchemy import update as sa_update
-    from domains.commercial.infrastructure.models import OpportunityContactModel
 
     async with repo.session.begin():
         stmt = (
@@ -168,6 +222,7 @@ async def delete_opportunity_contact(
     oc_id: UUID,
     tenant_id: str = Depends(get_current_tenant_id),
     repo: PostgresOpportunityContactRepository = Depends(_get_repo),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
 ):
     existing = await repo.get(oc_id)
     if not existing:

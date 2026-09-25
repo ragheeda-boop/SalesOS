@@ -118,4 +118,7 @@ class MemOutreachStore:
         )
 
 
-DEFAULT_OUTREACH_STORE = MemOutreachStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_OUTREACH_STORE = PostgresGtmStore(capability="outreach")

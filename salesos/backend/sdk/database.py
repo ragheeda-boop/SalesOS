@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Generic, TypeVar, cast
 from uuid import UUID
 
-from sqlalchemy import DateTime, Select, func, select
+from sqlalchemy import DateTime, Select, func, select, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -41,6 +41,9 @@ class BaseModel(Base, TimestampMixin):
         PG_UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
+        # Match the baseline migration so direct SQL fixtures and service
+        # probes receive the same UUID behavior as ORM inserts.
+        server_default=text("uuid_generate_v4()"),
     )
 
 

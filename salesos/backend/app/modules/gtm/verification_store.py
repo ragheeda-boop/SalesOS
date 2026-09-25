@@ -99,4 +99,7 @@ class MemVerificationStore:
         )
 
 
-DEFAULT_VERIFICATION_STORE = MemVerificationStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_VERIFICATION_STORE = PostgresGtmStore(capability="verification")

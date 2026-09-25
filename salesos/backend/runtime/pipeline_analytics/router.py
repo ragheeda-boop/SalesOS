@@ -312,8 +312,10 @@ async def score_deal(
         entries_res = await db.execute(
             sa_text("""
                 SELECT EXTRACT(EPOCH FROM (COALESCE(exited_at, NOW()) - entered_at)) / 86400 as duration_days
-                FROM pipeline_stage_entries
-                WHERE opportunity_id = :did AND stage_name = :stage
+                FROM commercial_stage_entries
+                WHERE opportunity_id = :did AND to_stage = :stage
+                ORDER BY entered_at DESC
+                LIMIT 1
             """),
             {"did": deal_id, "stage": deal.get("stage", "")},
         )
@@ -325,9 +327,9 @@ async def score_deal(
             sa_text("""
                 SELECT
                     COUNT(*) as total,
-                    SUM(CASE WHEN exit_reason LIKE 'advanced_to_%' THEN 1 ELSE 0 END) as converted
-                FROM pipeline_stage_entries
-                WHERE stage_name = :stage
+                    SUM(CASE WHEN exited_at IS NOT NULL THEN 1 ELSE 0 END) as converted
+                FROM commercial_stage_entries
+                WHERE to_stage = :stage
             """),
             {"stage": deal.get("stage", "")},
         )
@@ -386,8 +388,9 @@ async def score_batch(
             entries_res = await db.execute(
                 sa_text("""
                     SELECT EXTRACT(EPOCH FROM (COALESCE(exited_at, NOW()) - entered_at)) / 86400 as duration_days
-                    FROM pipeline_stage_entries
-                    WHERE opportunity_id = :oid AND stage_name = :stage
+                    FROM commercial_stage_entries
+                    WHERE opportunity_id = :oid AND to_stage = :stage
+                    ORDER BY entered_at DESC
                     LIMIT 1
                 """),
                 {"oid": opp["id"], "stage": opp.get("stage", "")},

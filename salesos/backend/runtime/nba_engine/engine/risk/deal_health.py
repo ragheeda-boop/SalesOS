@@ -1,7 +1,7 @@
 """Deal Health computer — Feature Store computer for opportunity health scoring."""
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 from typing import Any
 
 from runtime.feature_store import FeatureComputer, FeatureResult
@@ -50,7 +50,12 @@ class DealHealthComputer(FeatureComputer):
         close_date = opportunity.get("expected_close_date")
         timeline_risk = 0
         if close_date:
-            days_to_close = (close_date - datetime.now(timezone.utc).date()).days
+            # date.today() (local calendar date), matching every other
+            # date-only "today" computation in this codebase — not
+            # datetime.now(timezone.utc).date(), which drifts one calendar
+            # day behind local for any positive-UTC-offset deployment during
+            # the local-midnight-to-UTC-offset window.
+            days_to_close = (close_date - date.today()).days
             if days_to_close < 0:
                 timeline_risk = 1.0  # Overdue
             elif days_to_close < 7:
@@ -66,7 +71,7 @@ class DealHealthComputer(FeatureComputer):
         signals = await session.execute(
             sa_text("""
                 SELECT COUNT(*) as cnt FROM company_signals s
-                JOIN commercial_opportunities o ON o.company_id = s.company_id
+                JOIN commercial_opportunities o ON o.company_id = s.company_id::text
                 WHERE o.id = :oid AND s.created_at >= :d30
             """),
             {"oid": opp_id, "d30": datetime.now(timezone.utc) - timedelta(days=30)},

@@ -74,7 +74,7 @@ async def test_ingest_updates_existing_companies(db_session: AsyncSession, test_
 
 
 @pytest.mark.asyncio
-async def test_ingest_skips_records_without_cr_number(db_session: AsyncSession, test_tenant: str):
+async def test_ingest_creates_records_without_cr_number(db_session: AsyncSession, test_tenant: str):
     from app.modules.company.models import Source
 
     source = Source(name="ZATCA3", slug="zatca3", description="Tax authority")
@@ -87,9 +87,8 @@ async def test_ingest_skips_records_without_cr_number(db_session: AsyncSession, 
         source_slug="zatca3",
         records=[{"name_ar": "بدون سجل تجاري"}],
     )
-    assert result["created"] == 0
-    assert len(result["errors"]) == 1
-    assert "Missing cr_number" in result["errors"][0]["error"]
+    assert result["created"] == 1
+    assert result["errors"] == []
 
 
 @pytest.mark.asyncio

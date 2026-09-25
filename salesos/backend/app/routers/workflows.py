@@ -95,6 +95,18 @@ async def list_workflows(
                     "trigger_type": w.trigger_type,
                     "status": w.status,
                     "steps_count": len(w.steps or []),
+                    "steps": [
+                        {
+                            "id": s.id,
+                            "step_type": s.step_type,
+                            "config": s.config,
+                            "order": s.order,
+                            "condition": s.condition,
+                            "timeout_seconds": s.timeout_seconds,
+                            "on_failure": s.on_failure,
+                        }
+                        for s in (w.steps or [])
+                    ],
                     "created_at": _iso(w.created_at),
                     "updated_at": _iso(w.updated_at),
                 }

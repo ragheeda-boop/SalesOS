@@ -93,4 +93,7 @@ class MemEnrichmentStore:
         )
 
 
-DEFAULT_ENRICHMENT_STORE = MemEnrichmentStore()
+from app.modules.gtm.durable_store import PostgresGtmStore
+
+
+DEFAULT_ENRICHMENT_STORE = PostgresGtmStore(capability="enrichment")

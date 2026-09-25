@@ -1,7 +1,6 @@
 """PostgreSQL repositories for Company module."""
 
 import uuid
-from datetime import UTC
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -75,13 +74,31 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         )
 
         if query:
+            from sqlalchemy import exists
+
+            from app.modules.contact.models import Contact
+
             like = f"%{query}%"
+            contact_hit = exists(
+                select(Contact.id).where(
+                    Contact.company_id == Company.id,
+                    Contact.tenant_id == uuid.UUID(tenant_id),
+                    or_(
+                        Contact.name.ilike(like),
+                        Contact.name_ar.ilike(like),
+                        Contact.email.ilike(like),
+                        Contact.phone.ilike(like),
+                        Contact.mobile.ilike(like),
+                    ),
+                )
+            )
             condition = or_(
                 Company.name_ar.ilike(like),
                 Company.name_en.ilike(like),
                 Company.cr_number.ilike(like),
                 Company.city.ilike(like),
                 Company.activity_description.ilike(like),
+                contact_hit,
             )
             base = base.where(condition)
             count_base = count_base.where(condition)
@@ -301,14 +318,19 @@ class LicenseRepository(SqlAlchemyRepository[License, uuid.UUID]):
         return list(result.scalars().all())
 
     async def find_expiring(self, within_days: int = 30) -> list[License]:
-        from datetime import datetime, timedelta
+        # date.today() (local calendar date), matching every other date-only
+        # "today" computation in this codebase — not datetime.now(UTC).date(),
+        # which drifts one calendar day behind local for any positive-UTC-offset
+        # deployment during the local-midnight-to-UTC-offset window.
+        from datetime import date, timedelta
 
-        threshold = datetime.now(UTC).date() + timedelta(days=within_days)
+        today = date.today()
+        threshold = today + timedelta(days=within_days)
         result = await self._session.execute(
             select(License).where(
                 License.expiry_date.isnot(None),
                 License.expiry_date <= threshold,
-                License.expiry_date >= datetime.now(UTC).date(),
+                License.expiry_date >= today,
             )
         )
         return list(result.scalars().all())

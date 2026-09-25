@@ -48,6 +48,7 @@ class TaskResponse(BaseModel):
     source: str
     company_id: str | None = None
     opportunity_id: str | None = None
+    due_date: date | None = None
     completed: bool
     created_at: datetime | None = None
 

@@ -1,7 +1,7 @@
 """STORY-12-01 — CAP-089 Prompt Library models (tenant-facing, extends CAP-023).
 
 Tenant CRUD + versioning + rollback over Prompt Registry-shaped entries.
-Not Production GO. DEC-085 untouched. No Alembic / FORCE RLS.
+Not Production GO. DEC-085 untouched. Persistence uses tenant RLS.
 feature_ai_copilot remains False. No live LLM / RAG GO.
 """
 

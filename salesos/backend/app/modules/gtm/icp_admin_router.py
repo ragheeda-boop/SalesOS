@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from app.common.rate_limit import rate_limit_dep
 from app.dependencies import get_current_tenant_id
 from app.modules.gtm.icp import ICPError
+from app.modules.gtm.icp_engine import ICPScoreResult, score_company_against_profile
 from app.modules.gtm.icp_persistence import PostgresICPRepository
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,17 @@ class ICPProfilePatch(BaseModel):
     criteria: ICPCriteriaIn | None = None
     weights: ICPWeightsIn | None = None
     is_active: bool | None = None
+
+
+class ICPScoreIn(BaseModel):
+    industry: str = Field(default="", max_length=200)
+    city: str = Field(default="", max_length=200)
+    employees_count: int | None = Field(default=None, ge=0)
+    title: str = Field(default="", max_length=200)
+    name: str = Field(default="", max_length=300)
+    description: str = Field(default="", max_length=4000)
+    keywords: str = Field(default="", max_length=2000)
+    notes: str = Field(default="", max_length=2000)
 
 
 def _profile_out(p) -> dict:
@@ -159,3 +171,27 @@ async def update_icp_profile(
     except ICPError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _profile_out(p)
+
+
+@router.post("/icp/profiles/{profile_id}/score")
+async def score_icp_profile(
+    profile_id: str,
+    payload: ICPScoreIn,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> dict:
+    """Score a supplied company snapshot against a tenant's saved ICP profile.
+
+    This is deterministic field matching, not an ML result or an external
+    company lookup. Tenant scoping comes from the persisted profile read.
+    """
+    profile = await _REPO.get(profile_id, tenant_id=tenant_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="ICP profile not found")
+    try:
+        result: ICPScoreResult = score_company_against_profile(
+            profile,
+            payload.model_dump(),
+        )
+    except ICPError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return result.as_dict()

@@ -22,6 +22,7 @@ import re
 import uuid
 from collections import Counter
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,7 @@ import asyncpg
 
 from app.modules.master_data.phase6.classification import (
     IdentityState,
+    SalesReadiness,
     classify_corrected,
     is_real_domain,
 )
@@ -41,7 +43,7 @@ from app.modules.master_data.phase6.relationships import infer_relationship
 CLASSIFICATION_VERSION = "OPTION_C_1"
 # The one version Phase 7 readers use. Change only with a report citing the
 # run that produced it (history of every version stays in the tables).
-ACTIVE_CLASSIFICATION_VERSION = "OPTION_C_1+EXCL_NCNP+DOMSH5"  # report 108
+ACTIVE_CLASSIFICATION_VERSION = "OPTION_C_1+NCNP+DS5+LV+CR+ED"  # report 111
 
 # Best_Match_Confidence values observed in MUHIDE data.
 _CONFIDENCE_MATCHED = ("MATCHED", "LIKELY MATCH")
@@ -94,6 +96,19 @@ def load_shared_domain_allowlist(path: Path = SHARED_DOMAIN_ALLOWLIST_PATH) -> f
         return frozenset(r["domain"].strip().lower() for r in csv.DictReader(fh) if r["domain"].strip())
 
 
+DOMAIN_LIVENESS_PATH = Path(__file__).with_name("data") / "domain_liveness.csv"
+
+
+def load_dead_domains(path: Path = DOMAIN_LIVENESS_PATH) -> frozenset[str]:
+    """Domains with a definitive NXDOMAIN in the dated DNS snapshot (report 110)."""
+    import csv
+
+    if not path.exists():
+        return frozenset()
+    with open(path, encoding="utf-8") as fh:
+        return frozenset(r["domain"] for r in csv.DictReader(fh) if r["status"] in ("DEAD", "INVALID"))
+
+
 def _cr_digits(v: str) -> str:
     return re.sub(r"\D", "", v)
 
@@ -139,6 +154,9 @@ class Phase6Pipeline:
         change_sink: Callable[[dict[str, Any]], None] | None = None,
         cr_excluded_sources: frozenset[str] = frozenset(),
         shared_domain_threshold: int | None = None,
+        exclude_dead_domains: bool = False,
+        require_domain_corroboration: bool = False,
+        display_domain_rule: bool = False,
     ):
         self.conn = conn
         self.cr_excluded_sources = frozenset(cr_excluded_sources)
@@ -146,6 +164,14 @@ class Phase6Pipeline:
         # agent, typo free-mail or placeholder, not an entity's own domain (report 107).
         self.shared_domain_threshold = shared_domain_threshold
         self._shared_domains: set[str] = set()
+        self._dead_domains: frozenset[str] = load_dead_domains() if exclude_dead_domains else frozenset()
+        # A single-source, domain-only identity is not enough for
+        # SALES_READY_WITH_REVIEW (G5 review, report 109/110).
+        self.require_domain_corroboration = require_domain_corroboration
+        # Derived, displayable company domain (report 111): excludes shared, dead
+        # and single-source SFDA registration-contact domains. Canonical
+        # md_global_companies.domain is never modified.
+        self.display_domain_rule = display_domain_rule
         self.dry_run = dry_run
         self.change_sink = change_sink
         self.safety = Counter()
@@ -169,6 +195,20 @@ class Phase6Pipeline:
         )
         if shared_domain_threshold:
             self.version += f"+DOMSH{shared_domain_threshold}"
+        if exclude_dead_domains:
+            self.version += "+LIVE"
+        if require_domain_corroboration:
+            self.version += "+CORR"
+        if display_domain_rule:
+            self.version += "+EDOM"
+        if len(self.version) > 32:  # classification_version is varchar(32)
+            tags = [("EXCL_NCNP", "NCNP"), (f"DOMSH{shared_domain_threshold}", f"DS{shared_domain_threshold}"),
+                    ("LIVE", "LV"), ("CORR", "CR"), ("EDOM", "ED")]
+            compact = CLASSIFICATION_VERSION
+            for long, short in tags:
+                if long in self.version:
+                    compact += "+" + short
+            self.version = compact
 
     # ── helpers ─────────────────────────────────────────────────────────────
 
@@ -318,7 +358,8 @@ class Phase6Pipeline:
         self.summary["shared_domains_excluded"] = len(self._shared_domains)
 
     def _is_entity_domain(self, d: str | None) -> bool:
-        return is_real_domain(d) and (d or "").strip().lower() not in self._shared_domains
+        key = (d or "").strip().lower()
+        return is_real_domain(d) and key not in self._shared_domains and key not in self._dead_domains
 
     def _process_account(
         self,
@@ -332,7 +373,7 @@ class Phase6Pipeline:
         payload = row["raw_payload"]
         ex = self._extract(payload)
         domain = ex["primary_domain"] or ex["all_domains"]
-        if self._shared_domains:
+        if self._shared_domains or self._dead_domains:
             candidates = [ex["primary_domain"], *_split_multi(ex["all_domains"])]
             entity = next((d for d in candidates if self._is_entity_domain(d)), None)
             if entity != domain and is_real_domain(domain):
@@ -407,12 +448,36 @@ class Phase6Pipeline:
             has_phone=ex["has_phone"],
             has_real_domain=result.has_real_domain,
         )
+        if (
+            self.require_domain_corroboration
+            and readiness.sales_readiness.value == "SALES_READY_WITH_REVIEW"
+            and not result.has_cr
+            and not ex["apollo"]
+            and sum(1 for v in domain_by_src.values() if domain and domain in v) < 2
+        ):
+            readiness = replace(
+                readiness,
+                sales_readiness=SalesReadiness.ENRICHMENT_REQUIRED,
+                basis={**readiness.basis, "uncorroborated_single_source_domain": True},
+            )
+            self.summary["srwr_downgraded_uncorroborated_domain"] += 1
+        signals = result.signals
+        if self.display_domain_rule:
+            dkey = (domain or "").strip().lower()
+            reporters = {
+                sysname for sysname, v in source_map.items()
+                if dkey and dkey in {x.strip().lower() for x in v["domain"]}
+            }
+            display = None if (not domain or reporters == {"SFDA"}) else domain
+            signals = {**signals, "display_domain": display}
+            if domain and display is None:
+                self.summary["display_domain_suppressed_sfda_only"] += 1
         identity_row = (
             entity_key, result.identity_state.value, readiness.sales_readiness.value,
             result.review_priority, result.cr_class, result.has_cr, result.has_vat,
             result.has_unified, result.has_real_domain, result.independent_source_count,
             result.source_count, result.field_conflict,
-            json.dumps(result.signals, ensure_ascii=False, default=str),
+            json.dumps(signals, ensure_ascii=False, default=str),
             json.dumps(result.source_ids, ensure_ascii=False),
         )
         self._identity_rows.append(identity_row)

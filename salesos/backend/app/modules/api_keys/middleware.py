@@ -46,6 +46,7 @@ class ApiKeyMiddleware:
                 key_record = await service.validate(api_key)
                 if key_record:
                     request.state.api_key_authenticated = True
+                    request.state.api_key_id = str(key_record.id)
                     request.state.api_key_user_id = str(key_record.user_id)
                     request.state.api_key_tenant_id = str(key_record.tenant_id)
                     request.state.api_key_scopes = (

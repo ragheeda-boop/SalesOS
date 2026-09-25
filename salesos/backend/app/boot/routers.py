@@ -25,22 +25,31 @@ def register_routers(app: FastAPI) -> None:
     from app.modules.communication_hub.router import router as communication_hub_router
     from app.modules.company.router import router as company_router
     from app.modules.contact.router import router as contact_router
+    from app.modules.customer_success.router import router as customer_success_router
     from app.modules.decision.router import router as decision_platform_router
+    from app.modules.effectiveness.router import router as effectiveness_router
     from app.modules.employee_360.router import router as employee_360_router
     from app.modules.entity_resolution.router import router as entity_resolution_router
     from app.modules.excel_import.router import router as excel_import_router
     from app.modules.executive.router import router as executive_router
+    from app.modules.facts.router import router as facts_router
+    from app.modules.identity.nextauth_compat import router as nextauth_compat_router
     from app.modules.identity.router import router as identity_router
     from app.modules.integration_hub.router import router as integration_hub_router
+    from app.modules.master_data.phase7.review_router import router as review_queue_router
+    from app.modules.master_data.router import router as master_data_router
     from app.modules.monitoring.router import router as monitoring_router
     from app.modules.notion_sync.router import router as notion_sync_router
     from app.modules.revenue_execution.router import router as revenue_execution_router
+    from app.modules.settings.router import router as settings_router
+    from app.modules.signal_actions.hitl_router import router as hitl_router
+    from app.modules.signal_actions.router import router as signal_actions_router
     from app.modules.signal_marketplace.router import router as signal_marketplace_router
     from app.modules.sso.router import router as sso_router
     from app.modules.work_intelligence.router import router as work_intelligence_router
     from app.routers.admin_demo import router as admin_demo_router
-    from app.routers.commercial import router as commercial_router
     from app.routers.approval import router as approval_router
+    from app.routers.commercial import router as commercial_router
     from app.routers.copilot import router as copilot_router
     from app.routers.demo import router as demo_router
     from domains.employee.router import router as employee_domain_router
@@ -57,6 +66,7 @@ def register_routers(app: FastAPI) -> None:
     from runtime.ux_runtime.router import router as ux_router
 
     app.include_router(identity_router, prefix="/api/v1/identity", tags=["Identity"])
+    app.include_router(nextauth_compat_router, prefix="/api/auth", tags=["Identity"])
     app.include_router(
         notion_sync_router, prefix="/api/v1", tags=["Notion Sync"], dependencies=_auth
     )
@@ -132,9 +142,16 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(
         contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth
     )
+    app.include_router(
+        customer_success_router, prefix="/api/v1", tags=["Customer Success"], dependencies=_auth
+    )
     from app.routers.opportunity_contacts import router as opportunity_contacts_router
     app.include_router(
         opportunity_contacts_router, prefix="/api/v1", tags=["Opportunity Contacts"], dependencies=_auth
+    )
+    from app.routers.relationships import router as relationships_router
+    app.include_router(
+        relationships_router, prefix="/api/v1", tags=["Commercial Relationships"], dependencies=_auth
     )
     from app.routers.attribution import router as attribution_router
     app.include_router(
@@ -153,6 +170,26 @@ def register_routers(app: FastAPI) -> None:
         tags=["Entity Resolution"],
         dependencies=_auth,
     )
+    app.include_router(
+        master_data_router,
+        prefix="/api/v1/master-data",
+        tags=["Master Data"],
+        dependencies=_auth,
+    )
+    app.include_router(
+        review_queue_router,
+        prefix="/api/v1/master-data/review-queue",
+        tags=["Master Data Review Queue"],
+        dependencies=_auth,
+    )
+    app.include_router(
+        facts_router,
+        prefix="/api/v1",
+        tags=["Fact Review"],
+    )
+    app.include_router(signal_actions_router, dependencies=_auth)
+    app.include_router(hitl_router, dependencies=_auth)
+    app.include_router(effectiveness_router, dependencies=_auth)
     app.include_router(signal_marketplace_router, tags=["Signal Marketplace"], dependencies=_auth)
     app.include_router(
         event_runtime_router, prefix="/api/v1", tags=["Event Runtime"], dependencies=_auth
@@ -466,6 +503,8 @@ def register_routers(app: FastAPI) -> None:
     )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
+    app.include_router(api_keys_router, prefix="/api/v1/settings", tags=["API Keys"], dependencies=_auth)
+    app.include_router(settings_router, prefix="/api/v1/settings", tags=["Settings"], dependencies=_auth)
     app.include_router(admin_router)
     app.include_router(monitoring_router, tags=["Monitoring"])
     app.include_router(cache_router, tags=["Cache"], dependencies=_auth)
@@ -543,6 +582,51 @@ def register_routers(app: FastAPI) -> None:
     )
     app.include_router(revenue_router, prefix="/api/v1", tags=["Revenue"], dependencies=_auth)
     app.include_router(nba_router, prefix="/api/v1", tags=["NBA Engine"], dependencies=_auth)
+
+    from app.modules.gtm.deal_intelligence_router import router as deal_intelligence_router
+
+    app.include_router(
+        deal_intelligence_router,
+        prefix="/api/v1",
+        tags=["Deal Intelligence"],
+        dependencies=_auth,
+    )
+
+    from app.modules.gtm.recommendation_router import router as recommendation_router
+
+    app.include_router(
+        recommendation_router,
+        prefix="/api/v1",
+        tags=["Recommendations"],
+        dependencies=_auth,
+    )
+
+    from app.modules.gtm.account_intelligence_router import router as account_intelligence_router
+
+    app.include_router(
+        account_intelligence_router,
+        prefix="/api/v1",
+        tags=["Account Intelligence"],
+        dependencies=_auth,
+    )
+
+    from app.modules.gtm.ai_governance_router import router as ai_governance_router
+
+    app.include_router(
+        ai_governance_router,
+        prefix="/api/v1",
+        tags=["AI Governance"],
+        dependencies=_auth,
+    )
+
+    from app.modules.gtm.evidence_router import router as evidence_router
+
+    app.include_router(
+        evidence_router,
+        prefix="/api/v1",
+        tags=["Commercial Evidence"],
+        dependencies=_auth,
+    )
     app.include_router(
         pipeline_analytics_router, prefix="/api/v1", tags=["Pipeline Analytics"], dependencies=_auth
     )

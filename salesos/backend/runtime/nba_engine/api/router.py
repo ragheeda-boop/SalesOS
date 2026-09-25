@@ -1,10 +1,14 @@
 """NBA REST API — endpoints for Next Best Action engine."""
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 
-from app.dependencies import get_current_tenant_id, require_permission_dep
+from app.database import apply_tenant_guc, async_session
+from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep
+from app.modules.signal_actions.hitl_service import FeedbackService
 from app.common.cache import cached, make_cache_key
 from app.common.rate_limit import rate_limit_dep
 from app.common.redis_client import AsyncRedisClient
@@ -55,9 +59,13 @@ class NBAResponse(BaseModel):
 
 
 class NBAFeedbackRequest(BaseModel):
-    nba_id: str = Field(max_length=100)
+    nba_id: uuid.UUID
     action: str = Field(pattern="^(accepted|dismissed)$")
+    original_action_type: str = Field(min_length=1, max_length=50)
     reason: str | None = Field(None, max_length=1000)
+
+
+_FEEDBACK_DECISION = {"accepted": "accepted", "dismissed": "rejected"}
 
 
 @router.get("/opportunities/{opportunity_id}/nba", response_model=NBAResponse)
@@ -117,28 +125,38 @@ async def refresh_nba(
 async def record_nba_feedback(
     opportunity_id: str,
     body: NBAFeedbackRequest,
-    request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
     _rbac: None = Depends(require_permission_dep("nba", PermissionAction.UPDATE)),
 ):
-    """Record user feedback on an NBA recommendation."""
-    try:
-        engine = getattr(request.app.state, "nba_engine", None)
-        if not engine:
-            raise HTTPException(status_code=503, detail="NBA Engine not initialized")
-        user_id = getattr(request.state, "user_id", None)
-        if not user_id:
-            raise HTTPException(status_code=401, detail="User identity required")
-        await engine.record_feedback(
-            opportunity_id=opportunity_id,
-            nba_id=body.nba_id,
-            user_id=user_id,
-            action=body.action,
-            reason=body.reason,
-        )
-        return {"status": "ok"}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error("record_nba_feedback failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    """Record feedback through the single HITL feedback path (PO decision B4, report 99).
+
+    Opportunity-level recommendations are not persisted sales actions, so the
+    recommendation id is recorded as both action_id and recommendation_id.
+    """
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User identity required")
+    async with async_session() as session:
+        await apply_tenant_guc(session, tenant_id)
+        company_name = (await session.execute(
+            text("""
+                SELECT COALESCE(NULLIF(c.name_en, ''), c.name_ar, o.name)
+                FROM commercial_opportunities o
+                LEFT JOIN companies c ON c.id::text = o.company_id
+                WHERE o.id = :oid AND o.tenant_id = :tid
+            """),
+            {"oid": opportunity_id, "tid": tenant_id},
+        )).scalar_one_or_none()
+    if company_name is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    fb = await FeedbackService(async_session).record(
+        tenant_id=tenant_id,
+        action_id=str(body.nba_id),
+        recommendation_id=str(body.nba_id),
+        company_name=company_name,
+        seller_id=user_id,
+        decision=_FEEDBACK_DECISION[body.action],
+        original_action_type=body.original_action_type,
+        notes=body.reason or "",
+    )
+    return {"status": "ok", "feedback_id": fb.id}

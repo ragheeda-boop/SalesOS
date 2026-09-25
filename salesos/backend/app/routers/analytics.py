@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
 import uuid
-from typing import Any, cast
+from datetime import UTC, datetime
+from typing import Any, Literal, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
 from app.dependencies import (
@@ -17,6 +22,8 @@ from app.dependencies import (
     get_db_session,
     verify_token,
 )
+from app.modules.telemetry.repository import PostgresTelemetryRepository
+from app.modules.telemetry.service import TelemetryService
 from domains.analytics.engine import CUBE_REGISTRY, ReportEngine
 from domains.analytics.infrastructure.postgres_repository import PostgresReportRepository
 from domains.analytics.models import (
@@ -679,13 +686,110 @@ async def list_templates(
 # ── Client Analytics Events ─────────────────────────────────────────────────
 
 
+ClientEventType = Literal[
+    "widget.rendered",
+    "widget.interacted",
+    "nba.viewed",
+    "nba.accepted",
+    "nba.rejected",
+    "nba.executed",
+    "nba.outcome_recorded",
+    "opportunity.created",
+    "opportunity.stage_changed",
+    "search.performed",
+    "search.result_clicked",
+    "company.viewed",
+    "company.dna_viewed",
+    "pilot.feedback_submitted",
+    "pilot.session_started",
+]
+MAX_CLIENT_EVENT_METADATA_BYTES = 8192
+
+
+class ClientAnalyticsEvent(BaseModel):
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    type: ClientEventType
+    timestamp: datetime
+    event_id: uuid.UUID | None = Field(default=None, alias="eventId")
+    company_id: str | None = Field(default=None, alias="companyId", max_length=128)
+    widget_id: str | None = Field(default=None, alias="widgetId", max_length=128)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ClientAnalyticsBatch(BaseModel):
+    events: list[ClientAnalyticsEvent] = Field(max_length=50)
+
+
+CLIENT_EVENT_STORAGE_TYPES: dict[ClientEventType, str] = {
+    "widget.rendered": "widget_rendered",
+    "widget.interacted": "widget_interacted",
+    "nba.viewed": "nba_view",
+    "nba.accepted": "nba_accept",
+    "nba.rejected": "nba_reject",
+    "nba.executed": "nba_executed",
+    "nba.outcome_recorded": "nba_outcome_recorded",
+    "opportunity.created": "opportunity_created",
+    "opportunity.stage_changed": "opportunity_stage_changed",
+    "search.performed": "search_query",
+    "search.result_clicked": "search_result_clicked",
+    "company.viewed": "company_viewed",
+    "company.dna_viewed": "company_dna_viewed",
+    "pilot.feedback_submitted": "pilot_feedback_submitted",
+    "pilot.session_started": "page_view",
+}
+
+
+def _client_event_properties(event: ClientAnalyticsEvent) -> dict[str, Any]:
+    """Keep client context while ensuring identity fields always come from auth."""
+    properties = dict(event.metadata)
+    properties["client_event_type"] = event.type
+    if event.company_id:
+        properties["company_id"] = event.company_id
+    if event.widget_id:
+        properties["widget_id"] = event.widget_id
+    return properties
+
+
 @router.post("/analytics/events")
 async def ingest_analytics_events(
-    body: dict,
+    body: ClientAnalyticsBatch,
     tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
     _auth=Depends(verify_token),
+    db: AsyncSession = Depends(get_db_session),
 ):
-    """Accept batched analytics events from the frontend (fire-and-forget)."""
-    events = body.get("events", [])
-    logger.debug("Received %d analytics events for tenant %s", len(events), tenant_id)
-    return {"status": "ok", "received": len(events)}
+    """Persist bounded client analytics using authenticated tenant/user identity."""
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated user is required")
+    if not body.events:
+        return {"status": "ok", "received": 0}
+
+    for event in body.events:
+        if event.timestamp.tzinfo is None:
+            event.timestamp = event.timestamp.replace(tzinfo=UTC)
+        if (
+            len(json.dumps(event.metadata, ensure_ascii=False).encode("utf-8"))
+            > MAX_CLIENT_EVENT_METADATA_BYTES
+        ):
+            raise HTTPException(status_code=413, detail="Analytics event metadata is too large")
+
+    # Pin RLS explicitly for the write session; request middleware context is not
+    # relied upon for a client-side batched telemetry write.
+    await db.execute(
+        text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": tenant_id},
+    )
+    service = TelemetryService(PostgresTelemetryRepository(db))
+    for event in body.events:
+        await service.track(
+            event_type=CLIENT_EVENT_STORAGE_TYPES[event.type],
+            tenant_id=tenant_id,
+            user_id=user_id,
+            properties=_client_event_properties(event),
+            timestamp=event.timestamp,
+            client_event_id=event.event_id,
+        )
+
+    logger.debug("Persisted %d analytics events for tenant %s", len(body.events), tenant_id)
+    return {"status": "ok", "received": len(body.events)}

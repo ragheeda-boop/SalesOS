@@ -19,6 +19,7 @@ from app.modules.gtm.lead_discovery_store import (
     DEFAULT_LEAD_DISCOVERY_STORE,
     MemLeadDiscoveryStore,
 )
+from app.modules.gtm.durable_store import aresolve
 from app.modules.gtm.market_sizing import GOVERNMENT_DATASET_SCALE_HINT
 
 router = APIRouter(prefix="/gtm/lead-discovery", tags=["GTM Intelligence"])
@@ -105,7 +106,7 @@ async def run_lead_discovery(
 async def list_lead_discovery(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> list[LeadDiscoveryResponse]:
-    rows = _STORE.list_for_tenant(tenant_id=str(tenant_id))
+    rows = await aresolve(_STORE.list_for_tenant(tenant_id=str(tenant_id)))
     return [LeadDiscoveryResponse.model_validate(r.as_dict()) for r in rows]
 
 
@@ -114,7 +115,7 @@ async def get_lead_discovery(
     run_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> LeadDiscoveryResponse:
-    row = _STORE.get(run_id, tenant_id=str(tenant_id))
+    row = await aresolve(_STORE.get(run_id, tenant_id=str(tenant_id)))
     if row is None:
         raise HTTPException(status_code=404, detail="lead discovery run not found")
     return LeadDiscoveryResponse.model_validate(row.as_dict())

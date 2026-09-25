@@ -34,6 +34,7 @@ ENTITLEMENT_SKIP_PREFIXES: tuple[str, ...] = (
     "/api/v1/auth",
     "/api/v1/owner",
     "/api/v1/identity",
+    "/api/v1/integrations/google/status",
     "/api/v1/billing/stripe/webhook",
     "/api/health",
 )
@@ -53,6 +54,8 @@ def path_skips_entitlement_guard(path: str) -> bool:
 def required_domain_for_path(path: str) -> EntitlementGateMatch | None:
     """Return the most specific (longest) gate matching path, or None."""
     path = path.split("?", 1)[0]
+    if path_skips_entitlement_guard(path):
+        return None
     best: EntitlementGateMatch | None = None
     for prefix, domain in ENTITLEMENT_PATH_GATES:
         matched = path == prefix or path.startswith(prefix + "/")

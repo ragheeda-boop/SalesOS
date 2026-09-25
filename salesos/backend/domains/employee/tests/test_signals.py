@@ -86,6 +86,13 @@ class TestSignalPipeline:
         )
         assert len(signals) == 2
         assert all(s.signal_type == SignalType.WORKFLOW_COMPLETED.value for s in signals)
+        # Regression: metadata is typed dict[str, Any] (EmployeeSignalResponse
+        # enforces this on serialization) — step_results must be wrapped, not
+        # passed as the metadata value itself.
+        assert all(isinstance(s.metadata, dict) for s in signals)
+        assert signals[0].metadata == {
+            "step_results": [{"step": "approval", "result": "approved"}]
+        }
 
     async def test_collect_for_employee(self, pipeline, mock_repo):
         pipeline._collect_crm_signals = AsyncMock(return_value=[

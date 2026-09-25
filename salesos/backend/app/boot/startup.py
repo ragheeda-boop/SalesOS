@@ -433,6 +433,18 @@ async def _init_backend_sdk(app: FastAPI, logger: StructuredLogger) -> None:
         logger.exception("  backend sdk init failed")
 
 
+async def _init_llm_cost_tracker(app: FastAPI, logger: StructuredLogger) -> None:
+    # AI Foundation F2: without this the process-wide tracker is never set and
+    # every LLMService skips per-tenant budget checks and cost recording.
+    try:
+        from intelligence.providers.cost_tracker import init_cost_tracker
+
+        app.state.llm_cost_tracker = init_cost_tracker(async_session)
+        logger.info("  llm cost tracker: ok")
+    except Exception:
+        logger.exception("  llm cost tracker init failed")
+
+
 async def _init_agent_runtime(app: FastAPI, logger: StructuredLogger) -> None:
     from runtime.agent_runtime import AgentRuntime
 
@@ -829,6 +841,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         _init_recommendation_engine(app, logger),
         _init_context_builder(app, logger),
         _init_backend_sdk(app, logger),
+        _init_llm_cost_tracker(app, logger),
         _init_agent_runtime(app, logger),
         return_exceptions=True,
     )

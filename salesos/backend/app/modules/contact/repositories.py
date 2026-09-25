@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from sdk.database import SqlAlchemyRepository
 
+from .exceptions import AmbiguousContactMatchError
 from .models import Contact
 
 logger = logging.getLogger(__name__)
@@ -140,16 +141,31 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
                 continue
 
             existing = await self.find_by_tenant_and_email(tenant_id, email)
+            if len(existing) > 1:
+                raise AmbiguousContactMatchError()
             if existing:
                 contact = existing[0]
                 for key, value in record.items():
-                    if value is not None and hasattr(contact, key):
+                    if value is not None and key in {
+                        "name", "name_ar", "phone", "mobile", "position",
+                        "position_ar", "department", "is_primary", "source",
+                        "confidence_score", "tags", "extra_metadata",
+                    }:
                         setattr(contact, key, value)
                 updated.append(contact)
             else:
                 contact = Contact(
                     tenant_id=uuid.UUID(tenant_id),
-                    **{k: v for k, v in record.items() if hasattr(Contact, k) and v is not None},
+                    **{
+                        key: value
+                        for key, value in record.items()
+                        if key in {
+                            "company_id", "name", "name_ar", "email", "phone", "mobile",
+                            "position", "position_ar", "department", "is_primary", "source",
+                            "confidence_score", "tags", "extra_metadata",
+                        }
+                        and value is not None
+                    },
                 )
                 self._session.add(contact)
                 created.append(contact)

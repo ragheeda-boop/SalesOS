@@ -19,6 +19,30 @@ class EvidenceType(str, Enum):
     MANUAL_OBSERVATION = "manual_observation"
 
 
+class EvidenceKind(str, Enum):
+    """Auditable evidence classes used by ADR-0113 deterministic scoring."""
+
+    OFFICIAL_REGISTRY = "source.official_registry"
+    CR_NUMBER_EXACT_MATCH = "source.cr_number_exact_match"
+    LICENSE_VERIFIED = "source.license_verified"
+    ENTITY_RESOLUTION_MERGE = "source.entity_resolution_merge"
+    CRM_EMAIL_SIGNATURE = "crm.email_signature"
+    CRM_MEETING_ATTENDANCE = "crm.meeting_attendance"
+    CRM_SYSTEM_RECORD = "crm.system_of_record"
+    GOVERNMENT_SOURCE = "web.government_source"
+    CITED_CLAIM = "web.cited_claim"
+    NAME_MATCH_ONLY = "source.name_match_only"
+    EMPLOYER_MATCH_ONLY = "source.employer_match_only"
+    CONTRADICTION = "contradiction"
+
+
+class EvidenceBand(str, Enum):
+    VERIFIED = "verified"
+    PROBABLE = "probable"
+    POSSIBLE = "possible"
+    DISCARD = "discard"
+
+
 class InsightCategory(str, Enum):
     ACCOUNT_HEALTH = "account_health"
     DEAL_RISK = "deal_risk"
@@ -57,11 +81,16 @@ class EvidenceItem:
     description: str
     confidence: float               # 0.0 - 1.0
     confidence_level: ConfidenceLevel
+    evidence_kind: EvidenceKind | None = None
     data: dict[str, Any] = field(default_factory=dict)
     recorded_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def is_high_confidence(self) -> bool:
+        if self.evidence_kind is not None:
+            from ..engine.scoring import score_evidence
+
+            return score_evidence([self]).score >= 0.8
         return self.confidence >= 0.8
 
 
@@ -95,18 +124,45 @@ class Insight:
         return [e.description for e in self.evidence_items if e.description]
 
     def recompute_confidence(self) -> None:
-        """Recompute overall confidence from evidence items."""
+        """Recompute confidence, using ADR-0113 strength for classified evidence.
+
+        Legacy items without an explicit evidence kind retain the historical
+        average for read compatibility. New factual decisions must classify the
+        kind; the `confidence` value is not an evidence weight.
+        """
         if not self.evidence_items:
             self.overall_confidence = 0.0
             self.confidence_level = ConfidenceLevel.UNKNOWN
+            self.metadata.pop("evidence_score_method", None)
+            self.metadata.pop("evidence_contradiction_present", None)
             return
-        avg = sum(e.confidence for e in self.evidence_items) / len(self.evidence_items)
-        self.overall_confidence = round(avg, 3)
-        if avg >= 0.8:
+
+        # Apply ADR-0113 only when every item has an explicit evidence kind.
+        # Scoring only the classified subset silently discarded legacy items
+        # whenever an insight contained a mixture of old and new evidence.
+        fully_classified = all(
+            item.evidence_kind is not None for item in self.evidence_items
+        )
+        if fully_classified:
+            from ..engine.scoring import score_evidence
+
+            result = score_evidence(self.evidence_items)
+            value = result.score
+            self.metadata["evidence_score_method"] = "adr_0113_bayesian_v1"
+            self.metadata["evidence_contradiction_present"] = result.contradiction_present
+        else:
+            # Preserve the historical behavior for unclassified or mixed
+            # evidence until all producers have an approved evidence kind.
+            value = sum(e.confidence for e in self.evidence_items) / len(self.evidence_items)
+            self.metadata["evidence_score_method"] = "legacy_average_compatibility"
+            self.metadata.pop("evidence_contradiction_present", None)
+
+        self.overall_confidence = round(value, 3)
+        if value >= 0.8:
             self.confidence_level = ConfidenceLevel.HIGH
-        elif avg >= 0.5:
+        elif value >= 0.5:
             self.confidence_level = ConfidenceLevel.MEDIUM
-        elif avg >= 0.2:
+        elif value >= 0.2:
             self.confidence_level = ConfidenceLevel.LOW
         else:
             self.confidence_level = ConfidenceLevel.UNKNOWN

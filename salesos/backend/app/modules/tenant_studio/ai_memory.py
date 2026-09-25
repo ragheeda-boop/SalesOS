@@ -1,7 +1,7 @@
 """STORY-12-03 — CAP-063 AI Memory MVP models (conversation-level only).
 
 Tenant-scoped, opt-in. Not Production GO. DEC-085 untouched.
-No Alembic / FORCE RLS. feature_ai_copilot remains False.
+PostgreSQL storage uses FORCE RLS and encrypted turn payloads. feature_ai_copilot remains False.
 No live LLM / RAG GO. Cross-session long-term memory deferred (DEC-007).
 """
 
