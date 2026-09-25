@@ -6,6 +6,8 @@ export * from "./types/search";
 export * from "./types/identity";
 export * from "./types/activities";
 export * from "./types/admin";
+export * from "./types/aiGovernance";
+export * from "./types/evidence";
 export * from "./types/settings";
 export * from "./types/integrationHub";
 export * from "./types/tenantStudio";

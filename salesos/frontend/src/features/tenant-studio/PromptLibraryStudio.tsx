@@ -203,7 +203,7 @@ export function PromptLibraryStudio() {
           <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : listQuery.data?.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]" data-testid="prompt-library-empty">
-            No prompts in memory library yet.
+            No prompts in this tenant library yet.
           </p>
         ) : (
           <ul className="space-y-2 text-sm">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useNbaExposureTracking } from "@/lib/analytics";
 import { useCompany360 } from "@/lib/hooks/company360Queries";
 import { useDecisionRecommendations, useDecisionScores } from "@/lib/decisionQueries";
 import { Card, CardContent, CardHeader, cn, Skeleton, EmptyState } from "@salesos/ui";
@@ -96,14 +97,13 @@ export function DecisionPlatformPanel({
   const isLoading = loading360 || loadingRecs || loadingScores;
 
   const dealScore =
-    scores?.find((s: { name?: string }) => s.name === "deal_score")?.value ||
+    scores?.find((s) => s.type === "company")?.value ||
     company360?.health_score ||
     0;
   const nextBestActions = recommendations?.slice(0, 5) || [];
+  useNbaExposureTracking(companyId, nextBestActions, !isLoading && nextBestActions.length > 0);
   const riskFlags =
-    scores?.filter(
-      (s: { name?: string; value: number }) => s.name?.includes("risk") && s.value > 0.3
-    ) || [];
+    scores?.filter((s) => s.type === "risk" && s.value > 0.3) || [];
 
   if (isLoading) {
     return (
@@ -189,8 +189,8 @@ export function DecisionPlatformPanel({
                         : "تحتاج متابعة"}
                   </span>
                 </div>
-                {scores?.slice(0, 3).map((s: { name?: string; value: number; label?: string }) => (
-                  <div key={s.name || s.label} className="flex items-center gap-2">
+                {scores?.slice(0, 3).map((s) => (
+                  <div key={s.name} className="flex items-center gap-2">
                     <BarChart3 className="h-3 w-3 text-[var(--text-disabled)]" />
                     <span className="text-[10px] text-[var(--text-muted)]">
                       {s.label || s.name}: {Math.round(s.value * 100)}%
@@ -208,89 +208,60 @@ export function DecisionPlatformPanel({
                 الإجراءات التالية
               </h4>
               <div className="space-y-2">
-                {nextBestActions.map(
-                  (
-                    rec: {
-                      id?: string;
-                      action?: string;
-                      title?: string;
-                      description?: string;
-                      reasoning?: string;
-                      confidence?: number;
-                      impact?: string;
-                      priority?: string;
-                    },
-                    i: number
-                  ) => {
-                    const id = rec.id || String(i);
-                    const isExpanded = expandedRec === id;
-                    return (
-                      <div key={id} className="rounded-lg border border-[var(--border-default)]">
-                        <button
-                          onClick={() => setExpandedRec(isExpanded ? null : id)}
-                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]/50"
-                        >
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/30 dark:text-[var(--chart-purple)]">
-                            <Zap className="h-3.5 w-3.5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-[var(--text-primary)]">
-                              {rec.title || rec.action}
-                            </p>
-                            <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
-                              {rec.description || rec.reasoning}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-2">
-                            {rec.confidence !== undefined && (
-                              <ConfidenceBadge value={rec.confidence} />
-                            )}
-                            {isExpanded ? (
-                              <ChevronUp className="h-4 w-4 text-[var(--text-disabled)]" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4 text-[var(--text-disabled)]" />
-                            )}
-                          </div>
-                        </button>
-                        {isExpanded && rec.description && (
-                          <div className="border-t border-[var(--border-subtle)] px-3 py-2">
-                            <p className="text-xs text-[var(--text-secondary)]">
-                              {rec.description}
-                            </p>
-                            {(() => {
-                              const recAny = rec as Record<string, unknown>;
-                              const risks = Array.isArray(recAny.risks)
-                                ? (recAny.risks as string[])
-                                : null;
-                              if (!risks) return null;
-                              return (
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  {risks.map((risk: string, ri: number) => (
-                                    <span
-                                      key={ri}
-                                      className="inline-flex items-center gap-1 rounded-full bg-[var(--color-danger-bg)] px-1.5 py-0.5 text-[9px] text-[var(--color-danger)]"
-                                    >
-                                      <AlertTriangle className="h-2.5 w-2.5" />
-                                      {risk}
-                                    </span>
-                                  ))}
-                                </div>
-                              );
-                            })()}
-                            {rec.impact && (
-                              <div className="mt-2 flex items-center gap-1">
-                                <TrendingUp className="h-3 w-3 text-[var(--color-success)]" />
-                                <span className="text-[10px] text-[var(--color-success)]">
-                                  الأثر: {rec.impact}
+                {nextBestActions.map((rec, i) => {
+                  const id = rec.id || String(i);
+                  const isExpanded = expandedRec === id;
+                  const risks = rec.risks?.map((risk) => risk.description) ?? [];
+                  const impact = rec.explainability?.expectedImpact;
+                  return (
+                    <div key={id} className="rounded-lg border border-[var(--border-default)]">
+                      <button
+                        onClick={() => setExpandedRec(isExpanded ? null : id)}
+                        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]/50"
+                      >
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/30 dark:text-[var(--chart-purple)]">
+                          <Zap className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{rec.actionLabel ?? rec.action}</p>
+                          <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">{rec.reason}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <ConfidenceBadge value={rec.confidence ?? 0} />
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-[var(--text-disabled)]" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-[var(--text-disabled)]" />
+                          )}
+                        </div>
+                      </button>
+                      {isExpanded && (rec.reason || risks.length > 0 || impact) && (
+                        <div className="border-t border-[var(--border-subtle)] px-3 py-2">
+                          <p className="text-xs text-[var(--text-secondary)]">{rec.reason}</p>
+                          {risks.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {risks.map((risk, ri) => (
+                                <span
+                                  key={ri}
+                                  className="inline-flex items-center gap-1 rounded-full bg-[var(--color-danger-bg)] px-1.5 py-0.5 text-[9px] text-[var(--color-danger)]"
+                                >
+                                  <AlertTriangle className="h-2.5 w-2.5" />
+                                  {risk}
                                 </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
+                              ))}
+                            </div>
+                          )}
+                          {impact && (
+                            <div className="mt-2 flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3 text-[var(--color-success)]" />
+                              <span className="text-[10px] text-[var(--color-success)]">الأثر: {impact}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

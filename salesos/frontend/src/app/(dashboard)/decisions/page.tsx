@@ -180,43 +180,34 @@ function AuditTrailPanel({ decisionId, onClose }: { decisionId: string; onClose:
 
       {audit ? (
         <div className="space-y-4">
-          {audit.summary && (
+          {(audit.summary || audit.why) && (
             <div>
               <p className="text-xs font-medium text-[var(--text-muted)] mb-1">
                 {t("decisions.summary")}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">{audit.summary}</p>
+              <p className="text-sm text-[var(--text-secondary)]">{audit.summary || audit.why}</p>
             </div>
           )}
 
-          {audit.factors && audit.factors.length > 0 && (
+          {audit.factors.length > 0 && (
             <div>
               <p className="text-xs font-medium text-[var(--text-muted)] mb-2">
                 {t("decisions.confidence_factors")}
               </p>
               <div className="space-y-2">
-                {audit.factors.map((f, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                {audit.factors.map((rule) => (
+                  <div key={rule.name} className="flex items-center gap-3">
                     <span className="text-sm text-[var(--text-secondary)] min-w-[120px]">
-                      {f.name}
+                      {rule.name}
                     </span>
                     <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-tertiary)] overflow-hidden">
                       <div
-                        className={cn(
-                          "h-full rounded-full",
-                          f.impact === "high"
-                            ? "bg-red-500"
-                            : f.impact === "medium"
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                        )}
-                        style={{
-                          width: `${Math.round((f.value ?? 0) * 100)}%`,
-                        }}
+                        className="h-full rounded-full bg-[var(--chart-purple)]"
+                        style={{ width: `${Math.round(rule.value * 100)}%` }}
                       />
                     </div>
                     <span className="text-xs text-[var(--text-muted)] w-10 text-right">
-                      {Math.round((f.value ?? 0) * 100)}%
+                      {Math.round(rule.value * 100)}%
                     </span>
                   </div>
                 ))}
@@ -238,7 +229,9 @@ function AuditTrailPanel({ decisionId, onClose }: { decisionId: string; onClose:
               <p className="text-xs font-medium text-[var(--text-muted)] mb-1">
                 {t("decisions.expected_impact")}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">{audit.expectedImpact}</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {audit.expectedImpact}
+              </p>
             </div>
           )}
         </div>

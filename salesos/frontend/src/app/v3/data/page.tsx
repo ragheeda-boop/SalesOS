@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Building2, Users, FileText, GitBranch, AlertTriangle } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
-import { LoadingState } from "../_components/states";
+import { ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 import apiClient from "@/lib/api/client";
 import { getTenantId } from "@/lib/hooks/useTenant";
@@ -12,14 +12,14 @@ import { getTenantId } from "@/lib/hooks/useTenant";
 const features = [
   {
     label: "Global Companies",
-    description: "296,746 canonical company records",
+    description: "Canonical company records",
     href: "/v3/data/companies",
     icon: Building2,
     color: "text-blue-600",
   },
   {
     label: "Global People",
-    description: "1,124 canonical person records",
+    description: "Canonical person records",
     href: "/v3/data/people",
     icon: Users,
     color: "text-green-600",
@@ -49,32 +49,84 @@ const features = [
 
 export default function V3DataPage() {
   const { ready, hasToken } = useAccessToken();
+  const tenantHeaders = { "X-Tenant-Id": getTenantId() };
 
-  const { data: companiesData, isLoading: companiesLoading } = useQuery({
+  const {
+    data: companiesData,
+    isLoading: companiesLoading,
+    isError: companiesError,
+    error: companiesErr,
+  } = useQuery({
     queryKey: ["masterData", "companies", "count"],
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/master-data/global-companies", {
         params: { page: 1, page_size: 1 },
-        headers: { "X-Tenant-Id": getTenantId() },
+        headers: tenantHeaders,
       });
       return res.data as { total: number };
     },
     enabled: ready && hasToken,
   });
 
-  const { data: peopleData, isLoading: peopleLoading } = useQuery({
+  const {
+    data: peopleData,
+    isLoading: peopleLoading,
+    isError: peopleError,
+    error: peopleErr,
+  } = useQuery({
     queryKey: ["masterData", "people", "count"],
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/master-data/global-people", {
         params: { page: 1, page_size: 1 },
-        headers: { "X-Tenant-Id": getTenantId() },
+        headers: tenantHeaders,
       });
       return res.data as { total: number };
     },
     enabled: ready && hasToken,
   });
 
-  if (!ready || companiesLoading || peopleLoading) return <LoadingState />;
+  const {
+    data: sourceFilesData,
+    isLoading: sourceFilesLoading,
+    isError: sourceFilesError,
+    error: sourceFilesErr,
+  } = useQuery({
+    queryKey: ["masterData", "sourceFiles", "count"],
+    queryFn: async () => {
+      const res = await apiClient.get("/api/v1/master-data/source-files", {
+        params: { page: 1, page_size: 1 },
+        headers: tenantHeaders,
+      });
+      return res.data as { total: number };
+    },
+    enabled: ready && hasToken,
+  });
+
+  if (!ready) return <LoadingState label="Checking session…" />;
+  if (!hasToken) return <PermissionState nextPath="/v3/data" />;
+  if (companiesLoading || peopleLoading || sourceFilesLoading)
+    return <LoadingState label="Loading data overview…" />;
+  if (companiesError || peopleError || sourceFilesError)
+    return (
+      <>
+        <PageHeader
+          title="Data"
+          description="Master data management — companies, people, imports, entity resolution"
+        />
+        <ErrorState
+          title="Could not load data counts"
+          description={
+            companiesErr instanceof Error
+              ? companiesErr.message
+              : peopleErr instanceof Error
+                ? peopleErr.message
+                : sourceFilesErr instanceof Error
+                  ? sourceFilesErr.message
+                  : "Request failed"
+          }
+        />
+      </>
+    );
 
   return (
     <>
@@ -98,12 +150,16 @@ export default function V3DataPage() {
           <div className="text-sm text-[var(--text-muted)]">Global People</div>
         </div>
         <div className="rounded-lg border border-[var(--border-default)] p-4">
-          <div className="text-2xl font-bold text-[var(--text-link)]">6</div>
+          <div className="text-2xl font-bold text-[var(--text-link)]">
+            {sourceFilesData?.total?.toLocaleString() ?? "-"}
+          </div>
           <div className="text-sm text-[var(--text-muted)]">Source Files</div>
         </div>
         <div className="rounded-lg border border-[var(--border-default)] p-4">
-          <div className="text-2xl font-bold text-[var(--text-muted)]">296,746</div>
-          <div className="text-sm text-[var(--text-muted)]">Total Records</div>
+          <div className="text-2xl font-bold text-[var(--text-muted)]">
+            {((companiesData?.total ?? 0) + (peopleData?.total ?? 0)).toLocaleString()}
+          </div>
+          <div className="text-sm text-[var(--text-muted)]">Canonical Entities</div>
         </div>
       </div>
 
@@ -119,7 +175,15 @@ export default function V3DataPage() {
             <h3 className="mb-1 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--text-link)]">
               {f.label}
             </h3>
-            <p className="text-sm text-[var(--text-muted)]">{f.description}</p>
+            <p className="text-sm text-[var(--text-muted)]">
+              {f.label === "Global Companies"
+                ? `${(companiesData?.total ?? 0).toLocaleString()} canonical records`
+                : f.label === "Global People"
+                  ? `${(peopleData?.total ?? 0).toLocaleString()} canonical records`
+                  : f.label === "Source Files & Imports"
+                    ? `${(sourceFilesData?.total ?? 0).toLocaleString()} source files`
+                    : f.description}
+            </p>
           </Link>
         ))}
       </div>

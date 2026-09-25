@@ -58,6 +58,17 @@ const dashboardFixture = {
     weighted_pipeline: 30_000_000,
     forecast: 15_000_000,
     growth_percent: 12,
+    currency_consistent: true,
+    by_currency: [
+      {
+        currency: "USD",
+        total_booked: 12_500_000,
+        total_pipeline: 42_000_000,
+        weighted_pipeline: 30_000_000,
+        forecast: 15_000_000,
+        growth_percent: 12,
+      },
+    ],
   },
   pipeline: {
     total_deals: 100,
@@ -66,9 +77,19 @@ const dashboardFixture = {
     lost_deals: 17,
     win_rate: 33,
     avg_deal_size: 420_000,
+    by_currency: [
+      {
+        currency: "USD",
+        total_deals: 100,
+        total_value: 42_000_000,
+        won_deals: 33,
+        lost_deals: 17,
+        avg_deal_size: 420_000,
+      },
+    ],
     by_stage: [
-      { stage: "Qualify", val: 10 },
-      { stage: "Propose", val: 20 },
+      { stage: "Qualify", currency: "USD", cnt: 1, val: 10 },
+      { stage: "Propose", currency: "USD", cnt: 1, val: 20 },
     ],
   },
   growth: {

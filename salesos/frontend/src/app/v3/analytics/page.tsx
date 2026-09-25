@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getExecutiveDashboard, listOpportunities } from "@/lib/api";
+import {
+  getExecutiveDashboard,
+  getPipelineAnalyticsSummary,
+  listOpportunities,
+  type RevenueKPI,
+} from "@/lib/api";
 import { dashboardKeys, opportunityKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../_components/page-header";
@@ -19,6 +24,51 @@ import {
 } from "../_components/states";
 import { formatCount, formatCurrencySAR, formatPercent, stageLabel } from "../_components/format";
 import { useAccessToken } from "../_hooks/useAccessToken";
+
+type RevenueCurrencyField =
+  | "total_booked"
+  | "total_pipeline"
+  | "weighted_pipeline"
+  | "forecast";
+
+function formatExecutiveRevenue(
+  revenue: RevenueKPI,
+  field: RevenueCurrencyField
+): string {
+  if (revenue.currency_consistent) {
+    const rowCurrency = revenue.by_currency[0]?.currency ?? "SAR";
+    const value = revenue[field];
+    return value == null ? "—" : formatForecastCurrency(value, rowCurrency);
+  }
+  return revenue.by_currency
+    .map((row) => `${row.currency}: ${formatForecastCurrency(row[field], row.currency)}`)
+    .join(" · ") || "—";
+}
+
+function formatExecutiveGrowth(revenue: {
+  currency_consistent: boolean;
+  growth_percent: number | null;
+  by_currency: { currency: string; growth_percent: number }[];
+}): string {
+  if (revenue.currency_consistent) {
+    const growth = revenue.growth_percent ?? 0;
+    return `${growth >= 0 ? "+" : ""}${growth}% growth`;
+  }
+  return revenue.by_currency.map((row) => `${row.currency}: ${row.growth_percent}%`).join(" · ") || "Growth unavailable";
+}
+
+function formatForecastCurrency(value: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+      currencyDisplay: "code",
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `${currency} ${new Intl.NumberFormat("en").format(value)}`;
+  }
+}
 
 function PreviewPanel({
   children,
@@ -60,6 +110,13 @@ export default function V3AnalyticsPage() {
     staleTime: 15_000,
   });
 
+  const pipelineQuery = useQuery({
+    queryKey: ["pipelineAnalytics", "summary"],
+    queryFn: () => getPipelineAnalyticsSummary(getTenantId()),
+    enabled: ready && hasToken,
+    staleTime: 30_000,
+  });
+
   const data = execQuery.data;
   const deals = useMemo(() => {
     const items = oppQuery.data?.items ?? [];
@@ -92,20 +149,20 @@ export default function V3AnalyticsPage() {
           items={[
             {
               label: "Booked revenue",
-              value: formatCurrencySAR(data!.revenue.total_booked),
-              hint: `${data!.revenue.growth_percent >= 0 ? "+" : ""}${data!.revenue.growth_percent}% growth`,
+              value: formatExecutiveRevenue(data!.revenue, "total_booked"),
+              hint: formatExecutiveGrowth(data!.revenue),
             },
             {
               label: "Total pipeline",
-              value: formatCurrencySAR(data!.revenue.total_pipeline),
+              value: formatExecutiveRevenue(data!.revenue, "total_pipeline"),
             },
             {
               label: "Weighted pipeline",
-              value: formatCurrencySAR(data!.revenue.weighted_pipeline),
+              value: formatExecutiveRevenue(data!.revenue, "weighted_pipeline"),
             },
             {
               label: "Forecast field",
-              value: formatCurrencySAR(data!.revenue.forecast),
+              value: formatExecutiveRevenue(data!.revenue, "forecast"),
               hint: "From executive API — not a commit model",
             },
           ]}
@@ -117,29 +174,51 @@ export default function V3AnalyticsPage() {
       </div>
     );
 
-    const pipelineBody = loading ?? (
+    const pipelineBody = !ready || !hasToken || pipelineQuery.isLoading ? (
+      <LoadingState label="Loading pipeline analytics…" />
+    ) : pipelineQuery.isError ? (
+      <ErrorState
+        title="Could not load pipeline analytics"
+        description={
+          pipelineQuery.error instanceof Error
+            ? pipelineQuery.error.message
+            : "Pipeline analytics request failed"
+        }
+        onRetry={() => void pipelineQuery.refetch()}
+      />
+    ) : !pipelineQuery.data ? (
+      <EmptyState
+        title="No pipeline analytics"
+        description="The pipeline analytics service returned no summary."
+      />
+    ) : (
       <div className="space-y-4">
         <MetricCards
           items={[
             {
               label: "Open deals",
-              value: formatCount(data!.pipeline.total_deals),
+              value: formatCount(pipelineQuery.data.total_open_deals),
             },
             {
-              label: "Pipeline value",
-              value: formatCurrencySAR(data!.pipeline.total_value),
+              label: "Healthy",
+              value: formatCount(pipelineQuery.data.health_map.healthy),
             },
             {
-              label: "Win rate",
-              value: formatPercent(data!.pipeline.win_rate, { ratio: true }),
+              label: "At risk",
+              value: formatCount(pipelineQuery.data.health_map.at_risk),
             },
             {
-              label: "Avg deal size",
-              value: formatCurrencySAR(data!.pipeline.avg_deal_size),
+              label: "Critical",
+              value: formatCount(pipelineQuery.data.health_map.critical),
+            },
+            {
+              label: "Unknown probability",
+              value: formatCount(pipelineQuery.data.health_map.unknown),
+              hint: "No guessed health score",
             },
           ]}
         />
-        {data!.pipeline.by_stage.length > 0 ? (
+        {Object.keys(pipelineQuery.data.velocity).length > 0 ? (
           <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
             <table className="w-full border-collapse text-left text-sm">
               <thead className="border-b border-[var(--border-default)] bg-[var(--bg-secondary)] text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
@@ -148,27 +227,27 @@ export default function V3AnalyticsPage() {
                     Stage
                   </th>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Deals
+                    Avg days in stage
                   </th>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Value
+                    Stage exits
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {data!.pipeline.by_stage.map((row) => (
+                {Object.entries(pipelineQuery.data.velocity).map(([stage, row]) => (
                   <tr
-                    key={row.stage}
+                    key={stage}
                     className="border-b border-[var(--border-default)] last:border-b-0"
                   >
                     <td className="px-3 py-2 capitalize text-[var(--text-primary)]">
-                      {stageLabel(row.stage)}
+                      {stageLabel(stage)}
                     </td>
                     <td className="px-3 py-2 tabular-nums text-[var(--text-secondary)]">
-                      {formatCount(row.cnt)}
+                      {row.avg_days.toFixed(1)}
                     </td>
                     <td className="px-3 py-2 tabular-nums text-[var(--text-secondary)]">
-                      {formatCurrencySAR(row.val)}
+                      {formatCount(row.entries)}
                     </td>
                   </tr>
                 ))}
@@ -176,8 +255,13 @@ export default function V3AnalyticsPage() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-[var(--text-muted)]">No stage breakdown in this response.</p>
+          <p className="text-sm text-[var(--text-muted)]">No completed stage intervals are recorded yet.</p>
         )}
+
+        <p className="text-[12px] text-[var(--text-muted)]">
+          Source: <code className="font-mono">GET /api/v1/pipeline/summary</code>. Stage health is
+          a deterministic view of stored opportunity probability. Missing probability stays unknown.
+        </p>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
@@ -231,6 +315,58 @@ export default function V3AnalyticsPage() {
             </ul>
           )}
         </div>
+      </div>
+    );
+
+    const forecastBody = !ready || !hasToken || pipelineQuery.isLoading ? (
+      <LoadingState label="Loading pipeline forecast…" />
+    ) : pipelineQuery.isError ? (
+      <ErrorState
+        title="Could not load forecast"
+        description={
+          pipelineQuery.error instanceof Error
+            ? pipelineQuery.error.message
+            : "Pipeline forecast request failed"
+        }
+        onRetry={() => void pipelineQuery.refetch()}
+      />
+    ) : !pipelineQuery.data ? (
+      <EmptyState title="No forecast data" description="No forecast summary is available." />
+    ) : (
+      <div className="space-y-4">
+        {pipelineQuery.data.forecast.by_currency.length > 0 ? (
+          <MetricCards
+            items={pipelineQuery.data.forecast.by_currency.flatMap((forecast) => [
+              {
+                label: `Commit · ${forecast.currency}`,
+                value: formatForecastCurrency(forecast.commit, forecast.currency),
+              },
+              {
+                label: `Best case · ${forecast.currency}`,
+                value: formatForecastCurrency(forecast.best_case, forecast.currency),
+              },
+              {
+                label: `Open pipeline · ${forecast.currency}`,
+                value: formatForecastCurrency(forecast.pipeline, forecast.currency),
+              },
+              {
+                label: `Unweighted gap · ${forecast.currency}`,
+                value: formatForecastCurrency(forecast.gap, forecast.currency),
+              },
+            ])}
+          />
+        ) : (
+          <EmptyState
+            title="No open pipeline"
+            description="No open opportunities are available to include in this forecast."
+          />
+        )}
+        <p className="text-[12px] text-[var(--text-muted)]">
+          Based on {formatCount(pipelineQuery.data.forecast.total_deals)} open opportunities and
+          their stored probabilities (average {formatPercent(pipelineQuery.data.forecast.avg_probability, { ratio: true })}).
+          Amounts are separated by opportunity currency. This is a deterministic baseline, not a calibrated forecast or manager commit.
+        </p>
+        <GhostButtonLink href="/v3/crm">Review open opportunities</GhostButtonLink>
       </div>
     );
 
@@ -366,11 +502,7 @@ export default function V3AnalyticsPage() {
         audience: "Managers",
         description: "Commit / best-case views — requires forecast models, not invented scores.",
         body: (
-          <PreviewPanel legacyHref="/analytics">
-            Forecast commit models are not exposed as a dedicated dual-run surface yet. The revenue
-            section shows the executive <code className="font-mono text-[12px]">forecast</code>{" "}
-            field only — treat it as a stored number, not a governance commit.
-          </PreviewPanel>
+          forecastBody
         ),
       },
       {
@@ -414,7 +546,7 @@ export default function V3AnalyticsPage() {
         ),
       },
     ];
-  }, [ready, hasToken, execQuery, data, oppQuery.isLoading, oppQuery.isError, deals]);
+  }, [ready, hasToken, execQuery, data, oppQuery.isLoading, oppQuery.isError, deals, pipelineQuery]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
@@ -424,6 +556,7 @@ export default function V3AnalyticsPage() {
         actions={
           <div className="flex flex-wrap gap-2">
             <GhostButtonLink href="/v3/crm">View pipeline</GhostButtonLink>
+            <GhostButtonLink href="/v3/recommendations">Recommended actions</GhostButtonLink>
             <GhostButtonLink href="/analytics">Legacy analytics</GhostButtonLink>
           </div>
         }

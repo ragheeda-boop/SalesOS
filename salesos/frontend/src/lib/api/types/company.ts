@@ -6,7 +6,7 @@ export interface Company {
   id: string;
   name_ar: string;
   name_en: string | null;
-  cr_number: string;
+  cr_number: string | null;
   status: string;
   city: string | null;
   region: string | null;
@@ -109,6 +109,44 @@ export interface CompanyDetail extends Company {
   branches: Branch[];
   licenses: License[];
   contacts: Contact[];
+}
+
+export interface CompanyAccountIntelligence {
+  company_id: string;
+  company_name: string;
+  industry: string | null;
+  city: string | null;
+  company_status: string;
+  total_opportunities: number;
+  active_opportunities: number;
+  won_deals: number;
+  lost_deals: number;
+  activity_count: number;
+  last_activity_at: string | null;
+  days_since_activity: number | null;
+  missing_data: string[];
+  account_signals: {
+    status: "insufficient_data" | "needs_attention" | "engaged" | "no_current_risk_signal";
+    signals: Array<{
+      code: string;
+      polarity: "positive" | "attention" | "neutral";
+      title: string;
+      detail: string;
+      source: string;
+    }>;
+    recommendations: string[];
+  };
+  engagement_trend: {
+    trend: "improving" | "stable" | "declining" | "insufficient_data";
+    recent_90_days: number;
+    previous_90_days: number;
+    change_percent: number | null;
+    method: "activity_count_90d_comparison_v1";
+    interpretation: string;
+  };
+  generated_at: string;
+  method: "persisted_crm_records_with_explainable_rules";
+  mutated_crm: false;
 }
 
 export interface Company360Overview {

@@ -29,9 +29,10 @@ import {
 import { useAccessToken } from "../../_hooks/useAccessToken";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { IntelligenceTab } from "./intelligence-tab";
+import { CompanyNbaTab } from "./company-nba-tab";
 import { CreateDealForm } from "../../crm/create-deal-form";
 
-type TabId = "overview" | "contacts" | "timeline" | "opportunities" | "tasks" | "intelligence";
+type TabId = "overview" | "contacts" | "timeline" | "opportunities" | "tasks" | "intelligence" | "actions";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -40,6 +41,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "opportunities", label: "Opportunities" },
   { id: "tasks", label: "Tasks" },
   { id: "intelligence", label: "Intelligence" },
+  { id: "actions", label: "NBA & Outcomes" },
 ];
 
 function displayName(company: CompanyDetail): string {
@@ -613,6 +615,14 @@ export default function V3Company360Page() {
         );
       case "intelligence":
         return <IntelligenceTab companyId={company.id} />;
+      case "actions":
+        return (
+          <CompanyNbaTab
+            companyId={company.id}
+            companyName={displayName(company)}
+            opportunities={companyOpps}
+          />
+        );
       default:
         return null;
     }
@@ -680,7 +690,11 @@ export default function V3Company360Page() {
         <>
           <PageHeader
             title={title}
-            description={company.name_en && company.name_ar ? company.name_ar : company.cr_number}
+            description={
+              company.name_en && company.name_ar
+                ? company.name_ar
+                : (company.cr_number ?? undefined)
+            }
             badge={
               <span className="flex flex-wrap items-center gap-1.5">
                 {!oppsLoading && !oppsError ? (

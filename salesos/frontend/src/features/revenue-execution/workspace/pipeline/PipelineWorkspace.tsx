@@ -244,6 +244,7 @@ function PipelineColumn({
 
   return (
     <div
+      data-testid={`pipeline-column-${stageKey}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -307,7 +308,10 @@ export function PipelineWorkspace() {
           api.get("/api/v1/pipeline/forecast"),
           api.get("/api/v1/pipeline/analytics"),
         ]);
-        if (oppsRes.status === "fulfilled") setOpportunities(safeArray(oppsRes.value.data));
+        if (oppsRes.status === "fulfilled") {
+          const payload = oppsRes.value.data;
+          setOpportunities(safeArray(payload?.items ?? payload));
+        }
         if (healthRes.status === "fulfilled") setHealthMap(safeArray(healthRes.value.data));
         if (forecastRes.status === "fulfilled") setForecast(forecastRes.value.data);
         if (analyticsRes.status === "fulfilled") setAnalytics(analyticsRes.value.data);
@@ -325,7 +329,7 @@ export function PipelineWorkspace() {
       map[s] = [];
     });
     opportunities.forEach((o) => {
-      const stage = (o.stage || "lead") as StageKey;
+      const stage = (o.stage || "prospecting") as StageKey;
       if (map[stage]) map[stage].push(o);
     });
     return map;
@@ -533,7 +537,7 @@ export function PipelineWorkspace() {
             <tbody>
               {opportunities.map((opp) => {
                 const score = healthMap.find((h) => h.opportunity_id === opp.id)?.health_score;
-                const stageConfig = STAGE_CONFIG[(opp.stage || "lead") as StageKey];
+                const stageConfig = STAGE_CONFIG[(opp.stage || "prospecting") as StageKey];
                 return (
                   <tr
                     key={opp.id}

@@ -1,11 +1,64 @@
 import api from "./client";
 import type {
   CreatePipelineResponse,
+  DealIntelligence,
   ExecutiveDashboardResponse,
   Opportunity,
+  OpportunityNBA,
   OpportunityListResponse,
+  PipelineAnalyticsSummary,
   PipelineListResponse,
+  RecommendationsResponse,
 } from "./types";
+
+export async function getRecommendations(tenantId: string): Promise<RecommendationsResponse> {
+  const response = await api.get("/api/v1/recommendations", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function getOpportunityNBA(
+  opportunityId: string,
+  tenantId: string
+): Promise<OpportunityNBA> {
+  const response = await api.get(`/api/v1/opportunities/${encodeURIComponent(opportunityId)}/nba`, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function refreshOpportunityNBA(
+  opportunityId: string,
+  tenantId: string
+): Promise<OpportunityNBA> {
+  const response = await api.post(
+    `/api/v1/opportunities/${encodeURIComponent(opportunityId)}/nba/refresh`,
+    null,
+    { headers: { "X-Tenant-Id": tenantId } }
+  );
+  return response.data;
+}
+
+export async function getDealIntelligence(
+  opportunityId: string,
+  tenantId: string
+): Promise<DealIntelligence> {
+  const response = await api.get(
+    `/api/v1/opportunities/${encodeURIComponent(opportunityId)}/intelligence`,
+    { headers: { "X-Tenant-Id": tenantId } }
+  );
+  return response.data;
+}
+
+export async function getPipelineAnalyticsSummary(
+  tenantId: string
+): Promise<PipelineAnalyticsSummary> {
+  const response = await api.get("/api/v1/pipeline/summary", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
 
 export async function getExecutiveDashboard(tenantId: string): Promise<ExecutiveDashboardResponse> {
   const response = await api.get("/api/v1/executive/dashboard", {

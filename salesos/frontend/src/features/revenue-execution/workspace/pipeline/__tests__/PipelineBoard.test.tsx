@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PipelineWorkspace } from "../PipelineWorkspace";
 import { I18nProvider } from "@/lib/i18n";
@@ -61,7 +61,7 @@ function makeOpp(overrides: Record<string, unknown> = {}) {
     id: "opp-1",
     name: "Test Deal",
     value: 500000,
-    stage: "lead",
+    stage: "prospecting",
     status: "open",
     company_name: "Acme Corp",
     company_id: "comp-1",
@@ -90,7 +90,8 @@ function setupApiMocks(
   const { opportunities = [], health = [], forecast = null, analytics = null } = overrides;
 
   mockApiGet.mockImplementation((url: string) => {
-    if (url === "/api/v1/opportunities") return Promise.resolve({ data: opportunities });
+    if (url === "/api/v1/opportunities")
+      return Promise.resolve({ data: { items: opportunities, total: opportunities.length } });
     if (url === "/api/v1/pipeline/health") return Promise.resolve({ data: health });
     if (url === "/api/v1/pipeline/forecast") return Promise.resolve({ data: forecast });
     if (url === "/api/v1/pipeline/analytics") return Promise.resolve({ data: analytics });
@@ -118,19 +119,20 @@ describe("PipelineWorkspace", () => {
   it("renders 6 kanban columns after loading", async () => {
     renderWithQuery(<PipelineWorkspace />);
     await waitFor(() => {
-      expect(screen.getByText("Opportunity")).toBeInTheDocument();
+      expect(screen.getAllByTestId(/^pipeline-column-/)).toHaveLength(6);
     });
-    expect(screen.getByText("Lead")).toBeInTheDocument();
-    expect(screen.getByText("Proposal")).toBeInTheDocument();
-    expect(screen.getByText("Negotiation")).toBeInTheDocument();
-    expect(screen.getByText("Closed Won")).toBeInTheDocument();
-    expect(screen.getByText("Closed Lost")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-column-prospecting")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-column-qualification")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-column-proposal")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-column-negotiation")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-column-closed_won")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-column-closed_lost")).toBeInTheDocument();
   });
 
   it("renders deal cards in correct columns", async () => {
     setupApiMocks({
       opportunities: [
-        makeOpp({ id: "o1", name: "Deal Alpha", stage: "lead" }),
+        makeOpp({ id: "o1", name: "Deal Alpha", stage: "prospecting" }),
         makeOpp({ id: "o2", name: "Deal Beta", stage: "proposal" }),
       ],
     });
@@ -139,13 +141,19 @@ describe("PipelineWorkspace", () => {
       expect(screen.getByText("Deal Alpha")).toBeInTheDocument();
     });
     expect(screen.getByText("Deal Beta")).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("pipeline-column-prospecting")).getByText("Deal Alpha")
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("pipeline-column-proposal")).getByText("Deal Beta")
+    ).toBeInTheDocument();
   });
 
   it("calculates pipeline value correctly", async () => {
     setupApiMocks({
       opportunities: [
-        makeOpp({ id: "o1", value: 100000, stage: "lead" }),
-        makeOpp({ id: "o2", value: 200000, stage: "opportunity" }),
+        makeOpp({ id: "o1", value: 100000, stage: "prospecting" }),
+        makeOpp({ id: "o2", value: 200000, stage: "qualification" }),
       ],
     });
     renderWithQuery(<PipelineWorkspace />);
@@ -157,31 +165,31 @@ describe("PipelineWorkspace", () => {
   it("shows empty drop zones when no opportunities", async () => {
     renderWithQuery(<PipelineWorkspace />);
     await waitFor(() => {
-      expect(screen.getByText("Lead")).toBeInTheDocument();
+      expect(screen.getByTestId("pipeline-column-prospecting")).toBeInTheDocument();
     });
-    expect(screen.getAllByText("Drop deals here").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Drop deals here|أفلت الصفقة هنا/)).toHaveLength(6);
   });
 
   it("toggles between Kanban and Table view", async () => {
     renderWithQuery(<PipelineWorkspace />);
     await waitFor(() => {
-      expect(screen.getByText("Lead")).toBeInTheDocument();
+      expect(screen.getByTestId("pipeline-column-prospecting")).toBeInTheDocument();
     });
-    const toggleBtn = screen.getByRole("button", { name: /table/i });
+    const toggleBtn = screen.getByRole("button", { name: /جدول|table/i });
     fireEvent.click(toggleBtn);
-    expect(screen.getByRole("button", { name: /board/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /لوحة|board/i })).toBeInTheDocument();
   });
 
   it("shows header with open deals count", async () => {
     setupApiMocks({
       opportunities: [
-        makeOpp({ id: "o1", stage: "lead" }),
-        makeOpp({ id: "o2", stage: "opportunity" }),
+        makeOpp({ id: "o1", stage: "prospecting" }),
+        makeOpp({ id: "o2", stage: "qualification" }),
       ],
     });
     renderWithQuery(<PipelineWorkspace />);
     await waitFor(() => {
-      expect(screen.getByText(/open deals/)).toBeInTheDocument();
+      expect(screen.getByText(/2 open deals|2 صفقات مفتوحة/)).toBeInTheDocument();
     });
   });
 });

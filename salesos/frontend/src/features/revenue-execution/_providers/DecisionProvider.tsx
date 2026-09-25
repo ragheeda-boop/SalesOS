@@ -153,7 +153,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
         actor_id: "ui",
         outcome: feedback.outcome,
         revenue_impact: feedback.revenueImpact,
-        timestamp: feedback.createdAt || new Date().toISOString(),
+        timestamp: feedback.createdAt,
       },
       {
         headers: tenantHeaders(feedback.tenantId),
@@ -161,7 +161,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
     );
     const data = response.data;
     return {
-      id: data?.id ?? feedback.id,
+      id: data?.id ?? feedback.decisionId,
       accepted: data?.accepted ?? feedback.outcome === "accepted",
     };
   }, []);

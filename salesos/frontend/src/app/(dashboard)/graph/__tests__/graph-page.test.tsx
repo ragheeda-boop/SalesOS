@@ -25,7 +25,8 @@ jest.mock("@/lib/i18n", () => ({
         "graph.opportunity": "Opportunity",
         "graph.total_nodes": "Nodes",
         "graph.total_edges": "Edges",
-        "graph.empty_state": "Search for entities or load demo data",
+        "graph.empty_state":
+          "Search for a company, contact, or relationship to visualize the graph.",
         "graph.no_results": "No results found",
         "graph.loading_graph": "Loading graph...",
         "graph.node_details": "Node Details",
@@ -78,25 +79,18 @@ describe("KnowledgeGraphPage", () => {
     expect(screen.getByText("Opportunity")).toBeInTheDocument();
   });
 
-  it("shows empty state message before search", () => {
+  it("shows the honest empty state before search", () => {
     render(<KnowledgeGraphPage />);
-    expect(screen.getByText("Search for entities or load demo data")).toBeInTheDocument();
+    expect(
+      screen.getByText("Search for a company, contact, or relationship to visualize the graph.")
+    ).toBeInTheDocument();
   });
 
-  it("shows demo button", () => {
+  it("does not show demo data or graph expansion before an entity is selected", () => {
     render(<KnowledgeGraphPage />);
-    expect(screen.getByText("Expand")).toBeInTheDocument();
-  });
-
-  it("loads demo data when expand button is clicked", async () => {
-    render(<KnowledgeGraphPage />);
-    fireEvent.click(screen.getByText("Expand"));
-    await waitFor(() => {
-      expect(screen.getByText(/Nodes/)).toBeInTheDocument();
-    });
-    await waitFor(() => {
-      expect(screen.getByText(/Edges/)).toBeInTheDocument();
-    });
+    expect(screen.queryByText("Expand")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Nodes/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Edges/)).not.toBeInTheDocument();
   });
 
   it("calls API on search", async () => {
@@ -122,7 +116,7 @@ describe("KnowledgeGraphPage", () => {
     await waitFor(() => {
       expect(screen.getByText("No results found")).toBeInTheDocument();
     });
-    // Intentional: failed search clears the graph; demo is opt-in via Expand.
+    // A failed search clears the graph; no sample data is inserted as a fallback.
     expect(screen.queryByText(/Nodes/)).not.toBeInTheDocument();
   });
 
@@ -150,7 +144,7 @@ describe("KnowledgeGraphPage", () => {
     expect(searchBtn).not.toBeDisabled();
   });
 
-  it("loads demo data from API results", async () => {
+  it("renders graph nodes from API results", async () => {
     mockApiGet.mockResolvedValueOnce({
       data: {
         results: [

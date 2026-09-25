@@ -10,6 +10,7 @@ import type {
   CursorResponse,
   PaginatedResponse,
   Company360Response,
+  CompanyAccountIntelligence,
 } from "./types";
 
 export async function searchContacts(
@@ -169,5 +170,37 @@ export async function getCompanyIntelligence(id: string, tenantId: string) {
   const response = await api.get(`/api/v1/companies/${id}/intelligence`, {
     headers: { "X-Tenant-Id": tenantId },
   });
+  return response.data;
+}
+
+export async function getCompanyAccountIntelligence(
+  id: string,
+  tenantId: string
+): Promise<CompanyAccountIntelligence> {
+  const response = await api.get(
+    `/api/v1/companies/${encodeURIComponent(id)}/account-intelligence`,
+    { headers: { "X-Tenant-Id": tenantId } }
+  );
+  return response.data;
+}
+
+export interface CompanyAccountEvidenceResult {
+  insight_id: string;
+  created: boolean;
+  evidence_count: number;
+  overall_confidence: number;
+  confidence_level: string;
+  idempotency_key: string;
+}
+
+export async function recordCompanyAccountEvidence(
+  companyId: string,
+  tenantId: string
+): Promise<CompanyAccountEvidenceResult> {
+  const response = await api.post<CompanyAccountEvidenceResult>(
+    `/api/v1/companies/${encodeURIComponent(companyId)}/account-intelligence/evidence`,
+    {},
+    { headers: { "X-Tenant-Id": tenantId } }
+  );
   return response.data;
 }

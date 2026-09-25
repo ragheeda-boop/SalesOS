@@ -50,7 +50,15 @@ function PreviewPanel({
   );
 }
 
-function UsersPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
+function UsersPanel({
+  ready,
+  hasToken,
+  permissionDescription,
+}: {
+  ready: boolean;
+  hasToken: boolean;
+  permissionDescription?: string;
+}) {
   const query = useQuery({
     queryKey: adminKeys.users({ page_size: "50" }),
     queryFn: () => listAdminUsers({ page_size: "50" }),
@@ -59,7 +67,15 @@ function UsersPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) 
   });
 
   if (!ready) return <LoadingState label="Checking session…" />;
-  if (!hasToken) return <PermissionState nextPath="/v3/admin" />;
+  if (!hasToken) {
+    return (
+      <PermissionState
+        nextPath="/admin/login"
+        title="Owner login required"
+        description={permissionDescription}
+      />
+    );
+  }
   if (query.isLoading) return <LoadingState label="Loading users…" />;
   if (query.isError) {
     return (
@@ -358,7 +374,12 @@ function AuditPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) 
 }
 
 export default function V3AdminPage() {
-  const { ready, hasToken } = useAccessToken();
+  const { ready, hasToken, audienceKind } = useAccessToken();
+  const hasOwnerToken = audienceKind === "owner";
+  const ownerDescription =
+    audienceKind === "tenant"
+      ? "This page uses Owner Console APIs. Your current tenant session can use workspace pages, but owner governance needs an owner login."
+      : "This page uses Owner Console APIs. Sign in with an owner session to load users, roles, feature flags, and audit logs.";
 
   const sections: DomainSection[] = useMemo(
     () => [
@@ -367,7 +388,13 @@ export default function V3AdminPage() {
         label: "Users",
         audience: "Admins",
         description: "Workspace members from the admin users API — read-only dual-run.",
-        body: <UsersPanel ready={ready} hasToken={hasToken} />,
+        body: (
+          <UsersPanel
+            ready={ready}
+            hasToken={hasOwnerToken}
+            permissionDescription={ownerDescription}
+          />
+        ),
       },
       {
         id: "roles",
@@ -375,12 +402,16 @@ export default function V3AdminPage() {
         audience: "Admins",
         description: "Named roles and permission counts. Matrix editing stays in legacy.",
         body:
-          ready && hasToken ? (
-            <RolesPanel ready={ready} hasToken={hasToken} />
+          ready && hasOwnerToken ? (
+            <RolesPanel ready={ready} hasToken={hasOwnerToken} />
           ) : !ready ? (
             <LoadingState />
           ) : (
-            <PermissionState nextPath="/v3/admin" />
+            <PermissionState
+              nextPath="/admin/login"
+              title="Owner login required"
+              description={ownerDescription}
+            />
           ),
       },
       {
@@ -437,12 +468,16 @@ export default function V3AdminPage() {
         audience: "Security",
         description: "Recent immutable action history for compliance review.",
         body:
-          ready && hasToken ? (
-            <AuditPanel ready={ready} hasToken={hasToken} />
+          ready && hasOwnerToken ? (
+            <AuditPanel ready={ready} hasToken={hasOwnerToken} />
           ) : !ready ? (
             <LoadingState />
           ) : (
-            <PermissionState nextPath="/v3/admin" />
+            <PermissionState
+              nextPath="/admin/login"
+              title="Owner login required"
+              description={ownerDescription}
+            />
           ),
       },
       {
@@ -451,12 +486,16 @@ export default function V3AdminPage() {
         audience: "Admins",
         description: "Module and Preview flags. AI copilot stays off by default.",
         body:
-          ready && hasToken ? (
-            <FlagsPanel ready={ready} hasToken={hasToken} />
+          ready && hasOwnerToken ? (
+            <FlagsPanel ready={ready} hasToken={hasOwnerToken} />
           ) : !ready ? (
             <LoadingState />
           ) : (
-            <PermissionState nextPath="/v3/admin" />
+            <PermissionState
+              nextPath="/admin/login"
+              title="Owner login required"
+              description={ownerDescription}
+            />
           ),
       },
       {
@@ -482,7 +521,7 @@ export default function V3AdminPage() {
         ),
       },
     ],
-    [ready, hasToken]
+    [ready, hasOwnerToken, ownerDescription]
   );
 
   return (

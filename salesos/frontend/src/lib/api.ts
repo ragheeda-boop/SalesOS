@@ -7,6 +7,8 @@ export * from "./api/search";
 export * from "./api/identity";
 export * from "./api/activities";
 export * from "./api/admin";
+export * from "./api/aiGovernance";
+export * from "./api/evidence";
 export * from "./api/settings";
 export * from "./api/integrationHub";
 export * from "./api/tenantStudio";

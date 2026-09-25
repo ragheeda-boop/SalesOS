@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getExecutiveDashboard, searchCompanies, type Company } from "@/lib/api";
+import {
+  getCustomerSurveySummary,
+  recordCustomerSurveyResponse,
+  type SurveyType,
+} from "@/lib/api/customerSuccess";
 import { companyKeys, dashboardKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../_components/page-header";
@@ -45,6 +50,158 @@ function PreviewPanel({
   );
 }
 
+function SurveyPanel({ companies, enabled }: { companies: Company[]; enabled: boolean }) {
+  const [companyId, setCompanyId] = useState("");
+  const [surveyType, setSurveyType] = useState<SurveyType>("nps");
+  const [score, setScore] = useState("10");
+  const [comment, setComment] = useState("");
+  const tenantId = getTenantId();
+  const summaryQuery = useQuery({
+    queryKey: ["customer-success", "surveys", "summary", tenantId],
+    queryFn: () => getCustomerSurveySummary(tenantId),
+    enabled,
+    staleTime: 15_000,
+  });
+  const recordMutation = useMutation({
+    mutationFn: () =>
+      recordCustomerSurveyResponse(
+        {
+          company_id: companyId,
+          survey_type: surveyType,
+          score: Number(score),
+          comment: comment.trim() || undefined,
+          source: "manual",
+          idempotency_key: typeof crypto !== "undefined" ? crypto.randomUUID() : undefined,
+        },
+        tenantId
+      ),
+    onSuccess: async () => {
+      setComment("");
+      await summaryQuery.refetch();
+    },
+  });
+
+  const summary = summaryQuery.data;
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (companyId && Number.isFinite(Number(score))) recordMutation.mutate();
+  };
+
+  if (companies.length === 0) {
+    return (
+      <EmptyState
+        title="No company available for a survey response"
+        description="Create or import a company first; responses always attach to a tenant-owned company."
+        action={<GhostButtonLink href="/v3/companies">Open companies</GhostButtonLink>}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {summaryQuery.isLoading ? <LoadingState label="Loading recorded survey metrics…" /> : null}
+      {summaryQuery.isError ? (
+        <ErrorState
+          title="Could not load survey metrics"
+          description={summaryQuery.error instanceof Error ? summaryQuery.error.message : "Request failed"}
+          onRetry={() => void summaryQuery.refetch()}
+        />
+      ) : null}
+      {summary ? (
+        <>
+          <MetricCards
+            items={[
+              { label: "NPS", value: summary.nps === null ? "—" : String(summary.nps) },
+              { label: "NPS responses", value: formatCount(summary.nps_responses) },
+              {
+                label: "CSAT average",
+                value: summary.csat_average === null ? "—" : `${summary.csat_average.toFixed(1)} / 5`,
+              },
+              { label: "CSAT responses", value: formatCount(summary.csat_responses) },
+            ]}
+          />
+          <p className="text-[12px] text-[var(--text-muted)]">
+            Scores use recorded responses only. Response rate is unavailable until survey invitations
+            are tracked.
+          </p>
+        </>
+      ) : null}
+      <form
+        onSubmit={onSubmit}
+        className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--border-default)] p-3 sm:grid-cols-2"
+      >
+        <label className="text-xs text-[var(--text-secondary)]">
+          Company
+          <select
+            value={companyId}
+            onChange={(event) => setCompanyId(event.target.value)}
+            required
+            className="mt-1 w-full rounded-[var(--radius-sm)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
+          >
+            <option value="">Select a company</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {companyDisplayName(company)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-[var(--text-secondary)]">
+          Survey type
+          <select
+            value={surveyType}
+            onChange={(event) => {
+              const type = event.target.value as SurveyType;
+              setSurveyType(type);
+              setScore(type === "nps" ? "10" : "5");
+            }}
+            className="mt-1 w-full rounded-[var(--radius-sm)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
+          >
+            <option value="nps">NPS (0–10)</option>
+            <option value="csat">CSAT (1–5)</option>
+          </select>
+        </label>
+        <label className="text-xs text-[var(--text-secondary)]">
+          Score
+          <input
+            type="number"
+            min={surveyType === "nps" ? 0 : 1}
+            max={surveyType === "nps" ? 10 : 5}
+            step="1"
+            value={score}
+            onChange={(event) => setScore(event.target.value)}
+            required
+            className="mt-1 w-full rounded-[var(--radius-sm)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
+          />
+        </label>
+        <label className="text-xs text-[var(--text-secondary)]">
+          Comment (optional)
+          <input
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            maxLength={5000}
+            className="mt-1 w-full rounded-[var(--radius-sm)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
+          />
+        </label>
+        <div className="sm:col-span-2">
+          <button
+            type="submit"
+            disabled={!companyId || recordMutation.isPending}
+            className="rounded-[var(--radius-sm)] bg-[var(--muhide-orange)] px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {recordMutation.isPending ? "Saving…" : "Record response"}
+          </button>
+          {recordMutation.isError ? (
+            <p className="mt-2 text-xs text-[var(--text-danger)]">
+              {recordMutation.error instanceof Error ? recordMutation.error.message : "Could not save response"}
+            </p>
+          ) : null}
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function V3CsPage() {
   const { ready, hasToken } = useAccessToken();
   const enabled = ready && hasToken;
@@ -59,13 +216,13 @@ export default function V3CsPage() {
   const companiesQuery = useQuery({
     queryKey: companyKeys.list({
       page: 1,
-      page_size: 8,
+      page_size: 100,
       sort_by: "name_ar",
       sort_order: "asc",
     }),
     queryFn: () =>
       searchCompanies(
-        { page: 1, page_size: 8, sort_by: "name_ar", sort_order: "asc" },
+        { page: 1, page_size: 100, sort_by: "name_ar", sort_order: "asc" },
         getTenantId()
       ),
     enabled,
@@ -73,8 +230,7 @@ export default function V3CsPage() {
   });
 
   const data = execQuery.data;
-// eslint-disable-next-line react-hooks/exhaustive-deps
-  const companies = companiesQuery.data?.items ?? [];
+  const companies = useMemo(() => companiesQuery.data?.items ?? [], [companiesQuery.data]);
 
   const sections: DomainSection[] = useMemo(() => {
     const gate =
@@ -147,7 +303,7 @@ export default function V3CsPage() {
               />
             ) : (
               <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
-                {companies.map((company) => (
+                {companies.slice(0, 8).map((company) => (
                   <li
                     key={company.id}
                     className="border-b border-[var(--border-default)] last:border-b-0"
@@ -304,11 +460,7 @@ export default function V3CsPage() {
         label: "NPS / CSAT",
         audience: "CS Ops",
         description: "Survey responses and trend slices.",
-        body: (
-          <PreviewPanel>
-            Survey APIs are not wired on dual-run CS. Do not invent NPS/CSAT numbers for demos.
-          </PreviewPanel>
-        ),
+        body: <SurveyPanel companies={companies} enabled={enabled} />,
       },
       {
         id: "plans",
@@ -335,6 +487,7 @@ export default function V3CsPage() {
   }, [
     ready,
     hasToken,
+    enabled,
     execQuery,
     data,
     companies,

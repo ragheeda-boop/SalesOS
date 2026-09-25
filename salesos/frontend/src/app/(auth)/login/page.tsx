@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useLogin } from "@/lib/hooks/mutationHooks";
 import { useTranslation } from "@/lib/i18n";
 import { Card, CardContent, Input, Button } from "@salesos/ui";
+import { resolvePostLoginPath } from "@/lib/auth/loginRedirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,9 +20,10 @@ export default function LoginPage() {
   const getNextPath = () => {
     const fallback = "/v3";
     if (typeof window === "undefined") return fallback;
-    const next = new URLSearchParams(window.location.search).get("next");
-    if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
-    return next;
+    return resolvePostLoginPath(
+      new URLSearchParams(window.location.search),
+      window.location.origin
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,10 +89,16 @@ export default function LoginPage() {
           >
             {t("auth.login_title")}
           </h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            autoComplete="off"
+            data-salesos-login="identity"
+          >
             <Input
               label={t("labels.email")}
               type="email"
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={error && !email ? error : undefined}
@@ -99,6 +107,7 @@ export default function LoginPage() {
             <Input
               label={t("labels.password")}
               type="password"
+              autoComplete="off"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

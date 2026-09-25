@@ -1,13 +1,8 @@
 /** Canonical opportunity stages — matches backend OpportunityStage.default_pipeline. */
 export type OpportunityStage =
-  | "prospecting"
-  | "qualification"
-  | "proposal"
-  | "negotiation"
-  | "closed_won"
-  | "closed_lost";
+  "prospecting" | "qualification" | "proposal" | "negotiation" | "closed_won" | "closed_lost";
 
-export type OpportunitySource = "nba" | "manual" | "import" | "signal";
+export type OpportunitySource = "nba" | "manual" | "import" | "signal" | "unknown";
 
 export const STAGES: OpportunityStage[] = [
   "prospecting",
@@ -28,9 +23,9 @@ export const STAGE_LABEL: Record<OpportunityStage, string> = {
 };
 
 export const STAGE_WEIGHT: Record<OpportunityStage, number> = {
-  prospecting: 0.10,
+  prospecting: 0.1,
   qualification: 0.25,
-  proposal: 0.50,
+  proposal: 0.5,
   negotiation: 0.75,
   closed_won: 1.0,
   closed_lost: 0,

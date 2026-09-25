@@ -35,6 +35,17 @@ describe("useExecutiveDashboard", () => {
         weighted_pipeline: 1500000,
         forecast: 1200000,
         growth_percent: 15,
+        currency_consistent: true,
+        by_currency: [
+          {
+            currency: "SAR",
+            total_booked: 1000000,
+            total_pipeline: 2000000,
+            weighted_pipeline: 1500000,
+            forecast: 1200000,
+            growth_percent: 15,
+          },
+        ],
       },
       team: {
         total_employees: 50,
@@ -61,6 +72,7 @@ describe("useExecutiveDashboard", () => {
         lost_deals: 3,
         win_rate: 0.4,
         avg_deal_size: 100000,
+        by_currency: [],
         by_stage: [],
       },
       renewals: {

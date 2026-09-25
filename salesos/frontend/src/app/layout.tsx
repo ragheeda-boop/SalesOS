@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   title: "SalesOS - Enterprise Company Intelligence Platform",
   description: "AI-powered company intelligence, CRM, and data platform",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   other: {
     "theme-color": "#0a0a0a",
     "apple-mobile-web-app-capable": "yes",
@@ -39,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#0a0a0a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link
           rel="preconnect"
           href={process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}

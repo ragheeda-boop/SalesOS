@@ -16,6 +16,18 @@ function makeDashData(overrides: Record<string, unknown> = {}) {
       forecast: 2000000,
       total_pipeline: 3500000,
       weighted_pipeline: 1800000,
+      growth_percent: 12,
+      currency_consistent: true,
+      by_currency: [
+        {
+          currency: "SAR",
+          total_booked: 1500000,
+          total_pipeline: 3500000,
+          weighted_pipeline: 1800000,
+          forecast: 2000000,
+          growth_percent: 12,
+        },
+      ],
     },
     team: { active_employees: 12, total_employees: 15, avg_win_rate: 0.35 },
     risk: { expiring_contracts: 3, stalled_deals: 2 },
@@ -26,9 +38,19 @@ function makeDashData(overrides: Record<string, unknown> = {}) {
       win_rate: 0.35,
       total_value: 3500000,
       avg_deal_size: 175000,
+      by_currency: [
+        {
+          currency: "SAR",
+          total_deals: 20,
+          total_value: 3500000,
+          won_deals: 7,
+          lost_deals: 3,
+          avg_deal_size: 175000,
+        },
+      ],
       by_stage: [
-        { stage: "استكشاف", val: 1000000 },
-        { stage: "تأهيل", val: 800000 },
+        { stage: "استكشاف", currency: "SAR", cnt: 3, val: 1000000 },
+        { stage: "تأهيل", currency: "SAR", cnt: 2, val: 800000 },
       ],
     },
     growth: {
@@ -120,7 +142,7 @@ describe("ExecutiveDashboard", () => {
     });
     render(<ExecutiveDashboard />);
     expect(screen.getByText("الإيرادات المسجلة")).toBeInTheDocument();
-    expect(screen.getByText(/١٬٥٠٠٬٠٠٠/)).toBeInTheDocument();
+    expect(screen.getByText(/1,500,000/)).toBeInTheDocument();
   });
 
   it("renders team stats", () => {
@@ -160,8 +182,8 @@ describe("ExecutiveDashboard", () => {
     });
     render(<ExecutiveDashboard />);
     expect(screen.getByText("حسب المرحلة")).toBeInTheDocument();
-    expect(screen.getByText("استكشاف")).toBeInTheDocument();
-    expect(screen.getByText("تأهيل")).toBeInTheDocument();
+    expect(screen.getByText("استكشاف · SAR")).toBeInTheDocument();
+    expect(screen.getByText("تأهيل · SAR")).toBeInTheDocument();
   });
 
   it("renders average deal size", () => {
@@ -171,7 +193,50 @@ describe("ExecutiveDashboard", () => {
     });
     render(<ExecutiveDashboard />);
     expect(screen.getByText("متوسط حجم الصفقة")).toBeInTheDocument();
-    expect(screen.getByText(/١٧٥٬٠٠٠/)).toBeInTheDocument();
+    expect(screen.getByText(/SAR\s*175,000/)).toBeInTheDocument();
+  });
+
+  it("keeps mixed-currency pipeline values separate", () => {
+    const data = makeDashData() as ReturnType<typeof makeDashData> & {
+      pipeline: Record<string, unknown>;
+    };
+    data.pipeline = {
+      ...data.pipeline,
+      total_value: null,
+      avg_deal_size: null,
+      by_currency: [
+        {
+          currency: "SAR",
+          total_deals: 3,
+          total_value: 1000000,
+          won_deals: 1,
+          lost_deals: 0,
+          avg_deal_size: 333333,
+        },
+        {
+          currency: "USD",
+          total_deals: 2,
+          total_value: 5000,
+          won_deals: 0,
+          lost_deals: 1,
+          avg_deal_size: 2500,
+        },
+      ],
+      by_stage: [
+        { stage: "استكشاف", currency: "SAR", cnt: 1, val: 1000000 },
+        { stage: "Qualified", currency: "USD", cnt: 1, val: 5000 },
+      ],
+    };
+    mockUseExecutiveDashboard.mockReturnValue({ data, isLoading: false });
+
+    render(<ExecutiveDashboard />);
+
+    expect(screen.getByText("استكشاف · SAR")).toBeInTheDocument();
+    expect(screen.getByText("Qualified · USD")).toBeInTheDocument();
+    expect(screen.getByText("متوسط حجم الصفقة").parentElement).toHaveTextContent(
+      /SAR\s*333,333.*USD\s*2,500/
+    );
+    expect(screen.queryByText(/SAR\s*1,005,000/)).not.toBeInTheDocument();
   });
 
   it("renders growth section", () => {
@@ -249,6 +314,7 @@ describe("ExecutiveDashboard", () => {
           win_rate: 0.35,
           total_value: 3500000,
           avg_deal_size: 175000,
+          by_currency: [],
           by_stage: [],
         },
       }),

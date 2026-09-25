@@ -1,5 +1,5 @@
 export const AI_POLICIES_HONESTY =
-  "Tip /api/v1/studio/ai-policies — in-memory CAP-091 AI Policies " +
+  "Tip /api/v1/studio/ai-policies — tenant-RLS persisted CAP-091 AI Policies " +
   "reusing AI-GR-* guardrails (toggles + data-class → model-tier ceilings + evaluate). " +
   "feature_ai_copilot remains False; live LLM / RAG GO not claimed.";
 

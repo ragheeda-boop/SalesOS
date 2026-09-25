@@ -774,6 +774,17 @@ describe("getExecutiveDashboard — contract", () => {
         weighted_pipeline: 2500000,
         forecast: 3000000,
         growth_percent: 15,
+        currency_consistent: true,
+        by_currency: [
+          {
+            currency: "SAR",
+            total_booked: 1000000,
+            total_pipeline: 5000000,
+            weighted_pipeline: 2500000,
+            forecast: 3000000,
+            growth_percent: 15,
+          },
+        ],
       },
       team: {
         total_employees: 50,
@@ -800,6 +811,7 @@ describe("getExecutiveDashboard — contract", () => {
         lost_deals: 5,
         win_rate: 0.33,
         avg_deal_size: 166666,
+        by_currency: [],
         by_stage: [],
       },
       renewals: {

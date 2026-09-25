@@ -156,6 +156,13 @@ export async function listTasks(
   return response.data;
 }
 
+export async function getTask(tenantId: string, taskId: string): Promise<TaskResponse> {
+  const response = await api.get(`/api/v1/tasks/${taskId}`, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
 export async function completeTask(taskId: string): Promise<TaskResponse> {
   const response = await api.put(`/api/v1/tasks/${taskId}/complete`);
   return response.data;

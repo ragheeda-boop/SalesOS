@@ -21,7 +21,8 @@ const STAGES: OpportunityStage[] = [
 const STAGE_STYLE: Record<string, string> = {
   prospecting: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
   qualification: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
-  proposal: "bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--text-muted)]",
+  proposal:
+    "bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--text-muted)]",
   negotiation: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
   closed_won: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
   closed_lost: "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
@@ -59,7 +60,9 @@ export function OpportunityListView({ opportunities, onSelect }: OpportunityList
   }, [opportunities]);
 
   const totalValue = opportunities.reduce((s, o) => s + o.estimatedValue, 0);
-  const activeCount = opportunities.filter((o) => !["won", "lost"].includes(o.stage)).length;
+  const activeCount = opportunities.filter(
+    (o) => !["closed_won", "closed_lost"].includes(o.stage)
+  ).length;
 
   return (
     <div role="region" aria-label="قائمة الفرص" className="space-y-3/20 dark:rounded-lg dark:p-1">
@@ -156,7 +159,7 @@ export function OpportunityListView({ opportunities, onSelect }: OpportunityList
                   <span
                     className={cn(
                       "mr-auto rounded px-1 py-0.5 text-[9px] font-medium",
-                      STAGE_STYLE[opp.stage] ?? STAGE_STYLE.identified
+                      STAGE_STYLE[opp.stage] ?? STAGE_STYLE.prospecting
                     )}
                   >
                     {STAGE_LABEL[opp.stage]}

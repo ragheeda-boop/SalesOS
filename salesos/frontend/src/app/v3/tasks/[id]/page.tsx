@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { completeTask, getCompany, listTasks, type TaskResponse } from "@/lib/api";
+import { completeTask, getCompany, getTask } from "@/lib/api";
 import { companyKeys, taskKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
@@ -30,9 +29,6 @@ function Field({ label, value }: { label: string; value: string | number | null 
   );
 }
 
-/**
- * No GET /api/v1/tasks/{id} exists — detail resolves from listTasks (honest dual-run).
- */
 export default function V3TaskDetailPage() {
   const params = useParams();
   const id = String(params.id ?? "");
@@ -41,22 +37,17 @@ export default function V3TaskDetailPage() {
   const nextPath = `/v3/tasks/${id}`;
 
   const {
-    data: tasks,
+    data: task,
     isLoading,
     isError,
     error,
     refetch,
   } = useQuery({
-    queryKey: taskKeys.list(),
-    queryFn: () => listTasks(getTenantId()),
+    queryKey: taskKeys.detail(id),
+    queryFn: () => getTask(getTenantId(), id),
     enabled: ready && hasToken && !!id,
     staleTime: 15_000,
   });
-
-  const task: TaskResponse | undefined = useMemo(
-    () => (tasks ?? []).find((t) => t.id === id),
-    [tasks, id]
-  );
 
   const companyId = task?.company_id ?? undefined;
   const {
@@ -114,7 +105,7 @@ export default function V3TaskDetailPage() {
             description={
               error instanceof Error
                 ? error.message
-                : "List fetch failed — detail has no dedicated GET endpoint"
+                : "Task detail request failed"
             }
             onRetry={() => void refetch()}
           />
@@ -127,7 +118,7 @@ export default function V3TaskDetailPage() {
           />
           <EmptyState
             title="Task not found"
-            description="No matching row in GET /api/v1/tasks for this id. There is no GET /tasks/{id} — detail is list-resolved only."
+            description="No task belongs to this workspace with this id."
             action={<GhostButtonLink href="/v3/tasks">Browse tasks</GhostButtonLink>}
           />
         </>
@@ -170,16 +161,13 @@ export default function V3TaskDetailPage() {
             }
           />
 
-          <p className="mb-4 text-[12px] text-[var(--text-muted)]">
-            Detail is resolved from the tasks list API — no dedicated GET /api/v1/tasks/{"{id}"}.
-          </p>
-
           <dl className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Title" value={task.title} />
             <Field label="Priority" value={task.priority} />
             <Field label="Status" value={task.completed ? "Done" : "Open"} />
             <Field label="Source" value={task.source} />
             <Field label="Opportunity id" value={task.opportunity_id} />
+            <Field label="Due" value={formatWhen(task.due_date)} />
             <Field label="Created" value={formatWhen(task.created_at)} />
             <Field label="Task id" value={task.id} />
           </dl>

@@ -13,7 +13,7 @@ const sample: RevenueOpportunity = {
   estimatedValue: 500000,
   confidence: 0.85,
   winProbability: 0.45,
-  stage: "developing",
+  stage: "proposal",
   createdAt: "2026-07-01",
   lastActivityAt: "2026-07-10",
   buyingIntent: 0.82,
@@ -61,7 +61,7 @@ describe("OpportunityDetailView", () => {
 
   it("renders stage", () => {
     renderView();
-    expect(screen.getByText("قيد التطوير")).toBeInTheDocument();
+    expect(screen.getByText("عرض سعر")).toBeInTheDocument();
   });
 
   it("renders estimated value", () => {
@@ -89,7 +89,7 @@ describe("OpportunityDetailView", () => {
     render(<OpportunityDetailView opportunity={sample} onStageChange={onStageChange} />);
     const stages = screen.getAllByText("6");
     fireEvent.click(stages[0]);
-    expect(onStageChange).toHaveBeenCalledWith("o1", "closing");
+    expect(onStageChange).toHaveBeenCalledWith("o1", "closed_lost");
   });
 
   it("shows empty state", () => {

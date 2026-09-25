@@ -2,29 +2,27 @@ import { calculateWinProbability, STAGE_WEIGHT, STAGE_LABEL } from "../opportuni
 
 describe("STAGE_WEIGHT", () => {
   it("has correct weights", () => {
-    expect(STAGE_WEIGHT.identified).toBe(0.1);
-    expect(STAGE_WEIGHT.qualifying).toBe(0.25);
-    expect(STAGE_WEIGHT.developing).toBe(0.45);
-    expect(STAGE_WEIGHT.proposing).toBe(0.65);
-    expect(STAGE_WEIGHT.negotiating).toBe(0.8);
-    expect(STAGE_WEIGHT.closing).toBe(0.9);
-    expect(STAGE_WEIGHT.won).toBe(1.0);
-    expect(STAGE_WEIGHT.lost).toBe(0);
+    expect(STAGE_WEIGHT.prospecting).toBe(0.1);
+    expect(STAGE_WEIGHT.qualification).toBe(0.25);
+    expect(STAGE_WEIGHT.proposal).toBe(0.5);
+    expect(STAGE_WEIGHT.negotiation).toBe(0.75);
+    expect(STAGE_WEIGHT.closed_won).toBe(1.0);
+    expect(STAGE_WEIGHT.closed_lost).toBe(0);
   });
 });
 
 describe("STAGE_LABEL", () => {
   it("has Arabic labels for all stages", () => {
-    expect(STAGE_LABEL.identified).toBe("تم التحديد");
-    expect(STAGE_LABEL.won).toBe("فوز");
-    expect(STAGE_LABEL.lost).toBe("خسارة");
+    expect(STAGE_LABEL.prospecting).toBe("استكشاف");
+    expect(STAGE_LABEL.closed_won).toBe("صفقة مغلقة");
+    expect(STAGE_LABEL.closed_lost).toBe("خسارة");
   });
 });
 
 describe("calculateWinProbability", () => {
   it("returns 1 for max values", () => {
     const prob = calculateWinProbability({
-      stage: "won",
+      stage: "closed_won",
       buyingIntent: 1,
       relationshipStrength: 1,
       nbaConfidence: 1,
@@ -35,7 +33,7 @@ describe("calculateWinProbability", () => {
 
   it("returns 0.30 * stage weight for zero factors", () => {
     const prob = calculateWinProbability({
-      stage: "identified",
+      stage: "prospecting",
       buyingIntent: 0,
       relationshipStrength: 0,
       nbaConfidence: 0,
@@ -46,14 +44,14 @@ describe("calculateWinProbability", () => {
 
   it("increases probability with higher buying intent", () => {
     const low = calculateWinProbability({
-      stage: "qualifying",
+      stage: "qualification",
       buyingIntent: 0.2,
       relationshipStrength: 0.5,
       nbaConfidence: 0.5,
       signalActivity: 0.5,
     });
     const high = calculateWinProbability({
-      stage: "qualifying",
+      stage: "qualification",
       buyingIntent: 0.9,
       relationshipStrength: 0.5,
       nbaConfidence: 0.5,
@@ -64,14 +62,14 @@ describe("calculateWinProbability", () => {
 
   it("scales with stage progression", () => {
     const early = calculateWinProbability({
-      stage: "identified",
+      stage: "prospecting",
       buyingIntent: 0.5,
       relationshipStrength: 0.5,
       nbaConfidence: 0.5,
       signalActivity: 0.5,
     });
     const late = calculateWinProbability({
-      stage: "negotiating",
+      stage: "negotiation",
       buyingIntent: 0.5,
       relationshipStrength: 0.5,
       nbaConfidence: 0.5,

@@ -6,7 +6,7 @@ jest.mock("../../../_hooks/useAccessToken", () => ({
 }));
 
 jest.mock("@/lib/api", () => ({
-  listTasks: jest.fn(),
+  getTask: jest.fn(),
   getCompany: jest.fn(),
   completeTask: jest.fn(),
 }));
@@ -23,10 +23,10 @@ jest.mock("@/components/v3/V3AiPopup", () => ({
   openV3AiPopup: jest.fn(),
 }));
 
-import { listTasks, getCompany } from "@/lib/api";
+import { getTask, getCompany } from "@/lib/api";
 import V3TaskDetailPage from "../page";
 
-const mockedList = listTasks as jest.MockedFunction<typeof listTasks>;
+const mockedGetTask = getTask as jest.MockedFunction<typeof getTask>;
 const mockedCompany = getCompany as jest.MockedFunction<typeof getCompany>;
 
 function renderPage() {
@@ -63,16 +63,14 @@ describe("V3 task detail /companies leak", () => {
   });
 
   it("does not leak a linked company to legacy /companies/{id}", async () => {
-    mockedList.mockResolvedValue([
-      {
-        id: "task-1",
-        title: "Follow up",
-        priority: "medium",
-        source: "manual",
-        company_id: "co-1",
-        completed: false,
-      },
-    ]);
+    mockedGetTask.mockResolvedValue({
+      id: "task-1",
+      title: "Follow up",
+      priority: "medium",
+      source: "manual",
+      company_id: "co-1",
+      completed: false,
+    });
     renderPage();
     expect(await screen.findByRole("heading", { name: "Follow up" })).toBeInTheDocument();
     expect(await screen.findByRole("link", { name: "Open Company 360" })).toHaveAttribute(
@@ -85,16 +83,14 @@ describe("V3 task detail /companies leak", () => {
   });
 
   it("keeps the no-company empty state inside v3", async () => {
-    mockedList.mockResolvedValue([
-      {
-        id: "task-1",
-        title: "Unlinked task",
-        priority: "medium",
-        source: "manual",
-        company_id: null,
-        completed: false,
-      },
-    ]);
+    mockedGetTask.mockResolvedValue({
+      id: "task-1",
+      title: "Unlinked task",
+      priority: "medium",
+      source: "manual",
+      company_id: null,
+      completed: false,
+    });
     renderPage();
     expect(await screen.findByRole("heading", { name: "Unlinked task" })).toBeInTheDocument();
     expect(await screen.findByText("No company linked")).toBeInTheDocument();

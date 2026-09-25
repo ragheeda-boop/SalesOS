@@ -10,7 +10,7 @@ import { MeetingView } from "./MeetingView";
 function mapToMeetingBrief(result: DecisionResult): MeetingBrief {
   return {
     companyName: result.explainability?.why?.split(" ")[0] ?? "الشركة",
-    meetingTitle: result.recommendation?.actionLabel ?? result.action,
+    meetingTitle: result.recommendation.actionLabel ?? result.action,
     date: new Date().toISOString().split("T")[0],
     attendees: result.evidence.slice(0, 3).map((e, i) => ({
       name: (e.source as string) ?? `حضور ${i + 1}`,
@@ -27,7 +27,7 @@ function mapToMeetingBrief(result: DecisionResult): MeetingBrief {
       result.recommendation?.reason ?? "",
       ...result.evidence.slice(0, 2).map((e) => e.description as string),
     ].filter(Boolean),
-    recommendedAction: result.recommendation?.actionLabel ?? result.action,
+    recommendedAction: result.recommendation.actionLabel ?? result.action,
   };
 }
 

@@ -4,6 +4,7 @@
 import { useExecutiveDashboard } from "@/lib/hooks/executiveQueries";
 import { Card, CardContent, CardHeader, Badge, cn } from "@salesos/ui";
 import { formatNumber } from "@/lib/utils";
+import type { RevenueKPI } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import {
   DollarSign,
@@ -68,15 +69,43 @@ function KPICard({
   );
 }
 
+function formatMoney(value: number | null | undefined, currency: string): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+      currencyDisplay: "code",
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `${currency} ${formatNumber(value)}`;
+  }
+}
+
+function revenueAmount(
+  revenue: RevenueKPI,
+  field: "total_booked" | "total_pipeline" | "weighted_pipeline" | "forecast"
+): string {
+  if (revenue.currency_consistent) {
+    return formatMoney(revenue[field], revenue.by_currency[0]?.currency ?? "SAR");
+  }
+  return revenue.by_currency
+    .map((row) => formatMoney(row[field], row.currency))
+    .join(" · ") || "—";
+}
+
 function ProgressBar({
   value,
   max,
   label,
+  currency,
   color,
 }: {
   value: number;
   max: number;
   label: string;
+  currency: string;
   color: string;
 }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
@@ -84,7 +113,7 @@ function ProgressBar({
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{label}</span>
-        <span className="font-medium text-[var(--text-primary)]">{formatNumber(value)}</span>
+        <span className="font-medium text-[var(--text-primary)]">{formatMoney(value, currency)}</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
         <div
@@ -159,15 +188,15 @@ export function ExecutiveDashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title={t("executive.booked_revenue")}
-          value={`${formatNumber(d.revenue.total_booked)} ${t("common.currency")}`}
-          subtitle={`${t("executive.target")} ${formatNumber(d.revenue.forecast)} ${t("common.currency")}`}
+          value={revenueAmount(d.revenue, "total_booked")}
+          subtitle={`${t("executive.target")} ${revenueAmount(d.revenue, "forecast")}`}
           icon={DollarSign}
           color="bg-success-600"
         />
         <KPICard
           title={t("executive.deal_value")}
-          value={`${formatNumber(d.revenue.total_pipeline)} ${t("common.currency")}`}
-          subtitle={`${t("executive.weighted")} ${formatNumber(d.revenue.weighted_pipeline)} ${t("common.currency")}`}
+          value={revenueAmount(d.revenue, "total_pipeline")}
+          subtitle={`${t("executive.weighted")} ${revenueAmount(d.revenue, "weighted_pipeline")}`}
           icon={TrendingUp}
           color="bg-info-600"
         />
@@ -242,10 +271,14 @@ export function ExecutiveDashboard() {
                 </h3>
                 {d.pipeline.by_stage.map((stage) => (
                   <ProgressBar
-                    key={stage.stage}
-                    label={stage.stage}
+                    key={`${stage.currency}:${stage.stage}`}
+                    label={`${stage.stage} · ${stage.currency}`}
                     value={stage.val}
-                    max={d.pipeline.total_value}
+                    currency={stage.currency}
+                    max={
+                      d.pipeline.by_currency.find((row) => row.currency === stage.currency)
+                        ?.total_value ?? 0
+                    }
                     color="bg-info-500"
                   />
                 ))}
@@ -256,7 +289,11 @@ export function ExecutiveDashboard() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[var(--text-secondary)]">{t("executive.avg_deal_size")}</span>
                 <span className="font-bold text-[var(--text-primary)]">
-                  {formatNumber(d.pipeline.avg_deal_size)} {t("common.currency")}
+                  {d.pipeline.avg_deal_size != null
+                    ? formatMoney(d.pipeline.avg_deal_size, d.pipeline.by_currency[0]?.currency ?? "SAR")
+                    : d.pipeline.by_currency
+                        .map((row) => formatMoney(row.avg_deal_size, row.currency))
+                        .join(" · ") || "—"}
                 </span>
               </div>
             </div>

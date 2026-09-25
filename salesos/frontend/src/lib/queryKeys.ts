@@ -266,6 +266,27 @@ export const settingsKeys = {
   apiKeys: () => [...settingsKeys.all, "api-keys"] as const,
 };
 
+export const signalActionKeys = {
+  all: ["signal-actions"] as const,
+  actions: (filters?: Record<string, unknown>) =>
+    [...signalActionKeys.all, "actions", filters] as const,
+  dashboard: () => [...signalActionKeys.all, "dashboard"] as const,
+};
+
+export const hitlKeys = {
+  all: ["hitl"] as const,
+  myDay: (sellerId: string) => [...hitlKeys.all, "my-day", sellerId] as const,
+  feedback: (companyName: string) => [...hitlKeys.all, "feedback", companyName] as const,
+  outcomes: (companyName: string) => [...hitlKeys.all, "outcomes", companyName] as const,
+  analytics: (filters?: Record<string, unknown>) =>
+    [...hitlKeys.all, "analytics", filters] as const,
+};
+
+export const effectivenessKeys = {
+  all: ["effectiveness"] as const,
+  dashboard: () => [...effectivenessKeys.all, "dashboard"] as const,
+};
+
 export const decisionKeys = {
   all: ["decisions"] as const,
   evaluate: () => [...decisionKeys.all, "evaluate"] as const,

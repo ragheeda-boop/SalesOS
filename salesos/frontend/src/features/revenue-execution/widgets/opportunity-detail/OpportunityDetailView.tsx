@@ -9,15 +9,13 @@ import {
 } from "@/application/revenue-execution/opportunity.dto";
 
 const STAGE_STYLE: Record<string, string> = {
-  identified: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
-  qualifying: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
-  developing:
+  prospecting: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
+  qualification: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
+  proposal:
     "bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--text-muted)]",
-  proposing: "bg-[var(--status-warning-bg)] text-amber-700",
-  negotiating: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
-  closing: "bg-[var(--status-danger-bg)] text-red-700",
-  won: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
-  lost: "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+  negotiation: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
+  closed_won: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
+  closed_lost: "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
 };
 
 const RISK_S = {
@@ -80,7 +78,7 @@ export function OpportunityDetailView({ opportunity, onStageChange }: Opportunit
           <span
             className={cn(
               "mr-auto rounded px-1.5 py-0.5 text-[10px] font-medium",
-              STAGE_STYLE[opp.stage]
+              STAGE_STYLE[opp.stage] ?? STAGE_STYLE.prospecting
             )}
           >
             {STAGE_LABEL[opp.stage]}

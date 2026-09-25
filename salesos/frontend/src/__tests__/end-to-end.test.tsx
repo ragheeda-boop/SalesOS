@@ -29,32 +29,33 @@ jest.mock("@/lib/api", () => {
         if (url.includes("tasks")) return Promise.resolve({ data: { items: store.tasks } });
         return Promise.resolve({ data: { items: [] } });
       }),
-      post: jest.fn((url: string, data: any) => {
+      post: jest.fn((url: string, _body: any, config: any) => {
         if (url.includes("opportunities")) {
+          const data = config.params;
           const opp = {
             id: "opp_" + Math.random().toString(36).slice(2, 10),
-            companyId: data.company_id,
-            title: data.title,
-            estimatedValue: data.estimated_value,
-            confidence: data.confidence,
-            buyingIntent: data.buying_intent,
-            relationshipStrength: data.relationship_strength,
-            sourceActionId: data.source_action_id,
-            stage: "identified",
-            source: "nba",
-            createdAt: new Date().toISOString(),
-            notes: [],
-            tags: [],
+            company_id: data.company_id,
+            name: data.name,
+            value: data.value,
+            stage: "prospecting",
           };
           store.opps.push(opp);
-          return Promise.resolve({ data: opp });
+          return Promise.resolve({
+            data: {
+              id: opp.id,
+              name: opp.name,
+              stage: opp.stage,
+              value: opp.value,
+              owner_id: "",
+            },
+          });
         }
         if (url.includes("tasks")) {
           const task = {
             id: "task_" + Math.random().toString(36).slice(2, 10),
             completed: false,
             createdAt: new Date().toISOString(),
-            ...data,
+            ..._body,
           };
           store.tasks.push(task);
           return Promise.resolve({ data: task });
@@ -260,7 +261,7 @@ describe("Flow 3: NBA → Opportunity", () => {
 
     expect(opp.title).toBe(nba.actionLabel);
     expect(opp.estimatedValue).toBe(500000);
-    expect(opp.stage).toBe("identified");
+    expect(opp.stage).toBe("prospecting");
     expect(opp.source).toBe("nba");
     expect(opp.sourceActionId).toBe(nba.actionId);
     opportunityId = opp.id;
@@ -268,7 +269,7 @@ describe("Flow 3: NBA → Opportunity", () => {
 
   it("calculates win probability for the opportunity", () => {
     const prob = calculateWinProbability({
-      stage: "developing",
+      stage: "negotiation",
       buyingIntent: 0.82,
       relationshipStrength: 0.7,
       nbaConfidence: 0.85,
@@ -279,22 +280,22 @@ describe("Flow 3: NBA → Opportunity", () => {
   });
 
   it("updates opportunity stage through pipeline", async () => {
-    const updated = await updateOpportunityStage(opportunityId, "qualifying");
+    const updated = await updateOpportunityStage(opportunityId, "qualification");
     const opp = updated.find((o) => o.id === opportunityId);
-    expect(opp?.stage).toBe("qualifying");
+    expect(opp?.stage).toBe("qualification");
   });
 
-  it("advances stage to developing", async () => {
-    const updated = await updateOpportunityStage(opportunityId, "developing");
+  it("advances stage to proposal", async () => {
+    const updated = await updateOpportunityStage(opportunityId, "proposal");
     const opp = updated.find((o) => o.id === opportunityId);
-    expect(opp?.stage).toBe("developing");
+    expect(opp?.stage).toBe("proposal");
   });
 
   it("has correct stage labels", () => {
-    expect(STAGE_LABEL.identified).toBe("تم التحديد");
-    expect(STAGE_LABEL.developing).toBe("قيد التطوير");
-    expect(STAGE_LABEL.closing).toBe("قيد الإغلاق");
-    expect(STAGE_LABEL.won).toBe("فوز");
+    expect(STAGE_LABEL.prospecting).toBe("استكشاف");
+    expect(STAGE_LABEL.proposal).toBe("عرض سعر");
+    expect(STAGE_LABEL.negotiation).toBe("تفاوض");
+    expect(STAGE_LABEL.closed_won).toBe("صفقة مغلقة");
   });
 });
 
@@ -352,10 +353,10 @@ describe("Flow 5: Full Product Flow", () => {
       buyingIntent: action!.scoreBreakdown.buyingIntent,
       relationshipStrength: action!.scoreBreakdown.relationshipStrength,
     });
-    expect(opp.stage).toBe("identified");
+    expect(opp.stage).toBe("prospecting");
 
     // 4. Advance through pipeline
-    const stages = ["qualifying", "developing", "proposing"] as const;
+    const stages = ["qualification", "proposal", "negotiation"] as const;
     for (const stage of stages) {
       const updated = await updateOpportunityStage(opp.id, stage);
       const o = updated.find((x) => x.id === opp.id);
@@ -364,7 +365,7 @@ describe("Flow 5: Full Product Flow", () => {
 
     // 5. Calculate win probability
     const prob = calculateWinProbability({
-      stage: "proposing",
+      stage: "proposal",
       buyingIntent: 0.82,
       relationshipStrength: 0.7,
       nbaConfidence: 0.85,

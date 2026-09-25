@@ -8,8 +8,14 @@ interface NBAWidgetContainerProps {
   opportunityId: string;
 }
 
+type NBARecommendationWithStatus = NBARecommendation & {
+  recommendation: NBARecommendation["recommendation"] & {
+    status?: "pending" | "accepted" | "dismissed";
+  };
+};
+
 export function NBAWidgetContainer({ opportunityId }: NBAWidgetContainerProps) {
-  const [recommendation, setRecommendation] = useState<NBARecommendation | null>(null);
+  const [recommendation, setRecommendation] = useState<NBARecommendationWithStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const { getNBA, refreshNBA, acceptNBA, dismissNBA } = useNBA(opportunityId);
@@ -34,13 +40,15 @@ export function NBAWidgetContainer({ opportunityId }: NBAWidgetContainerProps) {
 
   const handleAccept = async () => {
     if (!recommendation) return;
-    await acceptNBA(recommendation.id);
-    setRecommendation((prev) => (prev ? { ...prev, status: "accepted" } : null));
+    await acceptNBA(recommendation.decisionId ?? recommendation.id);
+    setRecommendation((prev) =>
+      prev ? { ...prev, recommendation: { ...prev.recommendation, status: "accepted" } } : null
+    );
   };
 
   const handleDismiss = async () => {
     if (!recommendation) return;
-    await dismissNBA(recommendation.id);
+    await dismissNBA(recommendation.decisionId ?? recommendation.id);
     setRecommendation(null);
   };
 

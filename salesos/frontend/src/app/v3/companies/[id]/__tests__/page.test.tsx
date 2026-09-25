@@ -32,6 +32,12 @@ jest.mock("../intelligence-tab", () => ({
   IntelligenceTab: () => <div>Intelligence stub</div>,
 }));
 
+jest.mock("../company-nba-tab", () => ({
+  CompanyNbaTab: ({ companyId, companyName, opportunities = [] }: { companyId: string; companyName: string; opportunities?: Array<{ id: string }> }) => (
+    <div>{companyId} {companyName} NBA &amp; Outcomes stub ({opportunities.length} opportunities)</div>
+  ),
+}));
+
 import { getCompany, listOpportunities, listTasks } from "@/lib/api";
 import V3Company360Page from "../page";
 
@@ -104,6 +110,13 @@ describe("V3 company detail opportunities create hole", () => {
     expect(screen.getByTestId("create-deal-company-locked")).toBeInTheDocument();
   });
 
+  it("exposes the seller NBA and outcome workflow from the company page", async () => {
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Test Co" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "NBA & Outcomes" }));
+    expect(await screen.findByText("co-1 Test Co NBA & Outcomes stub (0 opportunities)")).toBeInTheDocument();
+  });
+
   it("keeps populated opportunities and tasks tabs off legacy /companies/{id}", async () => {
     mockedOpps.mockResolvedValue({
       items: [
@@ -144,5 +157,19 @@ describe("V3 company detail opportunities create hole", () => {
     );
     expect(screen.queryByRole("link", { name: /legacy company/i })).not.toBeInTheDocument();
     expect(document.querySelector('a[href="/companies/co-1"]')).toBeNull();
+  });
+
+  it("passes only this account's opportunities to the outcome workflow", async () => {
+    mockedOpps.mockResolvedValue({
+      items: [
+        { id: "opp-1", name: "Account deal", stage: "qualification", value: 1000, company_id: "co-1", status: "open" },
+        { id: "opp-2", name: "Other account", stage: "qualification", value: 1000, company_id: "co-2", status: "open" },
+      ],
+      total: 2,
+    });
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Test Co" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "NBA & Outcomes" }));
+    expect(await screen.findByText("co-1 Test Co NBA & Outcomes stub (1 opportunities)")).toBeInTheDocument();
   });
 });

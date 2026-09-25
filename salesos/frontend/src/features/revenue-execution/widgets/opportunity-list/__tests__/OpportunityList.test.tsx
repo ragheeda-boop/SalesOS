@@ -14,7 +14,7 @@ const sample: RevenueOpportunity[] = [
     estimatedValue: 500000,
     confidence: 0.85,
     winProbability: 0.45,
-    stage: "developing",
+    stage: "proposal",
     createdAt: "2026-07-01",
     buyingIntent: 0.82,
     relationshipStrength: 0.7,
@@ -32,7 +32,7 @@ const sample: RevenueOpportunity[] = [
     estimatedValue: 300000,
     confidence: 0.72,
     winProbability: 0.3,
-    stage: "qualifying",
+    stage: "qualification",
     createdAt: "2026-07-05",
     buyingIntent: 0.65,
     relationshipStrength: 0.5,
@@ -75,9 +75,9 @@ describe("OpportunityListView", () => {
 
   it("renders stage labels", () => {
     renderView();
-    const dev = screen.getAllByText("قيد التطوير");
-    expect(dev.length).toBeGreaterThanOrEqual(1);
-    const qual = screen.getAllByText("قيد التأهيل");
+    const proposal = screen.getAllByText("عرض سعر");
+    expect(proposal.length).toBeGreaterThanOrEqual(1);
+    const qual = screen.getAllByText("تأهيل");
     expect(qual.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -94,13 +94,13 @@ describe("OpportunityListView", () => {
   it("shows stage filter buttons", () => {
     renderView();
     expect(screen.getByText(/الكل/)).toBeInTheDocument();
-    const devFilters = screen.getAllByText(/قيد التطوير/);
+    const devFilters = screen.getAllByText(/عرض سعر/);
     expect(devFilters.length).toBeGreaterThanOrEqual(1);
   });
 
   it("filters by stage on click", () => {
     renderView();
-    const filters = screen.getAllByText(/قيد التأهيل/);
+    const filters = screen.getAllByText(/تأهيل/);
     fireEvent.click(filters[0]);
     expect(screen.queryByText("توسع في الطاقة المتجددة")).not.toBeInTheDocument();
   });

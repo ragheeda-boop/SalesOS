@@ -26,6 +26,7 @@ type ICPProfile = {
     employees_min?: number | null;
     employees_max?: number | null;
     titles?: string[];
+    keywords?: string[];
   };
 };
 
@@ -34,12 +35,28 @@ type ICPListResponse = {
   count: number;
 };
 
+type ICPScoreResponse = {
+  profile_id: string;
+  schema_version: number;
+  score: number;
+  max_score: number;
+  fit_ratio: number;
+  matched: Record<string, boolean>;
+  company: Record<string, unknown>;
+};
+
 export default function V3ICPPage() {
   const { ready, hasToken } = useAccessToken();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [industries, setIndustries] = useState("construction, financial-services");
   const [cities, setCities] = useState("Riyadh, Jeddah");
+  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyIndustry, setCompanyIndustry] = useState("");
+  const [companyCity, setCompanyCity] = useState("");
+  const [companyEmployees, setCompanyEmployees] = useState("");
+  const [companyTitle, setCompanyTitle] = useState("");
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["icp", "profiles"],
@@ -75,6 +92,23 @@ export default function V3ICPPage() {
     },
   });
 
+  const scoreMutation = useMutation({
+    mutationFn: async (profileId: string) => {
+      const response = await apiClient.post<ICPScoreResponse>(
+        `/api/v1/icp/profiles/${encodeURIComponent(profileId)}/score`,
+        {
+          name: companyName,
+          industry: companyIndustry,
+          city: companyCity,
+          employees_count: companyEmployees.trim() ? Number(companyEmployees) : null,
+          title: companyTitle,
+        },
+        { headers: { "X-Tenant-Id": getTenantId() } },
+      );
+      return response.data;
+    },
+  });
+
   if (!ready) return <LoadingState />;
   if (!hasToken) return <PermissionState nextPath="/v3/icp" />;
   if (isLoading) return <LoadingState />;
@@ -87,7 +121,7 @@ export default function V3ICPPage() {
     <>
       <PageHeader
         title="ICP Profiles"
-        description="Ideal Customer Profile definitions — tenant-scoped, evidence-backed scoring"
+        description="Tenant-scoped Ideal Customer Profile definitions and deterministic firmographic matching"
       />
       <div className="mb-6 rounded-lg border border-[var(--border-default)] p-4">
         <h2 className="mb-3 text-sm font-semibold">Create profile</h2>
@@ -162,6 +196,105 @@ export default function V3ICPPage() {
           </table>
         </div>
       )}
+      <section className="mt-6 rounded-lg border border-[var(--border-default)] p-4" aria-labelledby="icp-score-title">
+        <h2 id="icp-score-title" className="text-sm font-semibold">Score a company snapshot</h2>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">
+          Rule-based matching against the saved profile and the values entered here. It does not look up external data or predict sales outcomes.
+        </p>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <label className="space-y-1 text-xs text-[var(--text-secondary)]">
+            <span>Profile</span>
+            <select
+              aria-label="ICP profile"
+              className="w-full rounded border border-[var(--border-default)] px-3 py-2 text-sm"
+              value={selectedProfileId || profiles[0]?.id || ""}
+              onChange={(event) => setSelectedProfileId(event.target.value)}
+            >
+              {profiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>{profile.name}</option>
+              ))}
+            </select>
+          </label>
+          <input
+            aria-label="Company name"
+            className="rounded border border-[var(--border-default)] px-3 py-2 text-sm"
+            placeholder="Company name"
+            value={companyName}
+            onChange={(event) => setCompanyName(event.target.value)}
+          />
+          <input
+            aria-label="Company industry"
+            className="rounded border border-[var(--border-default)] px-3 py-2 text-sm"
+            placeholder="Industry"
+            value={companyIndustry}
+            onChange={(event) => setCompanyIndustry(event.target.value)}
+          />
+          <input
+            aria-label="Company city"
+            className="rounded border border-[var(--border-default)] px-3 py-2 text-sm"
+            placeholder="City"
+            value={companyCity}
+            onChange={(event) => setCompanyCity(event.target.value)}
+          />
+          <input
+            aria-label="Company employee count"
+            className="rounded border border-[var(--border-default)] px-3 py-2 text-sm"
+            placeholder="Employee count"
+            inputMode="numeric"
+            value={companyEmployees}
+            onChange={(event) => setCompanyEmployees(event.target.value.replace(/[^0-9]/g, ""))}
+          />
+          <input
+            aria-label="Contact title"
+            className="rounded border border-[var(--border-default)] px-3 py-2 text-sm"
+            placeholder="Contact title (optional)"
+            value={companyTitle}
+            onChange={(event) => setCompanyTitle(event.target.value)}
+          />
+        </div>
+        <button
+          type="button"
+          disabled={!profiles.length || scoreMutation.isPending}
+          onClick={() => scoreMutation.mutate(selectedProfileId || profiles[0]?.id || "")}
+          className="mt-3 rounded-md border border-[var(--border-default)] px-4 py-2 text-sm text-[var(--text-primary)] disabled:opacity-50"
+        >
+          {scoreMutation.isPending ? "Scoring…" : "Calculate profile fit"}
+        </button>
+        {scoreMutation.isError ? (
+          <p className="mt-3 text-sm text-[var(--status-danger,#dc2626)]" role="alert">
+            {scoreMutation.error instanceof Error ? scoreMutation.error.message : "Could not score company"}
+          </p>
+        ) : null}
+        {scoreMutation.data ? (
+          <div className="mt-4 rounded-md bg-[var(--bg-secondary)] p-3" aria-live="polite" data-testid="icp-score-result">
+            <p className="text-sm font-medium text-[var(--text-primary)]">
+              Fit: {Math.round(scoreMutation.data.fit_ratio * 100)}% · {scoreMutation.data.score} / {scoreMutation.data.max_score} points
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Profile version {scoreMutation.data.schema_version}</p>
+            <ul className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)]">
+              {Object.entries(scoreMutation.data.matched)
+                .filter(([criterion]) => {
+                  const profile = profiles.find((item) => item.id === scoreMutation.data?.profile_id);
+                  const criteria = profile?.criteria;
+                  if (!criteria) return criterion === "empty_profile";
+                  if (criterion === "industry") return criteria.industries.length > 0;
+                  if (criterion === "city") return criteria.cities.length > 0;
+                  if (criterion === "employees") {
+                    return criteria.employees_min != null || criteria.employees_max != null;
+                  }
+                  if (criterion === "titles") return Boolean(criteria.titles?.length);
+                  if (criterion === "keywords") return Boolean(criteria.keywords?.length);
+                  return criterion === "empty_profile";
+                })
+                .map(([criterion, matched]) => (
+                <li key={criterion} className="rounded border border-[var(--border-default)] px-2 py-1">
+                  {criterion.replace(/_/g, " ")}: {matched ? "match" : "no match"}
+                </li>
+                ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
     </>
   );
 }

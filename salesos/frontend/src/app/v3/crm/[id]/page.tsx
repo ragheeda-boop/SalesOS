@@ -26,13 +26,17 @@ import {
 import { useAccessToken } from "../../_hooks/useAccessToken";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { CreateQuoteForm } from "../../quotes/create-quote-form";
+import { DealNbaTab } from "./nba-tab";
+import { DealIntelligenceTab } from "./intelligence-tab";
 
-type TabId = "overview" | "activity" | "contacts";
+type TabId = "overview" | "activity" | "contacts" | "intelligence" | "nba";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "activity", label: "Activity" },
   { id: "contacts", label: "Contacts" },
+  { id: "intelligence", label: "Deal Intelligence" },
+  { id: "nba", label: "Next Best Action" },
 ];
 
 function stageLabel(stage: string | undefined): string {
@@ -279,6 +283,10 @@ export default function V3Deal360Page() {
             loading={!!deal.company_id && companyLoading}
           />
         );
+      case "nba":
+        return <DealNbaTab opportunityId={deal.id} />;
+      case "intelligence":
+        return <DealIntelligenceTab opportunityId={deal.id} />;
       default:
         return null;
     }

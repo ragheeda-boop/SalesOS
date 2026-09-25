@@ -12,10 +12,10 @@ function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
   const amountMeta = revenueScore?.metadata?.amount;
 
   return {
-    id: result.decisionId ?? "opp-1",
+    id: result.decisionId ?? result.id,
     companyId: (result.evidence[0]?.id as string) ?? "c1",
     companyName: result.explainability?.why?.split(" ")[0] ?? "الشركة",
-    title: result.recommendation?.actionLabel ?? result.action,
+    title: result.recommendation.actionLabel ?? result.action,
     source: "nba" as const,
     // Prefer explicit revenue metadata; never invent SAR from score*1e6.
     estimatedValue: typeof amountMeta === "number" ? amountMeta : 0,

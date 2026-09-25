@@ -56,6 +56,48 @@ export interface WorkflowExecution {
   step_results: Record<string, unknown>[];
 }
 
+type WorkflowApiStep = {
+  id: string;
+  step_type?: StepType;
+  type?: StepType;
+  config: WorkflowStepConfig;
+  order: number;
+  condition?: string | null;
+  condition_expression?: string;
+  timeout_seconds?: number | null;
+  on_failure?: string;
+};
+
+type WorkflowApiWorkflow = Omit<Partial<Workflow>, "steps"> & {
+  steps?: WorkflowApiStep[];
+};
+
+type WorkflowApiResponse = {
+  items?: WorkflowApiWorkflow[];
+  total?: number;
+  next_cursor?: string | null;
+};
+
+function normalizeWorkflow(raw: WorkflowApiWorkflow): Workflow {
+  return {
+    id: raw.id || "",
+    name: raw.name || "",
+    description: raw.description || "",
+    trigger_type: (raw.trigger_type as TriggerType) || "manual",
+    trigger_config: raw.trigger_config || {},
+    status: (raw.status as Workflow["status"]) || "draft",
+    steps: (raw.steps || []).map((step) => ({
+      id: step.id,
+      type: step.step_type || step.type || "log_message",
+      config: step.config || {},
+      condition_expression: step.condition || step.condition_expression || undefined,
+      order: step.order ?? 0,
+    })),
+    created_at: raw.created_at || new Date(0).toISOString(),
+    updated_at: raw.updated_at || raw.created_at || new Date(0).toISOString(),
+  };
+}
+
 export const workflowKeys = {
   all: ["workflows"] as const,
   lists: () => [...workflowKeys.all, "list"] as const,
@@ -73,7 +115,11 @@ export function useWorkflows() {
       const res = await api.get("/api/v1/workflows", {
         headers: { "X-Tenant-Id": getTenantId() },
       });
-      return Array.isArray(res.data) ? (res.data as Workflow[]) : [];
+      const payload = res.data as WorkflowApiResponse | Workflow[];
+      const items: WorkflowApiWorkflow[] = Array.isArray(payload)
+        ? (payload as WorkflowApiWorkflow[])
+        : payload.items || [];
+      return items.map(normalizeWorkflow);
     },
     staleTime: 15_000,
   });
@@ -86,7 +132,7 @@ export function useWorkflow(id: string) {
       const res = await api.get(`/api/v1/workflows/${id}`, {
         headers: { "X-Tenant-Id": getTenantId() },
       });
-      return res.data as Workflow;
+      return normalizeWorkflow(res.data as WorkflowApiWorkflow);
     },
     enabled: !!id,
     staleTime: 15_000,

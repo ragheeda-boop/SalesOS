@@ -10,7 +10,6 @@ import {
   useAiMemorySettings,
   useAppendAiMemoryTurn,
   useDeleteAiMemoryConversation,
-  useProbeAiMemoryAdversarial,
   usePutAiMemorySettings,
 } from "@/lib/hooks/aiMemoryStudioQueries";
 import type { ConversationMemory } from "@/lib/api";
@@ -36,7 +35,6 @@ export function AiMemoryStudio() {
   const putSettings = usePutAiMemorySettings();
   const appendTurn = useAppendAiMemoryTurn();
   const deleteConv = useDeleteAiMemoryConversation();
-  const probe = useProbeAiMemoryAdversarial();
 
   const [enabled, setEnabled] = useState(false);
   const [maxTurns, setMaxTurns] = useState("50");
@@ -48,10 +46,6 @@ export function AiMemoryStudio() {
 
   const [role, setRole] = useState("user");
   const [content, setContent] = useState("Hello from Studio probe.");
-  const [probeResult, setProbeResult] = useState<Record<string, unknown> | null>(null);
-  const [ownerTenant, setOwnerTenant] = useState("tenant-a");
-  const [attackerTenant, setAttackerTenant] = useState("tenant-b");
-  const [probeConvId, setProbeConvId] = useState("demo-conv-1");
 
   useEffect(() => {
     if (!settingsQuery.data) return;
@@ -61,7 +55,7 @@ export function AiMemoryStudio() {
   }, [settingsQuery.data]);
 
   const busy =
-    putSettings.isPending || appendTurn.isPending || deleteConv.isPending || probe.isPending;
+    putSettings.isPending || appendTurn.isPending || deleteConv.isPending;
 
   return (
     <div className="space-y-4" data-testid="ai-memory-studio">
@@ -341,68 +335,6 @@ export function AiMemoryStudio() {
         </section>
       ) : null}
 
-      <section
-        className="space-y-3 rounded border border-[var(--border)] p-4"
-        data-testid="ai-memory-probe"
-      >
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Adversarial probe (tip POST /adversarial/probe — no live LLM)
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          <Input
-            value={ownerTenant}
-            onChange={(e) => setOwnerTenant(e.target.value)}
-            placeholder="owner_tenant_id"
-            data-testid="ai-memory-probe-owner"
-          />
-          <Input
-            value={attackerTenant}
-            onChange={(e) => setAttackerTenant(e.target.value)}
-            placeholder="attacker_tenant_id"
-            data-testid="ai-memory-probe-attacker"
-          />
-          <Input
-            value={probeConvId}
-            onChange={(e) => setProbeConvId(e.target.value)}
-            placeholder="conversation_id"
-            data-testid="ai-memory-probe-conv"
-          />
-        </div>
-        <Button
-          disabled={busy}
-          data-testid="ai-memory-probe-run"
-          onClick={() => {
-            probe.mutate(
-              {
-                owner_tenant_id: ownerTenant.trim(),
-                attacker_tenant_id: attackerTenant.trim(),
-                conversation_id: probeConvId.trim(),
-              },
-              {
-                onSuccess: (result) => {
-                  setProbeResult(result);
-                  toast({ title: "Probe complete", variant: "success" });
-                },
-                onError: (err) =>
-                  toast({
-                    title: getApiError(err),
-                    variant: "error",
-                  }),
-              }
-            );
-          }}
-        >
-          Run probe
-        </Button>
-        {probeResult ? (
-          <pre
-            className="overflow-auto rounded bg-[var(--surface-muted)] p-3 font-mono text-xs"
-            data-testid="ai-memory-probe-result"
-          >
-            {JSON.stringify(probeResult, null, 2)}
-          </pre>
-        ) : null}
-      </section>
     </div>
   );
 }

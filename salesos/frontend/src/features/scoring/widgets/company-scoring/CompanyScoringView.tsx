@@ -106,9 +106,9 @@ export function CompanyScoringView({
         <div className="space-y-2">
           <h4 className="text-xs font-semibold text-[var(--text-muted)]">عوامل التقييم</h4>
           {scores.slice(0, 5).map((s) => (
-            <div key={s.name || s.label}>
+            <div key={s.type}>
               <div className="flex justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">{s.label || s.name}</span>
+                <span className="text-[var(--text-secondary)]">{s.label || s.type}</span>
                 <span className="text-[var(--text-primary)]">{Math.round(s.value * 100)}%</span>
               </div>
               <div className="mt-1 h-1.5 w-full rounded-full bg-[var(--bg-tertiary)]">
@@ -146,7 +146,7 @@ export function CompanyScoringView({
               key={i}
               className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] text-red-500"
             >
-              {flag.label || flag.name}
+              {flag.label || flag.type}
             </span>
           ))}
         </div>

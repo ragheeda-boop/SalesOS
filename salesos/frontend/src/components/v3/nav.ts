@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  BookOpen,
+  Brain,
   Building2,
   CheckSquare,
   ContactRound,
@@ -12,6 +14,7 @@ import {
   ShieldCheck,
   Target,
   Crosshair,
+  Sparkles,
 } from "lucide-react";
 
 export type V3NavItem = {
@@ -99,7 +102,56 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
  * Extra v3 CmdK destinations beyond primary chrome.
  * `/v3/shell` stays on disk (internal spec) — do not advertise it to customers.
  */
-export const V3_CMD_EXTRA: V3NavItem[] = [];
+export const V3_CMD_EXTRA: V3NavItem[] = [
+  {
+    href: "/v3/admin/ai-prompts",
+    label: "Prompt Library",
+    icon: FileText,
+    keywords: ["prompt", "template", "AI studio"],
+  },
+  {
+    href: "/v3/admin/ai-policies",
+    label: "AI Policies",
+    icon: ShieldCheck,
+    keywords: ["policy", "guardrails", "data class"],
+  },
+  {
+    href: "/v3/admin/ai-memory",
+    label: "AI Memory",
+    icon: Brain,
+    keywords: ["memory", "conversation", "AI studio"],
+  },
+  {
+    href: "/v3/admin/ai-model-tiers",
+    label: "AI Model Tiers",
+    icon: Settings,
+    keywords: ["model", "tier", "plan defaults"],
+  },
+  {
+    href: "/v3/rag",
+    label: "Knowledge workspace",
+    icon: BookOpen,
+    keywords: ["rag", "knowledge", "documents", "citations", "ask"],
+  },
+  {
+    href: "/v3/recommendations",
+    label: "Recommended actions",
+    icon: Sparkles,
+    keywords: ["recommendations", "next action", "deal health", "evidence"],
+  },
+  {
+    href: "/v3/admin/ai-governance",
+    label: "AI Governance Audit",
+    icon: ShieldCheck,
+    keywords: ["ai policy", "governance", "audit", "guardrails", "pii"],
+  },
+  {
+    href: "/v3/evidence",
+    label: "Evidence chain",
+    icon: FileText,
+    keywords: ["evidence", "sources", "provenance", "confidence", "insights"],
+  },
+];
 
 export function isV3NavActive(pathname: string, href: string): boolean {
   if (href === "/v3") return pathname === "/v3" || pathname === "/v3/";

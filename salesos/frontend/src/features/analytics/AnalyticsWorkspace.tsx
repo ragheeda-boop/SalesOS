@@ -16,12 +16,49 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useExecutiveDashboard } from "@/lib/hooks/executiveQueries";
+import type { PipelineHealth, RevenueKPI } from "@/lib/api";
 
-function formatCurrency(value: number): string {
-  if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-  if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-  if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}K`;
-  return `$${value}`;
+function formatCurrency(value: number | null | undefined, currency: string): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const compact =
+    value >= 1e9
+      ? `${(value / 1e9).toFixed(1)}B`
+      : value >= 1e6
+        ? `${(value / 1e6).toFixed(1)}M`
+        : value >= 1e3
+          ? `${(value / 1e3).toFixed(0)}K`
+          : `${value}`;
+  return currency === "USD" ? `$${compact}` : `${currency} ${compact}`;
+}
+
+function formatRevenueAmount(
+  revenue: RevenueKPI,
+  field: "total_booked" | "total_pipeline" | "weighted_pipeline" | "forecast"
+): string {
+  if (revenue.currency_consistent) {
+    return formatCurrency(revenue[field], revenue.by_currency[0]?.currency ?? "SAR");
+  }
+  return revenue.by_currency
+    .map((row) => `${row.currency}: ${formatCurrency(row[field], row.currency)}`)
+    .join(" · ") || "—";
+}
+
+function formatPipelineAmount(pipeline: PipelineHealth): string {
+  if (pipeline.total_value != null) {
+    return formatCurrency(pipeline.total_value, pipeline.by_currency[0]?.currency ?? "SAR");
+  }
+  return pipeline.by_currency
+    .map((row) => `${row.currency}: ${formatCurrency(row.total_value, row.currency)}`)
+    .join(" · ") || "—";
+}
+
+function formatAverageDealSize(pipeline: PipelineHealth): string {
+  if (pipeline.avg_deal_size != null) {
+    return formatCurrency(pipeline.avg_deal_size, pipeline.by_currency[0]?.currency ?? "SAR");
+  }
+  return pipeline.by_currency
+    .map((row) => `${row.currency}: ${formatCurrency(row.avg_deal_size, row.currency)}`)
+    .join(" · ") || "—";
 }
 
 export function AnalyticsWorkspace() {
@@ -176,16 +213,20 @@ export function AnalyticsWorkspace() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard
           label={t("analytics.revenue")}
-          value={formatCurrency(revenue.total_booked)}
-          trend={{
-            direction: revenue.growth_percent >= 0 ? "up" : "down",
-            percentage: Math.abs(revenue.growth_percent),
-          }}
+          value={formatRevenueAmount(revenue, "total_booked")}
+          trend={
+            revenue.growth_percent == null
+              ? undefined
+              : {
+                  direction: revenue.growth_percent >= 0 ? "up" : "down",
+                  percentage: Math.abs(revenue.growth_percent),
+                }
+          }
           icon={<DollarSign className="h-4 w-4" />}
         />
         <MetricCard
           label={t("analytics.pipeline")}
-          value={formatCurrency(pipeline.total_value)}
+          value={formatPipelineAmount(pipeline)}
           icon={<TrendingUp className="h-4 w-4" />}
         />
         <MetricCard
@@ -203,7 +244,7 @@ export function AnalyticsWorkspace() {
         />
         <MetricCard
           label={t("analytics.avg_deal_size")}
-          value={formatCurrency(pipeline.avg_deal_size)}
+          value={formatAverageDealSize(pipeline)}
           icon={<BarChart3 className="h-4 w-4" />}
         />
       </div>
@@ -340,7 +381,7 @@ export function AnalyticsWorkspace() {
                   {t("analytics.renewal_value")}
                 </span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {formatCurrency(renewals.total_renewal_value)}
+                  {formatCurrency(renewals.total_renewal_value, "SAR")}
                 </span>
               </div>
             </div>
@@ -358,19 +399,19 @@ export function AnalyticsWorkspace() {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[var(--text-muted)]">{t("analytics.actual")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {formatCurrency(revenue.total_booked)}
+                  {formatRevenueAmount(revenue, "total_booked")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[var(--text-muted)]">{t("analytics.forecast")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {formatCurrency(revenue.forecast)}
+                  {formatRevenueAmount(revenue, "forecast")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[var(--text-muted)]">{t("analytics.weighted")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {formatCurrency(revenue.weighted_pipeline)}
+                  {formatRevenueAmount(revenue, "weighted_pipeline")}
                 </span>
               </div>
             </div>

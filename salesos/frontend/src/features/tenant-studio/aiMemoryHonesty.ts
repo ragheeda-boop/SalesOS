@@ -1,12 +1,12 @@
 export const AI_MEMORY_HONESTY =
-  "Tip /api/v1/studio/ai-memory — in-memory CAP-063 conversation-level AI Memory " +
-  "(opt-in settings, turns, delete, adversarial probe). Cross-session long-term " +
+  "Tip /api/v1/studio/ai-memory — tenant-scoped PostgreSQL CAP-063 conversation memory " +
+  "with encrypted turns, opt-in settings, retention, and delete. Cross-session long-term " +
   "deferred. feature_ai_copilot remains False; live LLM / RAG GO not claimed. " +
-  "FE Decision package is STUB.";
+  "Persistence requires the dedicated AI_MEMORY_ENCRYPTION_KEY.";
 
 export const AI_MEMORY_NON_GOALS = [
   "Cross-session long-term memory",
   "Live LLM / enabling feature_ai_copilot",
   "RAG GO / Production GO",
-  "KMS / inventing beyond tip encryption fixture",
+  "Managed KMS or automatic encryption-key rotation",
 ];

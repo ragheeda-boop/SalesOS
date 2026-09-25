@@ -5,27 +5,19 @@ jest.mock("@/lib/api", () => {
     __esModule: true,
     default: {
       get: jest.fn(() => Promise.resolve({ data: { items: store } })),
-      post: jest.fn((_url: string, input: any) => {
+      post: jest.fn((_url: string, _body: any, config: any) => {
+        const input = config.params;
         const opp = {
           id: "opp_" + Math.random().toString(36).slice(2, 10),
-          companyId: input.company_id,
-          title: input.title,
-          estimatedValue: input.estimated_value,
-          confidence: input.confidence,
-          buyingIntent: input.buying_intent,
-          relationshipStrength: input.relationship_strength,
-          sourceActionId: input.source_action_id,
-          stage: "identified",
-          createdAt: "2026-07-11T12:00:00.000Z",
-          winProbability: 0.1,
-          riskLevel: input.confidence >= 0.9 ? "low" : input.confidence <= 0.4 ? "high" : "medium",
-          lastActivityAt: "2026-07-11T12:00:00.000Z",
-          notes: [],
-          tags: [],
-          source: "nba",
+          company_id: input.company_id,
+          name: input.name,
+          value: input.value,
+          stage: "prospecting",
         };
         store.push(opp);
-        return Promise.resolve({ data: opp });
+        return Promise.resolve({
+          data: { id: opp.id, name: opp.name, stage: opp.stage, value: opp.value, owner_id: "" },
+        });
       }),
       put: jest.fn((url: string, body: any) => {
         const id = url.match(/opportunities\/([^/]+)\/stage/)?.[1];
@@ -65,36 +57,27 @@ beforeEach(() => {
   mockedApi.get.mockImplementation(() =>
     Promise.resolve({ data: { items: mockedApi.__store } } as any)
   );
-  mockedApi.post.mockImplementation((_url: string, input: any) => {
+  mockedApi.post.mockImplementation((_url: string, _body: any, config: any) => {
+    const input = config.params;
     const opp = {
       id: "opp_" + Math.random().toString(36).slice(2, 10),
-      companyId: input.company_id,
-      title: input.title,
-      estimatedValue: input.estimated_value,
-      confidence: input.confidence,
-      buyingIntent: input.buying_intent,
-      relationshipStrength: input.relationship_strength,
-      sourceActionId: input.source_action_id,
-      stage: "identified",
-      createdAt: "2026-07-11T12:00:00.000Z",
-      winProbability: 0.1,
-      riskLevel: input.confidence >= 0.9 ? "low" : input.confidence <= 0.4 ? "high" : "medium",
-      lastActivityAt: "2026-07-11T12:00:00.000Z",
-      notes: [],
-      tags: [],
-      source: "nba",
+      company_id: input.company_id,
+      name: input.name,
+      value: input.value,
+      stage: "prospecting",
     };
     mockedApi.__store.push(opp);
-    return Promise.resolve({ data: opp } as any);
+    return Promise.resolve({
+      data: { id: opp.id, name: opp.name, stage: opp.stage, value: opp.value, owner_id: "" },
+    } as any);
   });
   mockedApi.put.mockImplementation((url: string, body: any) => {
     const id = url.match(/opportunities\/([^/]+)\/stage/)?.[1];
     const opp = mockedApi.__store.find((o: any) => o.id === id);
     if (opp && body?.stage) {
       opp.stage = body.stage;
-      opp.lastActivityAt = "2026-07-11T13:00:00.000Z";
     }
-    return Promise.resolve({ data: { items: [...mockedApi.__store] } } as any);
+    return Promise.resolve({ data: { id, stage: opp?.stage, status: "open" } } as any);
   });
 });
 
@@ -121,10 +104,18 @@ describe("opportunity store", () => {
       expect(opp.companyId).toBe("c-1");
       expect(opp.title).toBe("صفقة جديدة");
       expect(opp.estimatedValue).toBe(500000);
-      expect(opp.stage).toBe("identified");
+      expect(opp.stage).toBe("prospecting");
       expect(opp.winProbability).toBe(0.1);
       expect(opp.source).toBe("nba");
+      expect(opp.companyName).toBe("شركة");
       expect(opp.riskLevel).toBe("medium");
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        "/api/v1/opportunities",
+        null,
+        expect.objectContaining({
+          params: { company_id: "c-1", name: "صفقة جديدة", value: 500000 },
+        })
+      );
     });
 
     it("creates low risk for high confidence", async () => {
@@ -166,14 +157,14 @@ describe("opportunity store", () => {
         relationshipStrength: 0.5,
       });
       const all = await loadOpportunities();
-      const updated = await updateOpportunityStage(all[0].id, "qualifying");
+      const updated = await updateOpportunityStage(all[0].id, "qualification");
 
-      expect(updated[0].stage).toBe("qualifying");
+      expect(updated[0].stage).toBe("qualification");
     });
   });
 
   describe("addOpportunityNote", () => {
-    it("is a no-op until notes endpoint exists", async () => {
+    it("persists a note then returns it on the opportunity", async () => {
       await createOpportunity({
         companyId: "c-1",
         companyName: "شركة",
@@ -184,9 +175,41 @@ describe("opportunity store", () => {
         relationshipStrength: 0.5,
       });
       const all = await loadOpportunities();
+      mockedApi.post.mockImplementationOnce(() =>
+        Promise.resolve({ data: { id: "note-1" } } as any)
+      );
+      mockedApi.get
+        .mockImplementationOnce(() =>
+          Promise.resolve({ data: { items: mockedApi.__store } } as any)
+        )
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            data: {
+              items: [
+                {
+                  id: "note-1",
+                  text: "مذكرة مهمة",
+                  author_id: "user-1",
+                  created_at: "2026-09-22T00:00:00Z",
+                },
+              ],
+            },
+          } as any)
+        );
       const updated = await addOpportunityNote(all[0].id, "مذكرة مهمة", "أحمد");
 
-      expect(updated).toEqual([]);
+      expect(mockedApi.post).toHaveBeenLastCalledWith(
+        `/api/v1/opportunities/${all[0].id}/notes`,
+        { text: "مذكرة مهمة" }
+      );
+      expect(updated[0].notes).toEqual([
+        {
+          id: "note-1",
+          text: "مذكرة مهمة",
+          author: "user-1",
+          createdAt: "2026-09-22T00:00:00Z",
+        },
+      ]);
     });
   });
 
@@ -202,8 +225,8 @@ describe("opportunity store", () => {
         relationshipStrength: 0.5,
       });
       const all = await loadOpportunities();
-      expect(getOpportunitiesByStage(all, "identified")).toHaveLength(1);
-      expect(getOpportunitiesByStage(all, "won")).toHaveLength(0);
+      expect(getOpportunitiesByStage(all, "prospecting")).toHaveLength(1);
+      expect(getOpportunitiesByStage(all, "closed_won")).toHaveLength(0);
       expect(getOpportunitiesByStage(all)).toHaveLength(1);
     });
   });

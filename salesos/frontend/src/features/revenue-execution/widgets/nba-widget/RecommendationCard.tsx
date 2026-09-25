@@ -33,7 +33,8 @@ export function RecommendationCard({
   const confidence = rec?.confidence ?? 0;
   const confidenceLabel: "high" | "medium" | "low" =
     confidence >= 0.7 ? "high" : confidence >= 0.4 ? "medium" : "low";
-  const source = (rec?.scores?.[0]?.type ?? "rule") as keyof typeof SOURCE_LABELS;
+  const source = rec?.scores?.[0]?.type ?? "rule";
+  const sourceLabel = SOURCE_LABELS[source as keyof typeof SOURCE_LABELS] ?? SOURCE_LABELS.rule;
   const potentialRisks = rec?.risks ?? [];
   const alternatives = rec?.alternatives ?? [];
 
@@ -61,7 +62,7 @@ export function RecommendationCard({
       {/* Action + Reason */}
       <div className="mb-3">
         <p className="text-base font-medium text-[var(--text-primary)]">{reason}</p>
-        <p className="text-xs text-[var(--text-muted)] mt-1">المصدر: {SOURCE_LABELS[source]}</p>
+        <p className="text-xs text-[var(--text-muted)] mt-1">المصدر: {sourceLabel}</p>
       </div>
 
       {/* Evidence Trail */}

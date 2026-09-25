@@ -15,6 +15,18 @@ const MUST_KEEP = [
   "/v3/settings",
 ];
 
+const MUST_KEEP_IN_CMDK = [
+  ...MUST_KEEP,
+  "/v3/admin/ai-prompts",
+  "/v3/admin/ai-policies",
+  "/v3/admin/ai-memory",
+  "/v3/admin/ai-model-tiers",
+  "/v3/rag",
+  "/v3/recommendations",
+  "/v3/admin/ai-governance",
+  "/v3/evidence",
+];
+
 const OFF_PRIMARY = [
   "/v3/people",
   "/v3/approvals",
@@ -61,10 +73,10 @@ describe("V3_DOMAIN_NAV", () => {
 });
 
 describe("V3_CMD_EXTRA", () => {
-  it("is empty so customer CmdK is the 12-item golden path only", () => {
-    expect(V3_CMD_EXTRA).toHaveLength(0);
+  it("exposes only the approved knowledge and intelligence destinations", () => {
+    expect(V3_CMD_EXTRA.map((item) => item.href)).toEqual(MUST_KEEP_IN_CMDK.slice(MUST_KEEP.length));
     const cmdk = [...V3_DOMAIN_NAV, ...V3_CMD_EXTRA].map((item) => item.href);
-    expect(cmdk).toEqual(MUST_KEEP);
+    expect(cmdk).toEqual(MUST_KEEP_IN_CMDK);
     expect(cmdk).not.toContain("/v3/shell");
   });
 });

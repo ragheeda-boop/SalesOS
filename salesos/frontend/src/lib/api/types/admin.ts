@@ -82,6 +82,7 @@ export interface TaskResponse {
   source: string;
   company_id?: string | null;
   opportunity_id?: string | null;
+  due_date?: string | null;
   completed: boolean;
   created_at?: string | null;
 }
@@ -275,6 +276,10 @@ export interface AdminPlanEntitlements {
   quotas: AdminEntitlementQuotas;
   deployment_tier: "pooled" | "siloed";
   support_sla: string;
+  ai_model_tier?: {
+    default: "economy" | "standard" | "full";
+    allowed: Array<"economy" | "standard" | "full">;
+  };
 }
 
 export interface AdminPlan {

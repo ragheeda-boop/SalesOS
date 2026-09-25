@@ -5,7 +5,10 @@ export async function getApiKeys(tenantId: string): Promise<ApiKeyRecord[]> {
   const response = await client.get("/api/v1/settings/api-keys", {
     headers: { "X-Tenant-Id": tenantId },
   });
-  return response.data;
+  return response.data.map((key: ApiKeyRecord & { key_prefix?: string }) => ({
+    ...key,
+    key_preview: key.key_preview ?? key.key_prefix ?? "",
+  }));
 }
 
 export async function createApiKey(

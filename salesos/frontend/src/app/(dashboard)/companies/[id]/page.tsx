@@ -150,7 +150,7 @@ export default function CompanyPage() {
             </Button>
           </Link>
           <Modal open={contactOpen} onOpenChange={setContactOpen}>
-            <ModalTrigger>
+            <ModalTrigger asChild>
               <Button variant="outline" size="sm" leftIcon={<UserPlus className="h-4 w-4" />}>
                 {t("companies.add_contact")}
               </Button>
@@ -236,7 +236,7 @@ export default function CompanyPage() {
           </Modal>
 
           <Modal open={dealOpen} onOpenChange={setDealOpen}>
-            <ModalTrigger>
+            <ModalTrigger asChild>
               <Button variant="outline" size="sm" leftIcon={<Handshake className="h-4 w-4" />}>
                 {t("opportunities.new")}
               </Button>

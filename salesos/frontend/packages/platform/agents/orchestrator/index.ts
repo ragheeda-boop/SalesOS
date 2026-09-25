@@ -104,7 +104,7 @@ export async function executeTask(taskId: string): Promise<AgentResult> {
           tenantId: task.context.tenantId,
           entityId: task.context.entityId,
           entityType: task.context.entityType,
-          decisionId: decision.id,
+          decisionId: decision.decisionId,
           ...task.context.metadata,
         },
         status: "pending",
@@ -148,13 +148,13 @@ export async function executeTask(taskId: string): Promise<AgentResult> {
 
     const summary = [
       `Agent '${agent.name}' executed task '${task.goal}'`,
-      `Decision: ${decision.recommendation.actionLabel ?? decision.recommendation.action ?? "unknown"} (${Math.round(decision.confidence * 100)}%)`,
+      `Decision: ${decision.recommendation.actionLabel ?? decision.recommendation.action ?? "unknown"} (${Math.round((decision.recommendation.confidence ?? decision.confidence ?? 0) * 100)}%)`,
       `Actions: ${succeeded} succeeded, ${failed} failed`,
     ].join(". ");
 
     memory.store(task.agentId, `last_result_${task.id}`, {
       summary,
-      decisionId: decision.id,
+      decisionId: decision.decisionId,
     });
 
     return {

@@ -55,7 +55,7 @@ describe("useTasks", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(sampleTasks);
-    expect(mockedApi.listTasks).toHaveBeenCalledWith("tenant-1", undefined);
+    expect(mockedApi.listTasks).toHaveBeenCalledWith("tenant-1", undefined, undefined);
   });
 
   it("fetches tasks with priority filter", async () => {
@@ -65,7 +65,7 @@ describe("useTasks", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockedApi.listTasks).toHaveBeenCalledWith("tenant-1", "high");
+    expect(mockedApi.listTasks).toHaveBeenCalledWith("tenant-1", "high", undefined);
   });
 });
 
