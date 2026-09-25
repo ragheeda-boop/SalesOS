@@ -210,7 +210,7 @@ async def export_triage(service: ReviewQueueService = Depends(get_service)):
     "/{queue_type}/{subject_key}/disposition",
     response_model=ReviewQueueDispositionResponse,
     summary="Record a review disposition",
-    description="Capture a review disposition (record-only; no merge, CR, or classification side effects).",
+    description="Capture a review disposition (record-only; no merge, CR, or classification side effects). Canonical global_company_id is resolved from the subject and only asserted when it maps to a real Global Company; structured evidence lands in evidence_ref.",
     dependencies=[_REVIEW_UPDATE_PERMISSION],
 )
 async def record_disposition(
@@ -226,5 +226,6 @@ async def record_disposition(
         disposition=body.disposition,
         reviewer=body.reviewer,
         notes=body.notes,
+        evidence=body.evidence,
     )
     return result

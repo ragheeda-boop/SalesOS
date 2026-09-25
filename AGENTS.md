@@ -2967,3 +2967,49 @@ Full evidence: `project-audit/112_G5_SPLIT_ACCEPTANCE_AND_PLACEHOLDER_RULE_2026-
 | Gates | **STILL OPEN** | Capture ≠ gate closure. G3, G4 gates stay open (many CANNOT_VERIFY/UNRESOLVED_ESCALATE outcomes are honest non-closures). G5(Apollo-only) and G2 (2,661 P3 pairs) untouched. Production remains **NOT APPROVED**. |
 
 Full evidence: `project-audit/113_G4_AND_SHORT_CR_36_CLOSURE_2026-09-25.md`.
+
+---
+
+## 154. Session Summary (2026-09-25) — Queue linkage backfill + capture-path root fix; G4 traceable, G2 gap proven unrecoverable
+
+| Action | Result | Details |
+|---|:---:|---|
+| PO instruction | **RECORDED** | Ragheed Almadani, 25/09/2026 ("موافق"): complete the crosswalk for the 1,762 unlinked P3 pairs and normalize G4 onto `global_company_id` with structured evidence. Approved before any write. |
+| G2/P2 re-capture | **VERIFIED ALREADY COMPLETE** | `md_review_queue_state`: 2,661 `P3_PAIR` ESCALATE + 2 `P2_SAMPLE` ACCEPT_SAMPLE (651-row v5 crosswalk vs master snapshot, 0 errors). Artifacts in `docs/data/phase7/gate_review_20260925/p2_sample_v5/`. |
+| G4 linkage fix | **DONE 643/643** | Root cause: `record_disposition` never wrote `global_company_id` or `evidence_ref`, so the UUID lived only in `subject_key`. Copied the already-validated UUID into `global_company_id` (pre-flight: 643/643 real `md_global_companies` rows, 0 set drift vs workbooks) and rebuilt `evidence_ref` with 14 PII-free fields. |
+| G2 P3 backfill | **REFUSED — provably unsafe** | Four resolution paths tested, all rejected: `md_legacy_id_mappings` is a **different ID namespace** (would have written **1,730 conflicting Global Company IDs**); `md_source_rows.row_number` is per-source and ambiguous (549 matches 7 rows); `md_source_rows.global_entity_id` is NULL for all 909,967 rows; `md_entity_matches` is empty (0 rows). |
+| P3 root cause | **IDENTIFIED** | `row_a`/`row_b` are row indices into the **external MUHIDE resolution-candidates file, never ingested as a source file**. `566691`/`568213`/`340719` match nothing in any table. The blanks originate in `PHASE6_P3_FULL_EVIDENCE.csv` itself (742 `company_a_global_id`, 1,763 `company_b_global_id`), not in the capture. |
+| P3 honest labelling | **DONE 2,661/2,661** | `evidence_ref` gains `linkage_status` / `missing_side` / `linkage_source`. 898 COMPLETE · 1,021 MISSING_SIDE_B · 742 MISSING_BOTH (all `Portfolio Master v1`). **No Global Company ID invented.** |
+| Verification | **PASS** | 643/643 P1 linked + 643/643 join real companies + 0 mismatches + 643/643 with evidence. Dispositions unchanged (277/52/314 · 2,661 · 29/7 · 2). Phase 6 untouched: 296,746 companies · 909,967 source rows · 54,754 review candidates · 314,413 legacy mappings · 1,524,717 provenance. |
+| Gates | **STILL OPEN** | G4 moves from *recorded* to *traceable*; the 52 MATERIAL_ERROR corrections are still **not applied** to `md_global_companies`. G2 does **not** move — closing it needs the candidates file re-ingested as a source file and the pair→company linkage re-derived in Phase 6. Production remains **NOT APPROVED**. |
+| G4 size correction | **643 = 10.3% of G4** | 643 = a 5% sample of `CORROBORATION_REVIEW` (297 of 5,903) + two **fully** reviewed strata (234 field-conflict + 112 weak-identity). **5,606 P1 remain unreviewed.** G4 is 89.7% outstanding — 643 is not a G4 closure. |
+
+### Root-cause fix in the capture path (1.1 + 1.3)
+
+The §154 backfill was one-off. The defect lived in `record_disposition` itself, so it is fixed at source.
+
+| Item | Result | Details |
+|---|:---:|---|
+| 1.1 write-through | **DONE** | `record_disposition(..., evidence=None)` resolves `global_company_id` from the subject and persists it plus `evidence_ref`; both are returned to the API caller. Router + `ReviewQueueDisposition` pass `evidence` through. |
+| 1.3 dangling-subject guard | **DONE, queue-specific** | `P1_CANDIDATE` refused unless the UUID is a pending P1 candidate **and** a real `md_global_companies` row. `SHORT_CR` refused unless `LEGACY_MUHIDE_MA_ID → global_entity_id` resolves. `P3_PAIR` never invents an id (`SOURCE_ROWS_UNRESOLVED`). `P2_SAMPLE` / `MA_UNRESOLVED` / `TRIAGE` are **not** company-gated (stratum label / Global Person / review label). |
+| PII-free evidence | **DONE** | `EVIDENCE_PII_FORBIDDEN_KEYS` rejects name/email/phone/address keys (nested too) at the API boundary. |
+| Non-destructive merge | **DONE** | Re-capture merges evidence additively and preserves the existing `linkage_status`, so a re-review cannot downgrade P3 `MISSING_SIDE_B` to a generic label. |
+| Tests | **39 PASS** | 11 new cases. Ruff at or below the pre-change baseline on every rule. |
+| Data integrity | **VERIFIED** | `md_review_queue_state` 3,342 rows unchanged; all dispositions preserved; 0 leftover test rows; 0 leftover synthetic candidates; P2 seeded row restored. |
+| Residual | **DONE** | The 643 pre-fix P1 rows lacked `linkage_status`. `scripts/phase7a_stamp_p1_linkage_status.py` stamped `RESOLVED` on all 643 (pre-flight refuses unless each row already has a non-null `global_company_id` == `subject_key` that is a real company). Re-run stamps **0 rows**. 36 SHORT_CR + 2 P2 rows deliberately left unlabelled — resolvable on next capture, separate unapproved write. |
+
+### Files changed this session
+- `salesos/backend/app/modules/master_data/phase7/review_queue.py` — `_resolve_company_link` (`review_queue.py:315`) + `record_disposition` write-through (`review_queue.py:399`, merge at `:460`)
+- `salesos/backend/app/modules/master_data/phase7/schemas.py` — `evidence` field, `EVIDENCE_PII_FORBIDDEN_KEYS` + `_assert_evidence_pii_free`, `ReviewQueueDispositionResponse` linkage fields
+- `salesos/backend/app/modules/master_data/phase7/review_router.py` — pass `evidence` through
+- `salesos/backend/scripts/phase7a_backfill_queue_linkage.py` — NEW (linkage + evidence backfill, `--apply` gated, single transaction)
+- `salesos/backend/scripts/phase7a_stamp_p1_linkage_status.py` — NEW (`linkage_status=RESOLVED` stamp, idempotent)
+- `salesos/backend/tests/unit/test_phase7a_review_queue.py` — contract + PII tests
+- `salesos/backend/tests/integration/test_phase7a_review_queue_db.py` — 11 new linkage/guard tests; helper now restores every column it touches
+- `salesos/backend/tests/integration/test_phase7a_review_router_http.py` — stub accepts `evidence`
+- `project-audit/114_QUEUE_LINKAGE_BACKFILL_AND_P3_GAP_ROOT_CAUSE_2026-09-25.md` — NEW
+
+### Pre-existing failures (not regressions)
+`test_phase7_sales_usability_db.py::test_p1_fully_blocked_p2_registry_anchored_srwr_accepted` and `test_phase7_sales_usability_http.py::test_summary_and_listing_over_http` fail **identically with these changes stashed** (confirmed via `git stash`). The latter asserts a hard-coded `usable_accounts == 7_768` against an actual 7,916 — population drift, not this work.
+
+Full evidence: `project-audit/114_QUEUE_LINKAGE_BACKFILL_AND_P3_GAP_ROOT_CAUSE_2026-09-25.md`.

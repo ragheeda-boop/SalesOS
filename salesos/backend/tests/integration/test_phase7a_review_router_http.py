@@ -47,9 +47,13 @@ class _StubService:
     async def get_triage_counts(self):
         return {"P1:CORROBORATION_REVIEW": 5753, "P2:PRIORITIZATION_PP2": 46736}
 
-    async def record_disposition(self, *, queue_type, subject_key, disposition, reviewer, notes=None):
+    async def record_disposition(self, *, queue_type, subject_key, disposition, reviewer,
+                                 notes=None, evidence=None):
+        merged = dict(evidence or {})
+        merged.setdefault("linkage_status", "STUB")
         return {
             "id": "stub-id", "queue_type": queue_type, "subject_key": subject_key,
+            "global_company_id": None, "evidence_ref": merged,
             "status": "dispositioned", "disposition": disposition, "reviewer": reviewer,
             "reviewed_at": None, "notes": notes,
         }

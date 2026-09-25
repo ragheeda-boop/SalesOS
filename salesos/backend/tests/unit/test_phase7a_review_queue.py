@@ -3,6 +3,7 @@
 from http import HTTPStatus
 
 import pytest
+from pydantic import ValidationError
 
 from app.modules.master_data.phase7.review_queue import (
     _DISPOSITIONS,
@@ -68,18 +69,45 @@ class TestNoSideEffectByDesign:
     def test_disposition_payload_has_no_side_effect_field(self):
         from app.modules.master_data.phase7.schemas import ReviewQueueDisposition
         fields = set(ReviewQueueDisposition.model_fields.keys())
-        assert fields == {"disposition", "reviewer", "notes"}
+        # `evidence` is structured review provenance merged into evidence_ref; it
+        # is not an action field, and PII is rejected by the schema validator.
+        assert fields == {"disposition", "reviewer", "notes", "evidence"}
         # Explicitly assert no merge/CR/classification field is present.
         assert not ({"merge", "promote_cr", "reclassify", "new_classification"} & fields)
 
+    def test_evidence_is_pii_free_enforced(self):
+        from app.modules.master_data.phase7.schemas import ReviewQueueDisposition
+        for bad in ({"email": "x@y.z"}, {"contact": {"phone": "+20"}},
+                    {"reason": "ok", "rows": [{"full_name": "Jane"}]}):
+            with pytest.raises(ValidationError, match="PII"):
+                ReviewQueueDisposition(
+                    disposition="CONFIRM", reviewer="t", evidence=bad
+                )
+        # Company-level facts are accepted.
+        ok = ReviewQueueDisposition(
+            disposition="CONFIRM", reviewer="t",
+            evidence={"reason": "corroboration", "domain_relation": "shared"},
+        )
+        assert ok.evidence == {"reason": "corroboration", "domain_relation": "shared"}
+
     def test_disposition_route_contract(self):
         """Router registers record-only endpoints; verify the service signature
-        accepts only record-only kwargs."""
+        carries only record-only kwargs.
+
+        `evidence` is additive provenance (merged into evidence_ref). No kwarg
+        can express a merge, CR promotion, or classification change.
+        """
         import inspect
         sig = inspect.signature(ReviewQueueService.record_disposition)
         params = set(sig.parameters.keys())
-        # Must include queue_type/subject_key/disposition/reviewer/notes only.
-        assert {"self", "queue_type", "subject_key", "disposition", "reviewer", "notes"} == params
+        # Must include queue_type/subject_key/disposition/reviewer/notes, plus
+        # the additive evidence bag.
+        assert {"self", "queue_type", "subject_key", "disposition", "reviewer",
+                "notes", "evidence"} == params
+        # Nothing that could act on master data.
+        assert not ({"merge", "promote_cr", "reclassify", "new_classification"} & params)
+        # Backwards compatible: every new param is optional.
+        assert sig.parameters["evidence"].default is None
 
 
 class TestCRPartitionLogic:

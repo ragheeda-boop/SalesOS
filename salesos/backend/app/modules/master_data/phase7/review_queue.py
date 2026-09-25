@@ -312,14 +312,106 @@ class ReviewQueueService:
 
     # ── Record-only disposition capture ───────────────────────────────────
 
+    async def _resolve_company_link(
+        self, queue_type: str, subject_key: str
+    ) -> tuple[str | None, str]:
+        """Resolve a queue subject to a real Global Company.
+
+        Returns `(global_company_id, default_linkage_status)`.
+
+        `global_company_id` is None when the subject is not company-shaped
+        (a P2 stratum, a Global Person) or when the translation is genuinely
+        unrecoverable (P3 indexes an external file that was never ingested).
+        Nothing is ever guessed or borrowed.
+
+        The guard is deliberately queue-specific: only subjects that ARE a
+        company (P1 Global Company UUID, SHORT_CR MA id) are refused when they
+        fail to resolve, because recording their disposition would otherwise
+        leave a dangling key with no accountable company.
+        """
+        if subject_key.startswith("test:"):
+            return None, "SUBJECT_NOT_A_COMPANY"
+
+        if queue_type == QUEUE_P1:
+            try:
+                uuid.UUID(subject_key)
+            except ValueError as exc:
+                raise ValueError("P1 subject_key must be a Global Company UUID") from exc
+            candidate = await self.session.execute(
+                text(
+                    "SELECT 1 FROM md_review_candidates "
+                    "WHERE global_entity_id = CAST(:gid AS uuid) AND candidate_type = 'P1' "
+                    "AND status <> 'superseded'"
+                ),
+                {"gid": subject_key},
+            )
+            if candidate.first() is None:
+                raise ValueError("P1 subject_key is not a pending P1 candidate")
+            # A P1 subject IS the Global Company. Assert it is a real company
+            # row before writing it into the linkage column.
+            real = await self.session.execute(
+                text("SELECT 1 FROM md_global_companies WHERE id = CAST(:gid AS uuid)"),
+                {"gid": subject_key},
+            )
+            if real.first() is None:
+                raise ValueError("P1 subject_key is not a real Global Company")
+            return subject_key, "RESOLVED"
+
+        if queue_type == QUEUE_SHORT_CR:
+            # MA-XXXXXXX -> Global Company via the authoritative legacy crosswalk.
+            if not re.fullmatch(r"MA-\d{7}", subject_key):
+                raise ValueError("SHORT_CR subject_key must be a MA-XXXXXXX master account id")
+            link = await self.session.execute(
+                text(
+                    "SELECT global_entity_id::text AS gid FROM md_legacy_id_mappings "
+                    "WHERE legacy_id_type = 'LEGACY_MUHIDE_MA_ID' AND legacy_id = :ma"
+                ),
+                {"ma": subject_key},
+            )
+            resolved = link.scalar()
+            if not resolved:
+                raise ValueError(
+                    f"SHORT_CR subject_key {subject_key!r} does not resolve to a real "
+                    "Global Company via the MA crosswalk"
+                )
+            return str(resolved), "RESOLVED"
+
+        if queue_type == QUEUE_P3:
+            # P3 subject_key is "row_a:row_b" indexing an external MUHIDE
+            # candidates file that was never ingested as a source file, so the
+            # row -> Global Company translation is not recoverable here. Reuse
+            # whatever linkage a prior pass proved and otherwise record the
+            # gap; never invent an ID. See report 114.
+            existing = await self.session.execute(
+                text(
+                    "SELECT global_company_id::text AS gid FROM md_review_queue_state "
+                    "WHERE queue_type = :q AND subject_key = :sk"
+                ),
+                {"q": queue_type, "sk": subject_key},
+            )
+            resolved = existing.scalar()
+            if resolved:
+                return str(resolved), "RESOLVED"
+            return None, "SOURCE_ROWS_UNRESOLVED"
+
+        return None, "SUBJECT_NOT_A_COMPANY"
+
     async def record_disposition(self, *, queue_type: str, subject_key: str,
                                  disposition: str, reviewer: str,
-                                 notes: str | None = None) -> dict[str, Any]:
+                                 notes: str | None = None,
+                                 evidence: dict[str, Any] | None = None) -> dict[str, Any]:
         """CAPTURE a review disposition into md_review_queue_state.
 
         This is record-only: it updates the state row's status/disposition and
         NEVER triggers a merge, CR promotion, or classification change. It is
         idempotent on (queue_type, subject_key).
+
+        `evidence` is an optional structured, PII-free dict merged into
+        `evidence_ref`. `global_company_id` is resolved from the subject itself
+        and only ever asserted when the subject resolves to a REAL Global
+        Company; a subject that cannot be resolved is captured with a NULL
+        `global_company_id` plus `evidence_ref.linkage_status`, never with a
+        guessed or borrowed ID.
         """
         await self._assert_write_db()
         if queue_type not in _DISPOSITIONS:
@@ -346,35 +438,36 @@ class ReviewQueueService:
             )
             if source.first() is None:
                 raise ValueError("MA unresolved subject_key is not a v0.7 contact")
-        if queue_type == QUEUE_P1 and not subject_key.startswith("test:"):
-            try:
-                uuid.UUID(subject_key)
-            except ValueError as exc:
-                raise ValueError("P1 subject_key must be a Global Company UUID") from exc
-            candidate = await self.session.execute(
-                text(
-                    "SELECT 1 FROM md_review_candidates "
-                    "WHERE global_entity_id = CAST(:gid AS uuid) AND candidate_type = 'P1' "
-                    "AND status <> 'superseded'"
-                ),
-                {"gid": subject_key},
-            )
-            if candidate.first() is None:
-                raise ValueError("P1 subject_key is not a pending P1 candidate")
+        global_company_id, default_linkage = await self._resolve_company_link(
+            queue_type, subject_key
+        )
+
+        evidence_ref = dict(evidence or {})
+        evidence_ref.setdefault("linkage_status", default_linkage)
 
         row_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"p7a:{queue_type}:{subject_key}"))
         now = datetime.now(UTC)
         await self.session.execute(
             text(
                 "INSERT INTO md_review_queue_state "
-                "(id, queue_type, subject_key, status, disposition, reviewer, reviewed_at, notes) "
-                "VALUES (:id, :q, :sk, 'dispositioned', :disp, :reviewer, :now, :notes) "
+                "(id, queue_type, subject_key, global_company_id, evidence_ref, status, "
+                " disposition, reviewer, reviewed_at, notes) "
+                "VALUES (:id, :q, :sk, CAST(:gid AS uuid), CAST(:ev AS JSONB), 'dispositioned', "
+                "        :disp, :reviewer, :now, :notes) "
                 "ON CONFLICT (queue_type, subject_key) DO UPDATE "
                 "SET status = 'dispositioned', disposition = :disp, "
-                "    reviewer = :reviewer, reviewed_at = :now, notes = :notes"
+                "    reviewer = :reviewer, reviewed_at = :now, notes = :notes, "
+                "    global_company_id = COALESCE(EXCLUDED.global_company_id, "
+                "                                md_review_queue_state.global_company_id), "
+                "    evidence_ref = jsonb_set("
+                "        md_review_queue_state.evidence_ref || EXCLUDED.evidence_ref, "
+                "        '{linkage_status}', "
+                "        COALESCE(md_review_queue_state.evidence_ref -> 'linkage_status', "
+                "                 EXCLUDED.evidence_ref -> 'linkage_status'), true)"
             ),
             {
-                "id": row_id, "q": queue_type, "sk": subject_key,
+                "id": row_id, "q": queue_type, "sk": subject_key, "gid": global_company_id,
+                "ev": json.dumps(evidence_ref, default=str),
                 "disp": disposition, "reviewer": reviewer, "now": now, "notes": notes,
             },
         )
@@ -383,17 +476,25 @@ class ReviewQueueService:
         # Read back the captured row (idempotent).
         row = await self.session.execute(
             text(
-                "SELECT id, queue_type, subject_key, status, disposition, reviewer, "
-                "       reviewed_at, notes FROM md_review_queue_state "
+                "SELECT id, queue_type, subject_key, global_company_id, evidence_ref, status, "
+                "       disposition, reviewer, reviewed_at, notes FROM md_review_queue_state "
                 "WHERE queue_type = :q AND subject_key = :sk"
             ),
             {"q": queue_type, "sk": subject_key},
         )
         m = row.mappings().first()
+        stored_evidence = m["evidence_ref"]
+        if isinstance(stored_evidence, str):
+            try:
+                stored_evidence = json.loads(stored_evidence)
+            except json.JSONDecodeError:
+                stored_evidence = {"raw": stored_evidence}
         return {
             "id": str(m["id"]),
             "queue_type": m["queue_type"],
             "subject_key": m["subject_key"],
+            "global_company_id": str(m["global_company_id"]) if m["global_company_id"] else None,
+            "evidence_ref": stored_evidence,
             "status": m["status"],
             "disposition": m["disposition"],
             "reviewer": m["reviewer"],
