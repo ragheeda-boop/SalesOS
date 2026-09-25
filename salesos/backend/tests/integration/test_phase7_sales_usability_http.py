@@ -51,7 +51,14 @@ async def test_summary_and_listing_over_http(app):
                                                     "page_size": 50}, headers=HEADERS)
         assert r.status_code == 200
         body = r.json()
-        assert body["total"] == 13
+        # Was 13, asserted when all 13 short-CR accounts were still `pending`.
+        # 12 have since been adjudicated CONFIRMED_ARTIFACT, which IS a
+        # resolution, so they no longer block; only the UNRESOLVED_ESCALATE one
+        # does. This is forced by the PO headline figure above: keeping the 12
+        # blocked would make usable_accounts 7_756, not 7_768. The two
+        # PO-asserted numbers were mutually inconsistent; the headline
+        # commercial figure wins and this listing count is corrected to match.
+        assert body["total"] == 1
         assert all("PENDING_SHORT_CR_ADJUDICATION" in i["blockers"] for i in body["items"])
 
         r = await c.get(f"{BASE}/accounts", params={"usable": "true"}, headers=HEADERS)

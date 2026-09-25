@@ -168,14 +168,28 @@ def account_blockers(
 
 _FACTS_SQL = """
 WITH p3 AS (
+    -- A P3 pair blocks its accounts while it is UNRESOLVED. Only an affirmative
+    -- resolution (CONFIRM / SEPARATE) clears it. ESCALATE is NOT a resolution:
+    -- it means the pair needs human P0 adjudication, so `status` alone must never
+    -- be used as the test (it flipped every row to 'dispositioned' and released
+    -- 148 accounts on a false premise).
     SELECT global_company_id AS id FROM md_review_queue_state
-     WHERE queue_type = 'P3_PAIR' AND status = 'pending' AND global_company_id IS NOT NULL
+     WHERE queue_type = 'P3_PAIR'
+       AND (disposition IS NULL OR disposition NOT IN ('CONFIRM', 'SEPARATE'))
+       AND global_company_id IS NOT NULL
     UNION
     SELECT global_company_id_b FROM md_review_queue_state
-     WHERE queue_type = 'P3_PAIR' AND status = 'pending' AND global_company_id_b IS NOT NULL
+     WHERE queue_type = 'P3_PAIR'
+       AND (disposition IS NULL OR disposition NOT IN ('CONFIRM', 'SEPARATE'))
+       AND global_company_id_b IS NOT NULL
 ), scr AS (
+    -- SHORT_CR blocks until it is affirmatively adjudicated: either still pending,
+    -- or explicitly escalated as unresolved. CONFIRMED_ARTIFACT is a resolution.
     SELECT global_company_id AS id FROM md_review_queue_state
-     WHERE queue_type = 'SHORT_CR' AND status = 'pending' AND global_company_id IS NOT NULL
+     WHERE queue_type = 'SHORT_CR'
+       AND (status = 'pending' OR disposition IS NULL
+            OR disposition = 'UNRESOLVED_ESCALATE')
+       AND global_company_id IS NOT NULL
 ), src AS (
     SELECT m.global_entity_id AS id,
            bool_or(s.raw_payload->>'Source System' = 'NCNP') AS has_ncnp,
