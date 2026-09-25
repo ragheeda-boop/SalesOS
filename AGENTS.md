@@ -2952,3 +2952,18 @@ Evidence: `project-audit/111_DISPLAY_DOMAIN_CCTLD_AND_G5_150_REVIEW_2026-09-25.m
 | Production / Phase 7 | **UNCHANGED** | No production write, no commit, no push. Phase 7 remains BLOCKED; production remains **NOT APPROVED**. |
 
 Full evidence: `project-audit/112_G5_SPLIT_ACCEPTANCE_AND_PLACEHOLDER_RULE_2026-09-25.md`.
+
+## 153. Session Summary (2026-09-25) — G4 (643) and the 36-account short-CR group fully captured; branch pushed
+
+| Action | Result | Details |
+|---|:---:|---|
+| PO instruction | **RECORDED** | Ragheed Almadani, 25/09/2026: "يلا ادخل في لوب واغلق G4 ... مجموعة الـ36 ... Commit / Push". Approved via "نعم" after the methodology/figures were presented in chat; chose push option 2 (proceed despite a known pre-existing leaked secret elsewhere in this branch's history) after explicit disclosure. |
+| G4 (643 accounts) | **CAPTURED** | 277 CORRECT / 52 MATERIAL_ERROR / 314 CANNOT_VERIFY. Resolved via domain-frequency + name-domain text match + established source-reliability tiers (multi-source 0%, SFDA-single 1.2%, both from report 111) + 32 hand-reviewed cases; no live web check performed at this scale. `md_review_queue_state` (P1_CANDIDATE): 648/648 recorded (incl. 5 prior). |
+| 36-account short-CR group | **36/36 REVIEWED** | 29 `CONFIRMED_ARTIFACT` (government/nonprofit/placeholder-domain pattern) + 7 `UNRESOLVED_ESCALATE`. 0 promoted to a valid CR — government-ID hard veto preserved. |
+| Permission classifier | **2 blocks, both cleared with fresh explicit approval** | Both bulk workbook writes (643, then 31) were blocked until presented in chat and approved; neither was retried through another route while blocked. |
+| Commit | **`afcdbfbd`** | 7 files, secret-scanned clean, explicit paths only (rules I/J code+tests+frontend labels+AGENTS.md+report 112). |
+| Push | **DONE, first push this session** | `git push origin fix/login-and-keys` initially blocked ("Data Exfiltration"); PO informed that this push would newly publish an already-committed HS256 token (`3de118a5`, report 100) to GitHub for the first time; PO chose to proceed. `3bfa6adb..afcdbfbd`, fast-forward, no force. |
+| Outstanding risk | **PO-ACKNOWLEDGED, UNRESOLVED** | The HS256 token in `3de118a5` is now live on the public remote. Rotation/history-purge remains a PO decision. |
+| Gates | **STILL OPEN** | Capture ≠ gate closure. G3, G4 gates stay open (many CANNOT_VERIFY/UNRESOLVED_ESCALATE outcomes are honest non-closures). G5(Apollo-only) and G2 (2,661 P3 pairs) untouched. Production remains **NOT APPROVED**. |
+
+Full evidence: `project-audit/113_G4_AND_SHORT_CR_36_CLOSURE_2026-09-25.md`.
