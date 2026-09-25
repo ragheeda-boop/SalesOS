@@ -156,4 +156,18 @@ docs/audit/ga-engineering-audit/enterprise-audit-board/history/*/evidence/ops01-
 .vercel
 .env*
 
+# Secrets found untracked on 2026-09-25 (report 100) — never commit
+salesos/infra/k8s/secrets.yaml
+salesos/infra/monitoring/prometheus-token
+
+# Generated / local-only artifacts (report 100)
+salesos/backend/benchmarks/results/
+salesos/frontend/node_modules.incomplete-*/
+salesos/backend/source_table_counts.tsv/
+salesos/backend/target_table_counts.tsv/
+salesos_test_export/*.dump
+
 salesos/backend/outputs/
+
+# JWKS signing keys (private) - never commit
+salesos/backend/app/modules/identity/_keys/
