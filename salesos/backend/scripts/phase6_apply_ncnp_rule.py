@@ -40,7 +40,7 @@ async def supersede_candidates(conn, produced: set[tuple[str, str, str]], versio
               SET status = 'superseded',
                   evidence = rc.evidence || jsonb_build_object(
                       'superseded_by_version', $1::text, 'superseded_at', now()::text,
-                      'superseded_reason', 'Phase 6 rule change (reports 104/106/108)')
+                      'superseded_reason', 'Phase 6 rule change (reports 104/106/108/110/111)')
             WHERE rc.status = 'pending' AND rc.decision IS NULL
               AND NOT EXISTS (SELECT 1 FROM _produced p
                                WHERE p.gid = rc.global_entity_id
@@ -49,7 +49,8 @@ async def supersede_candidates(conn, produced: set[tuple[str, str, str]], versio
     )).split()[-1])
 
 
-async def main(apply: bool, shared_domain_threshold: int | None = None) -> int:
+async def main(apply: bool, shared_domain_threshold: int | None = None, g5_rules: bool = False,
+               display_domain: bool = False) -> int:
     if not apply:
         print("Refusing: pass --apply (use scripts/phase6_dry_run.py to preview).")
         return 2
@@ -61,6 +62,8 @@ async def main(apply: bool, shared_domain_threshold: int | None = None) -> int:
             pipeline = Phase6Pipeline(
                 conn, dry_run=False, cr_excluded_sources=EXCLUDED,
                 shared_domain_threshold=shared_domain_threshold,
+                exclude_dead_domains=g5_rules, require_domain_corroboration=g5_rules,
+                display_domain_rule=display_domain,
             )
             result = await pipeline.run()
             produced = {
@@ -88,5 +91,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--shared-domain-threshold", type=int)
+    ap.add_argument("--g5-rules", action="store_true")
+    ap.add_argument("--display-domain", action="store_true")
     a = ap.parse_args()
-    sys.exit(asyncio.run(main(a.apply, a.shared_domain_threshold)))
+    sys.exit(asyncio.run(main(a.apply, a.shared_domain_threshold, a.g5_rules, a.display_domain)))

@@ -27,13 +27,13 @@ from app.modules.master_data.phase7.sampling import (
     deterministic_p2_sample,
 )
 
-# v3: population under OPTION_C_1+EXCL_NCNP+DOMSH5 (report 108); v2 used +EXCL_NCNP. The v1 sample
+# v5: population under OPTION_C_1+NCNP+DS5+LV+CR+ED (report 111); same population as v4 (report 110). The v1 sample
 # (seed ...2026-09-20-v1, population 46,736) predates the NCNP CR rule.
-SEED = "PHASE7A-P2-2026-09-25-v3-EXCL_NCNP-DOMSH5"
-EXPECTED_POPULATION = 36_418
+SEED = "PHASE7A-P2-2026-09-25-v5-NCNP-DS5-LV-CR-ED"
+EXPECTED_POPULATION = 33_654
 EXPECTED_STRATA = {
-    "SALES_READY_WITH_REVIEW": 29_374,
-    "ENRICHMENT_REQUIRED": 7_044,
+    "SALES_READY_WITH_REVIEW": 15_746,
+    "ENRICHMENT_REQUIRED": 17_908,
 }
 CSV_FIELDS = (
     "sample_rank",

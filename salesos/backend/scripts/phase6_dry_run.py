@@ -207,6 +207,7 @@ async def main(
     output_suffix: str | None = None,
     exclude_cr_sources: frozenset[str] = frozenset(),
     shared_domain_threshold: int | None = None,
+    g5_rules: bool = False,
 ) -> int:
     if max_accounts is not None and max_accounts < 1:
         raise ValueError("--max-accounts must be a positive integer")
@@ -250,6 +251,8 @@ async def main(
                     conn, dry_run=True, change_sink=write_change,
                     cr_excluded_sources=exclude_cr_sources,
                     shared_domain_threshold=shared_domain_threshold,
+                    exclude_dead_domains=g5_rules,
+                    require_domain_corroboration=g5_rules,
                 )
                 result = await pipeline.run(max_accounts=max_accounts)
         reconcile_streamed_result(result, table_counts)
@@ -304,8 +307,10 @@ if __name__ == "__main__":
         type=int,
         help="Ignore domains used by >= N distinct Master Accounts as identity (report 107)",
     )
+    parser.add_argument("--g5-rules", action="store_true",
+                        help="Dead-domain exclusion + single-source domain corroboration (report 110)")
     args = parser.parse_args()
     sys.exit(asyncio.run(main(
         args.max_accounts, args.output_suffix, frozenset(args.exclude_cr_source),
-        args.shared_domain_threshold,
+        args.shared_domain_threshold, args.g5_rules,
     )))

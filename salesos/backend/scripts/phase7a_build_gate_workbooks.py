@@ -22,6 +22,7 @@ import asyncpg
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.modules.master_data.phase6.pipeline import ACTIVE_CLASSIFICATION_VERSION  # noqa: E402
+from app.modules.master_data.phase7.usability import is_out_of_market  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "docs" / "data" / "phase7" / "gate_review_20260925"
@@ -33,6 +34,7 @@ REVIEW_COLS = ["decision (CORRECT / MATERIAL_ERROR / CANNOT_VERIFY)",
 G3_COLS = ["decision (CONFIRMED_VALID_CR / NOT_A_CR / UNRESOLVED_ESCALATE)",
            "reviewer", "reviewed_at", "notes"]
 V = ACTIVE_CLASSIFICATION_VERSION
+G5_SPOT_SIZE = 150  # report 110 recommendation H
 
 
 def _h(seed: str, key: str) -> str:
@@ -59,7 +61,9 @@ async def _load():
                 "WHERE legacy_id_type='LEGACY_MUHIDE_MA_ID'")}
             p1 = await c.fetch(
                 """SELECT rc.global_entity_id::text gid, rc.reason, ic.identity_state, ic.sales_readiness,
-                          ic.cr_class, g.canonical_name, g.domain, g.city
+                          ic.cr_class, g.canonical_name, g.city,
+                          CASE WHEN ic.signals ? 'display_domain' THEN ic.signals->>'display_domain'
+                               ELSE g.domain END AS domain
                      FROM md_review_candidates rc
                      JOIN md_identity_classifications ic ON ic.global_entity_id = rc.global_entity_id
                           AND ic.classification_version = $1
@@ -73,15 +77,19 @@ async def _load():
                           AND ic.classification_version = $1
                     WHERE m.legacy_id_type = 'LEGACY_MUHIDE_MA_ID' AND m.legacy_id = ANY($2)""",
                 V, G3_IDS)}
+            disp = {str(r["gid"]): r["d"] for r in await c.fetch(
+                """SELECT global_entity_id gid,
+                          CASE WHEN signals ? 'display_domain' THEN signals->>'display_domain' END AS d
+                     FROM md_identity_classifications WHERE classification_version = $1""", V)}
     finally:
         await c.close()
-    return mp, p1, g3
+    return mp, p1, g3, disp
 
 
 def main() -> None:
     master = {x["Master Account ID"]: x for x in csv.DictReader(
         open(EXTRACT / "01_Master_Accounts.csv", encoding="utf-8-sig"))}
-    mp, p1, g3 = asyncio.run(_load())
+    mp, p1, g3, disp = asyncio.run(_load())
     per_src = collections.defaultdict(list)
     with open(EXTRACT / "03_Source_Map.csv", encoding="utf-8-sig") as fh:
         for r in csv.DictReader(fh):
@@ -128,17 +136,20 @@ def main() -> None:
     write("G4_P1_WEAK_IDENTITY_FULL.csv", wk)
     write("G4_P1_CORROBORATION_SAMPLE_5PCT.csv", sm)
 
-    sample_dir = OUT / "p2_sample_v3"
+    sample_dir = OUT / "p2_sample_v5"
     sample = next(sample_dir.glob("*.csv"))
     pool = collections.defaultdict(list)
     for r in csv.DictReader(open(sample, encoding="utf-8-sig")):
         if r["sampling_stratum"] != "SALES_READY_WITH_REVIEW":
             continue
         x = master[mp[r["global_company_id"]]]
-        if not _noncom(x):
+        apollo_only = x["Source_Systems"].strip() == "Apollo Accounts"
+        if not _noncom(x) and not is_out_of_market(
+            apollo_only=apollo_only, city=x["City"], domain=disp.get(r["global_company_id"])
+        ):
             pool[_src(x)].append((r, x))
     tot = sum(len(v) for v in pool.values())
-    alloc = {s: max(1, round(50 * len(v) / tot)) for s, v in pool.items()}
+    alloc = {s: max(1, round(G5_SPOT_SIZE * len(v) / tot)) for s, v in pool.items()}
     with open(OUT / "G5_SRWR_REAL_WORLD_SPOT_CHECK.csv", "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(["source_stratum", "ma_id", "global_company_id", "name", "domain", "city",
@@ -147,7 +158,8 @@ def main() -> None:
         for s, v in sorted(pool.items()):
             for r, x in sorted(v, key=lambda t: _h("G5-SPOT-" + V, t[0]["global_company_id"]))[:alloc[s]]:
                 w.writerow([s, x["Master Account ID"], r["global_company_id"], x["Canonical_Company_Name"],
-                            x["Primary_Domain"], x["City"], x["CR_Numbers"], x["Apollo_Account_IDs"]]
+                            disp.get(r["global_company_id"]) or "", x["City"], x["CR_Numbers"],
+                            x["Apollo_Account_IDs"]]
                            + [""] * len(REVIEW_COLS))
                 n += 1
     print({"version": V, "G3": len(G3_IDS), "G4_field_conflict": len(fc), "G4_weak": len(wk),
