@@ -3113,3 +3113,16 @@ Phase 6 unchanged. G2 and G4 still blocked. What changed is that the reported nu
 | Next | **W2** (real e2e router→service→DB, replacing the stub) | Then W7b (persist the 14-cluster dispersion report). Per report 116 §11's explicit ordering; no auto-merge/auto-resolution attempted. |
 
 Full evidence: this section; source report `project-audit/116_SESSION_HANDOFF_EN_2026-09-26.md`.
+
+## 158. Session Summary (2026-09-26) — W2 (real e2e) + W7b (dispersion report persisted): report 116's full backlog closed
+
+| Action | Result | Details |
+|---|:---:|---|
+| W2 (real e2e) | **DONE** | New router→real-`ReviewQueueService`→`salesos_test` tests: a genuine pending P1 candidate's disposition is POSTed through the actual HTTP router and verified directly in the database (not just the HTTP response), plus a second test confirming PII in `evidence` is rejected with 422 before reaching the service or the DB. Locked in: `TRIAGE`/`MA_UNRESOLVED` subjects are deliberately NOT company-gated by `_resolve_company_link` (2 new unit tests). Concurrent-capture idempotency: two simultaneous `record_disposition` calls for the same `(queue_type, subject_key)` serialize to exactly one row via the existing `ON CONFLICT ... DO UPDATE`. |
+| W7b (dispersion report) | **DONE** | `scripts/phase7a_cluster_dispersion_report.py` (read-only) reproduces report 116 §6.2's cluster-and-certify falsification against the live DB and persists it as `project-audit/117_G4_CLUSTER_DISPERSION_REPORT_2026-09-26.md`. Reproduced exactly: 5,903 `CORROBORATION_REVIEW` candidates → 14 evidence-signature clusters (6 cover 98.9%); 4 of 14 clusters have mixed verdicts among their 297 reviewed rows; 284/297 reviewed rows carry no `error_type` at all. |
+| Verification | **PASS** | Focused Phase 7 suite 44/44 (W2 additions); traceability QA gate 8/8 PASS; invariant snapshot unchanged (`md_review_queue_state` still 3,342); Ruff clean on all new/changed files. |
+| Commits | **`e1e94449`, `9589af2c`** | Pushed to `origin/fix/login-and-keys` under the standing loop authorization. |
+| Report 116's backlog | **FULLY CLOSED** | W1 (§157) + W2 + W7b — every item in report 116 §11's "suggested next actions" is now done. Remaining items (§10's 8 human-blocked rows: PO ratification of the 52 MATERIAL_ERROR rows' authoritative values, G2's 1,763 un-ingested pairs, G4's 5,920 open P1 backlog, production G9-G16, the leaked-secret rotation) are explicitly human/data-bound, not code-bound. |
+| Loop status | **CONTINUING** | Standing "5 hours, all approvals" authorization; no auto-merge/auto-resolution/cluster-certify attempted or planned. Next: a fresh, conservative systematic safety/quality pass (matching this session's established SQL-sweep/RLS-audit methodology) for the remainder of the budget, reported the same way — evidence-first, no gate ever claimed closed. |
+
+Full evidence: this section; `project-audit/117_G4_CLUSTER_DISPERSION_REPORT_2026-09-26.md`.
