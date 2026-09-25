@@ -21,10 +21,15 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.dependencies import get_db_session, verify_token
+from app.modules.master_data.phase7.review_queue import ReviewQueueService
 from app.modules.master_data.phase7.review_router import get_service
 from app.modules.master_data.phase7.review_router import router as phase7a_router
+
+PG_URL = "postgresql+asyncpg://salesos:salesos_dev_password@localhost:5432/salesos_test"
 
 
 class _StubService:
@@ -173,6 +178,187 @@ async def test_disposition_post_path_matches_frontend(app, _bypass_permission_ch
         body = response.json()
         assert body["queue_type"] == "P3_PAIR"
         assert body["disposition"] == "MATCH"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Report 116 W2 — real end-to-end: router -> real ReviewQueueService -> real
+# salesos_test DB. The stub-backed tests above prove routing/dependency
+# wiring only (deliberately, per the module docstring); this proves the
+# HTTP layer's Pydantic validation, the service's disposition-capture logic,
+# and the actual database write all compose correctly together — a defect
+# in any one of those three layers can hide behind mocking any of the
+# others, which is exactly why report 116 flagged this as NOT STARTED.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@pytest.fixture
+def real_app() -> FastAPI:
+    """Same router, mounted the same way, but backed by a REAL
+    ReviewQueueService (its own salesos_test session) instead of the stub."""
+    application = FastAPI()
+    application.include_router(
+        phase7a_router,
+        prefix="/api/v1/master-data/review-queue",
+    )
+    application.dependency_overrides[verify_token] = lambda: {"sub": "test-user", "tenant_id": "t1"}
+    application.dependency_overrides[get_db_session] = lambda: AsyncMock()
+    application.dependency_overrides[get_service] = lambda: ReviewQueueService()
+    return application
+
+
+@pytest.fixture
+async def verify_session():
+    """A separate connection for verifying/cleaning up what the HTTP call
+    actually wrote — independent of whatever session the router's own
+    dependency-injected service used for the write itself."""
+    engine = create_async_engine(PG_URL)
+    async with AsyncSession(engine) as s:
+        db = (await s.execute(text("SELECT current_database()"))).scalar()
+        assert db == "salesos_test", f"must run on salesos_test, got {db}"
+        yield s
+    await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_real_e2e_disposition_capture_router_service_db(real_app, _bypass_permission_check,
+                                                              verify_session):
+    """POST a real disposition through the actual HTTP router and confirm it
+    reaches `md_review_queue_state` with correct linkage, exactly once, with
+    no Phase 6 side effect — router, service, and DB genuinely exercised
+    together, not individually mocked."""
+    gid = (
+        await verify_session.execute(
+            text(
+                "SELECT global_entity_id::text FROM md_review_candidates "
+                "WHERE candidate_type='P1' AND status <> 'superseded' LIMIT 1"
+            )
+        )
+    ).scalar()
+    assert gid, "need at least one pending P1 candidate in salesos_test"
+
+    existing = (
+        await verify_session.execute(
+            text(
+                "SELECT status, disposition, reviewer, reviewed_at, notes, "
+                "global_company_id::text AS global_company_id, "
+                "global_company_id_b::text AS global_company_id_b, evidence_ref "
+                "FROM md_review_queue_state WHERE queue_type='P1_CANDIDATE' AND subject_key=:k"
+            ),
+            {"k": gid},
+        )
+    ).mappings().first()
+
+    transport = ASGITransport(app=real_app)
+    headers = {"Authorization": "Bearer test-token", "X-Tenant-Id": "t1"}
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                f"/api/v1/master-data/review-queue/P1_CANDIDATE/{gid}/disposition",
+                json={
+                    "disposition": "REVIEW", "reviewer": "test-e2e-reviewer",
+                    "notes": "report 116 W2 real e2e check",
+                    "evidence": {"reason": "real e2e check", "domain_relation": "SAME_BASE"},
+                },
+                headers=headers, timeout=10,
+            )
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["queue_type"] == "P1_CANDIDATE"
+        assert body["subject_key"] == gid
+        assert body["global_company_id"] == gid, "linkage must be the real Global Company itself"
+        assert body["evidence_ref"]["reason"] == "real e2e check"
+        assert body["evidence_ref"]["linkage_status"] == "RESOLVED"
+
+        # Verify directly in the DB — not just trusting the HTTP response.
+        row = (
+            await verify_session.execute(
+                text(
+                    "SELECT global_company_id::text AS gid, disposition, reviewer, evidence_ref "
+                    "FROM md_review_queue_state WHERE queue_type='P1_CANDIDATE' AND subject_key=:k"
+                ),
+                {"k": gid},
+            )
+        ).mappings().one()
+        assert row["gid"] == gid
+        assert row["disposition"] == "REVIEW"
+        assert row["evidence_ref"]["reason"] == "real e2e check"
+
+        # No Phase 6 side effect from a record-only capture.
+        candidate_still_pending = (
+            await verify_session.execute(
+                text(
+                    "SELECT status FROM md_review_candidates "
+                    "WHERE candidate_type='P1' AND global_entity_id = CAST(:gid AS uuid)"
+                ),
+                {"gid": gid},
+            )
+        ).scalar()
+        assert candidate_still_pending != "superseded"
+    finally:
+        if existing:
+            await verify_session.execute(
+                text(
+                    "UPDATE md_review_queue_state SET status=:status, disposition=:disp, "
+                    "reviewer=:reviewer, reviewed_at=:reviewed_at, notes=:notes, "
+                    "global_company_id=CAST(:gid AS uuid), "
+                    "global_company_id_b=CAST(:gid_b AS uuid), "
+                    "evidence_ref=CAST(:ev AS JSONB) "
+                    "WHERE queue_type='P1_CANDIDATE' AND subject_key=:k"
+                ),
+                {
+                    "k": gid, "status": existing["status"], "disp": existing["disposition"],
+                    "reviewer": existing["reviewer"], "reviewed_at": existing["reviewed_at"],
+                    "notes": existing["notes"], "gid": existing["global_company_id"],
+                    "gid_b": existing["global_company_id_b"],
+                    "ev": __import__("json").dumps(existing["evidence_ref"] or {}),
+                },
+            )
+        else:
+            await verify_session.execute(
+                text("DELETE FROM md_review_queue_state WHERE queue_type='P1_CANDIDATE' AND subject_key=:k"),
+                {"k": gid},
+            )
+        await verify_session.commit()
+
+
+@pytest.mark.asyncio
+async def test_real_e2e_rejects_pii_before_reaching_the_database(real_app, _bypass_permission_check,
+                                                                 verify_session):
+    """A caller who tries to slip PII into evidence.detail is rejected at the
+    HTTP validation layer (422), before the service or the database ever see
+    it — proves the typed-evidence guarantee holds through the real router,
+    not just when the service is called directly in Python."""
+    gid = (
+        await verify_session.execute(
+            text(
+                "SELECT global_entity_id::text FROM md_review_candidates "
+                "WHERE candidate_type='P1' AND status <> 'superseded' LIMIT 1"
+            )
+        )
+    ).scalar()
+    assert gid, "need at least one pending P1 candidate in salesos_test"
+
+    transport = ASGITransport(app=real_app)
+    headers = {"Authorization": "Bearer test-token", "X-Tenant-Id": "t1"}
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            f"/api/v1/master-data/review-queue/P1_CANDIDATE/{gid}/disposition",
+            json={
+                "disposition": "REVIEW", "reviewer": "test-e2e-reviewer",
+                "evidence": {"reason": "contact ali@example.com for details"},
+            },
+            headers=headers, timeout=10,
+        )
+    assert response.status_code == 422
+
+    # Nothing was written.
+    row = (
+        await verify_session.execute(
+            text("SELECT 1 FROM md_review_queue_state WHERE queue_type='P1_CANDIDATE' AND subject_key=:k"),
+            {"k": gid},
+        )
+    ).first()
+    assert row is None, "rejected request must leave no state row behind"
 
 
 if __name__ == "__main__":

@@ -511,6 +511,62 @@ class TestUnresolvableSubjectRejected:
             await _cleanup_test_rows(session, [key], preserve={key: existing})
 
 
+class TestConcurrentCaptureIdempotency:
+    """Report 116 W2: two concurrent captures for the SAME (queue_type,
+    subject_key) must not race into duplicate rows or a lost update — the
+    `ON CONFLICT (queue_type, subject_key) DO UPDATE` in record_disposition
+    is the only thing standing between concurrent reviewers and a duplicate-
+    key error or a silently dropped disposition."""
+
+    @pytest.mark.asyncio
+    async def test_concurrent_captures_serialize_to_one_row(self, session):
+        import asyncio
+
+        from sqlalchemy.ext.asyncio import create_async_engine
+
+        engine = create_async_engine(PG_URL)
+        key = ("TRIAGE", "test:concurrent:capture")
+        try:
+            async def _capture(reviewer: str, reason: str):
+                async with AsyncSession(engine) as s:
+                    svc = ReviewQueueService(s, unsafe_allow_test_subjects=True)
+                    return await svc.record_disposition(
+                        queue_type=key[0], subject_key=key[1], disposition="REVIEW",
+                        reviewer=reviewer, evidence={"reason": reason},
+                    )
+
+            results = await asyncio.gather(
+                _capture("concurrent-a", "first concurrent writer"),
+                _capture("concurrent-b", "second concurrent writer"),
+                return_exceptions=True,
+            )
+            errors = [r for r in results if isinstance(r, Exception)]
+            assert not errors, f"concurrent capture raised: {errors}"
+
+            count = await session.execute(
+                text(
+                    "SELECT COUNT(*) FROM md_review_queue_state "
+                    "WHERE queue_type=:q AND subject_key=:k"
+                ),
+                {"q": key[0], "k": key[1]},
+            )
+            assert count.scalar() == 1, "concurrent captures must serialize to exactly one row"
+
+            row = (
+                await session.execute(
+                    text(
+                        "SELECT reviewer FROM md_review_queue_state "
+                        "WHERE queue_type=:q AND subject_key=:k"
+                    ),
+                    {"q": key[0], "k": key[1]},
+                )
+            ).scalar()
+            assert row in ("concurrent-a", "concurrent-b"), "one of the two writers must have won cleanly"
+        finally:
+            await _cleanup_test_rows(session, [key])
+            await engine.dispose()
+
+
 def _valid_disposition(queue_type: str) -> str:
     if queue_type == "P3_PAIR":
         return "SEPARATE"

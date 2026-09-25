@@ -120,6 +120,38 @@ class TestNoSideEffectByDesign:
         assert sig.parameters["evidence"].default is inspect.Parameter.empty
 
 
+class TestNotCompanyGatedByDesign:
+    """Report 116 W2: TRIAGE and MA_UNRESOLVED subjects are deliberately NOT
+    company-gated by `_resolve_company_link` — a TRIAGE subject_key is a
+    Global Company id used only as a label (no P1-candidate-existence check
+    the way QUEUE_P1 has), and MA_UNRESOLVED's `GP-*` keys are v0.7 Global
+    Person proposals, not companies at all. Neither queue type has an
+    explicit branch in `_resolve_company_link`; both fall through to the
+    same `(None, "SUBJECT_NOT_A_COMPANY")` default that a genuinely
+    unresolvable subject also gets. This locks that fall-through in as
+    intentional, not an oversight, so a future refactor that adds a TRIAGE
+    or MA_UNRESOLVED branch does not accidentally start rejecting subjects
+    that were always meant to pass through unchecked."""
+
+    @pytest.mark.asyncio
+    async def test_triage_subject_is_not_company_gated(self):
+        svc = ReviewQueueService.__new__(ReviewQueueService)
+        svc._unsafe_allow_test_subjects = False
+        # Not a UUID, not an MA id, not a P3 "a:b" shape — would be refused by
+        # every OTHER queue type's branch, but TRIAGE has none.
+        gid, linkage = await svc._resolve_company_link(QUEUE_TRIAGE, "not-a-uuid-at-all")
+        assert gid is None
+        assert linkage == "SUBJECT_NOT_A_COMPANY"
+
+    @pytest.mark.asyncio
+    async def test_ma_unresolved_subject_is_not_company_gated(self):
+        svc = ReviewQueueService.__new__(ReviewQueueService)
+        svc._unsafe_allow_test_subjects = False
+        gid, linkage = await svc._resolve_company_link(QUEUE_MA_UNRESOLVED, "GP-0000001")
+        assert gid is None
+        assert linkage == "SUBJECT_NOT_A_COMPANY"
+
+
 class TestCRPartitionLogic:
     """The short-CR partition mirrors Phase 5/6 normalize_cr: >=8 digits valid."""
 
