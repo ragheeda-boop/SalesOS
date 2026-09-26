@@ -444,7 +444,7 @@ class TestOnDecisionCreatedEvent:
         session = _FakeSession()
         sf = _FakeSessionFactory(session)
 
-        # Event payload deliberately wrong ù canonical must win
+        # Event payload deliberately wrong ‚Äî canonical must win
         event = _FakeEvent(decision_type="alert", company_id="WRONG")
         result = asyncio.run(on_decision_created_event(sf, event, engine))
 
@@ -483,7 +483,7 @@ class TestOnDecisionCreatedEvent:
                 "reasoning": "r",
             }
         )
-        # Reserved LogRecord attribute ó makeRecord raises if extra uses 'created'.
+        # Reserved LogRecord attribute ‚Äî makeRecord raises if extra uses 'created'.
         probe = logging.getLogger("il2a_probe")
         with pytest.raises(KeyError):
             probe.makeRecord(
