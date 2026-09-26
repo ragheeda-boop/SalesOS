@@ -9,7 +9,7 @@ class LLMProvider(Protocol):
     async def chat(self, request: ChatRequest) -> ChatResponse:
         ...
 
-    async def chat_stream(self, request: ChatRequest) -> AsyncIterator[StreamEvent]:
+    def chat_stream(self, request: ChatRequest) -> AsyncIterator[StreamEvent]:
         ...
 
     async def embed(self, request: EmbeddingRequest) -> EmbeddingResponse:
