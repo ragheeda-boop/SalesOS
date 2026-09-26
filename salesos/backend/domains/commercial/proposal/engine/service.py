@@ -88,7 +88,7 @@ class ProposalService:
         proposal.delivery_url = url
         return await self._transition(proposal_id, ProposalStatus.DELIVERED, "proposal.delivered", {
             "method": method, "url": url,
-        })
+        }, proposal=proposal)
 
     async def mark_viewed(self, proposal_id: str) -> Proposal:
         proposal = await self._repository.get(proposal_id)
@@ -96,7 +96,9 @@ class ProposalService:
             raise ValueError(f"Proposal {proposal_id} not found")
 
         proposal.viewed_at = datetime.now(timezone.utc)
-        return await self._transition(proposal_id, ProposalStatus.VIEWED, "proposal.viewed")
+        return await self._transition(
+            proposal_id, ProposalStatus.VIEWED, "proposal.viewed", proposal=proposal
+        )
 
     async def accept(self, proposal_id: str) -> Proposal:
         """Accept a proposal. This generates an event — Rule Engine should consume it."""
@@ -111,19 +113,35 @@ class ProposalService:
             "opportunity_id": proposal.opportunity_id,
             "quote_id": proposal.quote_id,
             "quote_revision": proposal.quote_revision,
-        })
+        }, proposal=proposal)
         return result
 
     async def reject(self, proposal_id: str, reason: str = "") -> Proposal:
+        proposal = await self._repository.get(proposal_id)
+        if not proposal:
+            raise ValueError(f"Proposal {proposal_id} not found")
+        proposal.rejection_reason = reason
         return await self._transition(proposal_id, ProposalStatus.REJECTED, "proposal.rejected", {
             "reason": reason,
-        })
+        }, proposal=proposal)
 
     async def expire(self, proposal_id: str) -> Proposal:
         return await self._transition(proposal_id, ProposalStatus.EXPIRED, "proposal.expired")
 
-    async def _transition(self, proposal_id: str, to_status: ProposalStatus, event_type: str, extra: dict | None = None) -> Proposal:
-        proposal = await self._repository.get(proposal_id)
+    async def _transition(
+        self,
+        proposal_id: str,
+        to_status: ProposalStatus,
+        event_type: str,
+        extra: dict | None = None,
+        proposal: Proposal | None = None,
+    ) -> Proposal:
+        """`proposal`, when given, must already have been fetched (and possibly
+        mutated) by the caller — re-fetching here would silently discard
+        those mutations (e.g. deliver()'s delivery_method/url, mark_viewed()'s
+        viewed_at, accept()'s accepted_at, reject()'s rejection_reason)."""
+        if proposal is None:
+            proposal = await self._repository.get(proposal_id)
         if not proposal:
             raise ValueError(f"Proposal {proposal_id} not found")
         proposal.status = to_status

@@ -79,6 +79,7 @@ class Proposal:
     delivery_url: str = ""
     viewed_at: datetime | None = None
     accepted_at: datetime | None = None
+    rejection_reason: str = ""
     valid_until: datetime | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

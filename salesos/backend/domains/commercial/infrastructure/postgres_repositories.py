@@ -579,17 +579,26 @@ class PostgresProposalRepository(ProposalRepository):
         self.session = session
 
     async def save(self, proposal: Proposal) -> Proposal:
+        """`sections` (the proposal's actual content) has no schema home at
+        all -- ProposalModel has no sections/content column of any kind --
+        so update_section()'s mutations do not round-trip. A pre-existing
+        gap, not introduced here; would need a new table/column + migration
+        to close (see report 122).
+        """
         stmt = select(ProposalModel).where(ProposalModel.id == proposal.id)
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
         if model:
+            if model.status != proposal.status.value:
+                if proposal.status == ProposalStatus.DELIVERED and not model.sent_at:
+                    model.sent_at = proposal.updated_at
+                if proposal.status == ProposalStatus.REJECTED and not model.rejected_at:
+                    model.rejected_at = proposal.updated_at
             model.title = proposal.title
             model.status = proposal.status.value
             model.delivery_method = proposal.delivery_method
-            model.sent_at = proposal.sent_at
             model.viewed_at = proposal.viewed_at
             model.accepted_at = proposal.accepted_at
-            model.rejected_at = proposal.rejected_at
             model.rejection_reason = proposal.rejection_reason
             model.version = proposal.version
         else:
@@ -598,8 +607,10 @@ class PostgresProposalRepository(ProposalRepository):
                 opportunity_id=proposal.opportunity_id, quote_id=proposal.quote_id,
                 title=proposal.title, status=proposal.status.value,
                 delivery_method=proposal.delivery_method,
-                sent_at=proposal.sent_at, viewed_at=proposal.viewed_at,
-                accepted_at=proposal.accepted_at, rejected_at=proposal.rejected_at,
+                sent_at=proposal.updated_at if proposal.status == ProposalStatus.DELIVERED else None,
+                viewed_at=proposal.viewed_at,
+                accepted_at=proposal.accepted_at,
+                rejected_at=proposal.updated_at if proposal.status == ProposalStatus.REJECTED else None,
                 rejection_reason=proposal.rejection_reason, version=proposal.version,
             )
             self.session.add(model)
@@ -632,27 +643,32 @@ class PostgresProposalRepository(ProposalRepository):
         return [self._to_domain(r) for r in result.scalars().all()]
 
     async def kpis(self, tenant_id: str) -> ProposalKPIs:
-        stmt = select(
-            func.count(ProposalModel.id),
-            func.count(ProposalModel.id).filter(ProposalModel.status == "accepted"),
-        ).where(ProposalModel.tenant_id == tenant_id)
-        result = await self.session.execute(stmt)
-        total, accepted = result.one()
+        """Mirrors the in-memory reference's formulas (engine/in_memory_repo.py)."""
+        proposals = await self.list_by_tenant(tenant_id)
+        total = len(proposals)
+        delivered = sum(1 for p in proposals if p.is_delivered)
+        accepted = sum(1 for p in proposals if p.status == ProposalStatus.ACCEPTED)
+        cycle_hours = 0.0
+        cycle_count = 0
+        for p in proposals:
+            if p.accepted_at and p.created_at:
+                cycle_hours += (p.accepted_at - p.created_at).total_seconds() / 3600
+                cycle_count += 1
         return ProposalKPIs(
-            total_sent=total or 0, accepted_count=accepted or 0,
-            acceptance_rate=accepted / total if total > 0 else 0,
-            avg_days_to_decision=0,
+            total_proposals=total,
+            delivery_rate=round(delivered / total, 2) if total > 0 else 0.0,
+            acceptance_rate=round(accepted / delivered, 2) if delivered > 0 else 0.0,
+            average_cycle_hours=round(cycle_hours / cycle_count, 1) if cycle_count > 0 else 0.0,
+            proposal_to_win_conversion=round(accepted / total, 2) if total > 0 else 0.0,
         )
 
     def _to_domain(self, model: ProposalModel) -> Proposal:
-        from domains.commercial.proposal.contracts.models import Proposal as P, ProposalStatus as PS
-        return P(
+        return Proposal(
             id=model.id, tenant_id=model.tenant_id,
             opportunity_id=model.opportunity_id, quote_id=model.quote_id,
-            title=model.title, status=PS(model.status),
+            title=model.title, status=ProposalStatus(model.status),
             delivery_method=model.delivery_method,
-            sent_at=model.sent_at, viewed_at=model.viewed_at,
-            accepted_at=model.accepted_at, rejected_at=model.rejected_at,
+            viewed_at=model.viewed_at, accepted_at=model.accepted_at,
             rejection_reason=model.rejection_reason, version=model.version,
             created_at=model.created_at, updated_at=model.updated_at,
         )
