@@ -3218,3 +3218,19 @@ Full evidence: `project-audit/121_QUOTE_REPOSITORY_CONTRACT_MODEL_MISMATCH_AND_E
 | Loop status | **CONTINUING** | 3rd occurrence of the same "domain contract vs. denormalized DB model" bug class in this one file. Remaining untouched classes (`Contract`, `Forecast`, `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`, `Evidence`) are the natural next candidates given this file's demonstrated hit rate. |
 
 Full evidence: `project-audit/122_PROPOSAL_REPOSITORY_CRASH_AND_DOUBLE_FETCH_BUG_2026-09-26.md`.
+
+---
+
+## 164. Session Summary (2026-09-26) — Contract: sign() never recorded who/when, kpis() returned fake numbers (streak breaker: this file's first clean CRUD class)
+
+| Action | Result | Details |
+|---|:---:|---|
+| Streak breaker | **`PostgresContractRepository`'s core CRUD is correct** | First class checked in this file (after 3 straight crash bugs — StageEntry, Quote, Proposal) whose `save()`/`get()`/`_to_domain()` field mapping is fully correct against the real `Contract`/`ContractParty`/`ContractObligation`/`RenewalRule` dataclasses. Not every class in this file shares the same defect. |
+| Bug 1 — `sign()` never persisted its own purpose | **FIXED, live** | `Contract.signed_by_provider`/`signed_by_customer` (timestamps) were never touched by `ContractService.sign()` — the signer names were only forwarded into the emitted event; `_transition()` only sets `status`/`updated_at`. Live at `POST /contracts/{contract_id}/sign`, whose response serializes both fields back to the caller — every real signing request returned `null` regardless of input. Fixed: `sign()` now fetches, mutates, and saves directly (no longer routes through `_transition()`). |
+| Bug 2 — `kpis()` mostly fake | **FIXED, unreached today** | `renewal_rate=0.85` hardcoded; `signed_rate` never set (silently 0.0); `expiring_soon` computed as already-`expired` count instead of signed-and-expiring-within-90-days; `total_contract_value=0.0` ignored the real `quote_values` argument entirely. Zero live callers (only a domain unit test) — fixed for contract alignment with the in-memory reference, matching reports 121/122's precedent. |
+| Verification | **Genuine red→green, both bugs** | New `tests/integration/test_contract_repository_persistence_db.py` (2 tests). One test-authoring mistake self-caught and corrected during verification (a signed-then-renewed contract doesn't count toward `signed_rate` — `is_signed` excludes `RENEWED` — traced to the real property, not guessed). Reverting exactly the 2 changed files: `signed_by_provider is None` + fake KPI values, both exact predicted failures. Restored: PASS. |
+| Regression | **12/12 PASS** | `test_contract.py` + both new tests. Ruff: 58 findings unchanged across the 2 files (confirmed via scoped stash/pop, 0 new — pre-existing `F821`s live in the still-unreviewed `PostgresEvidenceRepository`). `compileall` and `git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING** | `PostgresEvidenceRepository`'s `F821` findings (`Insight`/`EvidenceItem` referenced without an import) are a concrete, different-shaped lead for next. Remaining unreviewed classes: `Forecast`, `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`, `Evidence`. |
+
+Full evidence: `project-audit/123_CONTRACT_SIGN_AND_KPIS_BUGS_2026-09-26.md`.
