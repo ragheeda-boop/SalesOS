@@ -107,6 +107,8 @@ class StageEntry:
     entered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     exited_at: datetime | None = None
     exit_reason: str = ""
+    tenant_id: str = ""
+    from_stage: str = ""
 
     @property
     def duration_days(self) -> float:

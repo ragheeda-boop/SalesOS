@@ -106,6 +106,8 @@ class PipelineService:
             pipeline_id=pipeline_id,
             opportunity_id=opportunity_id,
             stage_name=to_stage,
+            tenant_id=pipeline.tenant_id,
+            from_stage=prev.stage_name if prev else from_stage,
         )
         result = await self._repository.save_stage_entry(entry)
 

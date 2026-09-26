@@ -232,19 +232,44 @@ class PostgresPipelineRepository(PipelineRepository):
             for r in result.scalars().all()
         ]
 
+    @staticmethod
+    def _duration_hours(entry: StageEntry) -> float | None:
+        if not entry.exited_at:
+            return None
+        return (entry.exited_at - entry.entered_at).total_seconds() / 3600
+
     async def save_stage_entry(self, entry: StageEntry) -> StageEntry:
-        model = StageEntryModel(
-            id=entry.id if hasattr(entry, 'id') else str(uuid.uuid4()),
-            tenant_id=entry.tenant_id if hasattr(entry, 'tenant_id') else "",
-            opportunity_id=entry.opportunity_id,
-            pipeline_id=entry.pipeline_id,
-            from_stage=entry.from_stage,
-            to_stage=entry.to_stage,
-            entered_at=entry.entered_at or datetime.now(timezone.utc),
-        )
-        self.session.add(model)
+        """Upsert by id: `enter_stage()` saves the same `prev` entry object
+        twice (once to close it, once already persisted when re-entered),
+        so a plain INSERT would violate the primary key on the second call.
+        """
+        existing = await self.session.get(StageEntryModel, entry.id)
+        if existing is not None:
+            existing.exited_at = entry.exited_at
+            existing.duration_hours = self._duration_hours(entry)
+        else:
+            model = StageEntryModel(
+                id=entry.id or str(uuid.uuid4()),
+                tenant_id=entry.tenant_id,
+                opportunity_id=entry.opportunity_id,
+                pipeline_id=entry.pipeline_id,
+                from_stage=entry.from_stage,
+                to_stage=entry.stage_name,
+                entered_at=entry.entered_at or datetime.now(timezone.utc),
+                exited_at=entry.exited_at,
+                duration_hours=self._duration_hours(entry),
+            )
+            self.session.add(model)
         await self.session.flush()
         return entry
+
+    @staticmethod
+    def _to_contract(model: StageEntryModel) -> StageEntry:
+        return StageEntry(
+            id=model.id, opportunity_id=model.opportunity_id, pipeline_id=model.pipeline_id,
+            stage_name=model.to_stage, from_stage=model.from_stage, tenant_id=model.tenant_id,
+            entered_at=model.entered_at, exited_at=model.exited_at,
+        )
 
     async def get_active_stage_entry(self, opportunity_id: str) -> Optional[StageEntry]:
         stmt = select(StageEntryModel).where(
@@ -255,23 +280,14 @@ class PostgresPipelineRepository(PipelineRepository):
         model = result.scalar_one_or_none()
         if not model:
             return None
-        return StageEntry(
-            opportunity_id=model.opportunity_id, pipeline_id=model.pipeline_id,
-            from_stage=model.from_stage, to_stage=model.to_stage,
-            entered_at=model.entered_at, exited_at=model.exited_at,
-            duration_hours=model.duration_hours,
-        )
+        return self._to_contract(model)
 
     async def get_stage_history(self, opportunity_id: str) -> list:
         stmt = select(StageEntryModel).where(
             StageEntryModel.opportunity_id == opportunity_id
         ).order_by(StageEntryModel.entered_at.asc())
         result = await self.session.execute(stmt)
-        return [StageEntry(
-            opportunity_id=r.opportunity_id, pipeline_id=r.pipeline_id,
-            from_stage=r.from_stage, to_stage=r.to_stage,
-            entered_at=r.entered_at, exited_at=r.exited_at, duration_hours=r.duration_hours,
-        ) for r in result.scalars().all()]
+        return [self._to_contract(r) for r in result.scalars().all()]
 
     async def compute_kpis(self, pipeline_id: str, opportunities: list) -> PipelineKPIs:
         """Compute the same KPI contract as the in-memory repository.
