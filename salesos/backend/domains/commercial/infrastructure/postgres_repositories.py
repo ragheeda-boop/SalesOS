@@ -53,11 +53,15 @@ from domains.commercial.opportunity.contracts.opportunity_contact_repository imp
 
 from .models import (
     ActivityModel, ActivitySessionModel, AnalyticsSnapshotModel,
-    ContractModel, DecisionContextModel, EmailModel, ForecastSnapshotModel,
-    MeetingModel, OpportunityContactModel, OpportunityModel,
+    ContractModel, DecisionContextModel, EmailModel, EvidenceItemModel, ForecastSnapshotModel,
+    InsightModel, MeetingModel, OpportunityContactModel, OpportunityModel,
     PipelineDefinitionModel, PolicyModel, ProposalModel, QuoteLineModel,
     QuoteModel, QuotaModel, QuotaSnapshotModel, RecommendationModel, ReviewModel, StageEntryModel,
     TerritoryModel,
+)
+from domains.commercial.evidence.contracts.models import (
+    ConfidenceLevel, EvidenceItem, EvidenceKind, EvidenceSource, EvidenceType,
+    Insight, InsightCategory,
 )
 
 
@@ -1697,7 +1701,6 @@ class PostgresEvidenceRepository:
         self.session = session
 
     async def save_insight(self, insight: Insight) -> Insight:
-        from domains.commercial.infrastructure.models import InsightModel
         model = InsightModel(
             id=insight.id, tenant_id=insight.tenant_id,
             category=insight.category.value, title=insight.title,
@@ -1712,8 +1715,6 @@ class PostgresEvidenceRepository:
         return insight
 
     async def get_insight(self, insight_id: str) -> Insight | None:
-        from domains.commercial.infrastructure.models import InsightModel
-        from sqlalchemy import select
         stmt = select(InsightModel).where(InsightModel.id == insight_id)
         result = await self.session.execute(stmt)
         model = result.scalar_one_or_none()
@@ -1730,8 +1731,6 @@ class PostgresEvidenceRepository:
         category: InsightCategory | None = None,
         limit: int = 50,
     ) -> list[Insight]:
-        from domains.commercial.infrastructure.models import InsightModel
-        from sqlalchemy import select
         q = select(InsightModel).where(InsightModel.tenant_id == tenant_id)
         if target_id:
             q = q.where(InsightModel.target_id == target_id)
@@ -1755,8 +1754,6 @@ class PostgresEvidenceRepository:
         category: InsightCategory | None = None,
         limit: int = 50,
     ) -> list[Insight]:
-        from domains.commercial.infrastructure.models import InsightModel
-        from sqlalchemy import select
         q = select(InsightModel).where(
             InsightModel.tenant_id == tenant_id,
             InsightModel.overall_confidence >= min_confidence,
@@ -1773,7 +1770,6 @@ class PostgresEvidenceRepository:
         return insights
 
     async def save_evidence(self, insight_id: str, evidence: EvidenceItem) -> EvidenceItem:
-        from domains.commercial.infrastructure.models import EvidenceItemModel
         model = EvidenceItemModel(
             id=evidence.id, insight_id=insight_id,
             evidence_type=evidence.evidence_type.value,
@@ -1795,8 +1791,6 @@ class PostgresEvidenceRepository:
         return evidence
 
     async def list_evidence(self, insight_id: str) -> list[EvidenceItem]:
-        from domains.commercial.infrastructure.models import EvidenceItemModel
-        from sqlalchemy import select
         stmt = select(EvidenceItemModel).where(
             EvidenceItemModel.insight_id == insight_id
         ).order_by(EvidenceItemModel.created_at)
@@ -1804,8 +1798,6 @@ class PostgresEvidenceRepository:
         return [self._evidence_to_domain(m) for m in result.scalars().all()]
 
     async def count_by_category(self, tenant_id: str) -> dict[str, int]:
-        from domains.commercial.infrastructure.models import InsightModel
-        from sqlalchemy import select, func
         stmt = select(
             InsightModel.category, func.count(InsightModel.id)
         ).where(
@@ -1815,8 +1807,6 @@ class PostgresEvidenceRepository:
         return {row[0]: row[1] for row in result.all()}
 
     async def count_by_confidence(self, tenant_id: str) -> dict[str, int]:
-        from domains.commercial.infrastructure.models import InsightModel
-        from sqlalchemy import select, func
         stmt = select(
             InsightModel.confidence_level, func.count(InsightModel.id)
         ).where(
@@ -1826,9 +1816,6 @@ class PostgresEvidenceRepository:
         return {row[0]: row[1] for row in result.all()}
 
     def _to_domain(self, model, evidence: list[EvidenceItem] | None = None) -> Insight:
-        from domains.commercial.evidence.contracts.models import (
-            Insight, InsightCategory, ConfidenceLevel,
-        )
         return Insight(
             id=model.id, tenant_id=model.tenant_id,
             category=InsightCategory(model.category),
@@ -1842,9 +1829,6 @@ class PostgresEvidenceRepository:
         )
 
     def _evidence_to_domain(self, model) -> EvidenceItem:
-        from domains.commercial.evidence.contracts.models import (
-            EvidenceItem, EvidenceType, EvidenceSource, ConfidenceLevel, EvidenceKind,
-        )
         extra_data = dict(model.extra_data or {})
         raw_kind = extra_data.pop("evidence_kind", None)
         try:
