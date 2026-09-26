@@ -8,7 +8,7 @@ import datetime as _datetime
 import logging
 from typing import Any
 
-from sqlalchemy import String, column, select, table, update
+from sqlalchemy import String, column, select, table
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 
 from app.celery_app import celery_app
@@ -26,8 +26,28 @@ def _validate_table(name: str) -> str:
 
 
 def _entity_table(name: str):
-    """Allowlisted table()/column() stub for Celery entity helpers (EAB-001-P1-DRIFT-01)."""
+    """Allowlisted table()/column() stub for Celery entity helpers (EAB-001-P1-DRIFT-01).
+
+    `companies` and `contacts` have genuinely different real schemas -- a
+    shared stub previously declared `name_en`/`activity_description`/`city`/
+    `industry` (none of which exist on `contacts`) and `embedding` (which
+    exists on neither table; the real companies column is `embedding_vector`,
+    a pgvector type contacts has no equivalent of at all). Every whole-row
+    `select(tbl)` through the old shared stub raised `UndefinedColumnError`
+    on both tables. This intentionally excludes the embedding column
+    entirely -- no caller of this helper reads its value; `_generate_embedding()`
+    below handles the one place that genuinely needs to write it.
+    """
     table_name = _validate_table(name)
+    if table_name == "contacts":
+        return table(
+            table_name,
+            column("id", PGUUID(as_uuid=True)),
+            column("tenant_id", PGUUID(as_uuid=True)),
+            column("name_ar", String),
+            column("position", String),
+            column("department", String),
+        )
     return table(
         table_name,
         column("id", PGUUID(as_uuid=True)),
@@ -37,9 +57,6 @@ def _entity_table(name: str):
         column("activity_description", String),
         column("city", String),
         column("industry", String),
-        column("position", String),
-        column("department", String),
-        column("embedding", String),
     )
 
 
@@ -139,9 +156,15 @@ def _sync_to_graph(entity_id: str, entity_type: str):
 
 
 def _generate_embedding(entity_id: str, entity_type: str):
-    """Generate vector embedding for entity and store in companies.embedding + vector store."""
+    """Generate vector embedding for entity and store in companies.embedding_vector.
+
+    contacts has no embedding-storage column at all (confirmed against the
+    real schema) -- there is no destination to write a contact embedding to,
+    so that branch logs and returns rather than raising or inventing a
+    migration for a column no caller has asked for.
+    """
     from app.config import settings
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from sdk.vector import OpenAIEmbeddingService
 
     async def _do_embed():
@@ -155,6 +178,7 @@ def _generate_embedding(entity_id: str, entity_type: str):
             return
 
         async with async_session() as session:
+            await apply_tenant_guc(session, tenant_id)
             tbl = _entity_table("companies" if entity_type.lower() == "company" else "contacts")
             result = await session.execute(select(tbl).where(tbl.c.id == entity_id).limit(1))
             row = result.mappings().one_or_none()
@@ -177,11 +201,25 @@ def _generate_embedding(entity_id: str, entity_type: str):
                 logger.debug("Embedding skipped: no text content for %s %s", entity_type, entity_id)
                 return
 
+            if entity_type.lower() != "company":
+                logger.debug(
+                    "Embedding skipped: %s has no embedding-storage column",
+                    entity_type,
+                )
+                return
+
             svc = OpenAIEmbeddingService(api_key=settings.openai_api_key)
             embedding = await svc.embed(text_to_embed)
 
+            from sqlalchemy import text as sa_text
+
+            vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
             await session.execute(
-                update(tbl).where(tbl.c.id == entity_id).values(embedding=str(embedding))
+                sa_text(
+                    "UPDATE companies SET embedding_vector = CAST(:vec AS vector) "
+                    "WHERE id = :id"
+                ),
+                {"vec": vector_literal, "id": entity_id},
             )
             await session.commit()
             logger.info("Embedding generated and stored for %s %s", entity_type, entity_id)
@@ -401,10 +439,11 @@ def enrich_company_task(self, company_id: str, tenant_id: str) -> dict:
 
 async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
     """Run the full enrichment pipeline for a company."""
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
 
     tbl = _entity_table("companies")
     async with async_session() as session:
+        await apply_tenant_guc(session, tenant_id)
         row = await session.execute(
             select(tbl).where(tbl.c.id == company_id, tbl.c.tenant_id == tenant_id).limit(1)
         )
@@ -507,11 +546,12 @@ def sync_notion_database(self, database_id: str, tenant_id: str):
     """Sync a Notion database into the pipeline."""
     logger.info("Syncing Notion database %s for tenant %s", database_id, tenant_id)
     from app.config import settings
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from app.modules.notion_sync.service import NotionSyncService
 
     async def _do_sync():
         async with async_session() as session:
+            await apply_tenant_guc(session, tenant_id)
             svc = NotionSyncService(db=session)
             await svc.import_companies(database_id, settings.notion_token, tenant_id)
 
