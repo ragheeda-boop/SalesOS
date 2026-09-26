@@ -3285,3 +3285,22 @@ Full evidence: `project-audit/125_FORECAST_METADATA_LOSS_AND_FAKE_KPIS_2026-09-2
 | Loop status | **CONTINUING under the 24-hour authorization** | 4th live guaranteed-crash bug in this file (StageEntry, Quote, Proposal, now Decision) — Contract/Forecast/Analytics were all clean, so real but not universal. Remaining: `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`. |
 
 Full evidence: `project-audit/126_DECISION_REPOSITORY_CRASH_AND_STALE_POLICY_SCHEMA_2026-09-26.md`.
+
+---
+
+## 168. Session Summary (2026-09-27) — PostgresRecommendationRepository: three stacked crashes, dead code, no live wiring anywhere
+
+| Action | Result | Details |
+|---|:---:|---|
+| Reachability | **Dead code, confirmed via grep — unlike Decision (report 126)** | `PostgresRecommendationRepository` has zero callers in `app/` or `domains/` outside its own definition. `RecommendationEngine.evaluate()` (the only real producer of a `Recommendation`) is a pure computation — it never calls any repository's `save()`; there is no `RecommendationService` wrapping this domain at all. Fixed anyway per the report 121/123/126 precedent: correct dead code ahead of any future wiring decision. |
+| Bug 1 | **FIXED** | `RecommendationEvidence`'s real fields are `source_layer`/`source_domain`/`key`/`value`/`narrative` — `save()` serialized using `factor`/`label`/`source_id`/`source_type`, none of which exist. Never reached in a real run (masked by bug 2), identified by direct field-by-field comparison. |
+| Bug 2 (the crash actually hit) | **FIXED** | `recommendation.recommendation_type` does not exist on `Recommendation` at all (real fields: `reasoning`/`risk`/`expected_impact`) — guaranteed `AttributeError` on every `save()` call. `RecommendationModel.recommendation_type` is `NOT NULL` with no column default and no domain equivalent — persisted as `""`, documented in-source, not fabricated. `_to_domain()`'s matching kwarg was also invalid. |
+| Bug 3 | **FIXED** | `_to_domain()` passed `applied_at=model.applied_at, dismissed_at=model.dismissed_at` — `Recommendation` has no such fields (confirmed via a byte-exact re-read of the dataclass before writing the fix, this session's now-standard discipline). Dropped from the constructor call; left unset on save. |
+| Data-loss finding | **FIXED** | `Alternative.expected_outcome`/`risk` were silently dropped by `save()` (only `title`/`description`/`confidence` captured) — now all five fields persisted. |
+| No schema home | **DOCUMENTED, not migrated** | `Recommendation.context_id` (required, no default) has no column at all — same category as report 122's Proposal.sections gap; reload uses `context_id=""` as an explicit placeholder. `reasoning`/`risk`/`expected_impact` likewise not persisted. |
+| Verification | **Genuine red→green** | New `tests/integration/test_recommendation_repository_persistence_db.py` drives the raw repository directly (no service layer exists). Scoped `git stash` of exactly the fixed file reproduced the exact predicted `AttributeError: 'Recommendation' object has no attribute 'recommendation_type'`; restored, test PASSES. |
+| Regression | **16/16 PASS** | `test_recommendation.py` (9, in-memory) + this session's 4 persistence integration tests (Contract, Forecast, Decision, Recommendation). Ruff on the fixed file: 25 findings before → 24 after (net improvement, 0 new — removing a now-redundant local import cleared one). `compileall` and `git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | 5th class in this file with a guaranteed crash (StageEntry, Quote, Proposal, Decision, now Recommendation); first confirmed to have zero callers at any layer. Remaining: `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`. |
+
+Full evidence: `project-audit/127_RECOMMENDATION_REPOSITORY_TRIPLE_CRASH_2026-09-27.md`.
