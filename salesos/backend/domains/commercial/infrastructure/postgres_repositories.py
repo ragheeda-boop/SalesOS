@@ -33,7 +33,7 @@ from domains.commercial.quote.contracts.repository import QuoteRepository, Quote
 from domains.revenue.analytics.models import AnalyticsSnapshot, KPI, KPIValue, MetricCategory
 from domains.revenue.analytics.repo import AnalyticsRepository
 from domains.revenue.forecast.models import ForecastExplanation, ForecastLine, ForecastScenario, ForecastSnapshot, ForecastSnapshotStatus
-from domains.revenue.forecast.repo import ForecastRepository
+from domains.revenue.forecast.repo import ForecastKPIs, ForecastRepository
 from domains.decision.context.models import DecisionContext, Policy
 from domains.decision.context.repo import DecisionRepository
 from domains.decision.recommendation.models import Recommendation, RecommendationStatus
@@ -818,7 +818,7 @@ class PostgresForecastRepository(ForecastRepository):
         model = ForecastSnapshotModel(
             id=snapshot.id, tenant_id=snapshot.tenant_id, title=snapshot.title,
             horizon_months=snapshot.horizon_months, status=snapshot.status.value,
-            lines=[{"scenario": l.scenario.value, "expected_revenue": l.expected_revenue, "confidence": l.confidence, "risk": l.risk, "weighted_revenue": l.weighted_revenue, "explanations": [{"factor": e.factor, "value": e.value, "label": e.label, "source_id": e.source_id, "source_type": e.source_type} for e in l.explanations], "source_id": l.source_id, "source_type": l.source_type} for l in snapshot.lines],
+            lines=[{"scenario": l.scenario.value, "expected_revenue": l.expected_revenue, "confidence": l.confidence, "risk": l.risk, "weighted_revenue": l.weighted_revenue, "explanations": [{"factor": e.factor, "value": e.value, "label": e.label, "source_id": e.source_id, "source_type": e.source_type} for e in l.explanations], "source_id": l.source_id, "source_type": l.source_type, "metadata": l.metadata} for l in snapshot.lines],
             assumptions=snapshot.assumptions, version=snapshot.version,
             finalized_at=snapshot.finalized_at,
         )
@@ -849,17 +849,28 @@ class PostgresForecastRepository(ForecastRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def kpis(self, tenant_id: str) -> Any:
-        from dataclasses import dataclass
-        latest = await self.get_latest(tenant_id)
-        if not latest:
-            return type("ForecastKPIs", (), {"total_expected": 0, "total_weighted": 0, "confidence": 0, "risk": 0})()
-        return type("ForecastKPIs", (), {
-            "total_expected": latest.total_expected_revenue,
-            "total_weighted": latest.total_weighted_revenue,
-            "confidence": latest.overall_confidence,
-            "risk": latest.overall_risk,
-        })()
+    async def kpis(self, tenant_id: str) -> ForecastKPIs:
+        """Mirrors the in-memory reference's formula (forecast/in_memory_repo.py).
+
+        The previous implementation built an ad-hoc, dynamically-created
+        `type("ForecastKPIs", (), {...})()` object -- not an instance of
+        the real `ForecastKPIs` dataclass at all -- with field names
+        (`total_expected`/`total_weighted`/`confidence`/`risk`) that don't
+        match any of the real dataclass's fields (`total_snapshots`/
+        `latest_expected_revenue`/`latest_weighted_revenue`/
+        `latest_confidence`/`forecast_accuracy`/`forecast_bias`). No live
+        router endpoint or test called this method (report 125); fixed
+        for contract alignment while this class was already being
+        reviewed.
+        """
+        items = await self.list_by_tenant(tenant_id)
+        latest = items[0] if items else None
+        return ForecastKPIs(
+            total_snapshots=len(items),
+            latest_expected_revenue=latest.total_expected_revenue if latest else 0.0,
+            latest_weighted_revenue=latest.total_weighted_revenue if latest else 0.0,
+            latest_confidence=latest.overall_confidence if latest else 0.0,
+        )
 
     def _to_domain(self, model: ForecastSnapshotModel) -> ForecastSnapshot:
         lines = []
@@ -872,6 +883,7 @@ class PostgresForecastRepository(ForecastRepository):
                 weighted_revenue=ld.get("weighted_revenue", 0),
                 explanations=explanations,
                 source_id=ld.get("source_id", ""), source_type=ld.get("source_type", ""),
+                metadata=ld.get("metadata", {}),
             ))
         return ForecastSnapshot(
             id=model.id, tenant_id=model.tenant_id, title=model.title,
