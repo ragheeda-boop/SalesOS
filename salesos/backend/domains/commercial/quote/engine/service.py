@@ -140,11 +140,10 @@ class QuoteService:
     async def _record_approval_audit(self, quote: Quote, approved_by: str, comments: str) -> None:
         """P1-9: Persist approval decision to audit_logs for commercial audit trail."""
         try:
+            from app.database import apply_tenant_guc, async_session
             from app.modules.audit.models import AuditLog
-            from sdk.database import async_session_factory
-            if not async_session_factory:
-                return
-            async with async_session_factory() as session:
+            async with async_session() as session:
+                await apply_tenant_guc(session, quote.tenant_id)
                 log = AuditLog(
                     tenant_id=quote.tenant_id,
                     user_id=approved_by,

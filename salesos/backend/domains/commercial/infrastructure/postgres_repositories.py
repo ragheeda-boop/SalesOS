@@ -6,7 +6,7 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import and_, cast, func, or_, select, text
+from sqlalchemy import and_, cast, delete, func, or_, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -28,7 +28,7 @@ from domains.commercial.pipeline.contracts.models import (
 from domains.commercial.pipeline.contracts.repository import PipelineKPIs, PipelineRepository
 from domains.commercial.proposal.contracts.models import Proposal, ProposalStatus
 from domains.commercial.proposal.contracts.repository import ProposalKPIs, ProposalRepository
-from domains.commercial.quote.contracts.models import Quote, QuoteLine, QuoteStatus
+from domains.commercial.quote.contracts.models import ApprovalState, Quote, QuoteLine, QuoteStatus
 from domains.commercial.quote.contracts.repository import QuoteRepository, QuoteRevenueKPIs
 from domains.revenue.analytics.models import AnalyticsSnapshot, KPI, KPIValue, MetricCategory
 from domains.revenue.analytics.repo import AnalyticsRepository
@@ -430,32 +430,73 @@ class PostgresQuoteRepository(QuoteRepository):
         self.session = session
 
     async def save(self, quote: Quote) -> Quote:
-        stmt = select(QuoteModel).where(QuoteModel.id == quote.id)
-        result = await self.session.execute(stmt)
-        model = result.scalar_one_or_none()
+        model = await self.session.get(QuoteModel, quote.id)
         if model:
+            if model.status != quote.status.value:
+                if quote.status == QuoteStatus.SENT and not model.sent_at:
+                    model.sent_at = quote.updated_at
+                if quote.status == QuoteStatus.ACCEPTED and not model.accepted_at:
+                    model.accepted_at = quote.updated_at
             model.title = quote.title
             model.status = quote.status.value
-            model.total_value = quote.total_value
+            model.total_value = quote.grand_total
             model.notes = quote.notes
-            model.sent_at = quote.sent_at
-            model.approved_by = quote.approved_by
-            model.approved_at = quote.approved_at
-            model.accepted_at = quote.accepted_at
+            model.approved_by = quote.approval.approved_by
+            model.approved_at = quote.approval.approved_at
             model.version = quote.version
         else:
             model = QuoteModel(
                 id=quote.id, tenant_id=quote.tenant_id,
                 opportunity_id=quote.opportunity_id, title=quote.title,
-                status=quote.status.value, total_value=quote.total_value,
+                status=quote.status.value, total_value=quote.grand_total,
                 currency=quote.currency, notes=quote.notes,
-                sent_at=quote.sent_at, approved_by=quote.approved_by,
-                approved_at=quote.approved_at, accepted_at=quote.accepted_at,
+                sent_at=quote.updated_at if quote.status == QuoteStatus.SENT else None,
+                approved_by=quote.approval.approved_by,
+                approved_at=quote.approval.approved_at,
+                accepted_at=quote.updated_at if quote.status == QuoteStatus.ACCEPTED else None,
                 version=quote.version,
             )
             self.session.add(model)
         await self.session.flush()
+        await self._sync_lines(quote)
         return quote
+
+    async def _sync_lines(self, quote: Quote) -> None:
+        """Persist `quote.lines` into `commercial_quote_lines`.
+
+        The model only has description/quantity/unit_price/total columns —
+        no discount_percent/tax_percent/description_ar/product_code/notes —
+        so those per-line fields do not round-trip through this schema (a
+        pre-existing persistence-schema limitation, not introduced here;
+        see report 120 for the sibling gap on StageEntry.exit_reason).
+        """
+        existing_ids = {
+            row[0] for row in (
+                await self.session.execute(
+                    select(QuoteLineModel.id).where(QuoteLineModel.quote_id == quote.id)
+                )
+            ).all()
+        }
+        current_ids = {line.id for line in quote.lines}
+        stale_ids = existing_ids - current_ids
+        if stale_ids:
+            await self.session.execute(
+                delete(QuoteLineModel).where(QuoteLineModel.id.in_(stale_ids))
+            )
+        for line in quote.lines:
+            line_model = await self.session.get(QuoteLineModel, line.id)
+            if line_model:
+                line_model.description = line.description
+                line_model.quantity = line.quantity
+                line_model.unit_price = line.unit_price
+                line_model.total = line.grand_total
+            else:
+                self.session.add(QuoteLineModel(
+                    id=line.id, quote_id=quote.id, description=line.description,
+                    quantity=line.quantity, unit_price=line.unit_price,
+                    total=line.grand_total,
+                ))
+        await self.session.flush()
 
     async def get(self, quote_id: str) -> Optional[Quote]:
         stmt = select(QuoteModel).where(QuoteModel.id == quote_id)
@@ -463,19 +504,19 @@ class PostgresQuoteRepository(QuoteRepository):
         model = result.scalar_one_or_none()
         if not model:
             return None
-        return self._to_domain(model)
+        return await self._to_domain(model)
 
     async def get_by_opportunity(self, opportunity_id: str) -> list:
         stmt = select(QuoteModel).where(QuoteModel.opportunity_id == opportunity_id)
         result = await self.session.execute(stmt)
-        return [self._to_domain(r) for r in result.scalars().all()]
+        return [await self._to_domain(r) for r in result.scalars().all()]
 
     async def list_by_tenant(self, tenant_id: str, status: Optional[QuoteStatus] = None) -> list:
         q = select(QuoteModel).where(QuoteModel.tenant_id == tenant_id)
         if status:
             q = q.where(QuoteModel.status == status.value)
         result = await self.session.execute(q)
-        return [self._to_domain(r) for r in result.scalars().all()]
+        return [await self._to_domain(r) for r in result.scalars().all()]
 
     async def count_by_status(self, tenant_id: str) -> dict[str, int]:
         stmt = select(QuoteModel.status, func.count()).where(
@@ -485,28 +526,49 @@ class PostgresQuoteRepository(QuoteRepository):
         return {row[0]: row[1] for row in result}
 
     async def revenue_kpis(self, tenant_id: str) -> QuoteRevenueKPIs:
-        stmt = select(
-            func.sum(QuoteModel.total_value).filter(QuoteModel.status == "accepted"),
-            func.count(QuoteModel.id).filter(QuoteModel.status == "accepted"),
-        ).where(QuoteModel.tenant_id == tenant_id)
-        result = await self.session.execute(stmt)
-        value, count = result.one()
+        """Mirrors the in-memory reference's formulas (engine/in_memory_repo.py)
+        so both repository implementations stay contract-aligned."""
+        quotes = await self.list_by_tenant(tenant_id)
+        total = len(quotes)
+        accepted = sum(1 for q in quotes if q.status == QuoteStatus.ACCEPTED)
+        rejected = sum(1 for q in quotes if q.status == QuoteStatus.REJECTED)
+        expired = sum(1 for q in quotes if q.status == QuoteStatus.EXPIRED)
+        submitted_for_approval = sum(1 for q in quotes if q.approval.is_approved)
+        approved = sum(1 for q in quotes if q.status == QuoteStatus.APPROVED)
+        total_value = sum(q.grand_total for q in quotes)
+        total_discount = sum(q.total_discount for q in quotes)
+        open_value = sum(q.grand_total for q in quotes if q.status == QuoteStatus.DRAFT)
         return QuoteRevenueKPIs(
-            total_accepted_value=float(value or 0),
-            accepted_count=count or 0,
-            conversion_rate=1.0,
-            average_value=float(value or 0) / count if count else 0,
+            total_quote_value=total_value,
+            total_discount_amount=total_discount,
+            average_discount_percent=round(sum(q.discount_percent for q in quotes) / total, 2) if total > 0 else 0.0,
+            approval_rate=round(approved / submitted_for_approval, 2) if submitted_for_approval > 0 else 0.0,
+            acceptance_rate=round(accepted / (accepted + rejected), 2) if (accepted + rejected) > 0 else 0.0,
+            quote_to_win_conversion=round(accepted / total, 2) if total > 0 else 0.0,
+            open_pipeline_value=open_value,
+            total_quotes=total,
+            accepted_quotes=accepted,
+            rejected_quotes=rejected,
+            expired_quotes=expired,
         )
 
-    def _to_domain(self, model: QuoteModel) -> Quote:
-        from domains.commercial.quote.contracts.models import Quote as Q, QuoteStatus as QS
-        return Q(
+    async def _to_domain(self, model: QuoteModel) -> Quote:
+        lines_result = await self.session.execute(
+            select(QuoteLineModel).where(QuoteLineModel.quote_id == model.id)
+        )
+        lines = [
+            QuoteLine(
+                id=r.id, description=r.description,
+                quantity=int(r.quantity), unit_price=r.unit_price,
+            )
+            for r in lines_result.scalars().all()
+        ]
+        return Quote(
             id=model.id, tenant_id=model.tenant_id,
             opportunity_id=model.opportunity_id, title=model.title,
-            status=QS(model.status), total_value=model.total_value,
+            status=QuoteStatus(model.status), lines=lines,
+            approval=ApprovalState(approved_by=model.approved_by, approved_at=model.approved_at),
             currency=model.currency, notes=model.notes,
-            sent_at=model.sent_at, approved_by=model.approved_by,
-            approved_at=model.approved_at, accepted_at=model.accepted_at,
             version=model.version,
             created_at=model.created_at, updated_at=model.updated_at,
         )
