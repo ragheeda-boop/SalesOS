@@ -24,7 +24,26 @@ class ContractService:
         return result
 
     async def sign(self, contract_id: str, signed_by_provider: str = "", signed_by_customer: str = "") -> Contract:
-        return await self._transition(contract_id, ContractStatus.SIGNED, "contract.signed", {"provider": signed_by_provider, "customer": signed_by_customer})
+        """`Contract.signed_by_provider`/`signed_by_customer` are timestamps
+        (datetime | None), not the signer's name -- the name is only
+        preserved in the emitted event. Previously `_transition()` never
+        touched these fields at all, so every real signing request lost
+        this information regardless of what was passed (report 123)."""
+        c = await self._repository.get(contract_id)
+        if not c:
+            raise ValueError(f"Contract {contract_id} not found")
+        now = datetime.now(timezone.utc)
+        if signed_by_provider:
+            c.signed_by_provider = now
+        if signed_by_customer:
+            c.signed_by_customer = now
+        c.status = ContractStatus.SIGNED
+        c.updated_at = now
+        result = await self._repository.save(c)
+        await self._emit("contract.signed", c.tenant_id, {
+            "contract_id": contract_id, "provider": signed_by_provider, "customer": signed_by_customer,
+        })
+        return result
 
     async def activate(self, contract_id: str) -> Contract:
         return await self._transition(contract_id, ContractStatus.ACTIVE, "contract.activated")

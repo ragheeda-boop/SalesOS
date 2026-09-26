@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Optional
 
 from sqlalchemy import and_, cast, delete, func, or_, select, text
@@ -741,19 +741,39 @@ class PostgresContractRepository(ContractRepository):
         return [self._to_domain(r) for r in result.scalars().all()]
 
     async def kpis(self, tenant_id: str, quote_values: dict[str, float] | None = None) -> ContractKPIs:
-        stmt = select(
-            func.count(ContractModel.id),
-            func.count(ContractModel.id).filter(ContractModel.status == "active"),
-            func.count(ContractModel.id).filter(ContractModel.status == "expired"),
-        ).where(ContractModel.tenant_id == tenant_id)
-        result = await self.session.execute(stmt)
-        total, active, expired = result.one()
+        """Mirrors the in-memory reference's formulas (contract/in_memory_repo.py).
+
+        The previous implementation hardcoded `renewal_rate=0.85` and
+        `total_contract_value=0.0` (both fake placeholders, ignoring the
+        real `quote_values` argument entirely), never set `signed_rate`
+        at all (silently always 0.0), and computed `expiring_soon` as the
+        count of already-`expired` contracts rather than signed contracts
+        whose `expiry_date` falls within the next 90 days. Unreached from
+        any live router endpoint today (only a domain-level unit test
+        calls `ContractService.kpis()`), fixed for contract alignment
+        with the in-memory repository while this class was already being
+        reviewed (report 123).
+        """
+        contracts = await self.list_by_tenant(tenant_id)
+        total = len(contracts)
+        active = sum(1 for c in contracts if c.status == ContractStatus.ACTIVE)
+        signed = sum(1 for c in contracts if c.is_signed)
+        renewed = sum(1 for c in contracts if c.status == ContractStatus.RENEWED)
+        expiring_soon = sum(
+            1 for c in contracts
+            if c.is_signed and c.expiry_date and c.expiry_date <= date.today() + timedelta(days=90)
+        )
+        total_value = 0.0
+        if quote_values:
+            for c in contracts:
+                total_value += quote_values.get(c.quote_id, 0.0)
         return ContractKPIs(
-            total_contracts=total or 0,
-            active_contracts=active or 0,
-            expiring_soon=expired or 0,
-            renewal_rate=0.85,
-            total_contract_value=0.0,
+            total_contracts=total,
+            active_contracts=active,
+            signed_rate=round(signed / total, 2) if total > 0 else 0.0,
+            renewal_rate=round(renewed / signed, 2) if signed > 0 else 0.0,
+            expiring_soon=expiring_soon,
+            total_contract_value=total_value,
         )
 
     def _to_domain(self, model: ContractModel) -> Contract:
