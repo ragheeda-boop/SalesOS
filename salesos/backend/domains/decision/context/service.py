@@ -81,6 +81,7 @@ class DecisionService:
         return await self._repository.save_context(ctx)
 
     async def add_policy(self, tenant_id: str, policy: Policy) -> Policy:
+        policy.tenant_id = tenant_id
         return await self._repository.save_policy(policy)
 
     async def get_context(self, context_id: str) -> DecisionContext | None:

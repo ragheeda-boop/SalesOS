@@ -25,6 +25,7 @@ class Policy:
     description: str = ""
     rule: str = ""  # e.g. "if discount > 30% then requires executive approval"
     category: str = "approval"
+    tenant_id: str = ""
 
 
 @dataclass

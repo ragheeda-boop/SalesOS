@@ -34,7 +34,7 @@ from domains.revenue.analytics.models import AnalyticsSnapshot, KPI, KPIValue, M
 from domains.revenue.analytics.repo import AnalyticsRepository
 from domains.revenue.forecast.models import ForecastExplanation, ForecastLine, ForecastScenario, ForecastSnapshot, ForecastSnapshotStatus
 from domains.revenue.forecast.repo import ForecastKPIs, ForecastRepository
-from domains.decision.context.models import DecisionContext, Policy
+from domains.decision.context.models import DecisionContext, DecisionFactor, Policy
 from domains.decision.context.repo import DecisionRepository
 from domains.decision.recommendation.models import Recommendation, RecommendationStatus
 from domains.decision.recommendation.repo import RecommendationRepository
@@ -971,11 +971,32 @@ class PostgresDecisionRepository(DecisionRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    @staticmethod
+    def _factors_to_json(factors: list) -> list:
+        return [
+            {
+                "source_layer": f.source_layer, "source_domain": f.source_domain,
+                "key": f.key, "value": f.value, "label": f.label, "severity": f.severity,
+            }
+            for f in factors
+        ]
+
+    @staticmethod
+    def _factors_from_json(raw: list | None) -> list[DecisionFactor]:
+        return [DecisionFactor(**f) for f in (raw or [])]
+
     async def save_context(self, context: DecisionContext) -> DecisionContext:
+        """`DecisionContext.confidence` doesn't exist on the domain contract
+        (only `factors`/`policies`/`generated_at`) -- the model's
+        `confidence` column has no source of truth, so it is left at its
+        own default rather than fabricated. `context.policies` has no
+        column on this model at all (report 126) -- not persisted, same
+        category as report 122's Proposal.sections gap.
+        """
         model = DecisionContextModel(
             id=context.id, tenant_id=context.tenant_id,
             target_id=context.target_id, target_type=context.target_type,
-            factors=context.factors, confidence=context.confidence,
+            factors=self._factors_to_json(context.factors),
         )
         self.session.add(model)
         await self.session.flush()
@@ -986,7 +1007,7 @@ class PostgresDecisionRepository(DecisionRepository):
             model = DecisionContextModel(
                 id=ctx.id, tenant_id=ctx.tenant_id,
                 target_id=ctx.target_id, target_type=ctx.target_type,
-                factors=ctx.factors, confidence=ctx.confidence,
+                factors=self._factors_to_json(ctx.factors),
             )
             self.session.add(model)
         await self.session.flush()
@@ -1001,8 +1022,8 @@ class PostgresDecisionRepository(DecisionRepository):
         return DecisionContext(
             id=model.id, tenant_id=model.tenant_id,
             target_id=model.target_id, target_type=model.target_type,
-            factors=model.factors or {}, confidence=model.confidence,
-            created_at=model.created_at,
+            factors=self._factors_from_json(model.factors),
+            generated_at=model.created_at,
         )
 
     async def get_latest_for_target(self, target_id: str, target_type: str) -> Optional[DecisionContext]:
@@ -1017,15 +1038,25 @@ class PostgresDecisionRepository(DecisionRepository):
         return DecisionContext(
             id=model.id, tenant_id=model.tenant_id,
             target_id=model.target_id, target_type=model.target_type,
-            factors=model.factors or {}, confidence=model.confidence,
-            created_at=model.created_at,
+            factors=self._factors_from_json(model.factors),
+            generated_at=model.created_at,
         )
 
     async def save_policy(self, policy: Policy) -> Policy:
+        """`PolicyModel` (`rules`/`outcome`/`priority`/`enabled`) predates the
+        current, simpler `Policy` contract (`description`/`rule`/`category`)
+        -- no other class in the codebase matches the model's shape either
+        (report 126), so this looks like a genuinely stale schema, not a
+        renamed field. Best-effort, lossy mapping: the single `rule` string
+        is wrapped as the sole entry of `rules`; `category` (the closest
+        existing concept) stands in for `outcome`, which has no domain
+        equivalent at all. `priority`/`enabled` are left at their column
+        defaults (0 / True) rather than fabricated.
+        """
         model = PolicyModel(
             id=policy.id, tenant_id=policy.tenant_id, name=policy.name,
-            rules=policy.rules, outcome=policy.outcome, priority=policy.priority,
-            enabled=policy.enabled,
+            rules=[policy.rule] if policy.rule else [],
+            outcome=policy.category,
         )
         self.session.add(model)
         await self.session.flush()
@@ -1034,7 +1065,13 @@ class PostgresDecisionRepository(DecisionRepository):
     async def list_policies(self, tenant_id: str) -> list:
         stmt = select(PolicyModel).where(PolicyModel.tenant_id == tenant_id).order_by(PolicyModel.priority)
         result = await self.session.execute(stmt)
-        return [Policy(id=r.id, tenant_id=r.tenant_id, name=r.name, rules=r.rules or [], outcome=r.outcome, priority=r.priority, enabled=r.enabled) for r in result.scalars().all()]
+        return [
+            Policy(
+                id=r.id, name=r.name, tenant_id=r.tenant_id,
+                rule=(r.rules[0] if r.rules else ""), category=r.outcome,
+            )
+            for r in result.scalars().all()
+        ]
 
 
 class PostgresRecommendationRepository(RecommendationRepository):
