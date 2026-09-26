@@ -3406,3 +3406,19 @@ Full evidence: `project-audit/132_GUC_SWEEP_REMAINING_CANDIDATES_CLOSED_2026-09-
 | Loop status | **CONTINUING under the 24-hour authorization** | Direct-census methodology's one new finding closed. Next: a repeat of report 57/70193187420d's "enabled but not forced" check against the current, larger table set, in case anything added since then repeated that gap. |
 
 Full evidence: `project-audit/133_GRAPH_NODES_RLS_REGISTRY_GAP_2026-09-27.md`.
+
+---
+
+## 175. Session Summary (2026-09-27) — 5 source files with invalid UTF-8 bytes, blocking mypy entirely (not a runtime bug)
+
+| Action | Result | Details |
+|---|:---:|---|
+| Discovery | **Found while pivoting to the roadmap's mypy Phase 2** | Attempting to run mypy across `app/sdk/domains/runtime/intelligence` crashed immediately on `runtime/execution_runtime/__init__.py`'s invalid byte. A full repo scan found 5 affected files total. |
+| Root cause | **Same class as report 20** | A Windows-1252 em-dash (`\x97`) or unassigned control byte (`\x9d`) landed in raw file bytes instead of proper UTF-8. 4 files (`execution_runtime`/`scheduler_runtime`/`simulation_runtime`/`workflow_runtime`'s `__init__.py`) are identical one-line placeholders with the same bad byte; `test_il2a_task_trigger.py` had 2 separate bad bytes in 2 different comments (the second masked until the first was fixed — `.decode('utf-8')` stops at the first invalid byte). |
+| Live impact | **NONE — confirmed directly** | `import runtime.execution_runtime` succeeds and `py_compile` passes on all 5 files both before and after the fix; CPython tolerates a stray invalid byte inside a comment in a way `mypy`'s strict file decoding does not. This only ever blocked static-analysis tooling. |
+| Fix | **DONE** | Replaced every offending byte with a proper UTF-8 em-dash in all 5 files; content otherwise byte-for-byte unchanged. |
+| Verification | **PASS** | Repo-wide UTF-8 scan: 0 files remaining. `test_il2a_task_trigger.py`: 40/40 PASS, unaffected (both bytes were inside comments only). `py_compile` unchanged (was already passing). |
+| Production / Phase 7 | **UNCHANGED** | Comment-byte fix only; no logic touched, no database/container involved. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Pure tooling-blocker fix. The mypy run itself is in progress in the background; findings triaged in the next report. |
+
+Full evidence: `project-audit/134_INVALID_UTF8_SOURCE_BYTES_2026-09-27.md`.
