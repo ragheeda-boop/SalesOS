@@ -3250,3 +3250,20 @@ Full evidence: `project-audit/123_CONTRACT_SIGN_AND_KPIS_BUGS_2026-09-26.md`.
 | Loop status | **CONTINUING** | Remaining findings in this file (26) look like ordinary pre-existing style issues, not another crash-bug lead. Remaining unreviewed classes: `Forecast`, `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`. |
 
 Full evidence: `project-audit/124_EVIDENCE_REPOSITORY_UNRESOLVABLE_ANNOTATIONS_2026-09-26.md`.
+
+---
+
+## 166. Session Summary (2026-09-26) — Loop authorization extended to 24 hours; Forecast: live metadata loss + fake kpis() object
+
+| Action | Result | Details |
+|---|:---:|---|
+| Loop authorization extended | **RECORDED** | User: "يلا نفذها في لوب مستمر, الوقف عند الانتهاء فقط او امر يطلب تدخل بشري من العيار الثقيل" — continuous loop up to 24 hours, stopping only at (a) genuine completion of the code-closable roadmap or the point where no further candidate exists, or (b) something requiring heavy-weight human intervention (irreversible/destructive actions outside code scope, or a real business/data decision, matching the disk-full and 52-MATERIAL_ERROR precedents). Mechanics explicitly clarified to the user beforehand: this is a self-rescheduling sequence of bounded ticks via `ScheduleWakeup`, not one unbroken process; periodic short updates continue; all standing invariants (no production writes, no Apollo/Maps, no auto-merge/auto-adjudicate G2/G4, source immutability, Global-ID stability, explicit-path commits) remain in force throughout. |
+| Second clean class | **`PostgresForecastRepository`'s core CRUD is correct** | Second class in this file (after Contract) whose `save()`/`get()`/`_to_domain()` field mapping is fully correct. Both bugs found here were found by tracing what the domain layer does with the data, not from a field-name mismatch. |
+| Bug 1 — live | **FIXED** | `ForecastLine.metadata` (populated by the real `ForecastEngine.predict()` with rep_id/region/product) was never persisted or reloaded — `ForecastSnapshot.by_dimension()`, a real method, silently returned `[]` for any forecast reloaded via `ForecastService.finalize()`/`get_latest()`/`list_snapshots()`, regardless of what the engine actually computed. `commercial_forecast_snapshots.lines` is schema-flexible JSON — no migration needed. |
+| Bug 2 — unreached, zero prior coverage | **FIXED** | `kpis()` built a `type("ForecastKPIs", (), {...})()` look-alike — confirmed via `isinstance()` that it is **not** the real `ForecastKPIs` dataclass — with entirely different field names. Zero live callers and zero prior tests (unlike Quote/Proposal/Contract's zero-caller kpis methods, which at least had a domain unit test); fixed and given first-ever test coverage. |
+| Verification | **Genuine red→green, both bugs** | New `tests/integration/test_forecast_repository_persistence_db.py` (2 tests) drives the real `ForecastService`→engine→`PostgresForecastRepository` flow. Reverting the 1 changed file: `assert None == 'rep-42'` (metadata lost) and `assert False` (`isinstance` proof it's the wrong class) — both exact predicted failures. Restored: PASS. |
+| Regression | **26/26 PASS** | `test_forecast.py` + both new tests. Ruff: file's finding count 26→25 (0 new). `compileall` and `git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Remaining unreviewed classes: `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory` — each checked on its own merits, not assumed to share any prior finding's shape. |
+
+Full evidence: `project-audit/125_FORECAST_METADATA_LOSS_AND_FAKE_KPIS_2026-09-26.md`.
