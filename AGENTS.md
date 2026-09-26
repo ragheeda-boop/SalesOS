@@ -3234,3 +3234,19 @@ Full evidence: `project-audit/122_PROPOSAL_REPOSITORY_CRASH_AND_DOUBLE_FETCH_BUG
 | Loop status | **CONTINUING** | `PostgresEvidenceRepository`'s `F821` findings (`Insight`/`EvidenceItem` referenced without an import) are a concrete, different-shaped lead for next. Remaining unreviewed classes: `Forecast`, `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`, `Evidence`. |
 
 Full evidence: `project-audit/123_CONTRACT_SIGN_AND_KPIS_BUGS_2026-09-26.md`.
+
+---
+
+## 165. Session Summary (2026-09-26) — PostgresEvidenceRepository: unresolvable type annotations (a genuinely different bug shape)
+
+| Action | Result | Details |
+|---|:---:|---|
+| Different bug shape | **Not a contract/model mismatch this time** | `save_insight`/`list_insights`/`list_insights_by_confidence`/`save_evidence`'s signatures reference `Insight`/`InsightCategory`/`EvidenceItem` as type annotations, but none were ever imported at module scope — only inside two *other* methods' own local imports. `from __future__ import annotations` means ordinary calls never hit this (bodies only access attributes on already-passed objects), but `typing.get_type_hints()` on any of these methods raises a hard `NameError` — confirmed directly, not guessed. |
+| Reachability | **Only 1 existing caller, not live in `app/`** | `tests/unit/test_evidence_scoring_adr0113.py` exercises only `save_evidence()`/`_evidence_to_domain()` — both of which already had correct local imports, which is exactly why this was never caught before. |
+| Fix | **Import reorganization only** | Moved the actually-needed names to the top of the file (matching every other repository class in it) and removed the now-redundant local imports across 10 methods. Checked for circular-import risk first (a common reason imports get deferred) — confirmed clean via a direct fresh module import. |
+| Verification | **Genuine red→green via runtime introspection, no DB needed** | `typing.get_type_hints(PostgresEvidenceRepository.save_insight)`: `NameError: name 'Insight' is not defined` before the fix (reverted via scoped `git stash`); resolves correctly after. Restored and reconfirmed. |
+| Regression | **69/69 PASS** | The one existing caller test + all domain suites touched this session (Quote/Pipeline/Proposal/Contract). Ruff: file's finding count dropped 47→26 (all removed were the targeted `F821`s + their local-import `I001` noise; 0 new). `compileall` and `git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database container needed for this fix; nothing touched beyond the one file's imports. No gate closed. |
+| Loop status | **CONTINUING** | Remaining findings in this file (26) look like ordinary pre-existing style issues, not another crash-bug lead. Remaining unreviewed classes: `Forecast`, `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`. |
+
+Full evidence: `project-audit/124_EVIDENCE_REPOSITORY_UNRESOLVABLE_ANNOTATIONS_2026-09-26.md`.
