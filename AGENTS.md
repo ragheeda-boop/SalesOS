@@ -3200,3 +3200,21 @@ Full evidence: `project-audit/120_PIPELINE_STAGE_ENTRY_CONTRACT_MODEL_MISMATCH_2
 | Loop status | **CONTINUING** | Standing "6 hours, all approvals" authorization. Going forward: every test-invocation command keeps its env-var exports in the same Bash call as the command that needs them — never relying on shell state from a prior, separate tool call. |
 
 Full evidence: `project-audit/121_QUOTE_REPOSITORY_CONTRACT_MODEL_MISMATCH_AND_ENV_LEAK_2026-09-26.md`.
+
+---
+
+## 163. Session Summary (2026-09-26) — PostgresProposalRepository crash fix (3rd occurrence) + an independent double-fetch bug that silently discarded 4 real mutations
+
+| Action | Result | Details |
+|---|:---:|---|
+| Reachability | **Live** | `PostgresProposalRepository` wired via `app/routers/commercial.py`'s `_get_proposal(db)` factory — every real proposal lifecycle call would have crashed. |
+| Bug 1 — same class as §161/§162 | **FIXED** | `Proposal` contract has `viewed_at`/`accepted_at` (genuine, matching) but no `sent_at`/`rejected_at`/`rejection_reason`; `ProposalModel` has all three as flat columns. `save()` read them directly off the contract — `AttributeError` on every call, confirmed. `_to_domain()`/`kpis()` had the same class of constructor-keyword mismatch (`ProposalKPIs`'s real fields are `total_proposals`/`delivery_rate`/`average_cycle_hours`/`proposal_to_win_conversion`). |
+| Bug 2 — found tracing the service layer, not from mypy | **FIXED, independently severe** | `deliver()`/`mark_viewed()`/`accept()` each fetch their own `proposal`, mutate a field, then call `_transition()` — which **re-fetches its own independent copy** and saves that unmutated one. `Proposal` is a plain dataclass with no identity map, so every one of these mutations (`delivery_method`/`delivery_url`, `viewed_at`, `accepted_at`) was silently discarded, regardless of bug 1. `reject(reason)` had no field to even attempt to set the reason on. |
+| Fix | **Status-transition inference + pass-through object** | `save()` infers `sent_at`/`rejected_at` (no contract equivalent) from a status-transition check against `proposal.updated_at`, matching §162's Quote technique. Added `rejection_reason: str = ""` to the contract; `reject()` now sets it on its own fetched object. `_transition()` now accepts an optional pre-fetched `proposal` — when given, uses it directly instead of re-fetching, so callers' own mutations are what's actually persisted. `kpis()` fixed to mirror the in-memory reference exactly. |
+| Not fixed, disclosed | **Deeper than §162's lines gap** | `proposal.sections` (the actual proposal content, mutated by the real `update_section()` method) has **no persistence column at all** on `ProposalModel` — unlike Quote's lines, there's no existing sibling table to wire up; would need a new migration. Documented, not worked around. |
+| Verification | **Genuine red→green, both bugs** | New `tests/integration/test_proposal_repository_persistence_db.py` (2 tests) drives the real `ProposalService`→`PostgresProposalRepository` flow through 2 full lifecycles; the `deliver()` assertion specifically proves the double-fetch fix (its own `delivery_method="portal"` mutation is what's actually persisted). Reverting exactly the 3 changed files: `AttributeError: 'Proposal' object has no attribute 'sent_at'` — exact predicted failure. Restored: PASS. |
+| Regression | **13/13 PASS** | `test_proposal.py` + both new tests. Ruff: 49→48 findings across the 3 files (confirmed via scoped stash/pop, 0 new). `compileall` and `git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after; every env-var export kept in the same Bash call per §162's disclosed incident. No gate closed. |
+| Loop status | **CONTINUING** | 3rd occurrence of the same "domain contract vs. denormalized DB model" bug class in this one file. Remaining untouched classes (`Contract`, `Forecast`, `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`, `Evidence`) are the natural next candidates given this file's demonstrated hit rate. |
+
+Full evidence: `project-audit/122_PROPOSAL_REPOSITORY_CRASH_AND_DOUBLE_FETCH_BUG_2026-09-26.md`.
