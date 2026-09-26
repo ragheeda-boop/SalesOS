@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 async def run_initial_sync(tenant_id: UUID, user_id: UUID) -> dict:
     """Run Gmail then Calendar sync with a fresh DB session."""
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from app.modules.communication_hub.calendar_sync import (
         CalendarSyncError,
         CalendarSyncService,
@@ -26,6 +26,7 @@ async def run_initial_sync(tenant_id: UUID, user_id: UUID) -> dict:
 
     async with async_session() as db:
         try:
+            await apply_tenant_guc(db, str(tenant_id))
             gmail = GmailSyncService(db, tenant_id, user_id)
             results["gmail"] = await gmail.sync(days_lookback=30, max_results=100)
         except (GmailSyncError, Exception) as e:
@@ -38,6 +39,7 @@ async def run_initial_sync(tenant_id: UUID, user_id: UUID) -> dict:
 
     async with async_session() as db:
         try:
+            await apply_tenant_guc(db, str(tenant_id))
             cal = CalendarSyncService(db, tenant_id, user_id)
             results["calendar"] = await cal.sync(days_lookback=90, days_forward=90)
         except (CalendarSyncError, Exception) as e:
