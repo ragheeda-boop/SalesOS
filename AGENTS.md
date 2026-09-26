@@ -3338,3 +3338,22 @@ Full evidence: `project-audit/128_POSTGRES_REPOSITORIES_SWEEP_COMPLETE_2026-09-2
 | Loop status | **CONTINUING under the 24-hour authorization — Phase 2 of the roadmap** | `postgres_repositories.py` fully swept (report 128). Re-ran the SQL EXPLAIN sweep tool (report 98): 1 finding, a documented tool limitation, not a real bug. Moved to a targeted GUC/RLS-pinning audit across every non-test file opening its own `async_session()` — this report's finding came from that grep. Remaining candidates: `app/modules/relationships/store.py`, `domains/commercial/quote/engine/service.py`, `runtime/agent_runtime/dispatcher.py`, `runtime/agent_runtime/tasks.py`, `app/modules/signal_actions/hitl_router.py`, `app/modules/signal_actions/router.py`. |
 
 Full evidence: `project-audit/129_INITIAL_SYNC_GUC_GAP_2026-09-27.md`.
+
+---
+
+## 171. Session Summary (2026-09-27) — The entire /graphql API surface: unpinned RLS on every resolver, plus two write mutations that never committed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Reachability | **Live, mounted, most severe finding this session by scope** | `/graphql` — all 6 data-bearing resolvers (`company`, `search`, `opportunities`, `pipeline`, `createOpportunity`, `updateCompany`), not one call path. |
+| Bug 1 — no GUC pin anywhere | **FIXED, all 6 resolvers** | Strawberry resolvers never go through `Depends()`, so they never get `get_db()`'s auto-pin — every one opened a bare `async_session()` instead. `companies`/`commercial_opportunities`/pipeline tables all have FORCE RLS. Confirmed directly: a real seeded row, queried with the correct tenant_id in the app-layer WHERE clause, still returned zero rows. `apply_tenant_guc(db, tenant_id)` added to all 6. |
+| Bug 2 | **FIXED** | `_search_companies` never read `tenant_id` from `info.context` at all — `SearchQuery(...)` left it at `""`, so `uuid.UUID("")` raised on every real call, independent of bug 1. Fixed to read and pass it through. |
+| Bug 3 — found only after fixing bug 1 | **FIXED** | Neither write mutation (`_create_opportunity`/`_update_company`) ever committed — `get_db()`'s auto-commit-on-success is the *only* reason ordinary REST routes using the same services never call `commit()` themselves; GraphQL resolvers lost that too by bypassing `get_db()`. Every real GraphQL write has discarded itself since inception while still returning a populated (in-memory-only) response, making the failure invisible from the mutation's own result. `await db.commit()`/`rollback()` added to both. |
+| Why uncaught | **Documented** | Existing `tests/unit/test_graphql.py` stubs an unrelated session factory; its own tests for these exact paths use "empty or error, either is fine" / genuinely-nonexistent-ID assertions that can't distinguish correct-empty from always-empty. |
+| Environment methodology | **Applied correctly from the start this time** | Following report 129's disclosed correction: `02-app-role.sql` applied and reconnected as the restricted `salesos_app` role for every test run in this investigation. |
+| Verification | **Genuine red→green** | New `tests/integration/test_graphql_resolvers_guc_db.py` (4 tests, calling resolvers directly per Strawberry's own invocation contract, real seeded rows). Scoped `git stash` of both fixed files reproduced all 4 failures exactly as predicted (SQL log: correct WHERE clause, zero rows, ROLLBACK); restored, 4/4 PASS. |
+| Regression | **11/11 PASS** | New suite (4) + existing `test_graphql.py` (7, unaffected). Ruff: 0 findings on all 3 files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container was written to. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Closes report 129's remaining GUC-audit candidate list (all clean: `relationships/store.py`, `quote/engine/service.py`, `agent_runtime/dispatcher.py`/`tasks.py`, `signal_actions/hitl_router.py`/`router.py`, `gtm/durable_store.py`, `nba_engine/api/router.py`). Next candidate: `app/tasks.py` (5 `async_session()` sites, zero GUC pinning anywhere in the file). |
+
+Full evidence: `project-audit/130_GRAPHQL_RESOLVERS_GUC_AND_COMMIT_2026-09-27.md`.
