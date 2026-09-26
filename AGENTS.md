@@ -3267,3 +3267,21 @@ Full evidence: `project-audit/124_EVIDENCE_REPOSITORY_UNRESOLVABLE_ANNOTATIONS_2
 | Loop status | **CONTINUING under the 24-hour authorization** | Remaining unreviewed classes: `Analytics`, `Decision`, `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory` — each checked on its own merits, not assumed to share any prior finding's shape. |
 
 Full evidence: `project-audit/125_FORECAST_METADATA_LOSS_AND_FAKE_KPIS_2026-09-26.md`.
+
+---
+
+## 167. Session Summary (2026-09-26) — Wakeup reliability gap disclosed; Decision: 3 stacked live crash bugs + a genuinely stale Policy schema
+
+| Action | Result | Details |
+|---|:---:|---|
+| **Wakeup reliability gap** | **DISCLOSED to user, unresolved** | A previously-scheduled autonomous wakeup (target ~21:54) did not fire — confirmed via `git log` showing zero new commits ~1.5 hours past the scheduled time. Root cause unknown (outside this session's visibility). Resumed work immediately once the user checked in manually; re-scheduling continues, but this is a known, disclosed limitation of the current loop mechanism, not silently papered over. |
+| Analytics — checked, clean | **No bug, confirmed** | `PostgresAnalyticsRepository`'s `save()`/`get()`/`_to_domain()` correctly match `AnalyticsSnapshot`/`KPIValue`. The unpersisted `version` field is genuinely vestigial (this domain's snapshots are write-once, never updated — unlike Quote/Contract). Found and left alone: a separate, dead, duplicate analytics repository (`domains/revenue/analytics/postgres_repo.py`, `RevenueAnalyticsSnapshotModel`/`revenue_analytics_snapshots`) already covered by an existing governance decision (DEC-130b) to keep it registered but unreferenced — not touched. |
+| Decision — bug 1 (live) | **FIXED** | `save_context()`/`save_contexts()` read `context.confidence` — `DecisionContext` has no such field at all (only `factors`/`policies`/`generated_at`). `AttributeError` on every real call to `DecisionService.build_context()`/`build_contexts()`, live behind real decision/recommendation endpoints. Fixed: factors serialized properly; `confidence` (no domain source of truth) left at the column default rather than fabricated. |
+| Decision — bug 2 (live, masked by bug 1) | **FIXED** | Once bug 1's fix let execution reach the reload path for the first time, `get_context()`/`get_latest_for_target()` turned out to ALSO use the wrong field name (`created_at` instead of the real `generated_at`) — caught organically mid-verification when the first "fixed" test run still failed with a new, different, exact `TypeError`. |
+| Decision — bug 3 (unreached) | **FIXED, documented mapping** | `save_policy()`/`list_policies()` used `rules`/`outcome`/`priority`/`enabled`/`tenant_id` — none exist on the real `Policy` contract (`description`/`rule`/`category`, no `tenant_id`). Searched for any other class matching `PolicyModel`'s shape — found none; genuinely stale schema, not a rename. Zero live callers, but fixed with an explicit, documented, lossy best-effort mapping (`rule`↔single-element `rules`; `category` stands in for `outcome`) since it would still crash the moment anyone wires it up. Added `Policy.tenant_id` (additive) and fixed `DecisionService.add_policy()`, which already received `tenant_id` but never applied it — same "received but unused parameter" pattern as report 123's Contract `sign()`. |
+| Verification | **Genuine red→green, all 3 bugs** | New `tests/integration/test_decision_repository_persistence_db.py` (2 tests). Reverting the 3 changed files: exact predicted `AttributeError`s for bugs 1 and 3. Restored: PASS. |
+| Regression | **9/9 PASS** | `test_context.py` + both new tests. Ruff: 27 findings unchanged across the 3 files (0 new). `compileall` and `git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | 4th live guaranteed-crash bug in this file (StageEntry, Quote, Proposal, now Decision) — Contract/Forecast/Analytics were all clean, so real but not universal. Remaining: `Recommendation`, `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`. |
+
+Full evidence: `project-audit/126_DECISION_REPOSITORY_CRASH_AND_STALE_POLICY_SCHEMA_2026-09-26.md`.
