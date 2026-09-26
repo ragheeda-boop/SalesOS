@@ -3389,3 +3389,20 @@ Full evidence: `project-audit/131_APP_TASKS_GUC_AND_ENTITY_TABLE_COLUMNS_2026-09
 | Loop status | **CONTINUING under the 24-hour authorization — pivoting methodology** | The full `async_session()`-grep candidate list (reports 129/130/131/132) is now closed. Next: re-run the SQL EXPLAIN sweep tool (report 98) against the current source tree, which has grown substantially since (fact ledger, provider spend, Agent Reach, and other modules added across reports 99-131) and may surface candidates the original sweep predates. |
 
 Full evidence: `project-audit/132_GUC_SWEEP_REMAINING_CANDIDATES_CLOSED_2026-09-27.md`.
+
+---
+
+## 174. Session Summary (2026-09-27) — graph_nodes: a real tenant_id column with zero RLS, a registry gap missed by every prior census
+
+| Action | Result | Details |
+|---|:---:|---|
+| Methodology | **Pivoted after SQL EXPLAIN sweep saturated** | Re-run of report 98's tool against the current, much larger source tree found 0 new candidates (only the already-known `expanding=True` false positive). Pivoted to a direct `pg_class`/`information_schema` census (report 104's technique): every `tenant_id`-bearing table with RLS disabled. |
+| Census result | **32 rows, 1 genuinely new** | 6 already-decided owner-plane billing tables (DEC-158, not new); 25 `sync_runs` monthly partition children (parent correctly has RLS+FORCE — a Postgres partition-RLS non-issue, not a gap); **`graph_nodes`** — genuinely new. |
+| Why missed | **Lower-risk than DEC-157's 14 tables** | Created in `0004_knowledge_graph.py`, kept under DEC-130f's "no DROP" register, but never added to `ALL_TENANT_TABLES` at creation and not among DEC-157's remediated 14. Has a real `NOT NULL` `tenant_id` column and index. Exhaustive grep confirmed **zero application code references this table by name** — every hit is the unrelated `merge_graph_nodes()` method name, which touches `graph_edges`/`companies` instead. No live caller to fix GUC-pinning for first, unlike DEC-157. |
+| Fix | **DONE** | Added to `ALL_TENANT_TABLES` (single source of truth — `scripts/generate_rls_policies.py` imports it, no separate list to sync). New migration `a1b2c3d4e5f7` (new head): `ENABLE`/`FORCE ROW LEVEL SECURITY` + canonical `tenant_isolation_graph_nodes` policy. Updated the stale `len(ALL_TENANT_TABLES) == 66` assertion to `67`. |
+| Verification | **Genuine red→green** | New `tests/integration/test_graph_nodes_rls_db.py` proves tenant isolation, fail-closed with no GUC pinned, and cross-tenant `WITH CHECK` rejection — all via direct SQL since no application code exists yet. `alembic downgrade -1` reproduced the exact predicted cross-tenant leak; `upgrade head` restored it, test PASSES. |
+| Regression | **5/5 PASS** | Updated count-assertion suite (4) + new test. Single Alembic head confirmed. Ruff: 0 findings on all 4 files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container was written to. No gate closed. Does not touch DEC-130f's KEEP-register posture. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Direct-census methodology's one new finding closed. Next: a repeat of report 57/70193187420d's "enabled but not forced" check against the current, larger table set, in case anything added since then repeated that gap. |
+
+Full evidence: `project-audit/133_GRAPH_NODES_RLS_REGISTRY_GAP_2026-09-27.md`.
