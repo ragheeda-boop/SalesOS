@@ -3375,3 +3375,17 @@ Full evidence: `project-audit/130_GRAPHQL_RESOLVERS_GUC_AND_COMMIT_2026-09-27.md
 | Loop status | **CONTINUING under the 24-hour authorization** | 4th consecutive GUC/RLS-pinning report (129/130/131) plus a 2nd deliberately-undecided architecture gap. Remaining low-priority candidates: `app/main.py`, `app/startup.py`, `app/modules/signal_marketplace/seeding.py`. Next tick: assess continuing this methodology vs. pivoting to a repeat SQL EXPLAIN sweep or the broader mypy-findings triage from the original roadmap's Phase 2. |
 
 Full evidence: `project-audit/131_APP_TASKS_GUC_AND_ENTITY_TABLE_COLUMNS_2026-09-27.md`.
+
+---
+
+## 173. Session Summary (2026-09-27) — GUC/RLS-pinning sweep: remaining 3 candidates closed clean, methodology retired for this pass
+
+| Action | Result | Details |
+|---|:---:|---|
+| `app/main.py` | **CLEAN** | 4 `async_session()` sites, all health/diagnostics (`SELECT 1` ×3, `alembic_version` read ×1) — no FORCE-RLS table touched. |
+| `app/startup.py` | **CONFIRMED DEAD CODE** | Imported nowhere in the repository at all — the live boot module is `app/boot/startup.py`. Related, documented-only observation: both files set `app.state.opportunity_service`/`timeline_recorder`, but nothing anywhere reads `.opportunity_service` — likely unused wiring in the live file too, not fixed here (no observable behavior to prove against). |
+| `app/modules/signal_marketplace/seeding.py` | **CLEAN** | Writes only to `signal_catalog`, confirmed still `GLOBAL_PLATFORM` (no tenant_id, no RLS) per report 26. |
+| Production / Phase 7 | **UNCHANGED** | No files changed, no container used. |
+| Loop status | **CONTINUING under the 24-hour authorization — pivoting methodology** | The full `async_session()`-grep candidate list (reports 129/130/131/132) is now closed. Next: re-run the SQL EXPLAIN sweep tool (report 98) against the current source tree, which has grown substantially since (fact ledger, provider spend, Agent Reach, and other modules added across reports 99-131) and may surface candidates the original sweep predates. |
+
+Full evidence: `project-audit/132_GUC_SWEEP_REMAINING_CANDIDATES_CLOSED_2026-09-27.md`.
