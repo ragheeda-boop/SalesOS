@@ -3322,3 +3322,19 @@ Full evidence: `project-audit/127_RECOMMENDATION_REPOSITORY_TRIPLE_CRASH_2026-09
 | Loop status | **CONTINUING under the 24-hour authorization — moving to Phase 2 of the roadmap** | With this file fully swept (8/17 classes fixed), next: broad triage of the remaining mypy/Ruff findings outside this file, then supplementary methodologies already proven this session (SQL EXPLAIN sweep, GUC/RLS pinning audit) applied across other `domains/**/infrastructure/*.py` files. |
 
 Full evidence: `project-audit/128_POSTGRES_REPOSITORIES_SWEEP_COMPLETE_2026-09-27.md`.
+
+---
+
+## 170. Session Summary (2026-09-27) — run_initial_sync(): the same GUC-pinning bug report 84 fixed, in a separate live call path (the real OAuth callback); an environment-methodology correction disclosed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Reachability | **Live, more directly than report 84's finding** | `run_initial_sync()` fires from `router.py`'s real, mounted Google OAuth callback route immediately after a real OAuth connect — no Celery worker needed, unlike report 84's `tasks.py` finding. |
+| Bug | **FIXED** | Same root cause as report 84: `GmailSyncService`/`CalendarSyncService.sync()`'s first call (`get_by_user()` against FORCE-RLS `google_accounts`) needs the tenant GUC pinned by the *caller* — neither service pins it internally. `run_initial_sync()` constructs both services directly with no pin at all, a separate unaudited call path into the same two classes. Every real user completing Google OAuth connect would have their promised "populate without a manual Sync click" silently fail on the very account they just connected. Fixed with `apply_tenant_guc(db, str(tenant_id))` before each service construction, matching `tasks.py`'s pattern. |
+| Environment correction (disclosed) | **Found and corrected mid-verification** | The first container for this finding (`postgres:postgres`, a superuser) produced a **false green** — superusers unconditionally bypass RLS. Confirmed by re-running report 84's own established test against the same connection, which also failed for the same reason. Fixed by additionally applying `infra/docker/postgres/init/02-app-role.sql` and reconnecting as the restricted `salesos_app` role for this verification. Does **not** invalidate this session's Contract/Forecast/Decision/Recommendation fixes (reports 123/125-127) — those are pure field-mismatch `AttributeError`/`TypeError`s, unaffected by which role runs the query; it matters only for RLS-visibility bugs like this one. |
+| Verification | **Genuine red→green, using the corrected role** | New `tests/integration/test_initial_sync_guc_db.py`. Scoped `git stash` reproduced the exact predicted `['gmail: No active Google account connected', 'calendar: No active Google account connected']`; restored, PASS. |
+| Regression | **6/6 PASS** | New test + report 84's 2-test file + 3 existing mocked unit tests, all reconnected as `salesos_app`. Ruff: 0 findings on both changed files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container was written to. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization — Phase 2 of the roadmap** | `postgres_repositories.py` fully swept (report 128). Re-ran the SQL EXPLAIN sweep tool (report 98): 1 finding, a documented tool limitation, not a real bug. Moved to a targeted GUC/RLS-pinning audit across every non-test file opening its own `async_session()` — this report's finding came from that grep. Remaining candidates: `app/modules/relationships/store.py`, `domains/commercial/quote/engine/service.py`, `runtime/agent_runtime/dispatcher.py`, `runtime/agent_runtime/tasks.py`, `app/modules/signal_actions/hitl_router.py`, `app/modules/signal_actions/router.py`. |
+
+Full evidence: `project-audit/129_INITIAL_SYNC_GUC_GAP_2026-09-27.md`.
