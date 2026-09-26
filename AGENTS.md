@@ -3304,3 +3304,21 @@ Full evidence: `project-audit/126_DECISION_REPOSITORY_CRASH_AND_STALE_POLICY_SCH
 | Loop status | **CONTINUING under the 24-hour authorization** | 5th class in this file with a guaranteed crash (StageEntry, Quote, Proposal, Decision, now Recommendation); first confirmed to have zero callers at any layer. Remaining: `Meeting`, `Email`, `OpportunityContact`, `Review`, `Quota`, `Territory`. |
 
 Full evidence: `project-audit/127_RECOMMENDATION_REPOSITORY_TRIPLE_CRASH_2026-09-27.md`.
+
+---
+
+## 169. Session Summary (2026-09-27) — postgres_repositories.py sweep complete: final 6 classes clean, zero further findings in this file
+
+| Action | Result | Details |
+|---|:---:|---|
+| Scope | **File sweep DONE** | All 17 repository classes in `domains/commercial/infrastructure/postgres_repositories.py` now accounted for: 8 had at least one real bug (fixed across reports 120-127), 9 were genuinely clean. |
+| Meeting / Email | **CLEAN** | Live (wired via `app/routers/meetings.py`). Structurally different from every buggy class — the abstract interface itself operates on the raw ORM model directly (no domain-dataclass conversion in the write path at all), so no field-name mismatch is possible there. `get_domain()`'s conversion fields all match real columns; the domain fields with no column (`attendees`/`agenda`/`action_items`/`intelligence`/`recording_url`/`created_by`) are correctly omitted, not silently lost (never had a column to lose from). Email is a pure ORM passthrough with no conversion logic at all. |
+| OpportunityContact | **CLEAN** | `OpportunityContact`'s fields match `OpportunityContactModel` exactly on both `create()` and `_to_domain()`. |
+| Review | **CLEAN** | `Review`/`ReviewDecision` match `ReviewModel` exactly, including the deliberate `extra_metadata`↔`"metadata"` Python-attribute/column-name aliasing. |
+| Quota | **CLEAN, including the snapshot round-trip** | Core CRUD matches exactly. `QuotaSnapshot.total_target`/`total_attained`/`overall_attainment` are `@property` values computed live from `self.quotas` — confirmed via the domain source — so `_snapshot_to_domain()` correctly does *not* read the denormalized DB columns back; this is by design, not a loss bug. |
+| Territory | **CLEAN** | `Territory` matches `TerritoryModel` exactly, same aliasing pattern as Review/Quota. |
+| Verification | **Static, both sides read directly** | No container needed — every verdict rests on a direct field-by-field comparison between the domain dataclass and the DB model, the same technique already used in report 126 §4 to rule out a hidden `PolicyModel`-shaped domain class. No files changed. |
+| Production / Phase 7 | **UNCHANGED** | Read-only report; nothing to commit besides the docs entries. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization — moving to Phase 2 of the roadmap** | With this file fully swept (8/17 classes fixed), next: broad triage of the remaining mypy/Ruff findings outside this file, then supplementary methodologies already proven this session (SQL EXPLAIN sweep, GUC/RLS pinning audit) applied across other `domains/**/infrastructure/*.py` files. |
+
+Full evidence: `project-audit/128_POSTGRES_REPOSITORIES_SWEEP_COMPLETE_2026-09-27.md`.
