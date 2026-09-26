@@ -36,7 +36,9 @@ from domains.revenue.forecast.models import ForecastExplanation, ForecastLine, F
 from domains.revenue.forecast.repo import ForecastKPIs, ForecastRepository
 from domains.decision.context.models import DecisionContext, DecisionFactor, Policy
 from domains.decision.context.repo import DecisionRepository
-from domains.decision.recommendation.models import Recommendation, RecommendationStatus
+from domains.decision.recommendation.models import (
+    Alternative, Recommendation, RecommendationEvidence, RecommendationStatus,
+)
 from domains.decision.recommendation.repo import RecommendationRepository
 
 from domains.commercial.meeting import Meeting
@@ -1075,6 +1077,21 @@ class PostgresDecisionRepository(DecisionRepository):
 
 
 class PostgresRecommendationRepository(RecommendationRepository):
+    """PostgreSQL repository for Recommendation records.
+
+    Schema/domain mismatches (report 127), all with zero live callers today:
+    - `RecommendationModel.recommendation_type` (String(100), NOT NULL, no
+      column default) has no domain equivalent at all — `Recommendation` has
+      no "type" field. Persisted as "" rather than fabricated.
+    - `RecommendationModel.applied_at`/`dismissed_at` have no domain
+      equivalent either (`Recommendation` tracks only `status`, not per-
+      transition timestamps) — left unset on save, ignored on reload.
+    - `Recommendation.context_id` (required, no default) has no column at
+      all on `RecommendationModel` — not persisted; reload uses "" as an
+      explicit placeholder, same category as report 122's Proposal.sections
+      gap. `reasoning`/`risk`/`expected_impact` are likewise not persisted.
+    """
+
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -1083,10 +1100,23 @@ class PostgresRecommendationRepository(RecommendationRepository):
             id=recommendation.id, tenant_id=recommendation.tenant_id,
             target_id=recommendation.target_id, target_type=recommendation.target_type,
             title=recommendation.title, description=recommendation.description,
-            recommendation_type=recommendation.recommendation_type,
+            recommendation_type="",
             confidence=recommendation.confidence, status=recommendation.status.value,
-            evidence=[{"factor": e.factor, "value": e.value, "label": e.label, "source_id": e.source_id, "source_type": e.source_type} for e in recommendation.evidence],
-            alternatives=[{"title": a.title, "description": a.description, "confidence": a.confidence} for a in recommendation.alternatives],
+            evidence=[
+                {
+                    "source_layer": e.source_layer, "source_domain": e.source_domain,
+                    "key": e.key, "value": e.value, "narrative": e.narrative,
+                }
+                for e in recommendation.evidence
+            ],
+            alternatives=[
+                {
+                    "title": a.title, "description": a.description,
+                    "expected_outcome": a.expected_outcome, "risk": a.risk,
+                    "confidence": a.confidence,
+                }
+                for a in recommendation.alternatives
+            ],
         )
         self.session.add(model)
         await self.session.flush()
@@ -1117,18 +1147,15 @@ class PostgresRecommendationRepository(RecommendationRepository):
         return [self._to_domain(r) for r in result.scalars().all()]
 
     def _to_domain(self, model: RecommendationModel) -> Recommendation:
-        from domains.decision.recommendation.models import Recommendation as R, RecommendationStatus as RS, RecommendationEvidence, Alternative
         evidence = [RecommendationEvidence(**e) for e in (model.evidence or [])]
         alternatives = [Alternative(**a) for a in (model.alternatives or [])]
-        return R(
-            id=model.id, tenant_id=model.tenant_id,
+        return Recommendation(
+            id=model.id, tenant_id=model.tenant_id, context_id="",
             target_id=model.target_id, target_type=model.target_type,
             title=model.title, description=model.description,
-            recommendation_type=model.recommendation_type,
-            confidence=model.confidence, status=RS(model.status),
+            confidence=model.confidence, status=RecommendationStatus(model.status),
             evidence=evidence, alternatives=alternatives,
             created_at=model.created_at,
-            applied_at=model.applied_at, dismissed_at=model.dismissed_at,
         )
 
 
