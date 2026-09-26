@@ -12,7 +12,7 @@ from app.graphql.types import (
 
 
 async def _get_company(info: Info, company_id: str) -> CompanyType | None:
-    from app.database import async_session, get_current_tenant_id_context
+    from app.database import apply_tenant_guc, async_session, get_current_tenant_id_context
     from app.modules.company.service import CompanyService
 
     tenant_id = get_current_tenant_id_context()
@@ -20,6 +20,7 @@ async def _get_company(info: Info, company_id: str) -> CompanyType | None:
         return None
 
     async with async_session() as db:
+        await apply_tenant_guc(db, tenant_id)
         svc = CompanyService(db=db)
         try:
             company = await svc.get_company(company_id, tenant_id)
@@ -61,13 +62,15 @@ async def _get_company(info: Info, company_id: str) -> CompanyType | None:
 
 
 async def _search_companies(info: Info, query: str, limit: int = 20) -> SearchResultType:
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from app.modules.company.search_repository import CompanySearchRepository
     from domains.search.contracts.models import SearchQuery
     from domains.search.engine.planner import SearchPlanner
     from domains.search.ranking.pipeline import RankingPipeline
 
+    tenant_id = info.context.get("tenant_id", "")
     async with async_session() as db:
+        await apply_tenant_guc(db, tenant_id)
         repo = CompanySearchRepository(db)
         ranking = RankingPipeline.default(
             exact_fields=["name_ar", "name_en", "cr_number"],
@@ -80,7 +83,7 @@ async def _search_companies(info: Info, query: str, limit: int = 20) -> SearchRe
             ],
         )
         planner = SearchPlanner(repository=repo, ranking_pipeline=ranking)
-        search_query = SearchQuery(query=query, page_size=limit)
+        search_query = SearchQuery(query=query, page_size=limit, tenant_id=tenant_id)
         result = await planner.search(search_query)
 
         items = [
@@ -110,7 +113,7 @@ async def _opportunities(
     info: Info,
     filters: OpportunityFiltersInput | None = None,
 ) -> list[OpportunityType]:
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from domains.commercial.infrastructure.postgres_repositories import (
         PostgresOpportunityRepository,
     )
@@ -120,6 +123,7 @@ async def _opportunities(
 
     tenant_id = info.context.get("tenant_id", "")
     async with async_session() as db:
+        await apply_tenant_guc(db, tenant_id)
         svc = OpportunityService(PostgresOpportunityRepository(db))
         page = 1
         if filters and filters.offset and filters.limit:
@@ -171,7 +175,7 @@ async def _opportunities(
 
 
 async def _pipeline(info: Info) -> PipelineSummaryType | None:
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from domains.commercial.infrastructure.postgres_repositories import (
         PostgresPipelineRepository,
     )
@@ -179,6 +183,7 @@ async def _pipeline(info: Info) -> PipelineSummaryType | None:
 
     tenant_id = info.context.get("tenant_id", "")
     async with async_session() as db:
+        await apply_tenant_guc(db, tenant_id)
         svc = PipelineService(PostgresPipelineRepository(db))
         try:
             pipes = await svc.list_pipelines(tenant_id)

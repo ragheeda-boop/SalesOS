@@ -16,7 +16,7 @@ async def _create_opportunity(
     info: Info,
     input: CreateOpportunityInput,
 ) -> OpportunityType:
-    from app.database import async_session
+    from app.database import apply_tenant_guc, async_session
     from domains.commercial.infrastructure.postgres_repositories import (
         PostgresOpportunityRepository,
     )
@@ -24,6 +24,7 @@ async def _create_opportunity(
 
     tenant_id = info.context.get("tenant_id", "")
     async with async_session() as db:
+        await apply_tenant_guc(db, tenant_id)
         svc = OpportunityService(PostgresOpportunityRepository(db))
         expected_close = None
         if input.expected_close_date:
@@ -37,6 +38,7 @@ async def _create_opportunity(
             expected_close_date=expected_close,
             description=input.description,
         )
+        await db.commit()
         return OpportunityType(
             id=opp.id,
             company_id=opp.company_id,
@@ -70,7 +72,7 @@ async def _update_company(
     company_id: str,
     input: CompanyUpdateInput,
 ) -> CompanyType | None:
-    from app.database import async_session, get_current_tenant_id_context
+    from app.database import apply_tenant_guc, async_session, get_current_tenant_id_context
     from app.modules.company.service import CompanyService
 
     tenant_id = get_current_tenant_id_context()
@@ -78,6 +80,7 @@ async def _update_company(
         return None
 
     async with async_session() as db:
+        await apply_tenant_guc(db, tenant_id)
         svc = CompanyService(db=db)
         updates = {}
         for field_name in (
@@ -103,7 +106,9 @@ async def _update_company(
                 tenant_id=tenant_id,
                 performed_by=str(info.context.get("user_id") or "") or None,
             )
+            await db.commit()
         except Exception:
+            await db.rollback()
             return None
         return CompanyType(
             id=str(company.id),
