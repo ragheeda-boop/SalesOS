@@ -102,6 +102,9 @@ ALL_TENANT_TABLES: list[str] = [
     "timeline_entries",
     # ── Webhooks (migrated tables only) ──
     "webhook_subscriptions",
+    # ── Knowledge Graph (DEC-130f keep; never wired to app code, no RLS
+    #    added at creation time — closed as a registry gap) ──
+    "graph_nodes",
 ]
 
 # ---------------------------------------------------------------------------

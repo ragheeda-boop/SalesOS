@@ -32,10 +32,11 @@ def test_deferred_8_not_folded_into_category_a_47() -> None:
     # action_outcomes, sales_followups, customer_survey_responses,
     # commercial_opportunity_notes, commercial_quota_snapshots,
     # scheduled_jobs/job_executions) — this assertion had drifted stale
-    # (still asserting 55) across all of that growth; 66 is the current,
-    # verified-correct count (confirmed no duplicates, every entry backed by
-    # a real migration's ENABLE+FORCE RLS + tenant_isolation_<table> policy).
-    assert len(ALL_TENANT_TABLES) == 66
+    # (still asserting 55) across all of that growth; 66 was the
+    # verified-correct count as of report 116. 66 -> 67: report 132 closed a
+    # registry gap on `graph_nodes` (a real tenant_id column, RLS never added
+    # at creation time; confirmed no application code references the table).
+    assert len(ALL_TENANT_TABLES) == 67
     for t in DB05_DEFERRED_8_TENANT_TABLES:
         assert t not in ALL_TENANT_TABLES
 
