@@ -344,7 +344,6 @@ class WorkflowService:
         )
         execution = await self._repo.create_job_execution(execution)
         try:
-            from domains.workflow.templates import log_message
             execution.status = "completed"
             execution.result = {"manual_trigger": True, "timestamp": now.isoformat()}
             execution.completed_at = datetime.now(timezone.utc)

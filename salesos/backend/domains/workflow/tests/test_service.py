@@ -299,3 +299,25 @@ class TestWorkflowService:
         assert len(wfs_2) == 1
         assert wfs_1[0].name == "WF A"
         assert wfs_2[0].name == "WF B"
+
+    @pytest.mark.asyncio
+    async def test_run_job_now_succeeds(self, svc: WorkflowService):
+        """run_job_now() imported a nonexistent `log_message` from
+        domains.workflow.templates that was never used -- ImportError on
+        every call, silently caught by the method's own broad except and
+        reported as a generic job failure. Unreachable from any REST route
+        today (no `POST /jobs/{id}/run` endpoint exists), fixed ahead of
+        that wiring per this session's established precedent."""
+        job = await svc.create_job(
+            tenant_id="tenant-1", name="Test Job", job_type="one_time",
+            schedule="2030-01-01T00:00:00Z",
+        )
+        execution = await svc.run_job_now(job.id, "tenant-1")
+        assert execution.status == "completed"
+        assert execution.error is None
+        assert execution.result is not None
+        assert execution.result.get("manual_trigger") is True
+        updated_job = await svc.get_job(job.id, "tenant-1")
+        assert updated_job is not None
+        assert updated_job.run_count == 1
+        assert updated_job.retry_count == 0
