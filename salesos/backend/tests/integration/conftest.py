@@ -31,6 +31,26 @@ RLS_ENFORCING_ROLE = "salesos_app"
 # `_refuse_persistent_dev_database`.
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _grant_runtime_role_privileges(setup_database):
+    """Ensure the restricted runtime role can actually read the test schema.
+
+    `setup_database` in backend/conftest.py provisions tables as the *owner*
+    role and grants the runtime role (`salesos_app`) access inside that same
+    fixture. It is session-scoped, but only 1 of the 65 DB-backed integration
+    files actually requests it, so the other 64 ran against whatever privileges
+    happened to be left over on the database — which is why failures appeared as
+    `permission denied for table tenant_llm_budgets` rather than as the tenant
+    isolation assertion the test was written to make.
+
+    Depending on `setup_database` here makes provisioning happen exactly once
+    per session, before any test, instead of once per file that remembered to
+    ask. `create_all` and the GRANTs are both idempotent, so this is safe to run
+    when `setup_database` is also requested directly.
+    """
+    return None
+
+
 async def assert_rls_enforcing_role(conn) -> None:
     """Fail closed unless `conn` runs as a role that cannot bypass RLS.
 
@@ -95,24 +115,33 @@ def _refuse_persistent_dev_database(setup_test_env):
     if not settings.app_database_url_override and not settings.app_postgres_password:
         return  # no database configured; nothing to verify
 
-    async def _check() -> None:
-        from app.database import engine
-
+    async def _current_db(engine) -> str | None:
         try:
             async with engine.connect() as conn:
-                db_name = await conn.scalar(text("SELECT current_database()"))
+                return await conn.scalar(text("SELECT current_database()"))
+        finally:
+            await engine.dispose()
+
+    async def _check() -> None:
+        from app.database import engine, owner_engine
+
+        # BOTH engines must be disposable, and they are built from different
+        # settings: `engine` from `app_database_url` and `owner_engine` (the
+        # DDL path used by init_db/tenant bootstrap/migration tests) from
+        # `resolved_database_url`, which prefers `database_url`. Checking only
+        # `engine` left DDL running against the dev database while app queries
+        # went to the disposable one — a silent split.
+        for name, eng in (("engine", engine), ("owner_engine", owner_engine)):
+            db_name = await _current_db(eng)
             assert db_name != PERSISTENT_DEV_DATABASE, (
-                f"REFUSING: connected to {db_name!r} — the persistent local dev "
-                "database. Nothing in the suite may seed, migrate, or mutate it. "
-                "Point the suite at a disposable database, e.g. "
+                f"REFUSING: {name} is connected to {db_name!r} — the persistent "
+                "local dev database. Nothing in the suite may seed, migrate, or "
+                "mutate it. Point the suite at a disposable database, e.g. "
                 "APP_DATABASE_URL_OVERRIDE=postgresql+asyncpg://salesos_app:<pw>@"
                 f"{settings.postgres_host}:{settings.postgres_port}/salesos_test "
-                "(or POSTGRES_DB=salesos_test with APP_POSTGRES_PASSWORD set)."
+                "with DATABASE_URL likewise retargeted (POSTGRES_DB is not "
+                "enough: settings.resolved_database_url prefers database_url)."
             )
-        finally:
-            # Dispose even when the assertion fires, otherwise a refusal leaves
-            # the pool open and the event loop closed around it.
-            await engine.dispose()
 
     asyncio.run(_check())
 
