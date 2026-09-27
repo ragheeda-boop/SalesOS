@@ -3572,3 +3572,18 @@ Full evidence: `project-audit/142_TIMELINE_METADATA_COLLISION_BUG_2026-09-27.md`
 | **Sweep closed** | **2 bugs / 6 files** | `domains/*/postgres_repo.py` sweep from report 138's candidate list complete: decision_center (139, clean), feature_store (140, clean), workflow (141, clean), timeline (142, bug), notifications (checked clean, no dedicated report), employee (this report, bug). |
 
 Full evidence: `project-audit/143_EMPLOYEE_SIGNAL_METADATA_COLUMN_BUG_2026-09-27.md`.
+
+---
+
+## 185. Session Summary (2026-09-27) — Methodology pivot: canonical CRM-write boundary confirmed clean, real-DB coverage added
+
+| Action | Result | Details |
+|---|:---:|---|
+| Pivot | **Raw-SQL sweep on newer modules** | Per report 138's suggestion: files added since report 98 (fact ledger, provider spend, Agent Reach, MA-proposal-staging), not yet swept for the table/column-existence bug class. |
+| `app/modules/billing/provider_spend.py` | **CLEAN, already covered** | All 5 raw-SQL calls to Postgres functions matched their exact `CREATE OR REPLACE FUNCTION` definitions parameter-by-parameter; consistent with report 86's own "2/2 PASS" claim. |
+| `app/modules/facts/apply_service.py` | **CLEAN — the canonical CRM-write boundary** | The only path that ever writes an approved fact into live `Company`/`Contact` rows. Verified via direct introspection: all 22 allowlisted fields (`CRM_APPLY_FIELDS`) are real columns on the real models; all UUID types compatible — neither of this session's two most common bug classes (field-name drift, uuid/varchar mismatch) occurs here. |
+| Coverage gap found + closed | **4 new integration tests** | The only prior coverage (`tests/unit/test_fact_apply_service.py`) used a hand-rolled fake session — never a real database round trip, exactly the shape that hid reports 142/143's real bugs. New `tests/integration/test_fact_apply_service_crm_write_db.py`: schema-drift guard, real Company/audit-event round trip via a genuinely separate read session, allowlist rejection, and idempotency — all against a fresh disposable container. 7/7 combined regression PASS. |
+| Production / Phase 7 | **UNCHANGED** | One disposable container, destroyed after. No gate touched or closed. |
+| Loop status | **CONTINUING** | Remaining in the same family: `app/modules/agent_reach/persistence.py`/`fact_proposals.py` (lower priority, already extensively covered), `app/modules/facts/review_service.py`, MA-proposal-staging module. |
+
+Full evidence: `project-audit/144_FACT_APPLY_SERVICE_CLEAN_COVERAGE_ADDED_2026-09-27.md`.
