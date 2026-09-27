@@ -214,6 +214,11 @@ async def update_opportunity_contact(
         await repo.session.execute(stmt)
 
     result = await repo.get(oc_id)
+    if result is None:
+        # The row existed at the start of this request (checked above) and
+        # the update targeted it by id -- only a concurrent delete between
+        # that check and this re-fetch could land here.
+        raise HTTPException(status_code=404, detail="Not found.")
     return _to_response(result)
 
 
