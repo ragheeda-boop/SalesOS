@@ -165,4 +165,4 @@ class TestDatabaseIntegrity:
         assert row is not None
         assert row.signal_type == "deal_assigned"
         assert row.source == "crm"
-        assert row.metadata == {"deal_id": "123"}
+        assert row.signal_metadata == {"deal_id": "123"}

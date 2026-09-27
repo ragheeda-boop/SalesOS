@@ -3556,3 +3556,19 @@ Full evidence: `project-audit/141_WORKFLOW_DOMAIN_REPOSITORY_CLEAN_2026-09-27.md
 | Loop status | **CONTINUING** | 4th file in the sweep, 1st with a genuine bug (after 3 clean: decision_center/feature_store/workflow). Remaining: `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py`. |
 
 Full evidence: `project-audit/142_TIMELINE_METADATA_COLLISION_BUG_2026-09-27.md`.
+
+---
+
+## 184. Session Summary (2026-09-27) — `domains/employee/postgres_repo.py`: metadata silently discarded on every write, live; sweep closed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug | **FIXED, live** | `EmployeeSignalModel` renames its column-to-attribute mapping (`signal_metadata = Column("metadata", JSONB, ...)`) since `metadata` is a reserved SQLAlchemy class attribute. `save()`/`save_many()` nonetheless passed `metadata=` as a constructor keyword — silently setting an unmapped instance attribute instead of the real `signal_metadata`, discarding every signal's metadata on every write, forever. Read side had a second, independent bug: `r.metadata` on a queried row is the class-level `MetaData()` singleton (always truthy), so `metadata=r.metadata or {}` never fell back — every reconstructed `EmployeeSignal.metadata` was a SQLAlchemy internal object, not a dict. |
+| Root cause of missed detection | **Found and disclosed** | The existing test asserted `row.metadata == {...}` on a row re-queried in the **same session** as the save — SQLAlchemy's identity map returned the same poisoned in-memory object, not a genuine DB round trip. Passed by accident, on the exact bug it should have caught. |
+| Reachability | **Live, 3 construction sites** | `app/modules/employee_360/router.py`, `domains/employee/router.py`, `domains/employee/tasks.py`. Both tables confirmed in the RLS tenant registry. |
+| Fix | **4 sites + 1 test correction** | `signal_metadata=` on write, `r.signal_metadata` on read; corrected the pre-existing test's assertion to the real attribute name (confirmed it now correctly fails on the unfixed repo with `MetaData() == {...}`, proving the test was always checking the wrong thing). |
+| Verification | **Genuine red→green, reproduced twice** | Isolated constructor reproduction, then a real two-separate-session round trip through a disposable, fully-migrated container: raw INSERT log showed `'{}'`, raw `SELECT` confirmed `{}` in the DB, repo read returned a `MetaData()` object. New 2-test file + reverted-file re-run confirmed the exact predicted failure; restored, both pass. Regression 18/18 PASS (incl. the corrected pre-existing test + a separate consumer suite); Ruff 5 pre-existing findings unchanged, 0 new. |
+| Production / Phase 7 | **UNCHANGED** | One disposable container, destroyed after. No gate closed. |
+| **Sweep closed** | **2 bugs / 6 files** | `domains/*/postgres_repo.py` sweep from report 138's candidate list complete: decision_center (139, clean), feature_store (140, clean), workflow (141, clean), timeline (142, bug), notifications (checked clean, no dedicated report), employee (this report, bug). |
+
+Full evidence: `project-audit/143_EMPLOYEE_SIGNAL_METADATA_COLUMN_BUG_2026-09-27.md`.

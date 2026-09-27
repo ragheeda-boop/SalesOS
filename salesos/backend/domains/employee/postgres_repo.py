@@ -25,7 +25,7 @@ class PostgresEmployeeSignalRepository(EmployeeSignalRepository):
             tenant_id=uuid.UUID(signal.tenant_id),
             signal_type=signal.signal_type,
             source=signal.source,
-            metadata=signal.metadata,
+            signal_metadata=signal.metadata,
             timestamp=signal.timestamp,
         )
         self.db.add(model)
@@ -40,7 +40,7 @@ class PostgresEmployeeSignalRepository(EmployeeSignalRepository):
                 tenant_id=uuid.UUID(s.tenant_id),
                 signal_type=s.signal_type,
                 source=s.source,
-                metadata=s.metadata,
+                signal_metadata=s.metadata,
                 timestamp=s.timestamp,
             )
             for s in signals
@@ -103,7 +103,7 @@ class PostgresEmployeeSignalRepository(EmployeeSignalRepository):
             EmployeeSignal(
                 id=str(r.id), employee_id=str(r.employee_id),
                 tenant_id=str(r.tenant_id), signal_type=r.signal_type,
-                source=r.source, metadata=r.metadata or {},
+                source=r.source, metadata=r.signal_metadata or {},
                 timestamp=r.timestamp, created_at=r.created_at,
             )
             for r in rows
@@ -153,7 +153,7 @@ class PostgresEmployeeSignalRepository(EmployeeSignalRepository):
                 EmployeeSignal(
                     id=str(r.id), employee_id=str(r.employee_id),
                     tenant_id=str(r.tenant_id), signal_type=r.signal_type,
-                    source=r.source, metadata=r.metadata or {},
+                    source=r.source, metadata=r.signal_metadata or {},
                     timestamp=r.timestamp, created_at=r.created_at,
                 )
                 for r in recent_rows
