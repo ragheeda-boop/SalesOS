@@ -3492,3 +3492,19 @@ Full evidence: `project-audit/137_OPPORTUNITY_CONTACTS_UPDATE_RACE_2026-09-27.md
 | Loop status | **CONTINUING under the 24-hour authorization — pivoting methodology** | Candidates for the next pass: a repeat "raw-SQL table/column existence" sweep restricted to files added since report 98 (fact ledger, provider spend, Agent Reach, MA-proposal-staging — never swept this way), or a frontend TypeScript pass for the equivalent "stale contract" bug class found repeatedly on the backend this session. |
 
 Full evidence: `project-audit/138_DIGITAL_TWIN_SIGNAL_TYPE_MISMATCH_AND_MYPY_SWEEP_CLOSED_2026-09-27.md`.
+
+---
+
+## 180. Session Summary (2026-09-27) — `domains/decision_center/postgres_repo.py`: fully clean, live wiring, zero downstream consumers
+
+| Action | Result | Details |
+|---|:---:|---|
+| New methodology pass | **Started** | Checking `domains/*/postgres_repo.py` files (outside the already-fully-swept `domains/commercial/infrastructure/postgres_repositories.py`, 8 bugs/9 clean across earlier reports) for the same contract/DB-model field-mismatch bug class. |
+| Field mapping | **CLEAN, all 5 pairs** | `Decision`/`DecisionModel`, `DecisionAudit`/`DecisionAuditModel`, `DecisionFeedback`/`DecisionFeedbackModel`, `FeedbackAggregate` (join query, already correctly cast), `DecisionTemplate`/`DecisionTemplateModel` — every field verified correct in both read and write directions by reading the actual method bodies, not just column names. |
+| GUC pinning | **Correct at the live boot site** | `app/startup.py` (dead, confirmed again) constructs it unpinned; the LIVE `app/boot/startup.py:198-201` wraps it in `FactoryBoundRepository`, whose `__getattr__` routes every call through `tenant_scoped_session()` → `apply_tenant_guc()` (ContextVar fallback, matching `get_db()`'s own pattern) with auto-commit/rollback. |
+| Reachability | **Live but a dead end** | `app.state.decision_center_service` is correctly constructed and wired at boot, but `grep`-confirmed zero routers, GraphQL resolvers, or any other code path ever reads it — a distinct shape from a bug: correctly-built code nobody calls. |
+| Verification | **Source-review only** | No bug to reproduce; no files changed; no test added. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **CONTINUING** | Remaining candidates in this pass: `domains/revenue/analytics/postgres_repo.py`, `domains/feature_store/postgres_repo.py`, `domains/workflow/postgres_repo.py`, `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py` (`domains/search/engine/postgres_repo.py` already covered by reports 79-81 under a different methodology). |
+
+Full evidence: `project-audit/139_DECISION_CENTER_REPOSITORY_CLEAN_2026-09-27.md`.
