@@ -3739,3 +3739,18 @@ Full evidence: `project-audit/153_APP_STATE_WIRING_METHODOLOGY_EXHAUSTED_2026-09
 | Loop status | **Methodology fully closed** | The entire "app.state wiring" / "not initialized" 503-guard investigation family (reports 148-154) is now exhaustive. Pivoting to a fresh angle next. |
 
 Full evidence: `project-audit/154_DECISION_CENTER_REACHABILITY_CORRECTION_2026-09-27.md`.
+
+---
+
+## 196. Session Summary (2026-09-27) — Loop resumed; `icp_persistence.py` and `relationships/store.py` both fully clean
+
+| Action | Result | Details |
+|---|:---:|---|
+| Loop authorization | **RENEWED** | User re-invoked `/loop` (dynamic mode) for continued fix/develop/review/test work, up to 24h, same standing invariants. Corrected the candidate list given (Recommendation/Meeting/Email/OpportunityContact/Review/Quota/Territory) — all 7 already completed in reports 127-128. |
+| Disk check | **PASS** | ~2.46 GB free on D: — healthy, no action needed. |
+| `icp_persistence.py` | **CLEAN, live** | All fields match `ICPProfile` exactly; correct `CAST(:x AS type)` usage throughout; correctly pinned GUC on every method; `SyncICPStore`'s dedicated-loop/NullPool pattern matches the established-correct ADR-0109 design. Confirmed live via `copilot.py:177`. |
+| `relationships/store.py` | **CLEAN, live** | All fields match `RelationshipEdge` exactly; explicitly documents and correctly handles the exact "rollback() discards the GUC pin" gotcha found as a real bug in report 83, proactively defended against here. Confirmed live via the mounted `/api/v1` relationships router. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **CONTINUING** | Third consecutive clean result after the high-yield `postgres_repositories.py` sweep — searching for further unchecked domain-contract/DB-model files. |
+
+Full evidence: `project-audit/155_ICP_AND_RELATIONSHIPS_PERSISTENCE_CLEAN_2026-09-27.md`.
