@@ -3508,3 +3508,19 @@ Full evidence: `project-audit/138_DIGITAL_TWIN_SIGNAL_TYPE_MISMATCH_AND_MYPY_SWE
 | Loop status | **CONTINUING** | Remaining candidates in this pass: `domains/revenue/analytics/postgres_repo.py`, `domains/feature_store/postgres_repo.py`, `domains/workflow/postgres_repo.py`, `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py` (`domains/search/engine/postgres_repo.py` already covered by reports 79-81 under a different methodology). |
 
 Full evidence: `project-audit/139_DECISION_CENTER_REPOSITORY_CLEAN_2026-09-27.md`.
+
+---
+
+## 181. Session Summary (2026-09-27) — `domains/feature_store/postgres_repo.py`: fully clean, live and reachable; a plausible bug hypothesis empirically disproven
+
+| Action | Result | Details |
+|---|:---:|---|
+| Scope | **2nd file in the sweep** | Distinct, unrelated module from `runtime/feature_store/features.py` (already fixed for real bugs in reports 67/118/159) — this is a generic key-value feature registry feeding the ScoringEngine/Decision Platform. `domains/revenue/analytics/postgres_repo.py` stays skipped (dead duplicate, DEC-130b, report 128). |
+| Field mapping | **CLEAN, all 9 methods** | `FeatureDefinition`/`FeatureDefinitionModel` and `FeatureValue`/`FeatureValueModel` map correctly both directions across `save_definition`/`get_definition`/`delete_definition`/`list_definitions`/`save_value`/`get_value`/`get_values_for_entity`/`batch_save_values`/`delete_value`; the `str`-vs-`EntityType` interface boundary is honored consistently. |
+| Hypothesis tested | **DISPROVEN, empirically** | Suspected `FeatureValue.is_expired`'s aware-datetime subtraction could crash on a naive DB-sourced `computed_at` (this file has no defensive `tzinfo is None` guard, unlike report 139's `decision_center` helpers). Seeded a real row on a fresh disposable Postgres container via the actual SQLAlchemy/asyncpg stack, re-fetched it, ran the exact arithmetic: `tzinfo: UTC`, `is_expired arithmetic OK`. The round-trip is aware, not naive — no bug, hypothesis rejected rather than assumed. |
+| Reachability | **Live and reachable, unlike report 139** | `app/boot/startup.py:165-174` wires it via the same correctly-GUC-pinning `FactoryBoundRepository`; `app/boot/routers.py:56,204` mounts `domains.feature_store.router.router`'s 5 real endpoints, which correctly read `app.state.feature_store_domain_service`. A separate `get_feature_store_service` dependency in `app/dependencies.py` is confirmed dead (zero consumers) — noted, not acted on. |
+| Verification | **1 disposable container, destroyed after** | No `salesos_test`/production contact; no files changed (no bug found). |
+| Production / Phase 7 | **UNCHANGED** | No gate closed. |
+| Loop status | **CONTINUING** | Remaining candidates: `domains/workflow/postgres_repo.py`, `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py`. |
+
+Full evidence: `project-audit/140_FEATURE_STORE_DOMAIN_REPOSITORY_CLEAN_2026-09-27.md`.
