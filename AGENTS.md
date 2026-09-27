@@ -3440,3 +3440,23 @@ Full evidence: `project-audit/134_INVALID_UTF8_SOURCE_BYTES_2026-09-27.md`.
 | Loop status | **CONTINUING under the 24-hour authorization** | Resuming triage of the remaining ~188 mypy findings; several genuinely new candidates flagged for next: `runtime/data_fabric_runtime/__init__.py`'s `PipelineMetrics` attribute errors, `runtime/odoo/__init__.py`'s `FromClause.insert()` calls, `app/modules/facts/{service,apply_service}.py`'s `type[BaseModel]` attribute errors, `runtime/agent_runtime/tasks.py` (unexamined file). |
 
 Full evidence: `project-audit/135_WORKFLOW_RUN_JOB_NOW_BROKEN_IMPORT_2026-09-27.md`.
+
+---
+
+## 177. Session Summary (2026-09-27) — runtime/odoo: 3 independent, stacked bugs — the scheduled Odoo sync has never once run successfully
+
+| Action | Result | Details |
+|---|:---:|---|
+| Reachability | **Live, scheduled in Celery Beat** | `odoo_sync_all` is registered in `app/celery_schedule.py`'s beat schedule. `runtime/odoo/__init__.py` had zero prior test coverage — all 7 existing `test_odoo_*.py` files cover a separate translation/ACL layer, none reference this module at all. |
+| Bug 1 (outermost) | **FIXED** | `settings` was never imported anywhere in the module — `odoo_sync_all()`'s very first line (`if not settings.odoo_url:`) would raise `NameError` immediately, before anything else runs. Confirmed directly and independently via Ruff (`F821 Undefined name 'settings'` ×5). Added `from app.config import settings` at module level. |
+| Bug 2 (masks bug 3) | **FIXED** | `_run_odoo_sync()` called `asyncio.run(_sync())` internally, but its sole caller (`odoo_sync_all`'s own `_run()`) is already running inside an event loop via the outer `asyncio.run(_run())` — `RuntimeError: asyncio.run() cannot be called from a running event loop`, reproduced first in isolation, then confirmed live. Converted `_run_odoo_sync` to a real `async def`; caller now awaits it directly. |
+| Bug 3 (deepest) | **FIXED** | `OdooClientProtocol` declares `search_read`/`count`/`read` as `async def`, matching every `OdooSyncService` call site's `await`; `OdooJsonRpcClient`'s actual implementations were plain blocking `def`s — `await <list>` raised `TypeError`. The class's own docstring already documented the fix ("wrap in asyncio.to_thread") but it was never wired. Renamed the blocking implementations to `_*_sync`; added real `async def` wrappers using `asyncio.to_thread`. |
+| Net effect | — | All three bugs sit on the single reachable path, each masking the next — the scheduled Odoo sync has never once completed successfully for any tenant. |
+| Adjacent false positive, investigated | **No bug** | `domains/workflow/service.py`'s `WorkflowStep.get()` mypy finding (report 135) confirmed as a known mypy loop-variable-redefinition limitation, not real. |
+| Adjacent false positive, this file | **No bug** | `PipelineMetrics` missing-attribute findings (`_companies_synced` etc., `runtime/data_fabric_runtime/__init__.py`) confirmed safe — `getattr(obj, name, 0) + 1` followed by direct assignment is a legitimate self-healing dynamic-attribute pattern with no `__slots__` restriction. `runtime/odoo/__init__.py`'s 3 `FromClause.insert()` findings confirmed as a SQLAlchemy typing-stub imprecision (`DeclarativeBase.__table__` typed abstractly; the real runtime object is a concrete `Table` with `.insert()`, confirmed directly). |
+| Verification | **Genuine red→green, all 3 bugs together** | New `tests/unit/test_odoo_json_rpc_client_async.py` (4 tests, mocked I/O). Scoped `git stash` reproduced all 4 exact predicted failures (`TypeError` ×3, `AttributeError` on the missing `settings` patch target); restored, 4/4 PASS. One test-authoring mock gap self-caught and corrected during verification, disclosed. |
+| Regression | **35/35 PASS** | 7 pre-existing Odoo test files (unrelated layer, unaffected) + the new file. Ruff: 12→6 findings (net improvement of 6 — both `F821`s resolved — 0 new). `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database, container, or real Odoo/network call involved. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Resuming mypy triage: `app/modules/facts/{service,apply_service}.py`'s `type[BaseModel]` attribute errors, `runtime/agent_runtime/tasks.py` (unexamined file), `app/boot/startup.py`'s `FactoryBoundRepository` findings. |
+
+Full evidence: `project-audit/136_ODOO_SYNC_TRIPLE_BUG_2026-09-27.md`.
