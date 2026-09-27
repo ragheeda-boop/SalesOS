@@ -92,10 +92,32 @@ def _clone_name(table: str) -> str:
     return f"rls_pilot_clone_{table}"
 
 
-async def _make_clone(db_session: AsyncSession, table: str) -> str:
+async def _make_clone(table: str) -> str:
+    """Create `rls_pilot_clone_<table>` and return its name.
+
+    Uses a dedicated owner-role autocommit connection rather than `db_session`.
+    `db_session` connects as `salesos_app` (app.database builds the app engine
+    from `app_database_url`), which is a *runtime* role: it has DML but no
+    CREATE on schema public, because the application is not supposed to create
+    tables at runtime. Running DDL through it would require widening the runtime
+    role's privileges for the convenience of a test, which is the wrong
+    direction — and the generated policy under test is applied as a table owner
+    anyway, so an owner connection is also the semantically correct one.
+
+    Autocommit is required: these clones have to survive independently of any
+    test transaction, because the policy assertions deliberately provoke errors
+    that abort the surrounding transaction.
+    """
     clone = _clone_name(table)
-    await db_session.execute(text(f'DROP TABLE IF EXISTS "{clone}"'))
-    await db_session.execute(text(f'CREATE TABLE "{clone}" (LIKE "{table}" INCLUDING ALL)'))
+    engine = create_async_engine(_test_db_url(), isolation_level="AUTOCOMMIT")
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text(f'DROP TABLE IF EXISTS "{clone}"'))
+            await conn.execute(
+                text(f'CREATE TABLE "{clone}" (LIKE "{table}" INCLUDING ALL)')
+            )
+    finally:
+        await engine.dispose()
     return clone
 
 
@@ -166,7 +188,7 @@ class TestGeneratorBreadthAcrossAllPilotTables:
     ):
         failures: list[str] = []
         for table in PILOT_TABLES:
-            clone = await _make_clone(db_session, table)
+            clone = await _make_clone(table)
             sql = generate_policy_sql(clone, policy_name=f"tenant_isolation_{clone}")
             try:
                 for statement in filter(None, (s.strip() for s in sql.split(";"))):
@@ -225,10 +247,19 @@ class TestGeneratorDepthOnRepresentativeTables:
     """
 
     async def _setup(self, db_session: AsyncSession, table: str, role: str) -> str:
-        clone = await _make_clone(db_session, table)
+        clone = await _make_clone(table)
         sql = generate_policy_sql(clone, policy_name=f"tenant_isolation_{clone}")
         for statement in filter(None, (s.strip() for s in sql.split(";"))):
             await db_session.execute(text(statement))
+        # USAGE on the schema is required in addition to the table privileges.
+        # A role needs USAGE on a schema before it can resolve *any* object name
+        # in it, so table-level grants alone leave every statement failing with
+        # `UndefinedTableError: relation "..." does not exist` — even though
+        # the table is plainly there and the grants are visible in
+        # pg_class. Verified directly: the throwaway role showed
+        # has_schema_privilege(role,'public','USAGE') = false while holding 13
+        # table_privileges rows on the clone.
+        await db_session.execute(text(f'GRANT USAGE ON SCHEMA public TO "{role}"'))
         await db_session.execute(
             text(f'GRANT SELECT, INSERT, UPDATE, DELETE ON "{clone}" TO "{role}"')
         )
