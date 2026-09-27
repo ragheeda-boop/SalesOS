@@ -198,6 +198,27 @@ async def setup_database():
     async with engine.begin() as conn:
         await conn.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
         await conn.execute(text('CREATE EXTENSION IF NOT EXISTS pg_trgm'))
+
+        # Fail loudly if the database is not at migration head. Without this the
+        # fixture cannot tell a correctly-provisioned schema from a degraded one,
+        # because `alembic upgrade head` is a no-op when the version row already
+        # says head — even when the tables behind it are missing or were rebuilt
+        # from ORM metadata. Better a clear setup error than 40 misleading
+        # NotNullViolationErrors pointing at unrelated tests.
+        version = await conn.scalar(
+            text("SELECT version_num FROM alembic_version LIMIT 1")
+        ) if await conn.scalar(
+            text("SELECT to_regclass('public.alembic_version') IS NOT NULL")
+        ) else None
+        if version is None:
+            raise RuntimeError(
+                "salesos_test is not provisioned. `alembic_version` is absent or "
+                "empty, so this fixture would build tables from ORM metadata "
+                "alone — which omits the server defaults the migrations define, "
+                "and makes raw-INSERT tests fail for the wrong reason. Rebuild "
+                "it: drop schema public cascade; create schema public; "
+                "alembic upgrade head. See the teardown note below."
+            )
         await conn.run_sync(Base.metadata.create_all)
         # Base.metadata.create_all does not execute Alembic's RLS DDL. Keep
         # the ephemeral test schema aligned with the production evidence
@@ -273,20 +294,37 @@ async def setup_database():
         await _grant_runtime_role(conn)
     await engine.dispose()
     yield
-    # pytest-xdist: each worker has its own session-scoped teardown. drop_all
-    # against the shared salesos_test DB races workers still running (near-end
-    # UndefinedTableError on companies/tenants). Ephemeral CI DBs need no cleanup.
-    if os.environ.get("PYTEST_XDIST_WORKER"):
-        return
-    engine = create_async_engine(_db_url(), echo=False)
-    async with engine.begin() as conn:
-        # A few legacy migrations create tables that are intentionally not
-        # represented in the ORM metadata used by this fixture. Drop the
-        # dependent signal table first so metadata teardown remains reliable
-        # on a reused local salesos_test database.
-        await conn.execute(text("DROP TABLE IF EXISTS company_signals, tenants CASCADE"))
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.execute(text("DROP SCHEMA IF EXISTS audit CASCADE"))
+    # No teardown.
+    #
+    # This fixture used to end with `Base.metadata.drop_all` plus explicit drops
+    # of `tenants` and the `audit` schema, on the assumption that a disposable
+    # database should be left empty for the next session. That is backwards, and
+    # it was the cause of ~40 phantom integration failures.
+    #
+    # `create_all` above builds tables from the ORM models, which express
+    # defaults on the Python side (`default=0.0` in
+    # domains/commercial/infrastructure/models.py) whereas the migrations that
+    # define the real schema set them in the database
+    # (`server_default="0"` in 0007_commercial_domain.py). Raw INSERT statements
+    # in the tests bypass the ORM entirely, so they need the *server* default.
+    # Dropping the tables at the end of a session therefore left the next
+    # session with ORM-shaped tables that have no server defaults, while
+    # `alembic_version` still read `head` so `alembic upgrade` refused to
+    # rebuild anything. The result was NotNullViolationError across unrelated
+    # tests, and the outcome depended on file ordering: a file that ran first
+    # against an intact migrated schema passed, and every file after it
+    # inherited the degraded one.
+    #
+    # It also could not be worked around by re-running migrations, because
+    # `alembic upgrade head` is a no-op at head — the damage was invisible to
+    # Alembic while being fatal to the tests.
+    #
+    # The database is disposable by name, and `salesos_test` is rebuilt from
+    # migrations by `scripts/reset_test_db.py` (or by hand: drop schema public,
+    # create schema public, `alembic upgrade head`). Isolation between tests
+    # comes from each test's own fixtures and the GUC scoping in
+    # tests/integration/conftest.py, not from truncating a shared schema after
+    # the fact.
     await engine.dispose()
 
 
