@@ -3524,3 +3524,19 @@ Full evidence: `project-audit/139_DECISION_CENTER_REPOSITORY_CLEAN_2026-09-27.md
 | Loop status | **CONTINUING** | Remaining candidates: `domains/workflow/postgres_repo.py`, `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py`. |
 
 Full evidence: `project-audit/140_FEATURE_STORE_DOMAIN_REPOSITORY_CLEAN_2026-09-27.md`.
+
+---
+
+## 182. Session Summary (2026-09-27) — `domains/workflow/postgres_repo.py`: fully clean, live via 2 real routers
+
+| Action | Result | Details |
+|---|:---:|---|
+| Scope | **3rd file in the sweep** | 534 lines, `PostgresWorkflowRepository`, checked in full against 5 DB models (`WorkflowModel`/`WorkflowExecutionModel`/`WebhookEndpointModel`/`ScheduledJobModel`/`JobExecutionModel`) and their dataclasses — 25 CRUD methods + 6 serialization helpers. |
+| Nested-object serialization | **CLEAN** | Same shape that caused Quote's/Proposal's unpersisted-field bugs (reports 162/163) — `Workflow.steps`/`WorkflowExecution.step_results` are lists of nested dataclasses into one JSONB column — but here `_serialize_steps`/`_serialize_exec_step`/`_wf_to_domain`/`_exec_to_domain` correctly round-trip every field including nested timestamps. |
+| No-tenant-filter methods | **Both correct by design** | `list_due_jobs()` is a scheduler-only cross-tenant sweep (confirmed sole caller); `get_job_execution`/`list_job_executions` correctly omit `tenant_id` per the abstract interface contract. |
+| Reachability | **Live, 2 independent routers** | `app/routers/workflows.py` (correct `Depends(get_current_tenant_id)` + `Depends(get_db_session)` DI throughout) and `app/modules/integration_hub/router.py:332`. All 5 tables confirmed in the RLS tenant-table registry. |
+| Verification | **Source-review only** | No bug found, no files changed. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **CONTINUING — 3rd clean result in a row** | A genuinely different outcome from the earlier `domains/commercial/infrastructure/postgres_repositories.py` sweep (8 bugs / 17 classes). Remaining candidates: `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py`. |
+
+Full evidence: `project-audit/141_WORKFLOW_DOMAIN_REPOSITORY_CLEAN_2026-09-27.md`.
