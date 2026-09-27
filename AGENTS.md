@@ -3710,3 +3710,18 @@ Full evidence: `project-audit/151_NBA_ENGINE_NEVER_WIRED_2026-09-27.md`.
 | Loop status | **Methodology exhausted** | The "component built in isolation but never wired to `app.state`" check (reports 148, 151, 152) has now been run against every live reader in the app — no further instances to investigate under this specific angle. |
 
 Full evidence: `project-audit/152_EMPLOYEE_WORKFLOW_SIGNALS_ARCHITECTURE_GAP_2026-09-27.md`.
+
+---
+
+## 194. Session Summary (2026-09-27) — `app.state` wiring methodology exhausted: final 11 candidates checked, no further bugs
+
+| Action | Result | Details |
+|---|:---:|---|
+| Widened scope | **11 more candidates surfaced** | Extended the reader/writer extraction to `intelligence/`, `sdk/`, `mcp_server/` beyond reports 148-152's original scope. |
+| 9 of 11 | **False alarm — dead code self-reference** | All resolve to a sole writer in the confirmed-dead `app/startup.py`; zero readers outside that same dead file for any of them. |
+| Remaining 2 (`marketplace_registry`/`marketplace_permission_gate`) | **Legitimate lazy-singleton, not a bug** | `domains/marketplace/router.py` (genuinely live) creates each once on first call via a direct `from app.main import app` import, caching on `app.state` — structurally different from reports 148/151's bugs (fresh-per-call, or no assignment path at all). |
+| Final tally | **2 real bugs fixed, 1 architecture gap documented, rest clean** | `approval_service` (148), `nba_engine` (151) fixed; `workflow_service` (152) documented; everything else confirmed clean or intentional. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **Methodology closed** | Pivoting to a fresh angle next. |
+
+Full evidence: `project-audit/153_APP_STATE_WIRING_METHODOLOGY_EXHAUSTED_2026-09-27.md`.
