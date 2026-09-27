@@ -3587,3 +3587,17 @@ Full evidence: `project-audit/143_EMPLOYEE_SIGNAL_METADATA_COLUMN_BUG_2026-09-27
 | Loop status | **CONTINUING** | Remaining in the same family: `app/modules/agent_reach/persistence.py`/`fact_proposals.py` (lower priority, already extensively covered), `app/modules/facts/review_service.py`, MA-proposal-staging module. |
 
 Full evidence: `project-audit/144_FACT_APPLY_SERVICE_CLEAN_COVERAGE_ADDED_2026-09-27.md`.
+
+---
+
+## 186. Session Summary (2026-09-27) — Newer-module raw-SQL sweep reaches saturation; pivoting to frontend
+
+| Action | Result | Details |
+|---|:---:|---|
+| `app/modules/facts/review_service.py` | **CLEAN** | Every `CanonicalFactEvent` field constructed matches a real column exactly; self-review rejection and idempotent-retry logic match behavior already proven by report 79/108's real integration/browser tests. No new test needed — already genuinely covered. |
+| `fact_proposals.py` / `persistence.py` (Agent Reach) | **Already covered, not re-swept** | Reports 82 and 65 already proved both with real PostgreSQL integration tests (42/42 and role-restricted live proof respectively); no changes since, so re-sweeping would not be a fresh check. |
+| MA-proposal-staging script | **Lower priority** | One-off data-staging script, not live request-reachable application code; out of scope for this sweep's methodology. |
+| Sweep saturation | **Declared** | Across reports 144-145, every file in the "modules added since report 98" family checks out clean (either already covered or newly covered). Matches the same diminishing-returns pattern independently reached by the SQL EXPLAIN sweep (132), RLS census (133), and mypy triage (138). |
+| Loop status | **PIVOTING to frontend TypeScript** | Report 138's second originally-suggested methodology: a "stale contract" pass on frontend API-client/type files, using the already-established C: mirror workflow (report 107's `sync-to-c-and-verify.ps1`, which already found and fixed 2 real bugs). |
+
+Full evidence: `project-audit/145_FACT_REVIEW_SERVICE_CLEAN_NEWER_MODULE_SWEEP_PAUSED_2026-09-27.md`.
