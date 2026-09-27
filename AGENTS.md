@@ -3664,3 +3664,17 @@ Full evidence: `project-audit/148_APPROVAL_SERVICE_NEVER_WIRED_2026-09-27.md`.
 | Loop status | **CONTINUING** | 5th systematic methodology to reach a conclusive result this session. Next: reviewing `app/boot/startup.py`'s other `_init_*` functions for the mirror-image gap — an `app.state.X` assignment with no real reader anywhere. |
 
 Full evidence: `project-audit/149_INMEMORY_FALLBACK_SWEEP_CLOSED_2026-09-27.md`.
+
+---
+
+## 191. Session Summary (2026-09-27) — Mirror sweep of report 148 closed: no further orphaned `app.state` services
+
+| Action | Result | Details |
+|---|:---:|---|
+| Methodology correction | **Disclosed** | A first-pass narrow grep falsely reported `approval_service`/`db_session_factory` as having 0 readers — both are read via `getattr(state, "X", ...)`, which a literal `app.state.X` pattern misses. Widened the pattern before drawing conclusions. |
+| 7 zero-external-reader candidates checked | **All accounted for, none orphaned** | 3 (`_embedding_service`/`_sdk_cache_service`/`_sdk_redis_client`) are read later in the same boot file; 3 (`agent_task_trigger_subscriber`/`signal_detection_bridge`/`workflow_subscriber`) are deliberate keep-alive handles for already-registered event callbacks; 1 (`llm_cost_tracker`) is redundant-but-harmless alongside a working separate module-level global. |
+| Conclusion | **Report 148 was isolated, not systemic** | No further "wired but orphaned" services found in the live boot module. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **Milestone reached** | 6 systematic methodologies now independently concluded this session. Across reports 139-150: 4 real live bugs fixed (timeline metadata collision, employee signal metadata loss, the two-part Approval/HITL wiring gap), new coverage added to the canonical CRM-write boundary, 6 sweeps run to conclusive closure. Natural point to report progress and take direction. |
+
+Full evidence: `project-audit/150_APP_STATE_MIRROR_SWEEP_CLOSED_2026-09-27.md`.
