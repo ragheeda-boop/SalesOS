@@ -3476,3 +3476,19 @@ Full evidence: `project-audit/136_ODOO_SYNC_TRIPLE_BUG_2026-09-27.md`.
 | Loop status | **mypy sweep reached saturation** | Reports 135-137 collectively found and fixed 3 real bugs (workflow `run_job_now`, the Odoo triple-bug, this router race) across `app/`/`sdk/`/`domains/`/`runtime/`/`intelligence/`; every other examined finding traces to one of six now-established false-positive shapes. Same saturation point already reached by the SQL EXPLAIN sweep (report 132) and RLS census (report 133). Continuing the standing 24-hour authorization: next is either a fresh methodology, or spot-checking the small remaining set of not-yet-individually-verified findings (`intelligence/notifications/email.py`'s `str \| None` arguments, `intelligence/digital_twin/twin.py`'s list-append type mismatch). |
 
 Full evidence: `project-audit/137_OPPORTUNITY_CONTACTS_UPDATE_RACE_2026-09-27.md`.
+
+---
+
+## 179. Session Summary (2026-09-27) — DigitalTwin.add_signal(): wrong parameter type on dead code; mypy sweep closed
+
+| Action | Result | Details |
+|---|:---:|---|
+| One more false positive confirmed | **No bug** | `intelligence/notifications/email.py`'s `str \| None` argument mismatches: guarded by `if not self.configured: return False` at the top (a boolean property check mypy can't narrow through, but genuinely sufficient at runtime) — a 7th distinct false-positive shape. |
+| Real finding | **FIXED** | `DigitalTwin.add_signal(signal: BuyingSignal)` appended into `business_object.signals`, declared `list[ObjectSignal]` — two entirely unrelated dataclasses (`intelligence/signals` vs `intelligence/business_objects`) with different field names (`signal_type`/`intensity`/`priority` vs `type`/`confidence`/`source_url`) that coincidentally share several names. Confirmed dead code (zero callers anywhere) in the ADR-103 explicitly-deferred Digital Twin module, zero prior test coverage. Fixed the parameter type to `ObjectSignal`, matching the list it's actually appended to. |
+| Verification | **mypy-based, disclosed as a different shape** | Pure static-typing fix — Python doesn't enforce parameter types, so no runtime crash exists to reproduce via red→green pytest. Confirmed via mypy directly: the specific finding no longer appears after the fix. New `tests/unit/test_digital_twin_add_signal.py` proves the corrected contract (`isinstance` check on a genuine `ObjectSignal`) rather than reproducing a bug. |
+| Regression | **Ruff: 2 pre-existing findings unchanged, 0 new** | Confirmed via scoped `git stash`. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| **mypy sweep closed** | **3 real bugs, 7 false-positive shapes catalogued** | Across reports 135-138: fixed `WorkflowService.run_job_now()`'s dead import, the Odoo sync module's 3 stacked bugs, `PATCH /opportunity-contacts/{id}`'s TOCTOU race, and this report's dead-code type fix. Documented 7 distinct, now-established benign shapes covering the overwhelming majority of the remaining ~170 unexamined findings. This is the third methodology (after the SQL EXPLAIN sweep, report 132, and the RLS/GUC census, report 133) to independently reach saturation this session. |
+| Loop status | **CONTINUING under the 24-hour authorization — pivoting methodology** | Candidates for the next pass: a repeat "raw-SQL table/column existence" sweep restricted to files added since report 98 (fact ledger, provider spend, Agent Reach, MA-proposal-staging — never swept this way), or a frontend TypeScript pass for the equivalent "stale contract" bug class found repeatedly on the backend this session. |
+
+Full evidence: `project-audit/138_DIGITAL_TWIN_SIGNAL_TYPE_MISMATCH_AND_MYPY_SWEEP_CLOSED_2026-09-27.md`.
