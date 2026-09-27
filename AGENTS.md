@@ -3695,3 +3695,18 @@ Full evidence: `project-audit/150_APP_STATE_MIRROR_SWEEP_CLOSED_2026-09-27.md`.
 | Loop status | **CONTINUING** | Second instance this session of "component fixed in isolation, never actually wired to `app.state`" (after report 148's Approval Service) — worth one more targeted pass. Next: `workflow_service`. |
 
 Full evidence: `project-audit/151_NBA_ENGINE_NEVER_WIRED_2026-09-27.md`.
+
+---
+
+## 193. Session Summary (2026-09-27) — `workflow_service`: live, silently degraded, unfixable without a schema decision — documented, not fixed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Scope | **Completes report 151's deferred candidates** | `domains/employee/router.py` confirmed genuinely mounted (unlike `timeline_service`'s dead router); `app.state.workflow_service` confirmed never assigned anywhere. |
+| Degradation shape | **Silent, not a crash** | `_collect_workflow_signals()` guards with `if not self._workflow_service: return signals` — an empty list, no 503. The `WORKFLOW_COMPLETED` employee-signal type has never contributed a real signal to any employee's score, while sibling sources (timeline, CRM) work normally. |
+| Why a naive fix would be worse | **Confirmed via direct check** | The method it would call, `get_executions_by_actor`, doesn't exist on `WorkflowService` (real method: `list_executions`, no actor filter). Deeper: `WorkflowExecution` has no "who triggered this" field at all — only a trigger-type label. Wiring it today would turn a harmless empty-list degradation into a live `AttributeError`. |
+| Decision | **Documented, not fixed** | Matches report 135's `record_feedback()` precedent — a genuine schema/architecture gap requiring a product decision, not resolved unilaterally. |
+| Production / Phase 7 | **UNCHANGED** | No files changed, no gate closed. |
+| Loop status | **Methodology exhausted** | The "component built in isolation but never wired to `app.state`" check (reports 148, 151, 152) has now been run against every live reader in the app — no further instances to investigate under this specific angle. |
+
+Full evidence: `project-audit/152_EMPLOYEE_WORKFLOW_SIGNALS_ARCHITECTURE_GAP_2026-09-27.md`.
