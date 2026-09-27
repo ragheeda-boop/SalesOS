@@ -161,11 +161,36 @@ salesos/infra/k8s/secrets.yaml
 salesos/infra/monitoring/prometheus-token
 
 # Generated / local-only artifacts (report 100)
+#
+# NOTE: the *.tsv rules below previously carried a trailing slash, which makes
+# gitignore treat them as *directory* patterns. They never matched the actual
+# files, so every migration-drill artifact below showed up as untracked and one
+# `git add .` would have committed them. Keep these as plain file patterns.
 salesos/backend/benchmarks/results/
 salesos/frontend/node_modules.incomplete-*/
-salesos/backend/source_table_counts.tsv/
-salesos/backend/target_table_counts.tsv/
-salesos_test_export/*.dump
+salesos/frontend/.codex-qa-src/
+salesos/backend/source_table_counts.tsv
+salesos/backend/target_table_counts.tsv
+salesos/backend/live_table_counts.tsv
+salesos/backend/backup_shape_columns.tsv
+salesos/backend/backup_shape_indexes.tsv
+salesos/backend/migrated_shape_columns.tsv
+salesos/backend/migrated_shape_indexes.tsv
+salesos/backend/alembic_restore_drill.list
+
+# Data exports — contain real md_* rows (people, contacts, review candidates).
+# salesos_test_export/ was only covered for *.dump, leaving ~40MB of CSV
+# (incl. md_global_people.csv) untracked-but-committable.
+salesos_test_export/
+
+# Agent scratch output containing PII (full_name, email, phone, linkedin)
+# for 1,114+ contact records, plus market/CEO decks. Never commit.
+Claude outputs/
+
+# Local-only working material
+business/
+salesos/backend/.cache/
+salesos/backend/.local/
 
 salesos/backend/outputs/
 
