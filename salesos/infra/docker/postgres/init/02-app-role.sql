@@ -40,24 +40,54 @@ BEGIN
 END
 $$;
 
-GRANT USAGE ON SCHEMA public, audit, identity, company, activity, crm TO salesos_app;
+-- Bootstrap may run against a partial database (e.g. salesos_test) before
+-- every product schema has been created. Skip absent schemas rather than
+-- aborting before the grants/default privileges for schemas that do exist.
+DO $$
+DECLARE
+   schema_name text;
+BEGIN
+   FOREACH schema_name IN ARRAY ARRAY['public', 'audit', 'identity', 'company', 'activity', 'crm']
+   LOOP
+      IF to_regnamespace(schema_name) IS NOT NULL THEN
+         EXECUTE format('GRANT USAGE ON SCHEMA %I TO salesos_app', schema_name);
+         EXECUTE format(
+            'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA %I TO salesos_app',
+            schema_name
+         );
+         EXECUTE format(
+            'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %I TO salesos_app',
+            schema_name
+         );
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public, audit, identity, company, activity, crm TO salesos_app;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public, audit, identity, company, activity, crm TO salesos_app;
+         IF schema_name = 'public' THEN
+            -- Source evidence is append-only. The runtime may mark a file
+            -- complete and resolution may attach a row to a canonical UUID,
+            -- but neither path may rewrite raw payloads or delete evidence.
+            IF to_regclass('public.md_source_files') IS NOT NULL THEN
+               REVOKE UPDATE, DELETE ON TABLE public.md_source_files FROM salesos_app;
+               GRANT UPDATE (status) ON TABLE public.md_source_files TO salesos_app;
+            END IF;
+            IF to_regclass('public.md_source_rows') IS NOT NULL THEN
+               REVOKE UPDATE, DELETE ON TABLE public.md_source_rows FROM salesos_app;
+               GRANT UPDATE (global_entity_id) ON TABLE public.md_source_rows TO salesos_app;
+            END IF;
+            IF to_regclass('public.md_source_values') IS NOT NULL THEN
+               REVOKE UPDATE, DELETE ON TABLE public.md_source_values FROM salesos_app;
+            END IF;
+         END IF;
 
--- Tables/sequences that don't exist yet (future Alembic migrations, run as
--- the owning `salesos` role) are covered automatically — without this,
--- every new migration would silently need a follow-up GRANT or the app
--- would start getting permission-denied errors on brand-new tables.
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA audit GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA audit GRANT USAGE, SELECT ON SEQUENCES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA identity GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA identity GRANT USAGE, SELECT ON SEQUENCES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA company GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA company GRANT USAGE, SELECT ON SEQUENCES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA activity GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA activity GRANT USAGE, SELECT ON SEQUENCES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA crm GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA crm GRANT USAGE, SELECT ON SEQUENCES TO salesos_app;
+         -- Future objects created by the owner role receive the same runtime
+         -- privileges without a separate post-migration grant step.
+         EXECUTE format(
+            'ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO salesos_app',
+            schema_name
+         );
+         EXECUTE format(
+            'ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT USAGE, SELECT ON SEQUENCES TO salesos_app',
+            schema_name
+         );
+      END IF;
+   END LOOP;
+END
+$$;
