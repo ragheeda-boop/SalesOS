@@ -24,14 +24,19 @@ def _serialize_actor(actor: Actor) -> dict:
 
 
 def _deserialize_actor(data: dict | None, actor_str: str | None) -> Actor:
-    if data and "actor" in data:
-        a = data["actor"]
-        return Actor(id=a.get("id", ""), type=ActorType(a.get("type", "system")), name=a.get("name", ""))
+    a = (data or {}).get("actor")
+    if isinstance(a, dict):
+        try:
+            return Actor(id=a.get("id", ""), type=ActorType(a.get("type", "system")), name=a.get("name", ""))
+        except ValueError:
+            pass
     return Actor(id=actor_str or "system", type=ActorType.SYSTEM)
 
 
 def _deserialize_target(data: dict | None, entity_type: str, entity_id: str) -> Target:
-    t = (data or {}).get("target", {})
+    t = (data or {}).get("target")
+    if not isinstance(t, dict):
+        t = {}
     return Target(
         id=t.get("id", entity_id),
         type=t.get("type", entity_type),
@@ -45,6 +50,9 @@ class PostgresTimelineRepository(TimelineRepository):
         self._session = session
 
     async def append(self, event: TimelineEvent) -> None:
+        # Nested under "metadata" (not splatted at the top level) so caller-
+        # supplied metadata keys can never silently overwrite the reserved
+        # actor/target/outcome/event_id serialization keys below.
         payload = {
             "actor": _serialize_actor(event.actor),
             "target": {
@@ -54,7 +62,7 @@ class PostgresTimelineRepository(TimelineRepository):
             },
             "outcome": event.outcome.value,
             "event_id": event.event_id,
-            **event.metadata,
+            "metadata": dict(event.metadata),
         }
         row = TimelineEventModel(
             entity_type=event.target.type,
@@ -183,13 +191,20 @@ def _row_to_event(row: TimelineEventModel) -> TimelineEvent:
     data = row.data or {}
     actor = _deserialize_actor(data, row.actor)
     target = _deserialize_target(data, row.entity_type, row.entity_id)
+    nested_metadata = data.get("metadata")
+    if isinstance(nested_metadata, dict):
+        metadata = dict(nested_metadata)
+    else:
+        # Legacy rows written before this fix splatted metadata keys at the
+        # top level instead of nesting them — fall back to that shape.
+        metadata = {k: v for k, v in data.items() if k not in ("actor", "target", "outcome", "event_id", "metadata")}
     return TimelineEvent(
         event_id=data.get("event_id", str(row.id)),
         actor=actor,
         activity=ActivityType(row.event_type),
         target=target,
         outcome=ActivityOutcome(data.get("outcome", "success")),
-        metadata={k: v for k, v in data.items() if k not in ("actor", "target", "outcome", "event_id")},
+        metadata=metadata,
         timestamp=row.created_at.replace(tzinfo=timezone.utc) if row.created_at.tzinfo is None else row.created_at,
         tenant_id=row.tenant_id or "",
     )

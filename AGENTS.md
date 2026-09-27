@@ -3540,3 +3540,19 @@ Full evidence: `project-audit/140_FEATURE_STORE_DOMAIN_REPOSITORY_CLEAN_2026-09-
 | Loop status | **CONTINUING — 3rd clean result in a row** | A genuinely different outcome from the earlier `domains/commercial/infrastructure/postgres_repositories.py` sweep (8 bugs / 17 classes). Remaining candidates: `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py`. |
 
 Full evidence: `project-audit/141_WORKFLOW_DOMAIN_REPOSITORY_CLEAN_2026-09-27.md`.
+
+---
+
+## 183. Session Summary (2026-09-27) — `domains/timeline/engine/postgres_repo.py`: caller metadata could corrupt/crash reads, fixed; a dead-scoring-logic gap disclosed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Reachability | **Live, wildcard-subscribed** | `app/boot/startup.py`'s `_init_timeline_subscriber()` routes every domain event published anywhere in the app through `TimelineRecorder.on_domain_event()` → `PostgresTimelineRepository.append()` — genuinely heavily-used, not dead code. |
+| Bug | **FIXED** | `append()` splatted `event.metadata` at the top level of the JSONB payload alongside reserved `actor`/`target`/`outcome`/`event_id` keys; `TimelineRecorder` passes the raw domain-event data dict as metadata unfiltered. A real event whose payload contains a top-level key literally named one of those 4 reserved words silently overwrites the serialized field at write time, and crashes the **next read** (`AttributeError`) if the overwritten value isn't the expected dict shape — poisoning an entire page since rows are rebuilt in one list comprehension. |
+| Fix | **Nested + hardened** | `append()` now nests metadata under its own `"metadata"` key, eliminating the collision permanently; `_row_to_event()` reads it with a backward-compatible fallback to the old flat shape for pre-existing rows; `_deserialize_actor`/`_deserialize_target` hardened with `isinstance(..., dict)` checks to defend already-corrupted historical rows too. |
+| Verification | **Genuine red→green, 2 tests** | Reverting the fix reproduced the exact predicted `AttributeError: 'str' object has no attribute 'get'` (raw INSERT log confirmed the real actor was genuinely overwritten); a legacy-format-row test proves backward compatibility. Regression 14/14 PASS; Ruff 3 pre-existing findings unchanged, 0 new. |
+| Disclosed, not fixed | **Dead scoring branches, zero downstream consumers** | `_calc_importance()` scores 8 event-type strings that don't exist in `ActivityType`'s 12-value enum and can never occur (confirmed `append()` is the only real writer); `TimelineEventModel.importance` has zero readers anywhere — a write-only column. Cosmetic, no observable impact, not fixed. |
+| Production / Phase 7 | **UNCHANGED** | One disposable container, destroyed after. No gate closed. |
+| Loop status | **CONTINUING** | 4th file in the sweep, 1st with a genuine bug (after 3 clean: decision_center/feature_store/workflow). Remaining: `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py`. |
+
+Full evidence: `project-audit/142_TIMELINE_METADATA_COLLISION_BUG_2026-09-27.md`.
