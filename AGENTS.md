@@ -3460,3 +3460,19 @@ Full evidence: `project-audit/135_WORKFLOW_RUN_JOB_NOW_BROKEN_IMPORT_2026-09-27.
 | Loop status | **CONTINUING under the 24-hour authorization** | Resuming mypy triage: `app/modules/facts/{service,apply_service}.py`'s `type[BaseModel]` attribute errors, `runtime/agent_runtime/tasks.py` (unexamined file), `app/boot/startup.py`'s `FactoryBoundRepository` findings. |
 
 Full evidence: `project-audit/136_ODOO_SYNC_TRIPLE_BUG_2026-09-27.md`.
+
+---
+
+## 178. Session Summary (2026-09-27) — PATCH /opportunity-contacts/{id}: an unhandled TOCTOU race, plus 4 more mypy findings confirmed benign
+
+| Action | Result | Details |
+|---|:---:|---|
+| mypy triage continued | **4 more confirmed benign, no fix needed** | `app/modules/facts/{service,apply_service}.py`'s `type[BaseModel]` findings: common-abstract-base attribute narrowing (`tenant_id` declared on each concrete `Company`/`Contact` subclass, not the shared `sdk.database.BaseModel`) — confirmed correct at runtime via class-hierarchy inspection. `runtime/agent_runtime/tasks.py`'s 6 findings: the same loop-variable-redefinition (report 135) and heterogeneous-dict-widening (reports 64/66/110/112) shapes, confirmed via `dispatch_all()`'s real `dict` return type and the `stats = {...}` mixed-value literal. `app/boot/startup.py`'s 5 `FactoryBoundRepository` findings: a deliberate, documented dynamic `__getattr__` proxy mypy cannot verify by design. |
+| Real bug found | **FIXED** | `PATCH /opportunity-contacts/{oc_id}` (live, mounted): checks the row exists, runs the UPDATE, re-fetches, then passes the re-fetched row straight to `_to_response()` with **no None-check** — `_to_response()` accesses `.id`/`.tenant_id`/etc. unconditionally. A concurrent delete between the existence check and the re-fetch (the existence check holds no lock across that gap) leaves the re-fetch `None`, raising `AttributeError: 'NoneType' object has no attribute 'id'` — an unhandled 500 for a genuine, if narrow, race window. |
+| Fix | **4 lines** | Added an explicit `None` check after the re-fetch, raising the same `HTTPException(404, ...)` the router already uses for the pre-update existence check. |
+| Verification | **Genuine red→green** | New `tests/unit/test_opportunity_contacts_update_race.py` (2 tests) calls the handler directly with a mocked repo returning a real row then `None` across the two `get()` calls — reproducing the race deterministically, no real concurrency or database needed. Scoped `git stash` reproduced the exact predicted `AttributeError`; restored, both PASS. |
+| Regression | **10 passed, 5 xfailed** | Existing `test_opportunity_contact_isolation.py`/`test_opportunity_contact_repos.py` + the new file, no change. Ruff: 1 pre-existing, unrelated finding, identical before/after. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **mypy sweep reached saturation** | Reports 135-137 collectively found and fixed 3 real bugs (workflow `run_job_now`, the Odoo triple-bug, this router race) across `app/`/`sdk/`/`domains/`/`runtime/`/`intelligence/`; every other examined finding traces to one of six now-established false-positive shapes. Same saturation point already reached by the SQL EXPLAIN sweep (report 132) and RLS census (report 133). Continuing the standing 24-hour authorization: next is either a fresh methodology, or spot-checking the small remaining set of not-yet-individually-verified findings (`intelligence/notifications/email.py`'s `str \| None` arguments, `intelligence/digital_twin/twin.py`'s list-append type mismatch). |
+
+Full evidence: `project-audit/137_OPPORTUNITY_CONTACTS_UPDATE_RACE_2026-09-27.md`.
