@@ -11,6 +11,32 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+# Select a disposable test database BEFORE load_dotenv() below.
+#
+# This must run first for two reasons:
+#   1. `app.config` builds its `settings` singleton at import time, and the
+#      first import happens further down this file. Setting it later is a no-op.
+#   2. `load_dotenv()` *populates* `os.environ` (it does not override values
+#      already present), so the `.env` `POSTGRES_DB=salesos` would otherwise
+#      already be in the environment by the time any later conftest tried to
+#      `setdefault` it — which is exactly the bug that made a bare
+#      `pytest tests/integration` seed, migrate and mutate the persistent dev
+#      database (a run that did not complete within 10 minutes).
+#
+# Placed here, `setdefault` means: an explicitly exported POSTGRES_DB still
+# wins, and .env can no longer silently redirect the suite to dev data.
+# `tests/integration/conftest.py` then refuses the run outright if the resolved
+# database turns out to be the persistent dev one.
+os.environ.setdefault("POSTGRES_DB", "salesos_test")
+
+# Keep the `db_session` fixture (TEST_DATABASE_URL, see _db_url) and
+# `app.database.engine` from pointing at two *different* databases.
+_test_db_url = os.environ.get("TEST_DATABASE_URL")
+if _test_db_url:
+    _db_name = _test_db_url.rstrip("/").rsplit("/", 1)[-1].split("?", 1)[0]
+    if _db_name and _db_name != os.environ["POSTGRES_DB"]:
+        os.environ["POSTGRES_DB"] = _db_name
+
 _env_path = Path(__file__).resolve().parent / ".env"
 if _env_path.exists():
     load_dotenv(_env_path)
