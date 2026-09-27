@@ -205,6 +205,18 @@ async def _init_decision_center(app: FastAPI, logger: StructuredLogger) -> None:
         logger.exception("  decision center init failed")
 
 
+async def _init_approval(app: FastAPI, logger: StructuredLogger) -> None:
+    try:
+        from domains.approval.infrastructure.postgres_repository import PostgresApprovalRepository
+        from domains.approval.engine.service import ApprovalService
+
+        repo = FactoryBoundRepository(PostgresApprovalRepository, async_session)
+        app.state.approval_service = ApprovalService(repository=repo)
+        logger.info("  approval: ok")
+    except Exception:
+        logger.exception("  approval init failed")
+
+
 async def _init_decision_platform(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from app.modules.decision.engine import DecisionEngine as DecisionPlatformEngine
@@ -812,6 +824,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         _init_feature_store_domain(app, logger),
         _init_knowledge_graph(app, logger),
         _init_decision_center(app, logger),
+        _init_approval(app, logger),
         _init_decision_platform(app, logger),
         _init_widgets_ux(app, logger),
         _init_ui_engines(app, logger),

@@ -3631,3 +3631,20 @@ Full evidence: `project-audit/146_FRONTEND_CONTRACT_SPOT_CHECK_CLEAN_2026-09-27.
 | Loop status | **CONTINUING under the 24-hour authorization** | 4 systematic methodologies now independently reached conclusive/saturated results this session (SQL EXPLAIN sweep, RLS/GUC census, mypy triage, and now this ON-CONFLICT-nullability sweep). Pivoting to a fresh angle next. |
 
 Full evidence: `project-audit/147_CUSTOMER_SUCCESS_SURVEY_NULL_IDEMPOTENCY_KEY_GAP_2026-09-27.md`.
+
+---
+
+## 189. Session Summary (2026-09-27) — The entire Approval/HITL REST API always returned 503; the copilot's separate HITL gate wrote to a disposable store; both fixed
+
+| Action | Result | Details |
+|---|:---:|---|
+| `domains/analytics`/`domains/scoring` infrastructure repos | **CLEAN** | Every field across all analytics sub-domains and all 4 nested scoring levels maps exactly to the real dataclasses. |
+| Finding 1 — severe | **FIXED** | `app.state.approval_service` was read in exactly 2 places (`app/routers/approval.py`) and set **nowhere** in the entire codebase — confirmed via repo-wide grep. The router is genuinely mounted at `/api/v1`; every real call to the entire Approval/HITL REST API has returned 503 unconditionally since the router was created (report 15's "COMPLETE" HITL feature). |
+| Finding 2 — independent, same feature | **FIXED** | `app/routers/copilot.py`'s Recommend-mode "HITL approval gate" constructed a brand-new `ApprovalService(repository=InMemoryApprovalRepository())` on every call — a disposable store destroyed the instant the response returns. The returned `approval_id` looked real but could never be retrieved by anyone, anywhere. |
+| Why existing tests missed both | **Documented** | The one test named for this (`test_recommend_creates_approval`) builds its own separate in-memory service and never calls the real router function — proving the component works, never that the wiring does. |
+| Fix | **`_init_approval()` added, copilot rewired** | Following the exact, already-proven `_init_decision_center`/`_init_feature_store_domain` `FactoryBoundRepository` pattern; copilot's Recommend branch now reads the same shared `app.state.approval_service`, failing closed with 503 (matching the router's own convention) if unavailable rather than fabricating an untrackable ID. |
+| Verification | **Genuine red→green** | New 2-test file proves real persistence (retrieval via a separate DB round trip, not object identity) and the router's exact lookup succeeding. Reverting `startup.py` reproduced the exact predicted `ImportError`. Regression 39/39 PASS; Ruff 0 new findings. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING** | One of this session's most severe findings by scope — a whole feature area non-functional in two independent ways at once. Next: grep for other `InMemoryXRepository()` constructions inside request-handling code (the same anti-pattern). |
+
+Full evidence: `project-audit/148_APPROVAL_SERVICE_NEVER_WIRED_2026-09-27.md`.

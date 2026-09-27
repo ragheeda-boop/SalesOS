@@ -380,8 +380,6 @@ async def copilot_mode(
         ApprovalLevel,
         ApprovalTargetType,
     )
-    from domains.approval.in_memory_repo import InMemoryApprovalRepository
-    from domains.approval.engine.service import ApprovalService
 
     logger: StructuredLogger | None = getattr(request.app.state, "logger", None)
     conversation_id = f"conv_{user_id}_{int(_time.time())}"
@@ -449,7 +447,9 @@ async def copilot_mode(
     requires_approval = False
     if mode == CopilotMode.RECOMMEND:
         requires_approval = True
-        approval_svc = ApprovalService(repository=InMemoryApprovalRepository())
+        approval_svc = getattr(request.app.state, "approval_service", None)
+        if approval_svc is None:
+            raise HTTPException(status_code=503, detail="Approval service not initialized")
         approval_req = await approval_svc.create_request(
             tenant_id=tenant_id,
             target_type=ApprovalTargetType.NBA_RECOMMENDATION,
