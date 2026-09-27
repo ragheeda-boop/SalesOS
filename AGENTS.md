@@ -3617,3 +3617,17 @@ Full evidence: `project-audit/145_FACT_REVIEW_SERVICE_CLEAN_NEWER_MODULE_SWEEP_P
 | Loop status | **CONTINUING** | Both of report 138's suggested pivots now tried. Next: recently-touched `app/modules/*` router files outside `facts`/`agent_reach`/`billing`, for the same GUC-pinning and field-mapping bug classes. |
 
 Full evidence: `project-audit/146_FRONTEND_CONTRACT_SPOT_CHECK_CLEAN_2026-09-27.md`.
+
+---
+
+## 188. Session Summary (2026-09-27) — customer_success survey NULL idempotency_key gap (documented) + a conclusive repo-wide sweep for the bug class
+
+| Action | Result | Details |
+|---|:---:|---|
+| Scope | **`app/modules/customer_success/service.py`** | GUC pinning, field mapping, and honesty (`response_rate: None`, no fabricated rate) all confirmed clean. |
+| Finding | **Confirmed, documented, NOT fixed** | `idempotency_key` is nullable; `ON CONFLICT (tenant_id, company_id, idempotency_key) DO NOTHING` provides zero dedup when it's `NULL` (Postgres treats every NULL as distinct). Reproduced directly on a disposable container: two "retry" calls with `idempotency_key=None` created 2 distinct rows, not 1. Same bug class as report 87's `action_outcomes`; not fixed for the same reason — the one live caller (`v3/cs/page.tsx`) supplies a real UUID except in the essentially-unreachable case `crypto.randomUUID()` itself is unavailable, and choosing to require the key server-side (vs. accept the rare duplicate) is a product decision, not a bug this session resolves unilaterally. |
+| Systematic sweep | **CONCLUSIVE — exactly 2 occurrences repo-wide** | Extracted all 26 `ON CONFLICT` call sites across 20 tables in `app/`/`domains/`/`runtime/`/`intelligence/`/`sdk/`; queried `information_schema.columns` for every multi-column conflict target's real nullability. 16 tables checked, all fully `NOT NULL` on every target column. `intelligence/account_evidence.py`'s superficially-similar `(tenant_id, idempotency_key)` is safe by construction (the key is deterministically derived, never caller-supplied, so it can never be NULL). Only `action_outcomes` (report 87) and `customer_survey_responses` (this report) have a nullable conflict-target column — this bug class is now fully closed out as a search, not a partial finding. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | 4 systematic methodologies now independently reached conclusive/saturated results this session (SQL EXPLAIN sweep, RLS/GUC census, mypy triage, and now this ON-CONFLICT-nullability sweep). Pivoting to a fresh angle next. |
+
+Full evidence: `project-audit/147_CUSTOMER_SUCCESS_SURVEY_NULL_IDEMPOTENCY_KEY_GAP_2026-09-27.md`.
