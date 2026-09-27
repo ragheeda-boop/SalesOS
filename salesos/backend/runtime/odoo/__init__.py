@@ -7,6 +7,7 @@ Provides:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -20,6 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.config import settings
 from sdk.database import Base
 
 logger = logging.getLogger(__name__)
@@ -149,7 +151,7 @@ class OdooJsonRpcClient:
             self._uid = result if isinstance(result, int) else result.get("uid", 0)
         return self._uid or 0
 
-    def search_read(
+    def _search_read_sync(
         self, model: str, domain: list, fields: list | None = None,
         limit: int | None = None, offset: int = 0,
     ) -> list[dict]:
@@ -162,14 +164,14 @@ class OdooJsonRpcClient:
                           model, "search_read",
                           [domain], kwargs)
 
-    def count(self, model: str, domain: list) -> int:
+    def _count_sync(self, model: str, domain: list) -> int:
         uid = self.authenticate()
         return self._call("object", "execute_kw",
                           self._db, uid, self._key,
                           model, "search_count",
                           [domain], {})
 
-    def read(
+    def _read_sync(
         self, model: str, ids: list[int], fields: list | None = None,
     ) -> list[dict]:
         uid = self.authenticate()
@@ -177,6 +179,28 @@ class OdooJsonRpcClient:
                           self._db, uid, self._key,
                           model, "read",
                           [ids], {"fields": fields or []})
+
+    # OdooClientProtocol conformance — every OdooSyncService call site awaits
+    # these; the underlying implementation is blocking urllib, so genuinely
+    # async behavior comes from running it off the event loop thread (this
+    # class's own docstring already documented this as the intended design;
+    # it was never actually wired, so every real call raised
+    # `TypeError: object list can't be used in 'await' expression`).
+    async def search_read(
+        self, model: str, domain: list, fields: list | None = None,
+        limit: int | None = None, offset: int = 0,
+    ) -> list[dict]:
+        return await asyncio.to_thread(
+            self._search_read_sync, model, domain, fields, limit, offset,
+        )
+
+    async def count(self, model: str, domain: list) -> int:
+        return await asyncio.to_thread(self._count_sync, model, domain)
+
+    async def read(
+        self, model: str, ids: list[int], fields: list | None = None,
+    ) -> list[dict]:
+        return await asyncio.to_thread(self._read_sync, model, ids, fields)
 
 
 class OdooError(Exception):
@@ -591,23 +615,18 @@ class OdooSyncService:
 # ── Celery Task ────────────────────────────────────────────────────────────
 
 
-def _run_odoo_sync(tenant_id: str, limit: int = 100) -> dict:
-    import asyncio
+async def _run_odoo_sync(tenant_id: str, limit: int = 100) -> dict:
+    from app.database import async_session
 
-    async def _sync():
-        from app.database import async_session
-
-        config = OdooConfig(
-            url=settings.odoo_url,
-            database=settings.odoo_database,
-            username=settings.odoo_username,
-            api_key=settings.odoo_api_key,
-        )
-        client = OdooJsonRpcClient(config)
-        service = OdooSyncService(client, async_session)
-        return await service.run_full_sync(tenant_id, limit)
-
-    return asyncio.run(_sync())
+    config = OdooConfig(
+        url=settings.odoo_url,
+        database=settings.odoo_database,
+        username=settings.odoo_username,
+        api_key=settings.odoo_api_key,
+    )
+    client = OdooJsonRpcClient(config)
+    service = OdooSyncService(client, async_session)
+    return await service.run_full_sync(tenant_id, limit)
 
 
 @shared_task(name="odoo_sync_all")
@@ -628,7 +647,7 @@ def odoo_sync_all() -> dict:
             for row in tenants.fetchall():
                 tid = str(row[0])
                 try:
-                    result[tid] = _run_odoo_sync(tid, limit=50)
+                    result[tid] = await _run_odoo_sync(tid, limit=50)
                 except Exception as e:
                     result[tid] = {"error": str(e)}
         return result
