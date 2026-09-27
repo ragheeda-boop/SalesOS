@@ -3422,3 +3422,21 @@ Full evidence: `project-audit/133_GRAPH_NODES_RLS_REGISTRY_GAP_2026-09-27.md`.
 | Loop status | **CONTINUING under the 24-hour authorization** | Pure tooling-blocker fix. The mypy run itself is in progress in the background; findings triaged in the next report. |
 
 Full evidence: `project-audit/134_INVALID_UTF8_SOURCE_BYTES_2026-09-27.md`.
+
+---
+
+## 176. Session Summary (2026-09-27) — WorkflowService.run_job_now(): a dead, broken import made every call silently fail
+
+| Action | Result | Details |
+|---|:---:|---|
+| Context | **mypy sweep resumed post-encoding-fix** | Re-ran the full-tree mypy sweep (report 134's fix unblocked `runtime/`) — 189 filtered findings, up from ~46 previously. Triaging from the top. |
+| False positive, investigated fully | **No bug** | `domains/workflow/service.py:99-103`'s `"WorkflowStep" has no attribute "get"` traced to mypy's default no-implicit-redefinition behavior misattributing one loop's inferred type (`WorkflowStep`) to a second, unrelated loop's variable (genuinely `dict[str, Any]`, confirmed against every real caller). A known mypy limitation, not a real bug — no fix made. |
+| Real bug found | **FIXED** | `run_job_now()` (line 347) imported a nonexistent `log_message` from `domains.workflow.templates` (confirmed via grep: zero matches anywhere in that module) — never referenced afterward, a vestigial dead import. Raises `ImportError` on every call, silently caught by the method's own broad `except Exception`, reported as a generic job failure. `run_job_now()` has never once succeeded. |
+| Reachability | **Unreached today, fixed ahead of wiring** | No `POST /jobs/{job_id}/run` or equivalent route exists in `app/routers/workflows.py`; zero callers anywhere. Fixed per the established "correct dead code ahead of future wiring" precedent (reports 121/123/126/127/130/131) — the failure is unconditional and would surface instantly once such an endpoint exists. |
+| Fix | **One line removed** | Deleted the dead import; the rest of the method's logic (marking completion, updating job stats) was already correct and now actually executes. |
+| Verification | **Genuine red→green** | New in-memory-repository test (no database needed). Scoped `git stash` reproduced the exact predicted `AssertionError: assert 'failed' == 'completed'`; restored, PASS. |
+| Regression | **145/145 PASS** | Full `domains/workflow/tests/` suite. Ruff: 10→9 findings (net improvement, 0 new). `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Resuming triage of the remaining ~188 mypy findings; several genuinely new candidates flagged for next: `runtime/data_fabric_runtime/__init__.py`'s `PipelineMetrics` attribute errors, `runtime/odoo/__init__.py`'s `FromClause.insert()` calls, `app/modules/facts/{service,apply_service}.py`'s `type[BaseModel]` attribute errors, `runtime/agent_runtime/tasks.py` (unexamined file). |
+
+Full evidence: `project-audit/135_WORKFLOW_RUN_JOB_NOW_BROKEN_IMPORT_2026-09-27.md`.
