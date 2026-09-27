@@ -3601,3 +3601,19 @@ Full evidence: `project-audit/144_FACT_APPLY_SERVICE_CLEAN_COVERAGE_ADDED_2026-0
 | Loop status | **PIVOTING to frontend TypeScript** | Report 138's second originally-suggested methodology: a "stale contract" pass on frontend API-client/type files, using the already-established C: mirror workflow (report 107's `sync-to-c-and-verify.ps1`, which already found and fixed 2 real bugs). |
 
 Full evidence: `project-audit/145_FACT_REVIEW_SERVICE_CLEAN_NEWER_MODULE_SWEEP_PAUSED_2026-09-27.md`.
+
+---
+
+## 187. Session Summary (2026-09-27) — Frontend "stale contract" spot-check: clean baseline confirmed
+
+| Action | Result | Details |
+|---|:---:|---|
+| `/v3/fact-review` | **CLEAN, zero drift** | `factReviewQueries.ts`'s types match `_fact_response()`/`_evidence_snapshot()`/`list_fact_proposals()`/`decide_fact_proposal()`'s real backend shapes field-for-field. |
+| `/v3/sales-usability` | **CLEAN, zero drift** | `reviewQueueQueries.ts`'s types match `usability_summary()`/`_load()`/`list_accounts()`'s real backend shapes field-for-field. |
+| MA link proposals | **No frontend consumer** | Confirmed backend-only staging area, matching report 100's description. |
+| Full-suite regression | **PASS** | TypeScript 0 errors; Jest 335/335 suites, 2691/2692 tests (1 pre-existing skip), 144s — via the established C: mirror workflow (report 107). |
+| Interpretation | **Frontend cleaner than backend for newer code** | Both spot-checked pages were built in the same sessions as their backend endpoints, so contracts stayed in sync by construction — unlike the backend bugs found this session, which concentrated in code only ever exercised through mocks. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **CONTINUING** | Both of report 138's suggested pivots now tried. Next: recently-touched `app/modules/*` router files outside `facts`/`agent_reach`/`billing`, for the same GUC-pinning and field-mapping bug classes. |
+
+Full evidence: `project-audit/146_FRONTEND_CONTRACT_SPOT_CHECK_CLEAN_2026-09-27.md`.
