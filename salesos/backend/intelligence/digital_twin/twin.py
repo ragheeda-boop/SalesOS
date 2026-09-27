@@ -2,8 +2,8 @@ from typing import Optional, Any
 from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
-from ..business_objects import BusinessObject, EntityType
-from ..signals import BuyingSignal, Recommendation
+from ..business_objects import BusinessObject, EntityType, ObjectSignal
+from ..signals import Recommendation
 from ..company import CompanyIntelligenceEngine
 
 
@@ -67,7 +67,7 @@ class DigitalTwin:
             "fields": list(data.keys()),
         })
 
-    def add_signal(self, signal: BuyingSignal) -> None:
+    def add_signal(self, signal: ObjectSignal) -> None:
         self.business_object.signals.append(signal)
         self.metrics.signal_count += 1
 
