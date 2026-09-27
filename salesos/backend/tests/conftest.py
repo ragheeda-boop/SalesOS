@@ -1,6 +1,5 @@
 """Test fixtures for tests/ directory (health, architecture)."""
 
-import os
 from uuid import uuid4
 
 import pytest
@@ -8,26 +7,17 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Point the test session at a disposable database BEFORE `app` is imported.
+# The disposable test database is selected in backend/conftest.py, which pytest
+# loads first and which must set it before `load_dotenv()` and before `app` is
+# imported (app.config builds its `settings` singleton at import time). It is
+# deliberately NOT set here: by the time this file is imported, load_dotenv has
+# already put `.env`'s POSTGRES_DB into os.environ, so a setdefault below would
+# be a silent no-op.
 #
-# `app/config.py` builds its `settings` singleton at import time, and this file
-# imports `app.database`/`app.main` below, so this must be set first or it has no
-# effect. `POSTGRES_DB` is used rather than a literal URL so no credential is
-# embedded in the test suite, and it feeds both the app engine and the
-# `owner_engine` DDL path (both are built from `postgres_db`).
-#
-# Why: `postgres_db` defaults to "salesos", and the checked-out `backend/.env`
-# points `DATABASE_URL` at that same persistent dev database as the `salesos`
-# superuser role. Without this default a bare `pytest` seeds, migrates, and
-# mutates real dev data — observed as an integration run that did not complete
-# within 10 minutes.
-#
-# `setdefault` keeps it overridable; tests/integration/conftest.py then refuses
-# the run outright if the resolved database is the persistent dev one.
-os.environ.setdefault("POSTGRES_DB", "salesos_test")
-
-from app.database import get_db  # noqa: E402
-from app.main import app  # noqa: E402
+# tests/integration/conftest.py then refuses the run outright if the resolved
+# database is the persistent dev one.
+from app.database import get_db
+from app.main import app
 
 
 @pytest_asyncio.fixture

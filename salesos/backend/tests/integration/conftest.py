@@ -24,6 +24,12 @@ PERSISTENT_DEV_DATABASE = "salesos"
 #: bypasses RLS entirely.
 RLS_ENFORCING_ROLE = "salesos_app"
 
+# The disposable test database is selected in backend/conftest.py, which pytest
+# loads first: `app/config.py` builds its `settings` singleton at import time and
+# `load_dotenv` already populates POSTGRES_DB by then, so it must be set there
+# and before both. This file only *verifies* the resolved target — see
+# `_refuse_persistent_dev_database`.
+
 
 async def assert_rls_enforcing_role(conn) -> None:
     """Fail closed unless `conn` runs as a role that cannot bypass RLS.
@@ -66,7 +72,7 @@ async def assert_rls_enforcing_role(conn) -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def _refuse_persistent_dev_database():
+def _refuse_persistent_dev_database(setup_test_env):
     """Session-wide guard: never let the suite touch the persistent dev DB.
 
     Previously this rule was copy-pasted into 15 of 65 DB-backed integration
@@ -92,15 +98,21 @@ def _refuse_persistent_dev_database():
     async def _check() -> None:
         from app.database import engine
 
-        async with engine.connect() as conn:
-            db_name = await conn.scalar(text("SELECT current_database()"))
-        assert db_name != PERSISTENT_DEV_DATABASE, (
-            f"REFUSING: connected to {db_name!r} — the persistent local dev "
-            "database. Set APP_POSTGRES_PASSWORD='' (or "
-            "APP_DATABASE_URL_OVERRIDE) so app.database.engine points at a "
-            "disposable/test database before running the suite."
-        )
-        await engine.dispose()
+        try:
+            async with engine.connect() as conn:
+                db_name = await conn.scalar(text("SELECT current_database()"))
+            assert db_name != PERSISTENT_DEV_DATABASE, (
+                f"REFUSING: connected to {db_name!r} — the persistent local dev "
+                "database. Nothing in the suite may seed, migrate, or mutate it. "
+                "Point the suite at a disposable database, e.g. "
+                "APP_DATABASE_URL_OVERRIDE=postgresql+asyncpg://salesos_app:<pw>@"
+                f"{settings.postgres_host}:{settings.postgres_port}/salesos_test "
+                "(or POSTGRES_DB=salesos_test with APP_POSTGRES_PASSWORD set)."
+            )
+        finally:
+            # Dispose even when the assertion fires, otherwise a refusal leaves
+            # the pool open and the event loop closed around it.
+            await engine.dispose()
 
     asyncio.run(_check())
 
