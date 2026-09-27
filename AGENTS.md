@@ -3502,7 +3502,7 @@ Full evidence: `project-audit/138_DIGITAL_TWIN_SIGNAL_TYPE_MISMATCH_AND_MYPY_SWE
 | New methodology pass | **Started** | Checking `domains/*/postgres_repo.py` files (outside the already-fully-swept `domains/commercial/infrastructure/postgres_repositories.py`, 8 bugs/9 clean across earlier reports) for the same contract/DB-model field-mismatch bug class. |
 | Field mapping | **CLEAN, all 5 pairs** | `Decision`/`DecisionModel`, `DecisionAudit`/`DecisionAuditModel`, `DecisionFeedback`/`DecisionFeedbackModel`, `FeedbackAggregate` (join query, already correctly cast), `DecisionTemplate`/`DecisionTemplateModel` — every field verified correct in both read and write directions by reading the actual method bodies, not just column names. |
 | GUC pinning | **Correct at the live boot site** | `app/startup.py` (dead, confirmed again) constructs it unpinned; the LIVE `app/boot/startup.py:198-201` wraps it in `FactoryBoundRepository`, whose `__getattr__` routes every call through `tenant_scoped_session()` → `apply_tenant_guc()` (ContextVar fallback, matching `get_db()`'s own pattern) with auto-commit/rollback. |
-| Reachability | **Live but a dead end** | `app.state.decision_center_service` is correctly constructed and wired at boot, but `grep`-confirmed zero routers, GraphQL resolvers, or any other code path ever reads it — a distinct shape from a bug: correctly-built code nobody calls. |
+| Reachability | **~~Live but a dead end~~ — CORRECTED in report 154 (§195): actually live and reached** | Originally claimed zero routers/resolvers ever read `app.state.decision_center_service`, based on a grep that missed `domains/decision_center/router.py` (mounted at boot, `app/boot/routers.py:131,134` — its own docstring calls it "the CANONICAL SoT" for governed decisions, 12 real endpoints). Field-mapping and GUC-pinning verification above remain accurate; only the reachability conclusion was wrong. |
 | Verification | **Source-review only** | No bug to reproduce; no files changed; no test added. |
 | Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
 | Loop status | **CONTINUING** | Remaining candidates in this pass: `domains/revenue/analytics/postgres_repo.py`, `domains/feature_store/postgres_repo.py`, `domains/workflow/postgres_repo.py`, `domains/timeline/engine/postgres_repo.py`, `domains/notifications/postgres_repo.py`, `domains/employee/postgres_repo.py` (`domains/search/engine/postgres_repo.py` already covered by reports 79-81 under a different methodology). |
@@ -3725,3 +3725,17 @@ Full evidence: `project-audit/152_EMPLOYEE_WORKFLOW_SIGNALS_ARCHITECTURE_GAP_202
 | Loop status | **Methodology closed** | Pivoting to a fresh angle next. |
 
 Full evidence: `project-audit/153_APP_STATE_WIRING_METHODOLOGY_EXHAUSTED_2026-09-27.md`.
+
+---
+
+## 195. Session Summary (2026-09-27) — Correction to report 139: Decision Center is live and reached, not unreached; "not initialized" 503-guard sweep completed exhaustively
+
+| Action | Result | Details |
+|---|:---:|---|
+| Correction | **Report 139's reachability claim was wrong** | A broader "not initialized" 503-guard grep (report 153's technique) surfaced `domains/decision_center/router.py:129`, missed by report 139's narrower literal-substring search. That router **is** mounted at boot (`app/boot/routers.py:131,134`) — its own docstring calls it "the CANONICAL SoT (EAB-001-P0-DUP-01)" for governed decisions, with 12 real endpoints. Report 139's field-mapping/GUC-pinning verification stands; only "unreached" was wrong. §180 above annotated accordingly. |
+| Supporting evidence | **Existing security/E2E test coverage** | `tests/contract/test_decision_center_cross_tenant_idor.py`, `tests/e2e/test_critical_paths.py`, and RLS category tests all reference this domain — consistent with an established, exercised feature, not a forgotten one. |
+| Full sweep completed | **All 14 "not initialized" 503-guard instances in the codebase, accounted for** | 2 real bugs fixed (`approval_service` report 148, `nba_engine` report 151); 1 false-unreached claim corrected (`decision_center_service`, this report); 11 others (Work Intelligence Engine, Feature Store ×2, Activity Runtime, Data Fabric ×2, Decision Engine, Knowledge Graph, Search Runtime, Timeline Runtime) all confirmed already correctly wired. `domains/timeline/router.py`'s dead-router status re-verified with a broader search — genuinely zero mount references, no correction needed. |
+| Production / Phase 7 | **UNCHANGED** | No files changed — pure documentation correction and completion. No gate closed. |
+| Loop status | **Methodology fully closed** | The entire "app.state wiring" / "not initialized" 503-guard investigation family (reports 148-154) is now exhaustive. Pivoting to a fresh angle next. |
+
+Full evidence: `project-audit/154_DECISION_CENTER_REACHABILITY_CORRECTION_2026-09-27.md`.
