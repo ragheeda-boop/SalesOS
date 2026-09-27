@@ -3678,3 +3678,20 @@ Full evidence: `project-audit/149_INMEMORY_FALLBACK_SWEEP_CLOSED_2026-09-27.md`.
 | Loop status | **Milestone reached** | 6 systematic methodologies now independently concluded this session. Across reports 139-150: 4 real live bugs fixed (timeline metadata collision, employee signal metadata loss, the two-part Approval/HITL wiring gap), new coverage added to the canonical CRM-write boundary, 6 sweeps run to conclusive closure. Natural point to report progress and take direction. |
 
 Full evidence: `project-audit/150_APP_STATE_MIRROR_SWEEP_CLOSED_2026-09-27.md`.
+
+---
+
+## 192. Session Summary (2026-09-27) — Report 135's NBA fix was never reachable: `app.state.nba_engine` never wired, same shape as report 148
+
+| Action | Result | Details |
+|---|:---:|---|
+| Method | **Complementary direction of reports 148/150** | Checked every `app.state.X` *read* anywhere in the app for a corresponding assignment (the mirror of report 150's "assigned but unread" check). 3 attributes read but never assigned: `nba_engine`, `timeline_service`, `workflow_service`. |
+| Finding — severe | **FIXED** | `app.state.nba_engine` is read by the live, mounted `GET /opportunities/{id}/nba` and `POST .../nba/refresh` endpoints — the exact same endpoints report 135 fixed 3 internal `NBAEngine` bugs in. Confirmed via repo-wide grep: `app.state.nba_engine =` appears **nowhere**. Every real call has always returned 503 before ever reaching report 135's (correctly fixed) code — that fix was never actually reachable in practice. |
+| `timeline_service` | **Checked, lower priority** | Read only by `domains/timeline/router.py`, which is itself not registered in `app/boot/routers.py` — dead code behind a dead router, not live. |
+| `workflow_service` | **Checked, deferred** | Read once in `domains/employee/router.py:54` as an optional constructor arg; needs a closer read to establish live reachability — deferred to next tick. |
+| Fix | **`_init_nba_engine()` added** | Same `FactoryBoundRepository`-era pattern as report 148, placed in Phase 3 (after Phase 1/2 fully complete, guaranteeing `feature_store`/`event_runtime` are ready). The separate background-recompute subscriber wiring gap is documented, not fixed — a distinct feature the REST path doesn't depend on. |
+| Verification | **Genuine red→green** | New 2-test file proves the wired engine is real and computes an NBA end-to-end through the router's exact lookup pattern. Reverting `startup.py` reproduced the exact predicted `ImportError`. Combined regression with report 135's existing suite: 5/5 PASS; Ruff 0 new findings. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. A parallel local session's 3 concurrent commits (test infra only) confirmed to touch disjoint files, no conflict. |
+| Loop status | **CONTINUING** | Second instance this session of "component fixed in isolation, never actually wired to `app.state`" (after report 148's Approval Service) — worth one more targeted pass. Next: `workflow_service`. |
+
+Full evidence: `project-audit/151_NBA_ENGINE_NEVER_WIRED_2026-09-27.md`.

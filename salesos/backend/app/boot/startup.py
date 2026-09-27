@@ -377,6 +377,24 @@ async def _init_recommendation_engine(app: FastAPI, logger: StructuredLogger) ->
         logger.exception("  recommendation engine init failed")
 
 
+async def _init_nba_engine(app: FastAPI, logger: StructuredLogger) -> None:
+    from runtime.nba_engine import NBAEngine
+
+    try:
+        feature_store = getattr(app.state, "feature_store", None)
+        event_runtime = getattr(app.state, "event_runtime", None)
+        engine = NBAEngine(
+            session_factory=async_session,
+            feature_store=feature_store,
+            event_runtime=event_runtime,
+            logger=logger,
+        )
+        app.state.nba_engine = engine
+        logger.info("  nba engine: ok")
+    except Exception:
+        logger.exception("  nba engine init failed")
+
+
 async def _init_context_builder(app: FastAPI, logger: StructuredLogger) -> None:
     from runtime.context_runtime import ContextBuilder
 
@@ -852,6 +870,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     await asyncio.gather(
         _init_policy_engine(app, logger),
         _init_recommendation_engine(app, logger),
+        _init_nba_engine(app, logger),
         _init_context_builder(app, logger),
         _init_backend_sdk(app, logger),
         _init_llm_cost_tracker(app, logger),
