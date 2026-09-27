@@ -3648,3 +3648,19 @@ Full evidence: `project-audit/147_CUSTOMER_SUCCESS_SURVEY_NULL_IDEMPOTENCY_KEY_G
 | Loop status | **CONTINUING** | One of this session's most severe findings by scope — a whole feature area non-functional in two independent ways at once. Next: grep for other `InMemoryXRepository()` constructions inside request-handling code (the same anti-pattern). |
 
 Full evidence: `project-audit/148_APPROVAL_SERVICE_NEVER_WIRED_2026-09-27.md`.
+
+---
+
+## 190. Session Summary (2026-09-27) — Sweep for report 148's anti-pattern closed: no further live occurrences
+
+| Action | Result | Details |
+|---|:---:|---|
+| `notifications.py` helpers | **Dead code** | Zero callers anywhere; also a module-level singleton, not per-request, so wouldn't share the bug shape even if called. |
+| `signal_marketplace` router | **Deliberate, flag-gated, not a bug** | Explicit `feature_signal_marketplace_postgres` check; flag is `True` in real deployment per report 26's history. |
+| `webhooks/service.py` | **Already fixed by an earlier session** | Explicit `SALESOS_TESTING` check fails closed outside tests, with an in-source comment: "InMemory default was a reaudit residual" — confirms the anti-pattern is real and recurring, and this instance was already caught. |
+| `audit`/`telemetry` services | **False positives** | Grep matched class *definitions*, not instantiation call sites. |
+| Conclusion | **Sweep closed** | Report 148's fix was the only live, unguarded instance of this pattern in `app/routers/`/`app/modules/`. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **CONTINUING** | 5th systematic methodology to reach a conclusive result this session. Next: reviewing `app/boot/startup.py`'s other `_init_*` functions for the mirror-image gap — an `app.state.X` assignment with no real reader anywhere. |
+
+Full evidence: `project-audit/149_INMEMORY_FALLBACK_SWEEP_CLOSED_2026-09-27.md`.
