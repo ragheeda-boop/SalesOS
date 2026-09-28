@@ -132,6 +132,13 @@ async def test_enter_stage_twice_persists_correct_from_to_stage_and_closes_prior
         assert second.tenant_id == tenant_id
 
         await session.commit()
+        # Re-pin: set_config(..., true) is transaction-local, so the commit above
+        # discards it. commercial_stage_entries has RLS enabled and FORCEd, and
+        # without app.tenant_id the history SELECT below is filtered down to zero
+        # rows — which reads as "stage history was never persisted" when it was.
+        await session.execute(
+            text("SELECT set_config('app.tenant_id', :t, true)"), {"t": tenant_id}
+        )
 
         history = await service._repository.get_stage_history(opp_id)
         assert len(history) == 2

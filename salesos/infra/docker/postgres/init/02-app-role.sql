@@ -75,6 +75,30 @@ BEGIN
             IF to_regclass('public.md_source_values') IS NOT NULL THEN
                REVOKE UPDATE, DELETE ON TABLE public.md_source_values FROM salesos_app;
             END IF;
+
+            -- Spend ceilings are owned by SECURITY DEFINER functions
+            -- (reserve_provider_spend, mark_provider_spend_in_flight,
+            -- mark_provider_spend_unknown, release_provider_spend), all owned
+            -- by the `salesos` owner role, so the accounting is enforced in the
+            -- database rather than by the caller. Leaving UPDATE/DELETE on the
+            -- table for salesos_app would hand the runtime a direct path to
+            -- raise a limit or delete a reservation, skipping that accounting
+            -- entirely. Read access is kept: the app needs to see the ceilings.
+            IF to_regclass('public.provider_spend_limits') IS NOT NULL THEN
+               REVOKE UPDATE, DELETE ON TABLE public.provider_spend_limits FROM salesos_app;
+            END IF;
+
+            -- Same reasoning for the reservation ledger: rows are created and
+            -- transitioned by reserve_provider_spend / mark_provider_spend_in_flight
+            -- / mark_provider_spend_unknown / release_provider_spend, all
+            -- SECURITY DEFINER and owner-owned. A direct INSERT from the runtime
+            -- would mint a reservation that never passed the atomic
+            -- check-and-increment path, so the budget could be spent without
+            -- being reserved. Read access stays for reporting.
+            IF to_regclass('public.provider_spend_reservations') IS NOT NULL THEN
+               REVOKE INSERT, UPDATE, DELETE
+                  ON TABLE public.provider_spend_reservations FROM salesos_app;
+            END IF;
          END IF;
 
          -- Future objects created by the owner role receive the same runtime

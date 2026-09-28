@@ -124,6 +124,21 @@ def _db_url():
 #: infra/docker/postgres/init/02-app-role.sql.
 _RUNTIME_GRANT_SCHEMAS = ("public", "audit", "identity", "company", "activity", "crm")
 
+#: The authoritative runtime-privilege script. Executed verbatim so the test
+#: environment and a real container get the same privileges; in particular the
+#: same REVOKEs that make md_source_* append-only and provider_spend_limits
+#: non-writable. A hand-copied grant loop here had drifted from it and silently
+#: re-granted blanket UPDATE/DELETE on every table at the start of each session,
+#: which is what test_provider_spend_db.py was asserting against.
+_APP_ROLE_SQL = (
+    Path(__file__).resolve().parent.parent
+    / "infra"
+    / "docker"
+    / "postgres"
+    / "init"
+    / "02-app-role.sql"
+)
+
 
 def _sql_str(value: str) -> str:
     """Quote `value` as a Postgres string literal.
@@ -155,11 +170,18 @@ async def _grant_runtime_role(conn) -> None:
     plus ALL_TENANT_TABLES still missed `tenant_llm_budgets`, which is in
     neither.)
 
-    This mirrors infra/docker/postgres/init/02-app-role.sql, which does the same
-    thing at container init. The append-only REVOKEs on the `md_source_*`
-    evidence tables are deliberately NOT reproduced here: those are Phase 6
-    master-data controls, not a property of this fixture, and silently copying
-    them would let a test conftest change production access rules.
+    Runtime privileges come from infra/docker/postgres/init/02-app-role.sql,
+    which is executed verbatim at the end of this function rather than
+    reimplemented here. That script grants blanket DML and then REVOKEs the
+    parts the runtime must not have (md_source_* evidence stays append-only,
+    provider_spend_limits/reservations stay function-owned). A previous version
+    of this fixture hand-copied only the grants and deliberately not the
+    revokes, on the reasoning that a test conftest should not encode
+    production access rules. That reasoning was sound but the implementation
+    inverted the risk: the fixture granted the runtime role strictly MORE than
+    production does, so the test environment could not catch a privilege the app
+    did not actually have. Delegating keeps the production script authoritative
+    while still keeping the policy out of Python.
     """
     runtime_role = os.environ.get("APP_POSTGRES_USER", "salesos_app")
     if not await conn.scalar(
@@ -190,6 +212,23 @@ async def _grant_runtime_role(conn) -> None:
                 """
             )
         )
+
+    # The blanket grant above is the pre-existing baseline; re-run the
+    # authoritative script afterwards so its per-table restrictions are applied
+    # too. Delegating beats copying: the file also REVOKEs UPDATE/DELETE on
+    # md_source_files/rows/values and on provider_spend_limits, and a separate
+    # copy of that logic is exactly what let this drift. The script hardcodes the
+    # role name, so only delegate when it matches the resolved runtime role.
+    if runtime_role == "salesos_app" and _APP_ROLE_SQL.is_file():
+        sql = _APP_ROLE_SQL.read_text(encoding="utf-8")
+        # Go through the raw asyncpg connection: the file is a multi-statement
+        # script, and both execute(text(...)) and exec_driver_sql() route through
+        # a prepared statement, which asyncpg rejects for more than one command
+        # ("cannot insert multiple commands into a prepared statement"). The raw
+        # driver's execute() with no bound parameters uses the simple query
+        # protocol, which accepts the whole script as-is.
+        raw = (await conn.get_raw_connection()).driver_connection
+        await raw.execute(sql)
 
 
 @pytest_asyncio.fixture(scope="session")

@@ -43,7 +43,13 @@ import pytest_asyncio
 from sqlalchemy import text
 
 from app.boot.startup import _init_approval
-from app.database import apply_tenant_guc, async_session, engine
+from app.database import (
+    apply_tenant_guc,
+    async_session,
+    engine,
+    reset_current_tenant_id,
+    set_current_tenant_id,
+)
 from domains.approval.contracts.models import ApprovalLevel, ApprovalTargetType
 from domains.approval.engine.service import ApprovalService
 
@@ -88,19 +94,34 @@ async def test_init_approval_wires_a_real_persistent_service():
         s.add(Tenant(id=uuid.UUID(tenant_id), name="T", slug=f"slug-{tenant_id}"))
         await s.commit()
 
-    created = await svc.create_request(
-        tenant_id=tenant_id,
-        target_type=ApprovalTargetType.NBA_RECOMMENDATION,
-        target_id="copilot_conv_1",
-        requested_by="user-1",
-        action_summary="Test recommendation requiring approval",
-        required_level=ApprovalLevel.MANAGER,
-    )
+    # The service's repository is a FactoryBoundRepository: every call opens a
+    # fresh session via tenant_scoped_session(), which applies the DEC-085 GUC
+    # from the _current_tenant_id ContextVar. In a real request that ContextVar
+    # is pinned by TenantContextMiddleware (app/common/middleware.py:314). This
+    # test calls the service directly, outside any request, so nothing pins it —
+    # and approval_requests has RLS enabled and FORCEd, so the INSERT ran with no
+    # tenant context and was rejected. Pin it here exactly as the middleware
+    # does, and reset it afterwards, rather than weakening the policy.
+    token = set_current_tenant_id(tenant_id)
+    try:
+        created = await svc.create_request(
+            tenant_id=tenant_id,
+            target_type=ApprovalTargetType.NBA_RECOMMENDATION,
+            target_id="copilot_conv_1",
+            requested_by="user-1",
+            action_summary="Test recommendation requiring approval",
+            required_level=ApprovalLevel.MANAGER,
+        )
 
-    # The wired service must genuinely persist — retrievable through the
-    # exact same service object (proxied per-call via FactoryBoundRepository,
-    # a fresh session each time, not an in-memory dict tied to this object).
-    fetched = await svc.get(created.id)
+        # The wired service must genuinely persist — retrievable through the
+        # exact same service object (proxied per-call via FactoryBoundRepository,
+        # a fresh session each time, not an in-memory dict tied to this object).
+        # Stays inside the pinned context because this SELECT is RLS-filtered
+        # too: without the GUC it would legitimately return no rows.
+        fetched = await svc.get(created.id)
+    finally:
+        reset_current_tenant_id(token)
+
     assert fetched is not None, (
         "approval request not found on retrieval — still behaving like a "
         "disposable, per-call in-memory store"
