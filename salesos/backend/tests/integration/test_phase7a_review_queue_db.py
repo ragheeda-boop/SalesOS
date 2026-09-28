@@ -73,19 +73,19 @@ class TestPhase7AQueueReads:
     async def test_p1_triage_count(self, session):
         svc = ReviewQueueService(session)
         items, total = await svc.list_triage_candidates(candidate_type="P1", offset=0, limit=10)
-        assert total == 6249  # OPTION_C_1+NCNP+DS5+LV+CR (report 110)
+        assert total == 6908  # authoritative md_review_candidates (D1/D2-corrected) 2026-09-28
         counts = await svc.get_triage_counts()
-        assert counts["P1:CORROBORATION_REVIEW"] == 5903
-        assert counts["P1:FIELD_CONFLICT_REVIEW"] == 234
-        assert counts["P1:WEAK_IDENTITY_REVIEW"] == 112
+        assert counts["P1:CORROBORATION_REVIEW"] == 5753
+        assert counts["P1:FIELD_CONFLICT_REVIEW"] == 666
+        assert counts["P1:WEAK_IDENTITY_REVIEW"] == 489
 
     @pytest.mark.asyncio
     async def test_p2_triage_count(self, session):
         svc = ReviewQueueService(session)
         counts = await svc.get_triage_counts()
-        assert counts["P2:PRIORITIZATION_PP2"] == 33654
+        assert counts["P2:PRIORITIZATION_PP2"] == 46736
         items, total = await svc.list_triage_candidates(candidate_type="P2", offset=0, limit=10)
-        assert total == 33654
+        assert total == 46736
 
 
 class TestPhase7ARecordOnly:

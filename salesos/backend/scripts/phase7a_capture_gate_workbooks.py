@@ -75,7 +75,7 @@ def plan() -> tuple[list[dict], dict]:
             continue
         writes.append({"queue_type": QUEUE_SHORT_CR, "subject_key": row["ma_id"],
                        "disposition": G3_MAP[h[0]], "reviewer": h[1],
-                       "notes": f"G3 workbook {h[2]}: {h[0]}. {_col(row, 'notes')}",
+                       "notes": f"G3 workbook: {h[0]}. {_col(row, 'notes')}",
                        "evidence": {"reason": h[0], "detail": _col(row, "notes")[:2000] or None}})
     for name in G4_FILES:
         for row in _rows(name):
@@ -90,7 +90,7 @@ def plan() -> tuple[list[dict], dict]:
             err_type = err.split()[0] if err and err.split()[0] in _ERROR_TYPES else None
             writes.append({"queue_type": QUEUE_P1, "subject_key": row["global_company_id"],
                            "disposition": G4_MAP[h[0]], "reviewer": h[1],
-                           "notes": f"{name} {h[2]}: {h[0]} {err}. {_col(row, 'notes')}",
+                           "notes": f"{name}: {h[0]} {err}. {_col(row, 'notes')}",
                            "evidence": {"reason": h[0], "error_type": err_type,
                                         "detail": _col(row, "notes")[:2000] or None}})
     g5 = [r for r in _rows("G5_SRWR_REAL_WORLD_SPOT_CHECK.csv") if _human(r)]
@@ -110,10 +110,26 @@ async def apply(writes: list[dict]) -> int:
         if db != "salesos_test":
             raise RuntimeError(f"Refusing to write to {db!r}")
         svc = ReviewQueueService(session)
+        skipped: list[dict[str, str]] = []
         for w in writes:
-            await svc.record_disposition(**w)
+            try:
+                await svc.record_disposition(**w)
+            except ValueError as exc:
+                no_candidate = (
+                    w["queue_type"] == QUEUE_P1
+                    and str(exc) == "P1 subject_key is not a pending P1 candidate"
+                )
+                if no_candidate:
+                    # Known reconciliation delta: the G4 workbooks carry three
+                    # subjects the authoritative md_review_candidates classifies
+                    # PRIORITIZATION_PP2. They belong to the P2 stratum
+                    # acceptance path, not the P1 queue. The guard is never
+                    # bypassed - these rows are reported, not recorded.
+                    skipped.append({"queue_type": w["queue_type"], "subject_key": w["subject_key"]})
+                    continue
+                raise
         await session.commit()
-    return len(writes)
+    return len(writes) - len(skipped), skipped
 
 
 def main() -> int:
@@ -127,7 +143,7 @@ def main() -> int:
         print("Refusing: invalid decision values present.")
         return 2
     if args.apply and writes:
-        report["recorded"] = asyncio.run(apply(writes))
+        report["recorded"], report["skipped_not_p1_candidate"] = asyncio.run(apply(writes))
     print(json.dumps(report, ensure_ascii=False, indent=1))
     return 0
 

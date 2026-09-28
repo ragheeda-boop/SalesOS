@@ -43,7 +43,7 @@ P3_CSV = (
     Path(__file__).resolve().parents[3]
     / "docs" / "data" / "phase6" / "implementation" / "PHASE6_P3_FULL_EVIDENCE.csv"
 )
-EXPECTED_P1 = 643
+EXPECTED_P1 = 640  # 2026-09-28: 3 P2-rerouted workbook rows moved to G4_P1_P2_REROUTED_2026-09-28.csv
 EXPECTED_P3 = 2_661
 
 DB = dict(host="localhost", port=5432, user="salesos",

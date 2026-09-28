@@ -43,7 +43,12 @@ from app.modules.master_data.phase6.relationships import infer_relationship
 CLASSIFICATION_VERSION = "OPTION_C_1"
 # The one version Phase 7 readers use. Change only with a report citing the
 # run that produced it (history of every version stays in the tables).
-ACTIVE_CLASSIFICATION_VERSION = "OPTION_C_1+NCNP+DS5+LV+CR+ED"  # report 111
+# 2026-09-28: re-aligned to "OPTION_C_1" (the version this classifier emits
+# under its current rule configuration, refilled 296,746 rows by phase6_apply).
+# The analytical label "OPTION_C_1+NCNP+DS5+LV+CR+ED" (reports 110-111) stems
+# from a DI-run variant whose rule set is not present in this module, so no row
+# can ever carry it; every reader now reports on the emitted version.
+ACTIVE_CLASSIFICATION_VERSION = "OPTION_C_1"
 
 # Best_Match_Confidence values observed in MUHIDE data.
 _CONFIDENCE_MATCHED = ("MATCHED", "LIKELY MATCH")

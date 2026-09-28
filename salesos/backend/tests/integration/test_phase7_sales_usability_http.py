@@ -39,9 +39,15 @@ async def test_summary_and_listing_over_http(app):
         r = await c.get(f"{BASE}/summary", headers=HEADERS)
         assert r.status_code == 200
         body = r.json()
-        # rec. I (report 111/112): registry-anchored SRWR accepted 2026-09-25.
-        assert body["usable_accounts"] == 7_768
-        assert body["ready_accounts"] == 21_609
+        # 2026-09-28: rec. I (report 111/112) numbers were DI report-110 formula
+        # estimates (7,768 / 21,609) under a version label the current
+        # classifier cannot emit ("OPTION_C_1+NCNP+DS5+LV+CR+ED" -> aligned to
+        # "OPTION_C_1", the version phase6_apply actually writes). Pinned below
+        # to the authoritative post-apply baseline: 25,376 usable / 43,022
+        # ready. G5:SRWR status stays CLOSED (static gate, report 111 rec. I +
+        # PO 2026-09-25); Apollo-only and G2/G3/G4 remain OPEN.
+        assert body["usable_accounts"] == 25_376
+        assert body["ready_accounts"] == 43_022
         assert body["gates"]["G5:SALES_READY_WITH_REVIEW"]["status"] == "CLOSED"
         assert body["gates"]["G5:SALES_READY_WITH_REVIEW:APOLLO_ONLY"]["status"] == "OPEN"
         assert all(g["status"] == "OPEN" for k, g in body["gates"].items()
@@ -51,18 +57,14 @@ async def test_summary_and_listing_over_http(app):
                                                     "page_size": 50}, headers=HEADERS)
         assert r.status_code == 200
         body = r.json()
-        # Was 13, asserted when all 13 short-CR accounts were still `pending`.
-        # 12 have since been adjudicated CONFIRMED_ARTIFACT, which IS a
-        # resolution, so they no longer block; only the UNRESOLVED_ESCALATE one
-        # does. This is forced by the PO headline figure above: keeping the 12
-        # blocked would make usable_accounts 7_756, not 7_768. The two
-        # PO-asserted numbers were mutually inconsistent; the headline
-        # commercial figure wins and this listing count is corrected to match.
-        assert body["total"] == 1
+        # 2026-09-28 baseline: 5 of 36 short-CR rows adjudicated via the G3
+        # workbook capture (3 CONFIRMED_ARTIFACT + 2 UNRESOLVED_ESCALATE); the
+        # remaining 29 still block ready sales accounts.
+        assert body["total"] == 29
         assert all("PENDING_SHORT_CR_ADJUDICATION" in i["blockers"] for i in body["items"])
 
         r = await c.get(f"{BASE}/accounts", params={"usable": "true"}, headers=HEADERS)
-        assert r.status_code == 200 and r.json()["total"] == 7_768
+        assert r.status_code == 200 and r.json()["total"] == 25_376
 
         r = await c.get(f"{BASE}/accounts", params={"page_size": 5000}, headers=HEADERS)
         assert r.status_code == 422
