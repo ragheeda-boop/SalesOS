@@ -3772,3 +3772,19 @@ Full evidence: `project-audit/155_ICP_AND_RELATIONSHIPS_PERSISTENCE_CLEAN_2026-0
 | Loop status | **CONTINUING under the 24-hour authorization** | First real bug from the broadened `sdk/events/` sweep after `icp_persistence.py`/`relationships/store.py` came back clean (report 155). Remaining: `sdk/events/kafka_consumer.py`; re-verify `sdk/events/store.py` (presumed already covered by DEC-157/report 114, not yet re-confirmed this segment); then write up the already-concluded `intelligence/memory/postgres_store.py` finding (dead code, phantom `episodic_memory` table, superseded by the live `app/modules/tenant_studio/postgres_ai_memory_store.py`) as the next report. |
 
 Full evidence: `project-audit/156_OUTBOX_RELAY_DOUBLE_SERIALIZATION_2026-09-28.md`.
+
+---
+
+## 198. Session Summary (2026-09-28) — `intelligence/memory/` confirmed entirely dead code, phantom `episodic_memory` table; documented, not fixed
+
+| Action | Result | Details |
+|---|:---:|---|
+| `PostgresMemoryStore` | **CLEAN internally, but targets a table that can never exist** | Its own field-mapping (`_row_to_entry()` vs. every `select()`) is internally consistent. Its `episodic_memory` `table()`/`column()` stub is self-documented as deliberate (avoiding a private `MetaData()` island per EAB-001-P1-DRIFT-01), not accidental drift. |
+| Governance cross-check | **Not one of DEC-156's residual islands** | `DEC-156-METADATA-BASE-MERGE-RESIDUAL.md` (Proposal, not Accepted) lists 6 specific files needing a Base-merge decision (incl. `sdk/events/outbox.py`, `sdk/events/store.py`) — `intelligence/memory/postgres_store.py` is not among them; its stub form was already accepted as-is in an earlier 2026-08-13 land per the DEC's own text. |
+| Deeper gap | **No table-creation path exists at all** | Zero Alembic migration ever creates `episodic_memory` (unlike `sdk/events/outbox.py`'s `EventOutbox.ensure_table()`, this class has no `create_all()` runtime-DDL fallback either). Every method would raise `UndefinedTableError` on first real use, unconditionally, forever. |
+| Reachability | **Confirmed fully dead, doubly verified** | Zero migration references; zero external `PostgresMemoryStore(` instantiation; zero `from intelligence.memory` imports anywhere in `app/`/`domains/`/`runtime/`/`mcp_server/`. Widened to all 6 of the package's exported classes — apparent hits in `app/modules/tenant_studio/ai_memory*.py` checked directly and confirmed to be an entirely separate, independently-implemented `ConversationMemory` class with zero import from `intelligence.memory` — coincidental name reuse with the actually-live tenant_studio AI Memory feature (report 89), not a shared dependency. |
+| Why NOT fixed | **Genuine product/architecture decision, not a code bug** | Fixing this would require either writing a new schema migration (a real design decision this session shouldn't infer — RLS scope, retention/TTL policy, indexes) or deleting the whole package as superseded — both left undecided, matching the established precedent for reports 85/87/147/152. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Next: `sdk/events/kafka_consumer.py` (unchecked), then a full re-read of `sdk/events/store.py` to confirm no bug independent of its already-known DEC-156 Base-merge governance question. |
+
+Full evidence: `project-audit/157_INTELLIGENCE_MEMORY_DEAD_CODE_PHANTOM_TABLE_2026-09-28.md`.
