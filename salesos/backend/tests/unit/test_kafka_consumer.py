@@ -94,6 +94,51 @@ def test_deserialize_legacy(legacy_payload: dict) -> None:
     assert event.event_type == "company.updated"
 
 
+def test_deserialize_cloud_events_recovers_aggregate_id_from_subject() -> None:
+    """A real DomainEvent.to_dict() envelope must round-trip its aggregate_id
+    through _deserialize() via the CloudEvents "subject" field
+    ("{aggregate_type}/{aggregate_id}") -- it must not be silently dropped."""
+    original = DomainEvent(
+        event_id="evt-009",
+        event_type="company.created",
+        aggregate_id="c-9001",
+        aggregate_type="company",
+        tenant_id="t-1",
+        data={"company_id": "c-9001", "name": "Acme"},
+    )
+    consumer = CollectingConsumer(topics=["salesos.company"])
+    msg = _make_msg(original.to_dict())
+
+    recovered = consumer._deserialize(msg)
+
+    assert recovered is not None
+    assert recovered.aggregate_id == "c-9001"
+    assert recovered.aggregate_type == "company"
+
+
+def test_deserialize_cloud_events_no_aggregate_id_when_subject_empty(
+    cloud_event_payload: dict,
+) -> None:
+    """A real event with no aggregate_id produces an empty "subject" per
+    to_dict() -- deserializing that must not fabricate one."""
+    original = DomainEvent(
+        event_id="evt-010",
+        event_type="company.created",
+        aggregate_type="company",
+        tenant_id="t-1",
+        data={"name": "Acme"},
+    )
+    assert original.aggregate_id == ""  # nothing set -> to_dict()'s subject is ""
+
+    consumer = CollectingConsumer(topics=["salesos.company"])
+    msg = _make_msg(original.to_dict())
+
+    recovered = consumer._deserialize(msg)
+
+    assert recovered is not None
+    assert recovered.aggregate_id == ""
+
+
 def test_deserialize_invalid_json() -> None:
     consumer = CollectingConsumer(topics=["salesos.company"])
     msg = MagicMock()

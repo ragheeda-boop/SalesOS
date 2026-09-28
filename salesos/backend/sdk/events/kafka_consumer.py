@@ -196,10 +196,16 @@ class KafkaConsumerBase(ABC):
 
         if "specversion" in payload and "data" in payload:
             data = payload["data"]
+            # DomainEvent.to_dict() encodes aggregate_id into "subject" as
+            # "{aggregate_type}/{aggregate_id}" (empty string when aggregate_id
+            # is unset) -- recover it here rather than discarding it, or every
+            # event's aggregate_id is silently lost on this round trip.
+            subject = payload.get("subject", "")
+            aggregate_id = subject.split("/", 1)[1] if "/" in subject else ""
             return DomainEvent(
                 event_id=payload.get("id", ""),
                 event_type=payload.get("type", ""),
-                aggregate_id="",
+                aggregate_id=aggregate_id,
                 aggregate_type=payload.get("source", "salesos").replace("salesos.", ""),
                 tenant_id=data.get("tenant_id", ""),
                 occurred_at=_parse_time(payload.get("time")),

@@ -3788,3 +3788,21 @@ Full evidence: `project-audit/156_OUTBOX_RELAY_DOUBLE_SERIALIZATION_2026-09-28.m
 | Loop status | **CONTINUING under the 24-hour authorization** | Next: `sdk/events/kafka_consumer.py` (unchecked), then a full re-read of `sdk/events/store.py` to confirm no bug independent of its already-known DEC-156 Base-merge governance question. |
 
 Full evidence: `project-audit/157_INTELLIGENCE_MEMORY_DEAD_CODE_PHANTOM_TABLE_2026-09-28.md`.
+
+---
+
+## 199. Session Summary (2026-09-28) — `KafkaConsumerBase._deserialize()`: `aggregate_id` silently discarded on every CloudEvents round trip
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug found | **FIXED** | `DomainEvent.to_dict()` encodes `aggregate_id` only inside the CloudEvents envelope's `subject` field (`"{aggregate_type}/{aggregate_id}"`). `_deserialize()`'s CloudEvents branch correctly recovered `aggregate_type` from `source` but never read `subject` at all — it hardcoded `aggregate_id=""` unconditionally, silently discarding it on every real event regardless of the original value. |
+| Reachability | **Dead today, guaranteed on wiring** | `grep -rln "KafkaConsumerBase"` across `app/`/`domains/`/`runtime/`/`intelligence/`/`mcp_server/` (excluding the module + its test file): zero subclasses anywhere. Fixed anyway per the established "correctly-designed-but-unwired, genuine internal defect" precedent (reports 121/123/126/127/130/131/135/156) — this is silent data loss, not a crash, so it would never announce itself once wired. |
+| Why uncaught | **Existing test never asserted the field, and its fixture omitted `subject` entirely** | `test_deserialize_cloud_events` checks `event_id`/`event_type`/`tenant_id`/`data` only; its own `cloud_event_payload` fixture doesn't include a `subject` key at all. |
+| Fix | **2 lines** | `subject = payload.get("subject", ""); aggregate_id = subject.split("/", 1)[1] if "/" in subject else ""` — splits on the first `/` only, so an `aggregate_id` value containing `/` survives intact; an unset original correctly yields `""`. |
+| Adjacent check, no bug | **Confirmed correct** | A "coroutine never awaited" warning from `test_subscribe_updates_topics` traced to that one test's own blanket `AsyncMock()` consumer, not production code — confirmed against the installed aiokafka source that `AIOKafkaConsumer.subscribe()` is genuinely synchronous, matching the production code's un-awaited call. Not touched. |
+| Verification | **Genuine red→green** | Two new tests drive the **real** `DomainEvent.to_dict()` through `_deserialize()` (a true producer/consumer round trip, not a hand-built fixture): one proves a real `aggregate_id` survives, one proves an unset one isn't fabricated. Scoped `git stash` of only `kafka_consumer.py` reproduced the exact predicted `assert '' == 'c-9001'`; restored, both PASS. |
+| Regression | **37/37 PASS** | `test_kafka_consumer.py` (16) + `test_outbox.py` (20) + report 156's new test (1). Ruff (E4/E7/E9/F/I): 0 findings on both changed files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Closes report 155's planned `sdk/events/` sweep (`outbox.py` → report 156, `kafka_consumer.py` → this report). Remaining: a full re-read of `sdk/events/store.py` to confirm no additional bug independent of its already-known DEC-156 schema-registration governance question (separate from the GUC-pinning fix DEC-157/report 114 already applied there), then pivoting to a fresh file family or methodology. |
+
+Full evidence: `project-audit/158_KAFKA_CONSUMER_AGGREGATE_ID_LOSS_2026-09-28.md`.
