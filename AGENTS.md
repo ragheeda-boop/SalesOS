@@ -4051,8 +4051,8 @@ Full evidence: `project-audit/171_MASTER_DATA_APPEND_ONLY_TEST_BASELINE_FIX_2026
 ### Remaining human actions (not blockers)
 | Priority | Action | Owner |
 |----------|--------|-------|
-| P1 | PO decision: G5 acceptance threshold vs the real 3.31% (5/151) read; Apollo-only 7.4% rec. K | PO |
-| P1 | Feed `G4_P1_P2_REROUTED` (3 rows) to the P2 acceptance path | Data+PO |
+| P1 | ~~PO decision: G5 acceptance threshold vs the real 3.31% (5/151) read~~ **DONE 2026-09-28** — PO accepted 3.31% as the operational figure ("موافق"); G5:APOLLO_ONLY stays OPEN per rec. K | PO |
+| P1 | ~~Feed `G4_P1_P2_REROUTED` (3 rows) to the P2 acceptance path~~ **DONE 2026-09-28** — PO endorsed as P2-stratum supporting evidence; no per-account P2 queue exists (guard-correct), attach to A3 stratum acceptance | PO |
 | P1 | MA workflow: populate v07 contacts (unblocks `MA_UNRESOLVED` test) or adopt the test | MA owner |
 | P2 | CI/suite owners: re-point any remaining DI-estimate constants (usable/ready triage) before production | Eng |
 

@@ -38,6 +38,8 @@ DB contract verified intact after all runs and after killed combined test sweeps
 
 Capture spot-check verdict (already committed to workbooks): 151 reviewed, **5 material errors** (error rate **3.31% > 2%** acceptance threshold, within_2pct=false), 63 cannot-verify. The G5:SRWR gate holds CLOSED today only via the 2026-09-25 narrative (registry-anchored SRWR 1.2%, multi-source 0%, n=151). The suppressed numbers (Apollo-only SRWR 7.4%, n=54) keep G5:APOLLO_ONLY open per rec. K. Decision for PO: set the acceptance threshold for future samples (A3 pattern) or accept the 3.31% read.
 
+**PO DECISION 2026-09-28 (AGENT-EXECUTED per explicit user directive "موافق"):** the **3.31% (5/151)** real-world commercial error rate is **ACCEPTED as the operational figure** for the current SRWR population; acceptance threshold stays PO-set for future samples. G5:SRWR remains CLOSED; G5:APOLLO_ONLY remains OPEN (per rec. K, a second signal) — out of scope of this acceptance. No code/test change: the G5 gate in usability.py is a static narrative and its CLOSED/OPEN statuses are unchanged.
+
 ## 7. Suites — Phase 7 closures
 
 | Suite | Before | After |
@@ -55,6 +57,10 @@ Capture spot-check verdict (already committed to workbooks): 151 reviewed, **5 m
 **Tests (constants re-pointed, decisions documented inline)** — `test_phase7a_review_queue_db.py` (6,908/5,753/666/489/46,736); `test_phase7_sales_usability_http.py` (25,376/43,022/29); `test_phase7_sales_usability_db.py` (43,022/25,376/5,710/37,312/4,143/5,710).
 **Phase 6** — `app/modules/master_data/phase6/pipeline.py` line 46 (`ACTIVE_CLASSIFICATION_VERSION="OPTION_C_1"` + basis comment). NOTE: pipeline.py also carries the other agent's uncommitted streaming-batch fix (`_run_apply`, 10k batches — validated here: 796s full run, no stall) — coordinate before committing this file.
 **Gate artifacts** — `docs/data/phase7/gate_review_20260925/`: G3 workbook (notes masked), G4 files minus 3 P2 rows, NEW `G4_P1_P2_REROUTED_2026-09-28.csv`, README counts update (recommended).
+
+## 8a. PO decision on the 3 rerouted P2 rows (2026-09-28, "موافق")
+
+Verified these 3 accounts are **not** part of the A3 p2 sample (`p2_sample_v5`, 0 hits). The review-queue has **no per-account P2 capture path** — `P2_SAMPLE` records stratum-level acceptance (subject_key = `P2:SALES_READY_WITH_REVIEW` / `P2:ENRICHMENT_REQUIRED` / `P2:ALL`), and the `P1_CANDIDATE` guard rightly requires a pending P1 candidate. Recording the 3 rows as individual queue entries would **bypass a guard** and is forbidden. PO therefore endorses them as **supporting P2-stratum evidence**: their human decisions (MA-0272600 CORRECT; MA-0272657 / MA-0273370 CANNOT_VERIFY) stand and attach to the P2 acceptance when the A3 sample is reviewed. No code/test change.
 
 ## 9. Commit guidance
 
