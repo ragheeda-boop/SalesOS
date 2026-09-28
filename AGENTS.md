@@ -3954,3 +3954,19 @@ Full evidence: `project-audit/166_MARKETPLACE_ADMIN_GATE_FIX_AND_PERSISTENCE_GAP
 | Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidates: `domains/copilot`, `domains/rag` (`domains/ubom` deferred, DEPRECATED). |
 
 Full evidence: `project-audit/167_DOMAINS_AI_CROSS_TENANT_REGISTRY_GAP_2026-09-28.md`.
+
+---
+
+## 209. Session Summary (2026-09-28) — `domains/copilot` fully clean, properly tenant-scoped; two cosmetic text-corruption artifacts confirmed zero-impact
+
+| Action | Result | Details |
+|---|:---:|---|
+| `CopilotFeedbackService`/`ToolTelemetryService` | **CLEAN** | Both explicitly, honestly disclosed as temporary in-memory stores. Unlike report 167's `domains/ai` finding, `CopilotFeedback`/`ToolCallRecord` **do** carry `tenant_id`, and every read method correctly filters by it — confirmed every real call site passes the authenticated tenant, not a client-supplied value. No cross-tenant leak here. |
+| Minor dead code | **Noted, not fixed** | `get_volume_over_time()` computes `bucket_key` twice, discarding the first result — cosmetic, zero effect on correctness. |
+| `ArabicCopilotEngine` | **2 text-corruption artifacts, confirmed zero behavioral impact** | `_CR_PATTERN`'s regex has a garbled alternative (`سجل\s*ال thương` — Vietnamese text mid-Arabic pattern); `SAUDI_CONTEXT_TERMS`'s dict has a corrupted key (`منصة_ embod`). Confirmed directly (imported the real pattern, not a re-transcription): the regex still correctly detects CR mentions via its other valid alternatives; the dict is only ever iterated or checked for a different, uncorrupted key. Both are dead weight, not live bugs. |
+| Why not "fixed" | **Honesty discipline** | This session reserves "fixed" for genuine, reproducible defects with a real red→green cycle. Manufacturing a test to show a behavioral difference here would be dishonest, since none exists — documented for a future low-priority hygiene pass instead. |
+| Verification | **Direct interpreter testing, not assumption** | Confirmed via importing the real compiled regex and testing real English/Arabic CR-mention strings. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No database or container touched. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidate: `domains/rag` (`domains/ubom` deferred, DEPRECATED) — closes the planned `domains/` sweep from reports 155-168. |
+
+Full evidence: `project-audit/168_DOMAINS_COPILOT_CLEAN_2026-09-28.md`.
