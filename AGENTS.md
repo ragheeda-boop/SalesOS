@@ -3854,3 +3854,20 @@ Full evidence: `project-audit/160_GRAPH_SERVICE_HOP_COUNT_INJECTION_2026-09-28.m
 | Loop status | **CONTINUING under the 24-hour authorization** | `sdk/` root sweep effectively complete (`sdk/queue.py`/`sdk/vector.py`/`sdk/telemetry.py` showed no DB indicators, lower priority). Next candidates: unreviewed `sdk/agent_sdk/`, `sdk/backend_sdk/`, `sdk/company_sdk/`, `sdk/integration_sdk/`, `sdk/plugin_sdk/` subdirectories. |
 
 Full evidence: `project-audit/161_PGVECTOR_SEARCH_COLUMN_BUG_AND_TENANT_SCOPING_GAP_2026-09-28.md`.
+
+---
+
+## 203. Session Summary (2026-09-28) — `sdk/agent_sdk::AgentContextCollector.collect()`: `asyncio.run()` from a sync method (2nd occurrence of report 136's bug class)
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug found | **FIXED** | `collect()` was a plain sync method internally bridging to 3 async runtime dependencies (`timeline_runtime.query()`, `feature_store.get_scores()`, `kg_engine.get_ego_network()`) via `asyncio.run(...)`. Since this entire app is FastAPI-based, every real caller already runs inside a live event loop — `asyncio.run()` cannot be called from within one, so all 3 calls would raise `RuntimeError` unconditionally, silently swallowed by each call site's own `except Exception: pass`, leaving `timeline`/`features`/`graph` permanently empty. Same bug class as report 136's Odoo sync fix. |
+| Reproduction | **Confirmed before any fix** | Direct repro (`asyncio.run(main())` wrapping a call to the sync `collect()`, exactly how a real FastAPI handler would invoke it) showed `RuntimeWarning: coroutine '...' was never awaited` and an empty timeline result, even with a fake runtime that returns real data when awaited correctly. |
+| Reachability | **Dead code today** | Zero callers anywhere in `app/`/`domains/`/`runtime/`/`intelligence/`/`mcp_server/`. Fixed ahead of any future wiring, matching the established precedent (reports 121/123/126/127/130/131/135/136/156/158/160/161) — the defect is unconditional and silent, so it would never announce itself once wired. |
+| Fix | **`async def` conversion** | `collect()` is now a real coroutine; every `asyncio.run(x)` replaced with `await x`. The existing best-effort `except Exception: pass` degradation design is left unchanged — only the loop-nesting defect is fixed. |
+| Verification | **Genuine red→green** | New `tests/unit/test_agent_sdk_context_collector.py` (2 tests, zero prior coverage), run from inside pytest-asyncio's own event loop (the exact "already running loop" condition that broke the original code) — proves `timeline`/`features`/`graph` are genuinely populated from fake async runtimes. Scoped `git stash` of only the fixed file reproduced `TypeError: object AgentContext can't be used in 'await' expression` plus the tell-tale "coroutine never awaited" warnings at all 3 original call sites; restored, both PASS. |
+| Regression | **2/2 PASS** | Ruff (E4/E7/E9/F/I): 0 findings on both files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Remaining `sdk/*_sdk/` files (`backend_sdk`/`integration_sdk`/`plugin_sdk`/`theme_sdk`/`widget_sdk`/`frontend_sdk`/`company_sdk`) showed near-zero DB/async indicators except `widget_sdk` (1 hit) — checking that next. |
+
+Full evidence: `project-audit/162_AGENT_SDK_ASYNCIO_RUN_BUG_2026-09-28.md`.

@@ -80,7 +80,7 @@ class AgentContextCollector:
     def __init__(self, runtime_registry: dict[str, Any]):
         self._runtimes = runtime_registry
 
-    def collect(
+    async def collect(
         self,
         user_id: str,
         tenant_id: str,
@@ -100,10 +100,14 @@ class AgentContextCollector:
         timeline_rt = self._runtimes.get("timeline_runtime")
         if timeline_rt and entity_type and entity_id:
             try:
-                import asyncio
-
-                events = asyncio.run(
-                    timeline_rt.query(entity_type=entity_type, entity_id=entity_id, limit=20)
+                # Every real caller of this SDK already runs inside a live
+                # asyncio event loop (FastAPI). asyncio.run() cannot be
+                # called from within a running loop -- it previously raised
+                # RuntimeError here every single time, silently swallowed by
+                # the except below, so timeline/features/graph could never
+                # actually populate. await the coroutine directly instead.
+                events = await timeline_rt.query(
+                    entity_type=entity_type, entity_id=entity_id, limit=20
                 )
                 ctx.timeline = events if isinstance(events, list) else []
             except Exception:
@@ -113,9 +117,7 @@ class AgentContextCollector:
         feature_store = self._runtimes.get("feature_store")
         if feature_store and entity_id:
             try:
-                import asyncio
-
-                scores = asyncio.run(feature_store.get_scores(entity_id))
+                scores = await feature_store.get_scores(entity_id)
                 ctx.features = scores if isinstance(scores, dict) else {}
             except Exception:
                 pass
@@ -124,9 +126,7 @@ class AgentContextCollector:
         kg = self._runtimes.get("kg_engine")
         if kg and entity_id:
             try:
-                import asyncio
-
-                network = asyncio.run(kg.get_ego_network(entity_id, depth=1))
+                network = await kg.get_ego_network(entity_id, depth=1)
                 ctx.graph = network if isinstance(network, dict) else None
             except Exception:
                 pass
