@@ -546,7 +546,7 @@ class Phase6Pipeline:
             return await self._run_streamed_dry_run(max_accounts)
         if max_accounts is not None:
             raise ValueError("Bounded account runs are permitted only in dry-run mode")
-        return await self._run_buffered()
+        return await self._run_apply()
 
     def _reset_run_state(self) -> None:
         for rows in (
@@ -663,62 +663,113 @@ class Phase6Pipeline:
         self._rel_rows.clear()
         return self._result()
 
-    async def _run_buffered(self) -> dict[str, Any]:
-        """Non-dry-run implementation; restricted callers should use dry-run first."""
-        self._reset_run_state()
+    async def _flush_apply_batch(self) -> None:
+        """Write one bounded batch and release the staged rows.
 
-        account_query = """SELECT id AS source_row_id, raw_payload
-                            FROM md_source_rows
-                            WHERE source_id = 'muhide_master_accounts'
-                            ORDER BY id"""
-        rows = await self.conn.fetch(account_query)
-        self.summary["master_accounts_loaded"] = len(rows)
-        self.summary["sampled_run"] = False
-        self.summary["sample_limit"] = 0
-        id_state = Counter()
-        cr_class_ct = Counter()
-        priority = Counter()
+        No explicit commit: asyncpg runs in autocommit outside a
+        transaction() block, so each batch's writes are durable as soon as they
+        are sent. That also means the caller must NOT wrap a full apply in one
+        long transaction — a single span would hold every batch's locks until
+        the end and reintroduce the stall this batching exists to avoid.
 
-        # Real Global Company IDs (D2): md_legacy_id_mappings resolves each
-        # Master Account to the authoritative md_global_companies.id.
-        await self._load_company_mapping()
-        await self._load_shared_domains()
-
-        # Per-source field values (D1): build genuine field-agreement maps.
-        ma_source_maps = await self._load_ma_source_maps()
-
-        for r in rows:
-            self._process_account(r, ma_source_maps, id_state, cr_class_ct, priority)
-
-        self.summary["identity_states"] = dict(id_state)
-        self.summary["cr_classes"] = dict(cr_class_ct)
-        self.summary["priorities"] = dict(priority)
-
-        # Contact ↔ company relationship evidence (person layer).
-        await self._stage_contact_relationships()
-
-        # Persist staged rows (or record as changes in dry-run).
-        if not self.dry_run:
-            if self.safety:
-                raise RuntimeError(
-                    "Phase 6 refused database writes because one or more safety gates failed: "
-                    f"{dict(self.safety)}"
-                )
-            await self._write_all()
-            await self._write_relationships()
-        else:
-            self._stage_as_changes()
-            self._stage_relationship_changes()
-
-        self._staged_counts.update({
+        Safe to interrupt and re-run: every write in _write_all uses a
+        deterministic uuid5 key with ON CONFLICT DO NOTHING, so a resumed run
+        skips rows an earlier run already committed rather than duplicating them.
+        """
+        if self.safety:
+            raise RuntimeError(
+                "Phase 6 refused database writes because one or more safety gates failed: "
+                f"{dict(self.safety)}"
+            )
+        batch_counts = {
             "identity_classifications": len(self._identity_rows),
             "review_candidates": len(self._candidate_rows),
             "industry_normalizations": len(self._industry_rows),
             "quality_history": len(self._quality_rows),
             "sales_readiness_history": len(self._readiness_rows),
-            "contact_relationships": len(self._rel_rows),
-        })
+        }
+        await self._write_all()
+        for table, count in batch_counts.items():
+            self._staged_counts[table] += count
+        self._identity_rows.clear()
+        self._candidate_rows.clear()
+        self._industry_rows.clear()
+        self._quality_rows.clear()
+        self._readiness_rows.clear()
 
+    async def _run_apply(self) -> dict[str, Any]:
+        """Non-dry-run implementation; restricted callers should use dry-run first.
+
+        Streams in bounded batches and commits per batch, mirroring
+        _run_streamed_dry_run. The previous implementation fetched all 296,746
+        master accounts with their full raw_payload in a single query and
+        buffered every staged row before writing anything, which needed ~2.2GB
+        and stalled on a 16GB host with only 650MB free. Batching keeps the
+        resident set to one batch: the account rows and the per-MA source maps
+        are both scoped to the batch, so neither accumulates.
+
+        Per-batch durability comes from autocommit rather than an explicit
+        commit (see _flush_apply_batch), so the run is no longer atomic. That is
+        a deliberate trade: the write path is idempotent by construction
+        (deterministic uuid5 keys, ON CONFLICT DO NOTHING), so an interrupted
+        apply is resumed by simply running it again. Keeping it in a single
+        transaction was never an option anyway, since holding 296,746 rows in
+        memory is what made it unrunnable.
+        """
+        self._reset_run_state()
+        await self._load_shared_domains()
+        self.summary["sampled_run"] = False
+        self.summary["sample_limit"] = 0
+        identity_states = Counter()
+        cr_classes = Counter()
+        priorities = Counter()
+        account_query = """SELECT id AS source_row_id, raw_payload
+                           FROM md_source_rows
+                           WHERE source_id = 'muhide_master_accounts'
+                           ORDER BY id"""
+        batch_size = 10_000
+        last_id = None
+        processed = 0
+
+        while True:
+            if last_id is None:
+                rows = await self.conn.fetch(account_query + " LIMIT $1", batch_size)
+            else:
+                rows = await self.conn.fetch(
+                    """SELECT id AS source_row_id, raw_payload
+                       FROM md_source_rows
+                       WHERE source_id = 'muhide_master_accounts' AND id > $1::uuid
+                       ORDER BY id LIMIT $2""",
+                    last_id,
+                    batch_size,
+                )
+            if not rows:
+                break
+            ma_ids = {
+                value
+                for row in rows
+                if (value := _s(self._parse_payload(row["raw_payload"]).get("Master Account ID")))
+            }
+            await self._load_company_mapping(ma_ids)
+            source_maps = await self._load_ma_source_maps(ma_ids)
+            for row in rows:
+                self._process_account(row, source_maps, identity_states, cr_classes, priorities)
+            processed += len(rows)
+            self.summary["master_accounts_loaded"] = processed
+            await self._flush_apply_batch()
+            last_id = str(rows[-1]["source_row_id"])
+
+        self.summary["identity_states"] = dict(identity_states)
+        self.summary["cr_classes"] = dict(cr_classes)
+        self.summary["priorities"] = dict(priorities)
+
+        # Contact ↔ company relationship evidence needs the whole run's
+        # company mapping, so it is staged after the account loop. It is
+        # bounded by the person population (1,102), not by the account count.
+        await self._stage_contact_relationships(None)
+        await self._write_relationships()
+        self._staged_counts["contact_relationships"] += len(self._rel_rows)
+        self.summary["contact_relationships_staged"] = len(self._rel_rows)
         return self._result()
 
     # ── contact relationship evidence ───────────────────────────────────────
