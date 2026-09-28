@@ -3939,3 +3939,18 @@ Full evidence: `project-audit/165_DECISION_DOMAIN_CLEAN_AND_RECOMMENDATION_ENGIN
 | Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidates: `domains/ai`, `domains/copilot`, `domains/rag` (`domains/ubom` deferred, DEPRECATED). |
 
 Full evidence: `project-audit/166_MARKETPLACE_ADMIN_GATE_FIX_AND_PERSISTENCE_GAP_2026-09-28.md`.
+
+---
+
+## 208. Session Summary (2026-09-28) — `domains/ai`: a single, process-wide, cross-tenant `PromptRegistry`/`AIEvaluator` — documented, not fixed (a schema-level gap, unlike report 166's simple role-gate swap)
+
+| Action | Result | Details |
+|---|:---:|---|
+| Code quality | **Clean** | `app/routers/ai.py` (mounted, live) correctly layers `require_permission_dep("ai", ...)` on every endpoint — NOT the "any authenticated user" gap found in report 166's marketplace router. `/ai/generate`/`/ai/evaluate` additionally require `feature_ai_copilot=True` (default `False`). `OpenAIProvider` is registered with no API key anywhere, so `generate()` fails closed to `""` regardless of the flag. `AIEvaluator`'s 5 built-in metrics and `AIService.generate()`'s template substitution are internally consistent and field-mapping-correct. |
+| Gap found | **DOCUMENTED, NOT FIXED** | `PromptRegistry`/`AIEvaluator` are process-wide, in-memory singletons; neither `PromptTemplate` nor `AIEvaluation` has a `tenant_id` field anywhere. Every router endpoint captures `tenant_id` via `Depends(get_current_tenant_id)` but never uses it. Any user whose role carries `ai:read`/`ai:create`/`ai:update` (not admin-only) can see/create/activate prompts visible to and mutable by every other tenant on the same process; `get_metrics(prompt_id)` compounds this via unnamespaced, caller-chosen prompt IDs. |
+| Why not fixed (different in kind from report 166) | **Genuine schema decision needed** | Unlike the marketplace fix (a narrow, zero-schema-impact dependency swap), tightening the role here would reduce blast radius but not fix the actual defect — the registry would still be one shared object across every tenant. A real fix needs a new `tenant_id` field threaded through the dataclasses and every registry/evaluator method — a genuine design decision. The module's own in-source docs already disclose it as non-authoritative ("dual-capability residual... not Studio CAP-089 SoT," EAB-001-P1-DUP-02) — the durable, tenant-RLS'd Prompt Library already exists in `app/modules/tenant_studio/` (report 89); this domain may be intended for retirement rather than repair, a product decision this session does not make unilaterally. |
+| Verification | **Source-review only** | No bug to reproduce with a narrow fix; no files changed. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidates: `domains/copilot`, `domains/rag` (`domains/ubom` deferred, DEPRECATED). |
+
+Full evidence: `project-audit/167_DOMAINS_AI_CROSS_TENANT_REGISTRY_GAP_2026-09-28.md`.
