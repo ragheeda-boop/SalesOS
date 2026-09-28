@@ -7,9 +7,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import String, bindparam, column, delete, literal, select, table
+from sqlalchemy import bindparam, column, delete, literal, select, table
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.types import UserDefinedType
 
 
 @dataclass
@@ -98,13 +100,54 @@ def _validate_collection(name: str) -> None:
         raise ValueError(f"Unknown collection: {name}")
 
 
+class _PgVectorColType(UserDefinedType):
+    """pgvector column type for the lightweight query stub below.
+
+    A bare String column made the `<=>` distance operator's bind parameter
+    compile as `::VARCHAR`, which Postgres has no `vector <=> varchar`
+    operator for (`UndefinedFunctionError`). Mirrors the identical fix
+    already applied in runtime/search_runtime/__init__.py (not imported
+    from there, to keep this module's own "avoid private MetaData island"
+    stub self-contained, matching that file's own stated rationale).
+    """
+
+    cache_ok = True
+
+    def get_col_spec(self, **_kw: Any) -> str:
+        return "vector(3072)"
+
+    def bind_processor(self, dialect: Any) -> Any:
+        def process(value: Any) -> Any:
+            if value is None:
+                return None
+            # asyncpg has no native codec for a bare Python list here (the
+            # column has no explicit ::cast, which is what lets Postgres
+            # implicitly cast an unknown-type text literal to vector for
+            # the <=> operator) -- send pgvector's own text literal instead.
+            return "[" + ",".join(str(float(x)) for x in value) + "]"
+
+        return process
+
+
 def _embedding_table(table_name: str):
-    """Allowlisted table()/column() stub for pgvector collections (EAB-001-P1-DRIFT-01)."""
+    """Allowlisted table()/column() stub for pgvector collections (EAB-001-P1-DRIFT-01).
+
+    NOTE: only "companies" currently has a real backing column
+    (companies.embedding_vector, type vector) -- confirmed directly against
+    a fresh migrated schema. The other 7 entries in ALLOWED_COLLECTIONS
+    either point at tables with no embedding column at all (contacts,
+    licenses, branches, opportunities) or at tables that do not exist at
+    all (company_embeddings, contact_embeddings, document_embeddings).
+    This stub's column names/types are corrected to match the one
+    collection that can genuinely work; the other 7 remain non-functional
+    pending a real schema decision, not something this fix can respons-
+    ibly infer or silently narrow the allowlist to exclude.
+    """
     _validate_collection(table_name)
     return table(
         table_name,
-        column("id", String),
-        column("embedding", String),
+        column("id", PGUUID(as_uuid=True)),
+        column("embedding_vector", _PgVectorColType()),
         column("metadata", JSONB),
     )
 
@@ -135,11 +178,16 @@ class PgVectorSearch(VectorSearch):
         self, collection: str, vector: list[float], top_k: int = 10
     ) -> list[SearchResult]:
         tbl = _embedding_table(self._safe_table(collection))
-        distance = tbl.c.embedding.op("<=>")(bindparam("vector"))
+        distance = tbl.c.embedding_vector.op("<=>")(bindparam("vector"))
         score = (literal(1) - distance).label("score")
         stmt = select(tbl.c.id, tbl.c.metadata, score).order_by(distance).limit(top_k)
         async with self._session_factory() as session:
-            result = await session.execute(stmt, {"vector": str(vector)})
+            # Pass the raw float list -- _PgVectorColType.bind_processor()
+            # does the pgvector text-literal serialization. Pre-stringifying
+            # it here (as the old `embedding` String-typed column required)
+            # would double-encode it and crash the processor's own float(x)
+            # conversion on individual characters of the string.
+            result = await session.execute(stmt, {"vector": vector})
             rows = result.fetchall()
             return [
                 SearchResult(id=str(r.id), score=float(r.score), data=r.metadata or {})
@@ -152,12 +200,15 @@ class PgVectorSearch(VectorSearch):
         tbl = _embedding_table(self._safe_table(collection))
         stmt = pg_insert(tbl).values(
             id=document_id,
-            embedding=str(vector),
+            embedding_vector=vector,
             metadata=metadata,
         )
         stmt = stmt.on_conflict_do_update(
             index_elements=[tbl.c.id],
-            set_={"embedding": stmt.excluded.embedding, "metadata": stmt.excluded.metadata},
+            set_={
+                "embedding_vector": stmt.excluded.embedding_vector,
+                "metadata": stmt.excluded.metadata,
+            },
         )
         async with self._session_factory() as session:
             await session.execute(stmt)

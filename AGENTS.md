@@ -3836,3 +3836,21 @@ Full evidence: `project-audit/159_SDK_EVENTS_SWEEP_COMPLETE_2026-09-28.md`.
 | Loop status | **CONTINUING under the 24-hour authorization** | Next: `sdk/search.py` (flagged with DB-touching indicators in the initial scan); `sdk/queue.py`/`sdk/vector.py`/`sdk/telemetry.py` showed no such indicators and are lower priority. |
 
 Full evidence: `project-audit/160_GRAPH_SERVICE_HOP_COUNT_INJECTION_2026-09-28.md`.
+
+---
+
+## 202. Session Summary (2026-09-28) — `PgVectorSearch`: 4th occurrence of the wrong-embedding-column bug, plus a deeper undecided tenant-scoping gap surfaced while proving the fix
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug found | **FIXED** | `_embedding_table()`'s stub used `column("embedding", String)` — the real column is `companies.embedding_vector` (type `vector`); `embedding` does not exist. 4th occurrence of this exact defect shape this session (reports 79/81/82). Added a local `_PgVectorColType(UserDefinedType)` (mirroring report 79's already-fixed class), renamed the column, and fixed `id`'s stub type (`String` → `PGUUID(as_uuid=True)`, matching every real table). Fixed both call sites that pre-stringified the vector before binding (the new `bind_processor()` does that itself — double-encoding it would crash). |
+| Scope of the fix | **Only 1 of 8 "supported" collections is real** | Checked all 8 `ALLOWED_COLLECTIONS` directly against a migrated schema: `companies` has real `embedding_vector` storage; `contacts`/`licenses`/`branches`/`opportunities` exist but have **no embedding column at all**; `company_embeddings`/`contact_embeddings`/`document_embeddings` **don't exist as tables at all**. Only `companies` is genuinely fixable; the other 7 need a real schema decision, documented not fixed (matching report 157's precedent). |
+| Deeper gap found | **DOCUMENTED, NOT FIXED** | Proving the fix surfaced a second, independent, more severe defect: `PgVectorSearch`'s entire public API has no `tenant_id` parameter anywhere, and the stub never included a `tenant_id` column. Reproduced directly: even the **unrestricted owner/superuser connection** (bypassing RLS entirely) cannot `upsert()` into `companies` — a plain `NotNullViolationError` on `tenant_id`, independent of RLS. A genuine, undecided API/architecture question, not resolved unilaterally (matching reports 85/87/147/152/157). |
+| Third finding | **DOCUMENTED ONLY** | `delete()` issues an unconditional `DELETE FROM <table> WHERE id = ...` — for shared-entity collections like `companies` this would delete the entire business record, not a search-index entry. Not touched; flagged for whoever eventually resolves the tenant-scoping question. |
+| Reachability | **Dead code** | `grep -rln "PgVectorSearch("` outside the module: zero matches. Fixed the narrow embedding-column bug ahead of any future wiring, per this session's established precedent. |
+| Verification | **Genuine red→green** | Two new tests against a fresh, disposable `pgvector/pgvector:pg16` container: one isolates the embedding_vector fix via a scratch table (real `<=>` cosine-distance round trip, `1.0` similarity for a vector against itself, plus an `ON CONFLICT DO UPDATE` no-duplicate proof); one reproduces the deeper tenant-scoping gap directly against `companies`. Scoped `git stash` of only `search.py` reproduced the exact predicted `UndefinedColumnError`; restored, both PASS. |
+| Regression | **2/2 PASS** | Ruff (E4/E7/E9/F/I): 0 findings on both files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used, torn down after. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | `sdk/` root sweep effectively complete (`sdk/queue.py`/`sdk/vector.py`/`sdk/telemetry.py` showed no DB indicators, lower priority). Next candidates: unreviewed `sdk/agent_sdk/`, `sdk/backend_sdk/`, `sdk/company_sdk/`, `sdk/integration_sdk/`, `sdk/plugin_sdk/` subdirectories. |
+
+Full evidence: `project-audit/161_PGVECTOR_SEARCH_COLUMN_BUG_AND_TENANT_SCOPING_GAP_2026-09-28.md`.
