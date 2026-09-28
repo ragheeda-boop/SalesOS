@@ -38,8 +38,15 @@ class TestCrNormalizationSafetyDB:
         self.conn = await _get_conn()
         # self-heal: integration-teardown in some suites truncates md_* tables.
         # Re-run bulk ingestion + v1 enrichment to restore data before assertions.
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_legacy_id_mappings")
-        if r["c"] == 0:
+        r = await self.conn.fetchval(
+            "SELECT COUNT(*) FROM md_legacy_id_mappings "
+            "WHERE legacy_id_type = 'LEGACY_MUHIDE_CR'"
+        )
+        # Order-independent self-heal: a prior suite may leave non-zero scenario
+        # mappings but zero CR anchors (e.g. a truncated md_* fixture re-populated
+        # only by its own scenario). Restore whenever the CR baseline is missing,
+        # not only when the whole mapping table is empty.
+        if not (15000 <= r <= 16000):
             await self._restore()
         yield
         await self.conn.close()

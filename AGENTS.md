@@ -3999,3 +3999,20 @@ Full evidence: `project-audit/169_DOMAINS_RAG_CLEAN_AND_DOMAINS_SWEEP_CLOSED_202
 | Loop status | **CONTINUING under the 24-hour authorization** | First finding in the newly-started `app/modules/*` sweep. Given 40+ subdirectories, prioritizing real DB/persistence-logic files over pure schema modules. |
 
 Full evidence: `project-audit/170_MARKETPLACE_LISTINGS_ADMIN_GATE_FIX_2026-09-28.md`.
+
+---
+
+## 212. Session Summary (2026-09-28) - Master-Data Append-Only Test-Baseline Fix (12 errors + 8 order-dependent failures -> all green; full salesos_test contract restored)
+
+| Action | Result | Details |
+|--------|:------:|---------|
+| Defect found | **NONDETERMINISTIC PARTIAL WIPES** | Integration suites reset `md_*` via per-table `DELETE FROM` loops (no `ORDER BY` -> OID catalog order). The committed append-only trigger `md_guard_source_immutability` raises on ANY DELETE against `md_source_files`/`md_source_rows`, so the loop aborted mid-way and left `salesos_test` in a random partial state (companies intact, people/mappings/provenance/queue wiped). |
+| `test_master_data_db.py` | **FIXED (12 errors -> 12/12)** | DELETE loop -> single deterministic `TRUNCATE TABLE <md_% ORDER BY tablename> RESTART IDENTITY CASCADE`. |
+| `test_muhide_ingestion_db.py` | **FIXED (16/16)** | Identical broken DELETE loop -> same TRUNCATE reset. |
+| `test_muhide_rehousing_db.py` | **FIXED (37/37)** | `_restore_baseline()` now runs ingest **+ v1** (contract needs 1,124 people / 6 files / 1,524,717 provenance); trigger keyed on any core-table shortage, not `companies<1000`; all 6 fixtures delegate. |
+| `test_cr_normalization_safety_db.py` | **FIXED (7/7)** | Self-heal keyed on `LEGACY_MUHIDE_CR` baseline band [15000,16000], not "mappings==0". |
+| Order-Independence matrix | **ALL GREEN** | master+rehousing 49/49 (x2) · ingestion+cr 23/23 · ingestion+rehousing 53/53 · ingestion+cr+er_manual_merge+er_pipeline 34/34 (was 32+2) · er_pipeline 10/10 · Phase 7 stable 23/28 (5 residual = governance gates, NOT regressions). |
+| salesos_test restored | **EXACT CONTRACT** | Companies 296,746 · People 1,124 · Mappings 314,413 · Source rows 862,775 · Files 6 · Provenance 1,524,717 · Identity 296,746 · Review candidates 54,185 · Queue 2,697 (2,661 P3 + 36 short-CR) · Phase 6 safety counters `{}`. Removed 2 `er_manual_merge` residue companies (`Target/Source Co`). Supersedes the 2026-09-24 header's "0 rows / 180,000 companies" data-state note. |
+| Governance / safety | **RESPECTED** | No test constants changed, no `--apply` on capture scripts, no `salesos` write, no Apollo/external, no auto-merge. `phase6/pipeline.py` carries another in-flight agent's uncommitted batched-apply fix (untouched); only this session's 4 test files edited, all uncommitted. |
+
+Full evidence: `project-audit/171_MASTER_DATA_APPEND_ONLY_TEST_BASELINE_FIX_2026-09-28.md`.

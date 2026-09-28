@@ -58,6 +58,32 @@ async def _get_conn() -> asyncpg.Connection:
     )
 
 
+def _restore_baseline() -> None:
+    """Restore the full deterministic MUHIDE baseline into salesos_test.
+
+    A prior scenario suite may have wiped md_* tables wholesale (test
+    resets use TRUNCATE, so no row-level append-only guard fires). The
+    population contract asserted by these tests — 1,124 people (incl. 22
+    v1-unlinked), 6 registered source files, ~854K provenance records —
+    requires BOTH the primary ingestion and the v1 enrichment, so the
+    self-heal runs both scripts.
+    """
+    import subprocess
+
+    backend_root = str(Path(__file__).resolve().parents[2])
+    for script in (
+        "scripts/muhide_ingest_real.py",
+        "scripts/muhide_v1_enrichment.py",
+    ):
+        result = subprocess.run(
+            ["python", script],
+            capture_output=True, text=True, timeout=900,
+            cwd=backend_root,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"{script} failed: {result.stderr[:500]}")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SECTION A: POPULATION TESTS (§26)
 # ══════════════════════════════════════════════════════════════════════════════
@@ -69,23 +95,21 @@ class TestPopulation:
     async def setup(self):
         self.conn = await _get_conn()
         # If tables are empty (cleared by prior test suite), re-run ingestion
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
-        if r["c"] < 1000:
+        r = await self.conn.fetchrow(
+            "SELECT (SELECT COUNT(*) FROM md_global_companies) AS c, "
+            "(SELECT COUNT(*) FROM md_global_people) AS p, "
+            "(SELECT COUNT(*) FROM md_legacy_id_mappings) AS m"
+        )
+        # Order-independent self-heal: a prior suite may leave a partial state
+        # (companies intact but people/mappings wiped, or scenario data only).
+        if r["c"] < 1000 or r["p"] < 100 or r["m"] < 1000:
             await self._run_ingestion()
         yield
         await self.conn.close()
 
     async def _run_ingestion(self):
-        """Re-run bulk ingestion if tables are empty."""
-        import subprocess
-        backend_root = str(Path(__file__).resolve().parents[2])
-        result = subprocess.run(
-            ["python", "scripts/muhide_ingest_real.py"],
-            capture_output=True, text=True, timeout=600,
-            cwd=backend_root,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Ingestion failed: {result.stderr[:500]}")
+        """Re-run the full baseline restore if tables are empty."""
+        _restore_baseline()
 
     async def test_global_companies_count(self):
         r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
@@ -150,22 +174,20 @@ class TestDataContractCompliance:
     @pytest.fixture(autouse=True)
     async def setup(self):
         self.conn = await _get_conn()
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
-        if r["c"] < 1000:
+        r = await self.conn.fetchrow(
+            "SELECT (SELECT COUNT(*) FROM md_global_companies) AS c, "
+            "(SELECT COUNT(*) FROM md_global_people) AS p, "
+            "(SELECT COUNT(*) FROM md_legacy_id_mappings) AS m"
+        )
+        # Order-independent self-heal: a prior suite may leave a partial state
+        # (companies intact but people/mappings wiped, or scenario data only).
+        if r["c"] < 1000 or r["p"] < 100 or r["m"] < 1000:
             await self._run_ingestion()
         yield
         await self.conn.close()
 
     async def _run_ingestion(self):
-        import subprocess
-        backend_root = str(Path(__file__).resolve().parents[2])
-        result = subprocess.run(
-            ["python", "scripts/muhide_ingest_real.py"],
-            capture_output=True, text=True, timeout=600,
-            cwd=backend_root,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Ingestion failed: {result.stderr[:500]}")
+        _restore_baseline()
 
     async def test_all_master_accounts_have_global_company(self):
         """Every MUHIDE MA ID must map to exactly one Global Company."""
@@ -255,22 +277,20 @@ class TestSafety:
     @pytest.fixture(autouse=True)
     async def setup(self):
         self.conn = await _get_conn()
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
-        if r["c"] < 1000:
+        r = await self.conn.fetchrow(
+            "SELECT (SELECT COUNT(*) FROM md_global_companies) AS c, "
+            "(SELECT COUNT(*) FROM md_global_people) AS p, "
+            "(SELECT COUNT(*) FROM md_legacy_id_mappings) AS m"
+        )
+        # Order-independent self-heal: a prior suite may leave a partial state
+        # (companies intact but people/mappings wiped, or scenario data only).
+        if r["c"] < 1000 or r["p"] < 100 or r["m"] < 1000:
             await self._run_ingestion()
         yield
         await self.conn.close()
 
     async def _run_ingestion(self):
-        import subprocess
-        backend_root = str(Path(__file__).resolve().parents[2])
-        result = subprocess.run(
-            ["python", "scripts/muhide_ingest_real.py"],
-            capture_output=True, text=True, timeout=600,
-            cwd=backend_root,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Ingestion failed: {result.stderr[:500]}")
+        _restore_baseline()
 
     async def test_source_rows_immutable(self):
         """Source row raw_payload must never be NULL or empty."""
@@ -347,22 +367,20 @@ class TestIdempotency:
     @pytest.fixture(autouse=True)
     async def setup(self):
         self.conn = await _get_conn()
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
-        if r["c"] < 1000:
+        r = await self.conn.fetchrow(
+            "SELECT (SELECT COUNT(*) FROM md_global_companies) AS c, "
+            "(SELECT COUNT(*) FROM md_global_people) AS p, "
+            "(SELECT COUNT(*) FROM md_legacy_id_mappings) AS m"
+        )
+        # Order-independent self-heal: a prior suite may leave a partial state
+        # (companies intact but people/mappings wiped, or scenario data only).
+        if r["c"] < 1000 or r["p"] < 100 or r["m"] < 1000:
             await self._run_ingestion()
         yield
         await self.conn.close()
 
     async def _run_ingestion(self):
-        import subprocess
-        backend_root = str(Path(__file__).resolve().parents[2])
-        result = subprocess.run(
-            ["python", "scripts/muhide_ingest_real.py"],
-            capture_output=True, text=True, timeout=600,
-            cwd=backend_root,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Ingestion failed: {result.stderr[:500]}")
+        _restore_baseline()
 
     async def _snapshot_counts(self) -> dict:
         counts = {}
@@ -407,22 +425,20 @@ class TestSchemaIntegrity:
     @pytest.fixture(autouse=True)
     async def setup(self):
         self.conn = await _get_conn()
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
-        if r["c"] < 1000:
+        r = await self.conn.fetchrow(
+            "SELECT (SELECT COUNT(*) FROM md_global_companies) AS c, "
+            "(SELECT COUNT(*) FROM md_global_people) AS p, "
+            "(SELECT COUNT(*) FROM md_legacy_id_mappings) AS m"
+        )
+        # Order-independent self-heal: a prior suite may leave a partial state
+        # (companies intact but people/mappings wiped, or scenario data only).
+        if r["c"] < 1000 or r["p"] < 100 or r["m"] < 1000:
             await self._run_ingestion()
         yield
         await self.conn.close()
 
     async def _run_ingestion(self):
-        import subprocess
-        backend_root = str(Path(__file__).resolve().parents[2])
-        result = subprocess.run(
-            ["python", "scripts/muhide_ingest_real.py"],
-            capture_output=True, text=True, timeout=600,
-            cwd=backend_root,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Ingestion failed: {result.stderr[:500]}")
+        _restore_baseline()
 
     async def test_source_row_unique_constraint(self):
         """Duplicate (source_id, source_record_id) must be rejected."""
@@ -494,22 +510,20 @@ class TestBlockerDocumentation:
     @pytest.fixture(autouse=True)
     async def setup(self):
         self.conn = await _get_conn()
-        r = await self.conn.fetchrow("SELECT COUNT(*) as c FROM md_global_companies")
-        if r["c"] < 1000:
+        r = await self.conn.fetchrow(
+            "SELECT (SELECT COUNT(*) FROM md_global_companies) AS c, "
+            "(SELECT COUNT(*) FROM md_global_people) AS p, "
+            "(SELECT COUNT(*) FROM md_legacy_id_mappings) AS m"
+        )
+        # Order-independent self-heal: a prior suite may leave a partial state
+        # (companies intact but people/mappings wiped, or scenario data only).
+        if r["c"] < 1000 or r["p"] < 100 or r["m"] < 1000:
             await self._run_ingestion()
         yield
         await self.conn.close()
 
     async def _run_ingestion(self):
-        import subprocess
-        backend_root = str(Path(__file__).resolve().parents[2])
-        result = subprocess.run(
-            ["python", "scripts/muhide_ingest_real.py"],
-            capture_output=True, text=True, timeout=600,
-            cwd=backend_root,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Ingestion failed: {result.stderr[:500]}")
+        _restore_baseline()
 
     async def test_v1_enrichment_ingested(self):
         """The v1 enrichment layer files ARE available (delivered 2026-08-28).

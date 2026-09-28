@@ -176,12 +176,20 @@ async def _ensure_db():
 
     c = await _get_conn()
     await c.execute(PHASE0_DDL)
-    # Clean all md_* data
+    # Clean all md_* data. Uses one deterministic TRUNCATE instead of a
+    # per-table DELETE loop: md_source_files/md_source_rows are append-only
+    # at the row level (md_guard_source_immutability raises on DELETE), and
+    # pg_tables has no stable order, so a DELETE sweep both tripped the guard
+    # and, before it tripped, half-wiped other md_* tables nondeterministically.
+    # TRUNCATE is the sanctioned test reset (it does not fire row-level
+    # triggers) and CASCADE clears any FK-targeted children in one statement.
     tables = await c.fetch(
-        "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'md_%'"
+        "SELECT tablename FROM pg_tables WHERE schemaname='public' "
+        "AND tablename LIKE 'md_%' ORDER BY tablename"
     )
-    for t in tables:
-        await c.execute(f'DELETE FROM "{t["tablename"]}"')
+    if tables:
+        quoted = ", ".join(f'"{t["tablename"]}"' for t in tables)
+        await c.execute(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE")
     await c.close()
 
 

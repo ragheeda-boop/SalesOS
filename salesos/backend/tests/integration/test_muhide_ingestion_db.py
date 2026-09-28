@@ -154,8 +154,13 @@ async def _ensure_db():
     tables = await c.fetch(
         "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'md_%'"
     )
-    for t in tables:
-        await c.execute(f'DELETE FROM "{t["tablename"]}"')
+    # md_source_files/md_source_rows are protected by an append-only trigger
+    # that rejects DELETE; this suite owns the dedicated test database, so
+    # reset the full md_* fixture with a single deterministic TRUNCATE
+    # (CASCADE) instead of issuing rejected DELETEs in an unstable table order.
+    names = [f'"{t["tablename"]}"' for t in tables]
+    if names:
+        await c.execute("TRUNCATE TABLE " + ", ".join(names) + " RESTART IDENTITY CASCADE")
     await c.close()
 
 
