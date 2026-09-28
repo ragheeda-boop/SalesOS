@@ -192,10 +192,20 @@ class QuotaService:
     async def take_snapshot(self, tenant_id: str, period_label: str = "") -> QuotaSnapshot:
         quotas = await self._repository.list_by_tenant(tenant_id)
         team = await self.get_team_aggregate(tenant_id)
+        if not period_label:
+            # Python's strftime has no directive for "quarter" -- "%q" is not
+            # one and is not substituted. On Linux this silently emits the
+            # literal characters "%q" into the label (confirmed directly);
+            # on Windows it raises ValueError: Invalid format string instead.
+            # Compute the quarter number explicitly rather than relying on a
+            # non-existent format code.
+            now = datetime.now(timezone.utc)
+            quarter = (now.month - 1) // 3 + 1
+            period_label = f"{now.year}-Q{quarter}"
         snapshot = QuotaSnapshot(
             id=str(uuid.uuid4()),
             tenant_id=tenant_id,
-            period_label=period_label or datetime.now(timezone.utc).strftime("%Y-Q%q"),
+            period_label=period_label,
             quotas=quotas,
             team=team,
         )

@@ -3888,3 +3888,21 @@ Full evidence: `project-audit/162_AGENT_SDK_ASYNCIO_RUN_BUG_2026-09-28.md`.
 | Loop status | **CONTINUING under the 24-hour authorization** | The entire `sdk/` tree (root, `events/`, `pagination.py`, `graph.py`, `search.py`, `*_sdk/`) is now comprehensively swept across reports 155-163. Pivoting to a fresh file family for the next tick. |
 
 Full evidence: `project-audit/163_THEME_SDK_MISSING_TYPOGRAPHY_CATEGORY_AND_SWEEP_CLOSE_2026-09-28.md`.
+
+---
+
+## 205. Session Summary (2026-09-28) — `domains/approval` and `domains/revenue/router.py` fully clean; `QuotaService.take_snapshot()`'s auto-generated period label used a non-existent strftime directive
+
+| Action | Result | Details |
+|---|:---:|---|
+| `domains/approval` | **CLEAN** | `ApprovalRequestModel`'s 14 columns match `ApprovalRequest`'s dataclass fields exactly; `_to_domain()`/`_from_domain()` round-trip correctly including nested `ApprovalDecision` JSON and all 3 enums; `save()`'s upsert never corrupts `created_at` (only `updated_at` is ever bumped by `approve()`/`reject()`/`escalate()`/`cancel()`); GUC pinning correctly delegated via the already-verified `FactoryBoundRepository` pattern (report 148). |
+| `domains/revenue/router.py` | **CLEAN, 550 lines fully read** | Every endpoint's request/response schemas match the underlying dataclasses field-for-field. Initial concern resolved: the 3 service factories' `try: import Postgres<X>Repository except ImportError: <X>Service(InMemory<X>Repository())` pattern is a defensive fallback, not the live path — those Postgres repos genuinely exist and were already verified clean for Quota/Territory/Forecast in report 169. `get_db_session` confirmed to delegate to the standard auto-tenant-GUC-pinning `get_db`, so by-ID lookups are correctly RLS-isolated without needing an explicit tenant_id check. |
+| Bug found | **FIXED** | `QuotaService.take_snapshot()`'s auto-generated `period_label` used `strftime("%Y-Q%q")` — `%q` is not a real Python strftime directive. Confirmed directly: on **Linux** (this app's deployment platform) it's silently emitted **literally unsubstituted** (`"2026-Q%q"` instead of `"2026-Q1"`); on **Windows** it raises `ValueError: Invalid format string`. Either way, `POST /api/v1/revenue-planning/quotas/snapshot` (whose `period_label` param defaults to `""`) hits this on every real call that doesn't explicitly supply one — the normal expected usage. |
+| Why uncaught | **Existing test always supplies an explicit label** | `test_quota_snapshots_rls.py` never exercises the auto-generation fallback branch. |
+| Fix | **Computed directly** | `(now.month - 1) // 3 + 1` instead of relying on a non-existent format code; matches the file's existing `datetime.now(timezone.utc)` convention (a descriptive label, not a business-logic date field, so no UTC/local calendar-boundary concern applies here unlike reports 70/73/78/116/159). |
+| Verification | **Genuine red→green** | New `tests/unit/test_revenue_quota_snapshot_period_label.py` (9 tests, one representative month per quarter). Scoped `git stash` of only the fixed file reproduced the exact predicted `ValueError: Invalid format string` on all 8 auto-generation tests; restored, 9/9 PASS. Existing integration test re-verified against a fresh disposable container: 1/1 PASS, no regression. |
+| Regression | **PASS** | Ruff: 1 pre-existing, unrelated `I001` finding on the service file (confirmed identical before/after via scoped stash), 0 on the new test file. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | Only a disposable container used for the regression check, torn down after. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | `domains/` sweep from report 155's plan now covers decision_center/feature_store/workflow/timeline/employee/notifications/commercial/search/analytics/scoring/approval/revenue. Remaining unreviewed: `domains/ai`, `domains/copilot`, `domains/decision`, `domains/marketplace`, `domains/rag`, `domains/ubom` (the last explicitly DEPRECATED, lower priority). |
+
+Full evidence: `project-audit/164_REVENUE_DOMAIN_CLEAN_AND_QUOTA_QUARTER_LABEL_BUG_2026-09-28.md`.
