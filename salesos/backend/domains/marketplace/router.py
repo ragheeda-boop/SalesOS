@@ -5,12 +5,22 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from app.dependencies import verify_token
+from app.dependencies import require_role_dep
 
+# _get_registry()/_get_permission_gate() cache a SINGLE, process-wide
+# PluginRegistry/PermissionGate on app.state with no tenant_id anywhere in
+# this domain's models or service layer -- every endpoint below (list,
+# install, uninstall, enable, disable, config, permissions) previously
+# required only verify_token, so any authenticated user of any tenant could
+# read or mutate this platform-wide registry on behalf of every other
+# tenant. Matches DEC-159's already-ratified fix for the identical shape of
+# gap on /api/v1/cache/*. Whether plugin management should instead be
+# tenant-scoped (which would need a schema change -- see the accompanying
+# report) is a separate, undecided product question this does not resolve.
 router = APIRouter(
     prefix="/api/v1/marketplace",
     tags=["Marketplace"],
-    dependencies=[Depends(verify_token)],
+    dependencies=[Depends(require_role_dep("admin"))],
 )
 
 

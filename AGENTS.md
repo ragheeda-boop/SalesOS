@@ -3922,3 +3922,20 @@ Full evidence: `project-audit/164_REVENUE_DOMAIN_CLEAN_AND_QUOTA_QUARTER_LABEL_B
 | Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidates: `domains/ai`, `domains/copilot`, `domains/marketplace`, `domains/rag` (`domains/ubom` deferred, DEPRECATED). |
 
 Full evidence: `project-audit/165_DECISION_DOMAIN_CLEAN_AND_RECOMMENDATION_ENGINE_REACHABILITY_CORRECTION_2026-09-28.md`.
+
+---
+
+## 207. Session Summary (2026-09-28) — `domains/marketplace`: any authenticated user of any tenant could install/uninstall/reconfigure plugins platform-wide; fixed. Its entire persistence layer is dead, in-memory-only — documented, not fixed.
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug found | **FIXED, severe** | `domains/marketplace/router.py`'s 12 plugin-management endpoints (install/uninstall/enable/disable/config/permissions/history) were gated only by `dependencies=[Depends(verify_token)]` — any authenticated user of any role, any tenant. `_get_registry()`/`_get_permission_gate()` cache a single, process-wide `PluginRegistry`/`PermissionGate` with no `tenant_id` anywhere in the domain's models or logic — every caller shares the exact same platform-wide plugin state, so a non-admin end user of any tenant could mutate it on behalf of every other tenant. |
+| Fix | **Matches an already-ratified precedent** | DEC-159 (report 115) already ruled on the identical shape of gap for `/api/v1/cache/*`: `verify_token` → `require_role_dep("admin")` at the router level. Applied the same fix here, uniformly gating all 12 endpoints. Deliberately left open: whether "admin" should mean tenant-admin (applied) or true platform-owner (`require_owner_role_dep`) depends on an undecided product question — either interpretation agrees a non-admin user having this power was wrong. |
+| Persistence gap | **DOCUMENTED, NOT FIXED** | `PluginModel`/`PluginLifecycleEventModel` (real DB tables, real migrations) have zero references anywhere outside their own definition — fully dead. The actual live logic (`PluginRegistry`/`PluginLifecycle`/`PermissionGate`) is 100% in-memory; every installed plugin is lost on restart and not shared across replicas. Matches the established "genuine architecture gap needing a product decision" precedent (reports 130/157) — wiring this up needs real design decisions (tenant-scoping, transactional semantics) this session does not make unilaterally. |
+| Dead code, not touched | **`WidgetSandbox`/`render_widget`/`BackendPluginSandbox`** | Zero live callers anywhere (only their own test file). The `plugin_code` embedding into a `<script>` block is inherent to the CSP-based sandboxing design, not a narrow bug. |
+| Verification | **Genuine red→green** | New `tests/unit/test_marketplace_router_admin_gate.py` (3 tests, following report 115's established pattern): non-admin and manager roles rejected with 403 on all sampled endpoints; admin role can genuinely install and list a plugin. Scoped `git stash` of only the router reproduced test failures against the unfixed code (401 via `verify_token`'s real-JWT requirement, confirming genuine dependency on the fix); restored, 3/3 PASS. |
+| Regression | **3/3 PASS** | Ruff (E4/E7/E9/F/I): 0 findings on both files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidates: `domains/ai`, `domains/copilot`, `domains/rag` (`domains/ubom` deferred, DEPRECATED). |
+
+Full evidence: `project-audit/166_MARKETPLACE_ADMIN_GATE_FIX_AND_PERSISTENCE_GAP_2026-09-28.md`.
