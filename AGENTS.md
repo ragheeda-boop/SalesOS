@@ -3984,3 +3984,18 @@ Full evidence: `project-audit/168_DOMAINS_COPILOT_CLEAN_2026-09-28.md`.
 | Loop status | **PIVOTING per the loop's own instruction** | Now that `domains/` is closed, re-applying the established methodology to `app/modules/*` subdirectories not yet individually swept this session. |
 
 Full evidence: `project-audit/169_DOMAINS_RAG_CLEAN_AND_DOMAINS_SWEEP_CLOSED_2026-09-28.md`.
+
+---
+
+## 211. Session Summary (2026-09-28) — `app/modules/marketplace_listings`: any authenticated user of any tenant could create/delete/falsely-certify platform-wide catalog listings; fixed (2nd occurrence of report 166's pattern)
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug found | **FIXED, severe** | `app/modules/marketplace_listings` (a separate module from `domains/marketplace`) has a single, process-wide, in-memory catalog (`store.py`'s own docstring: "Owner-platform catalog scope"). All 13 endpoints were gated by `_AUTH = [Depends(verify_token)]` alone. Read endpoints browsing the shared catalog is reasonable by design; `install_listing`/`list_catalog_installs` are already correctly tenant-scoped. But 7 catalog-**mutating** endpoints (`upsert_listing`/`delete_listing`/`submit_listing`/`certify_listing`/`publish_listing_route`/both `seed_*`) shared the same bare gate — any authenticated user of any role, any tenant, could create fake listings, delete legitimate ones, or falsely mark any listing "certified"/"published" for every other tenant. |
+| Fix | **Matches report 166's established precedent** | Added `_ADMIN_AUTH = [Depends(require_role_dep("admin"))]`, applied to exactly the 7 mutating endpoints; the 6 read/tenant-scoped endpoints deliberately left unchanged to preserve the intended "any authenticated user can browse the catalog" experience. Same open question as report 166 (tenant-admin vs. true platform-owner) left undecided. |
+| Verification | **Genuine red→green, cleaner reproduction than report 166** | New `tests/unit/test_marketplace_listings_admin_gate.py` (4 tests): non-admin/manager rejected with 403 on all 7 mutating endpoints; non-admin can still browse; admin can genuinely create+delete. Scoped `git stash` of only the router — with both `verify_token` and `get_current_user_role` overridden in the test harness — reproduced the exact vulnerability directly: a `"user"`-role `POST /marketplace/listings` returned **200 OK** against the unfixed code. Restored, 4/4 PASS. |
+| Regression | **10/10 PASS** | Existing `test_story_13_01_marketplace_listing.py` (6, pure model/store tests) unaffected. Ruff caught 1 import-sort issue in the new file (auto-fixed, 0 findings after). `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | First finding in the newly-started `app/modules/*` sweep. Given 40+ subdirectories, prioritizing real DB/persistence-logic files over pure schema modules. |
+
+Full evidence: `project-audit/170_MARKETPLACE_LISTINGS_ADMIN_GATE_FIX_2026-09-28.md`.

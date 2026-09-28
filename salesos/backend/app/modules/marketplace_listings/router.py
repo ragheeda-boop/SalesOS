@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, verify_token
+from app.dependencies import get_current_tenant_id, require_role_dep, verify_token
 from app.modules.marketplace_listings.catalog_install import (
     DEFAULT_CATALOG_INSTALL_STORE,
     MemCatalogInstallStore,
@@ -35,6 +35,21 @@ from app.modules.marketplace_listings.store import (
 
 router = APIRouter(prefix="/marketplace/listings", tags=["Marketplace Listings"])
 _AUTH = [Depends(verify_token)]
+# store.py's own docstring: "Owner-platform catalog scope (not tenant RLS
+# tables)" -- _STORE is a single, process-wide catalog shared by every
+# tenant (list_listings()/get_listing() correctly stay _AUTH-only: any
+# authenticated user browsing a shared marketplace catalog is reasonable,
+# like any logged-in user browsing an app store). But every endpoint that
+# MUTATES that shared catalog (create/delete/submit/certify/publish/seed)
+# previously required only _AUTH too -- any authenticated user of any role,
+# any tenant, could delete or falsely "certify" a listing visible to every
+# other tenant. Matches DEC-159/report 166's already-ratified fix for the
+# identical shape of gap: mutating endpoints on a platform-wide resource
+# need more than mere authentication. install_listing/list_catalog_installs
+# are untouched -- they are already correctly tenant-scoped via
+# get_current_tenant_id, a tenant recording its own install, not a catalog
+# mutation.
+_ADMIN_AUTH = [Depends(require_role_dep("admin"))]
 
 _STORE = DEFAULT_MARKETPLACE_LISTING_STORE
 _INSTALLS = DEFAULT_CATALOG_INSTALL_STORE
@@ -135,14 +150,14 @@ async def certify_pipeline_meta() -> dict[str, Any]:
     }
 
 
-@router.post("/seed-first-party", response_model=list[ListingResponse], dependencies=_AUTH)
+@router.post("/seed-first-party", response_model=list[ListingResponse], dependencies=_ADMIN_AUTH)
 async def seed_first_party_listings() -> list[ListingResponse]:
     """Idempotent STORY-13-04 publish pack (≥3 connectors + ≥1 playbook)."""
     rows = _STORE.seed_publish_pack()
     return [_listing_response(r) for r in rows]
 
 
-@router.post("/seed-publish-pack", response_model=list[ListingResponse], dependencies=_AUTH)
+@router.post("/seed-publish-pack", response_model=list[ListingResponse], dependencies=_ADMIN_AUTH)
 async def seed_publish_pack_listings() -> list[ListingResponse]:
     """Explicit STORY-13-04 seed alias."""
     rows = _STORE.seed_publish_pack()
@@ -186,7 +201,7 @@ async def list_catalog_installs(
 @router.post(
     "/{listing_id}/submit",
     response_model=ListingResponse,
-    dependencies=_AUTH,
+    dependencies=_ADMIN_AUTH,
 )
 async def submit_listing(listing_id: str) -> ListingResponse:
     try:
@@ -199,7 +214,7 @@ async def submit_listing(listing_id: str) -> ListingResponse:
 @router.post(
     "/{listing_id}/certify",
     response_model=CertifyReportResponse,
-    dependencies=_AUTH,
+    dependencies=_ADMIN_AUTH,
 )
 async def certify_listing(
     listing_id: str,
@@ -221,7 +236,7 @@ async def certify_listing(
 @router.post(
     "/{listing_id}/publish",
     response_model=ListingResponse,
-    dependencies=_AUTH,
+    dependencies=_ADMIN_AUTH,
 )
 async def publish_listing_route(listing_id: str) -> ListingResponse:
     try:
@@ -251,7 +266,7 @@ async def install_listing(
     return CatalogInstallResponse.model_validate(rec.as_dict())
 
 
-@router.post("", response_model=ListingResponse, dependencies=_AUTH)
+@router.post("", response_model=ListingResponse, dependencies=_ADMIN_AUTH)
 async def upsert_listing(body: ListingUpsert) -> ListingResponse:
     try:
         row = _STORE.upsert(
@@ -293,7 +308,7 @@ async def get_listing(listing_id: str) -> ListingResponse:
     return _listing_response(row)
 
 
-@router.delete("/{listing_id}", dependencies=_AUTH)
+@router.delete("/{listing_id}", dependencies=_ADMIN_AUTH)
 async def delete_listing(listing_id: str) -> dict[str, Any]:
     ok = _STORE.delete(listing_id)
     if not ok:
