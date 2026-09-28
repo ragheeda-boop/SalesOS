@@ -68,8 +68,16 @@ async def upsert_signals(
                                  "source", "confidence_score")}
 
         try:
-            await db.execute(
-                text("""
+            # Per-signal SAVEPOINT. A failed INSERT on PostgreSQL poisons the
+            # enclosing transaction, so catching the exception and continuing
+            # would make the caller's later db.commit() raise
+            # PendingRollbackError and roll back work this function never
+            # touched (e.g. the signal_events insert done by the marketplace
+            # runtime bridge). begin_nested() scopes the failure to a SAVEPOINT
+            # so the outer transaction stays usable and "fail-graceful" is real.
+            async with db.begin_nested():
+                await db.execute(
+                    text("""
                     INSERT INTO company_signals
                         (tenant_id, company_id, signal_type, title, description,
                          severity, source, status, confidence_score,

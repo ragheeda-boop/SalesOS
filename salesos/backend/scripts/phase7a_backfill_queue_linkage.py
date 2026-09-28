@@ -28,7 +28,6 @@ import asyncio
 import csv
 import json
 import sys
-import uuid
 from pathlib import Path
 
 import asyncpg
@@ -46,8 +45,8 @@ P3_CSV = (
 EXPECTED_P1 = 640  # 2026-09-28: 3 P2-rerouted workbook rows moved to G4_P1_P2_REROUTED_2026-09-28.csv
 EXPECTED_P3 = 2_661
 
-DB = dict(host="localhost", port=5432, user="salesos",
-          password="salesos_dev_password", database="salesos_test")
+DB = {"host": "localhost", "port": 5432, "user": "salesos",
+      "password": "salesos_dev_password", "database": "salesos_test"}
 
 # Workbook columns promoted into evidence_ref. PII-free: no contact names, emails or phones.
 EVIDENCE_FIELDS = (

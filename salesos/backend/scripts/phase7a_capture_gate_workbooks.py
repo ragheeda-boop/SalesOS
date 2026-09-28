@@ -26,7 +26,7 @@ from sqlalchemy import text
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.modules.master_data.phase7.review_queue import (  # noqa: E402
+from app.modules.master_data.phase7.review_queue import (
     QUEUE_P1,
     QUEUE_SHORT_CR,
     ReviewQueueService,
