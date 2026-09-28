@@ -3970,3 +3970,17 @@ Full evidence: `project-audit/167_DOMAINS_AI_CROSS_TENANT_REGISTRY_GAP_2026-09-2
 | Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidate: `domains/rag` (`domains/ubom` deferred, DEPRECATED) — closes the planned `domains/` sweep from reports 155-168. |
 
 Full evidence: `project-audit/168_DOMAINS_COPILOT_CLEAN_2026-09-28.md`.
+
+---
+
+## 210. Session Summary (2026-09-28) — `domains/rag` clean (already covered by report 138); closes the `domains/` subdirectory sweep
+
+| Action | Result | Details |
+|---|:---:|---|
+| `domains/rag/models.py` | **CLEAN, already validated** | Pure dataclasses (`Document`/`DocumentChunk`/`EmbeddingConfig`/`RetrievalResult`/`RagAnswer`), consumed directly by `intelligence/rag/*.py` — exactly the file report 138 already fixed (9 bugs) and exhaustively verified with a genuine red→green real-database round trip. Nothing new to independently re-derive. |
+| `domains/` sweep | **CLOSED** | Full tally across reports 139-169: `decision_center`/`feature_store`/`workflow`/`notifications`/`analytics`/`scoring`/`approval`/`decision`/`copilot`/`rag` all confirmed clean; `timeline`/`employee`/`revenue` (quota) each had 1 bug fixed; `marketplace` had 1 severe authorization bug fixed plus a documented persistence gap; `ai` had a documented (not unilaterally fixed) cross-tenant architecture gap; `commercial`/`postgres_repositories.py` (17 classes, reports 120-128) had 8 bugs fixed; `ubom` deferred as explicitly DEPRECATED. |
+| Verification | **Source-review only** | No bug to reproduce; no files changed. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **PIVOTING per the loop's own instruction** | Now that `domains/` is closed, re-applying the established methodology to `app/modules/*` subdirectories not yet individually swept this session. |
+
+Full evidence: `project-audit/169_DOMAINS_RAG_CLEAN_AND_DOMAINS_SWEEP_CLOSED_2026-09-28.md`.
