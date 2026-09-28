@@ -12,6 +12,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+# Single source of truth for ThemeTokenSet's category names. Previously
+# duplicated independently in to_css_variables() and merge() -- the two
+# copies drifted: to_css_variables()'s list omitted "typography" (present
+# in the dataclass fields and in merge()'s own copy of this same list),
+# silently dropping every typography token from the generated CSS output.
+_TOKEN_CATEGORIES = (
+    "colors",
+    "typography",
+    "radius",
+    "elevation",
+    "spacing",
+    "motion",
+    "breakpoints",
+    "icons",
+)
+
 
 @dataclass
 class ThemeTokenSet:
@@ -28,15 +44,7 @@ class ThemeTokenSet:
 
     def to_css_variables(self, prefix: str = "--tw-") -> str:
         lines = [":root {"]
-        for category in [
-            "colors",
-            "radius",
-            "elevation",
-            "spacing",
-            "motion",
-            "breakpoints",
-            "icons",
-        ]:
+        for category in _TOKEN_CATEGORIES:
             tokens = getattr(self, category, {})
             for key, value in tokens.items():
                 css_key = key.replace("_", "-")
@@ -48,16 +56,7 @@ class ThemeTokenSet:
         import copy
 
         merged = copy.deepcopy(self)
-        for category in [
-            "colors",
-            "typography",
-            "radius",
-            "elevation",
-            "spacing",
-            "motion",
-            "breakpoints",
-            "icons",
-        ]:
+        for category in _TOKEN_CATEGORIES:
             base = getattr(merged, category)
             override = getattr(overrides, category, {})
             base.update(override)

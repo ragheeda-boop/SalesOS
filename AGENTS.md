@@ -3871,3 +3871,20 @@ Full evidence: `project-audit/161_PGVECTOR_SEARCH_COLUMN_BUG_AND_TENANT_SCOPING_
 | Loop status | **CONTINUING under the 24-hour authorization** | Remaining `sdk/*_sdk/` files (`backend_sdk`/`integration_sdk`/`plugin_sdk`/`theme_sdk`/`widget_sdk`/`frontend_sdk`/`company_sdk`) showed near-zero DB/async indicators except `widget_sdk` (1 hit) — checking that next. |
 
 Full evidence: `project-audit/162_AGENT_SDK_ASYNCIO_RUN_BUG_2026-09-28.md`.
+
+---
+
+## 204. Session Summary (2026-09-28) — `theme_sdk` missing typography category fixed; `sdk/*_sdk/` plugin-SDK sweep closed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Bug found | **FIXED** | `ThemeTokenSet.to_css_variables()`'s category loop independently duplicated `merge()`'s list of the 8 dataclass fields, but omitted `"typography"` — every typography token set via `ThemeBuilder.with_typography(...)` was silently absent from the generated CSS, with no error. `merge()`'s adjacent, correct copy of the same list strongly suggests a copy-paste omission. |
+| Fix | **Shared constant** | Extracted `_TOKEN_CATEGORIES` (8 items) used by both `to_css_variables()` and `merge()`, replacing the two independently-maintained copies — closes the drift mechanism itself, not just the symptom. |
+| Reachability | **Dead code** | Zero callers anywhere; zero prior test coverage. Fixed ahead of any future wiring, matching this session's established precedent. |
+| Verification | **Genuine red→green** | New `tests/unit/test_theme_sdk_token_categories.py` (3 tests) drives the real `ThemeBuilder` API and asserts typography tokens appear in output CSS, plus an all-8-categories check and a `merge()` regression guard. Scoped `git stash` of only the fixed file reproduced the exact predicted `AssertionError: missing '--tw-font: Inter;'`; restored, 3/3 PASS. |
+| `sdk/*_sdk/` sweep | **CLOSED** | `agent_sdk` (1 bug, report 162) + `theme_sdk` (1 bug, this report); `widget_sdk`/`backend_sdk`/`integration_sdk`/`plugin_sdk`/`frontend_sdk`/`company_sdk` all confirmed clean (pure dataclass/builder/ABC-interface code, no async/SQL/duplicated-list defects). |
+| Regression | **3/3 PASS** | Ruff (E4/E7/E9/F/I): 0 findings on both files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | The entire `sdk/` tree (root, `events/`, `pagination.py`, `graph.py`, `search.py`, `*_sdk/`) is now comprehensively swept across reports 155-163. Pivoting to a fresh file family for the next tick. |
+
+Full evidence: `project-audit/163_THEME_SDK_MISSING_TYPOGRAPHY_CATEGORY_AND_SWEEP_CLOSE_2026-09-28.md`.
