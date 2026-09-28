@@ -3906,3 +3906,19 @@ Full evidence: `project-audit/163_THEME_SDK_MISSING_TYPOGRAPHY_CATEGORY_AND_SWEE
 | Loop status | **CONTINUING under the 24-hour authorization** | `domains/` sweep from report 155's plan now covers decision_center/feature_store/workflow/timeline/employee/notifications/commercial/search/analytics/scoring/approval/revenue. Remaining unreviewed: `domains/ai`, `domains/copilot`, `domains/decision`, `domains/marketplace`, `domains/rag`, `domains/ubom` (the last explicitly DEPRECATED, lower priority). |
 
 Full evidence: `project-audit/164_REVENUE_DOMAIN_CLEAN_AND_QUOTA_QUARTER_LABEL_BUG_2026-09-28.md`.
+
+---
+
+## 206. Session Summary (2026-09-28) — `domains/decision` fully clean; corrects report 168's framing — `RecommendationEngine` (the class) is live even though `PostgresRecommendationRepository` (the class) is dead
+
+| Action | Result | Details |
+|---|:---:|---|
+| `DecisionService` | **CLEAN** | Report 167's `add_policy()` tenant_id fix confirmed still present; `add_factor()`'s fetch-mutate-save flow doesn't introduce any new gap beyond the already-documented `context.policies`-not-persisted one. |
+| `RecommendationEngine.evaluate()` | **CLEAN, and genuinely live** | Every `Recommendation`/`Alternative`/`RecommendationEvidence` constructor call matches the real dataclasses exactly. |
+| Reachability correction | **Report 168's framing clarified, not contradicted** | This codebase has 3 unrelated classes all named `RecommendationEngine` in different packages (`domains.decision.recommendation.engine`, `runtime.recommendation_runtime`, `intelligence.recommendation_engine`). Report 168 correctly established the REPOSITORY (`PostgresRecommendationRepository`) has zero callers — but checking each real import individually shows the ENGINE class itself is genuinely live: `app/routers/commercial.py` (2 sites, `GET .../recommendation` + the workspace dashboard batch endpoint) and `app/application/dashboard/router.py` all import and call the exact `domains.decision.recommendation.engine.RecommendationEngine` this report reviews. All 3 are pure compute-and-return — `.save()` is never called on any of them, by design, so report 168's fixed-but-dead repository bugs are correctly never exercised in practice. |
+| Adapter layer | **CLEAN** | `app/application/dashboard/services/decision_platform_adapter.py`'s `DecisionServiceAdapter`/`RecommendationEngineAdapter` bridge domain types to `sdk.scoring.interfaces` correctly — every field on both sides verified directly against both dataclass definitions. |
+| Verification | **Source-review only** | No bug to reproduce; no files changed. |
+| Production / Phase 7 | **UNCHANGED** | No database or container touched. No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Remaining `domains/` candidates: `domains/ai`, `domains/copilot`, `domains/marketplace`, `domains/rag` (`domains/ubom` deferred, DEPRECATED). |
+
+Full evidence: `project-audit/165_DECISION_DOMAIN_CLEAN_AND_RECOMMENDATION_ENGINE_REACHABILITY_CORRECTION_2026-09-28.md`.
