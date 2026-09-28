@@ -26,6 +26,23 @@ def _validate_cypher_identifier(name: str, kind: str = "identifier") -> str:
     return name
 
 
+_MAX_HOPS_CEILING = 15
+
+
+def _validate_hop_count(max_hops: object) -> int:
+    """Reject anything that isn't a small positive int before it is
+    f-string-interpolated into a variable-length Cypher path pattern
+    (``[*..{max_hops}]``) -- unlike every other dynamic value in this
+    module, a path length has no bound-parameter form in Cypher, so a
+    caller passing an unvalidated string here would be a query-injection
+    vector the moment this is wired to any real caller."""
+    if isinstance(max_hops, bool) or not isinstance(max_hops, int):
+        raise ValueError(f"max_hops must be an int, got {max_hops!r}")
+    if not (1 <= max_hops <= _MAX_HOPS_CEILING):
+        raise ValueError(f"max_hops must be between 1 and {_MAX_HOPS_CEILING}, got {max_hops}")
+    return max_hops
+
+
 class GraphService:
     """Neo4j graph database service for knowledge graph operations.
 
@@ -169,9 +186,10 @@ class GraphService:
             _validate_cypher_identifier(from_key, "property")
             _validate_cypher_identifier(to_type, "label")
             _validate_cypher_identifier(to_key, "property")
+            hops = _validate_hop_count(max_hops)
             query = f"""
                 MATCH path = shortestPath(
-                    (a:{from_type} {{{from_key}: $from_value}})-[*..{max_hops}]
+                    (a:{from_type} {{{from_key}: $from_value}})-[*..{hops}]
                         -(b:{to_type} {{{to_key}: $to_value}})
                 )
                 RETURN [node IN nodes(path) |

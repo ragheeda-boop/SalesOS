@@ -3819,3 +3819,20 @@ Full evidence: `project-audit/158_KAFKA_CONSUMER_AGGREGATE_ID_LOSS_2026-09-28.md
 | Loop status | **CONTINUING** | Pivoting to a fresh file family/methodology: unreviewed `sdk/` subdirectories, or a report-98-style raw-SQL sweep restricted to files added since that report's original run (fact ledger, provider spend, Agent Reach, MA-proposal-staging, Phase 7 review queue). |
 
 Full evidence: `project-audit/159_SDK_EVENTS_SWEEP_COMPLETE_2026-09-28.md`.
+
+---
+
+## 201. Session Summary (2026-09-28) — `sdk/pagination.py` confirmed clean; `sdk/graph.py::shortest_path()`'s unvalidated `max_hops` hardened
+
+| Action | Result | Details |
+|---|:---:|---|
+| `sdk/pagination.py` | **CLEAN** | Re-checked all 6 current `build_keyset_condition()` call sites (`Company`/`User`/`EmployeeSignalModel`) — each confirmed to have a genuinely UUID primary key (`BaseModel.id: PG_UUID`, `EmployeeSignalModel.id: UUID`), matching the helper's `UUID(cursor_id)` assumption. No bug. |
+| Gap found | **FIXED** | `sdk/graph.py::shortest_path()` interpolates `max_hops` directly into Cypher's `[*..N]` variable-length path syntax (no bound-parameter form exists for this in Cypher) with zero validation — unlike every other dynamic value in the file (labels/rel-types/property keys), all of which already go through `_validate_cypher_identifier()`. A caller passing an unvalidated string would land it verbatim in the query text the moment this module is ever wired to a real caller. |
+| Reachability | **Dead today, deliberately parked** | `GraphService` has zero live callers (`app/startup.py`'s one apparent hit is an unrelated, differently-named class in a confirmed-dead file). Consistent with ADR-108's explicit "keep Neo4j offline" decision (AGENTS.md §10) — hardened ahead of any future wiring decision, not proposing to activate it. |
+| Fix | **New `_validate_hop_count()`** | Rejects non-`int` (incl. `bool`, a subclass of `int`) and out-of-range (bounded `1..15`) values before query construction, mirroring the file's existing `_validate_cypher_identifier()` pattern. |
+| Verification | **Genuine red→green** | New `tests/unit/test_graph_service.py` (14 tests, fake Neo4j driver, zero prior coverage existed for this file) proves a malicious `max_hops` never reaches `.run()` at all, and a valid one is correctly interpolated. Scoped `git stash` of only `graph.py` reproduced the exact predicted `ImportError` (function didn't exist yet); restored, 14/14 PASS. |
+| Regression | **14/14 PASS** | Ruff caught one unused import in the new test file mid-verification (fixed, 0 findings after). `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed. No gate closed. Does not challenge ADR-108. |
+| Loop status | **CONTINUING under the 24-hour authorization** | Next: `sdk/search.py` (flagged with DB-touching indicators in the initial scan); `sdk/queue.py`/`sdk/vector.py`/`sdk/telemetry.py` showed no such indicators and are lower priority. |
+
+Full evidence: `project-audit/160_GRAPH_SERVICE_HOP_COUNT_INJECTION_2026-09-28.md`.
