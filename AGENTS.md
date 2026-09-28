@@ -3806,3 +3806,16 @@ Full evidence: `project-audit/157_INTELLIGENCE_MEMORY_DEAD_CODE_PHANTOM_TABLE_20
 | Loop status | **CONTINUING under the 24-hour authorization** | Closes report 155's planned `sdk/events/` sweep (`outbox.py` → report 156, `kafka_consumer.py` → this report). Remaining: a full re-read of `sdk/events/store.py` to confirm no additional bug independent of its already-known DEC-156 schema-registration governance question (separate from the GUC-pinning fix DEC-157/report 114 already applied there), then pivoting to a fresh file family or methodology. |
 
 Full evidence: `project-audit/158_KAFKA_CONSUMER_AGGREGATE_ID_LOSS_2026-09-28.md`.
+
+---
+
+## 200. Session Summary (2026-09-28) — `sdk/events/store.py` confirmed clean, live; `sdk/events/` sweep closed
+
+| Action | Result | Details |
+|---|:---:|---|
+| `store.py` (`PostgresEventStore`) | **CLEAN, live** | `_row_to_event()` matches `domain_events`'s columns and `DomainEvent`'s fields exactly; every raw SQL uses `CAST(:x AS type)` correctly; `_pin_tenant_guc()` correctly called before all 3 operations (matching DEC-157/report 114's remediation); `read_by_type()` already requires `tenant_id` (matching report 105/DEC-157's dead-code ruling). Confirmed live via `runtime/event_runtime/__init__.py`, which `app/boot/startup.py` constructs at boot as the default (non-Kafka) event bus path. |
+| `sdk/events/` sweep | **CLOSED** | `outbox.py` (2 bugs, report 156) + `kafka_consumer.py` (1 bug, report 158) + `store.py` (clean, this report) — plus report 155's earlier `icp_persistence.py`/`relationships/store.py`. Closes the candidate list from report 155's broadened search pattern. |
+| Production / Phase 7 | **UNCHANGED** | No files changed. No gate closed. |
+| Loop status | **CONTINUING** | Pivoting to a fresh file family/methodology: unreviewed `sdk/` subdirectories, or a report-98-style raw-SQL sweep restricted to files added since that report's original run (fact ledger, provider spend, Agent Reach, MA-proposal-staging, Phase 7 review queue). |
+
+Full evidence: `project-audit/159_SDK_EVENTS_SWEEP_COMPLETE_2026-09-28.md`.
