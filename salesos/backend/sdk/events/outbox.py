@@ -362,9 +362,18 @@ class OutboxRelay:
             if cid:
                 headers.append(("correlation_id", str(cid).encode("utf-8")))
 
+            # The wrapped AIOKafkaProducer is constructed with a value_serializer
+            # (json.dumps(...).encode("utf-8")) in kafka_producer.py — it is applied
+            # unconditionally inside aiokafka's own send()/_serialize(). Passing an
+            # already-JSON-encoded bytes object here as `value=` gets serialized a
+            # SECOND time (json.dumps() of a bytes object, via its default=str
+            # fallback), corrupting every message: real consumers would receive the
+            # Python repr() of the intended payload as a quoted JSON string, not the
+            # payload itself. Pass the raw dict and let the configured serializer run
+            # exactly once, matching KafkaProducer.publish()'s own value=event.to_dict().
             await self._producer._producer.send(
                 topic,
-                value=json.dumps(payload, default=str).encode("utf-8"),
+                value=payload,
                 headers=headers,
                 key=entry.key.encode("utf-8") if entry.key else None,
             )

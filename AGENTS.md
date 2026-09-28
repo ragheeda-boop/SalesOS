@@ -3754,3 +3754,21 @@ Full evidence: `project-audit/154_DECISION_CENTER_REACHABILITY_CORRECTION_2026-0
 | Loop status | **CONTINUING** | Third consecutive clean result after the high-yield `postgres_repositories.py` sweep — searching for further unchecked domain-contract/DB-model files. |
 
 Full evidence: `project-audit/155_ICP_AND_RELATIONSHIPS_PERSISTENCE_CLEAN_2026-09-27.md`.
+
+---
+
+## 197. Session Summary (2026-09-28) — `OutboxRelay._deliver_one()`: every relayed message's payload was double-serialized (dead code today, guaranteed corruption on wiring)
+
+| Action | Result | Details |
+|---|:---:|---|
+| `EventOutbox` CRUD | **CLEAN** | `_row_to_entry()` matches `fetch_pending()`'s 12-column select exactly; no `:name::type` bind-scanner risk (pure SQLAlchemy Core, no raw `text()`); no tenant/RLS gap (`event_outbox` is deliberately a platform-wide queue, no `tenant_id` column). |
+| Bug found | **FIXED** | `_deliver_one()` pre-encoded the payload (`json.dumps(payload).encode("utf-8")`) before passing it as `value=` to the real `AIOKafkaProducer.send()` — but that producer is constructed with its own `value_serializer` (`kafka_producer.py`), which aiokafka's `_serialize()` applies **unconditionally**. The already-bytes value got serialized a second time; `json.dumps()`'s `default=str` fallback on a `bytes` object emits the Python **repr** of the bytes, so every real consumer would receive a bare JSON string containing the escaped repr of the intended payload — not the payload. Confirmed directly against the installed aiokafka source and reproduced with a standalone repro before touching any code. |
+| Reachability | **Dead today, guaranteed on wiring** | `OutboxRelay`/`set_outbox_relay()` have zero call sites anywhere outside `sdk/events/`. `KafkaEventBus` is genuinely instantiated at boot (`app/boot/startup.py:86`, live), but `_init_event_runtime()` never calls `set_outbox_relay()`, so `self._relay` stays `None` forever and the outbox `publish()` branch can never trigger. Fixed anyway per the established "correct dead code ahead of future wiring" precedent (reports 121/123/126/127/130/131/135) — this bug is unconditional, not merely unwired. |
+| Why uncaught | **Existing test mocks past it** | `test_outbox.py::test_relay_publishes_pending_events` only asserts `producer._producer.send.called` against an `AsyncMock` — no real serializer ever runs, so a format bug in `value=`'s content is structurally invisible to it. |
+| Fix | **One line** | Pass the raw `payload` dict, letting the configured serializer run exactly once — matching the already-correct sibling pattern in the same codebase (`KafkaProducer.publish()`'s `value=event.to_dict()`). `key=` was unaffected (no `key_serializer` configured). |
+| Verification | **Genuine red→green** | New `tests/unit/test_outbox_relay_value_serialization.py` captures the raw `value=` `_deliver_one()` passes, then applies the exact same `value_serializer` lambda `kafka_producer.py` configures aiokafka with — reproducing real wire behavior without a live broker. Scoped `git stash` of only `outbox.py` reproduced the exact predicted corrupted string; restored, PASS. |
+| Regression | **21/21 PASS** | Existing `test_outbox.py` (20) + new test, unaffected. Ruff (E4/E7/E9/F/I): 0 findings on both files. `compileall`/`git diff --check` clean. |
+| Production / Phase 7 | **UNCHANGED** | No database or container needed for this fix (pure serialization logic, verified at unit level). No gate closed. |
+| Loop status | **CONTINUING under the 24-hour authorization** | First real bug from the broadened `sdk/events/` sweep after `icp_persistence.py`/`relationships/store.py` came back clean (report 155). Remaining: `sdk/events/kafka_consumer.py`; re-verify `sdk/events/store.py` (presumed already covered by DEC-157/report 114, not yet re-confirmed this segment); then write up the already-concluded `intelligence/memory/postgres_store.py` finding (dead code, phantom `episodic_memory` table, superseded by the live `app/modules/tenant_studio/postgres_ai_memory_store.py`) as the next report. |
+
+Full evidence: `project-audit/156_OUTBOX_RELAY_DOUBLE_SERIALIZATION_2026-09-28.md`.
