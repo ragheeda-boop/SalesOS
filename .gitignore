@@ -119,7 +119,11 @@ batches.txt
 output_check.txt
 
 # data directory (root + moved under packages/)
+# The bare `data/` name also matches product routes at
+# salesos/frontend/src/app/v3/data/. Re-include only that tree.
 data/
+!salesos/frontend/src/app/v3/data/
+!salesos/frontend/src/app/v3/data/**
 packages/data/
 
 # Credential / sensitive files (not tracked, guard against accidental commit)
