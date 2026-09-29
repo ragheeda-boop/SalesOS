@@ -23,7 +23,6 @@ env:
 permissions:
   contents: read
   security-events: write
-  packages: write
 
 jobs:
   # ──────────────────────────────────────────────
@@ -245,13 +244,36 @@ jobs:
           name: frontend-coverage
           path: salesos/frontend/coverage/
 
+  test-platform-lab:
+    name: "Stage 3: Decision/Agents Lab Tests"
+    runs-on: ubuntu-latest
+    needs: [lint-frontend, typecheck-frontend]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: salesos/frontend/package-lock.json
+      - name: Install frontend toolchain
+        run: cd salesos/frontend && npm ci --no-audit --no-fund
+      - name: Run Decision and Agents lab tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          JEST="$GITHUB_WORKSPACE/salesos/frontend/node_modules/.bin/jest"
+          cd "$GITHUB_WORKSPACE/salesos/packages/platform/decision"
+          "$JEST" --config jest.config.js --runInBand
+          cd "$GITHUB_WORKSPACE/salesos/packages/platform/agents"
+          "$JEST" --config jest.config.js --runInBand
+
   # ──────────────────────────────────────────────
   # Stage 4: Integration Tests
   # ──────────────────────────────────────────────
   integration-backend:
     name: "Stage 4: Integration Tests"
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
+    needs: [test-backend, test-frontend, test-platform-lab]
     env:
       # CI-only placeholders (>=32 chars). Required by Settings when alembic/env imports app.config.
       SECRET_KEY: ci-unit-test-secret-key-do-not-use-in-prod
@@ -528,12 +550,9 @@ jobs:
           path: salesos/reports/arch-compliance-report.json
 
   # ──────────────────────────────────────────────
-  # Stage 6: Build + GHCR Push — QUARANTINED (DEC-150 Option B)
-  # GHCR publish is no longer a required Phase 0 capability after DEC-149
-  # (canonical deploy = Railway BE + Vercel FE). Jobs kept for historical /
-  # emergency reference only; forced inactive via `if: false` (same pattern
-  # family as K8s deploy-production.yml quarantine). Do not remove Stages 1–5.
-  # To re-enable: ARB must reverse DEC-150 B and restore Phase 0 GHCR AC.
+  # Stage 6: Build
+  # Backend image publication remains quarantined under DEC-150 Option B.
+  # Frontend is build-only here; image publication remains in deploy workflows.
   # ──────────────────────────────────────────────
   build-backend:
     name: "Stage 6: Build Backend (QUARANTINED DEC-150 B)"
@@ -541,6 +560,7 @@ jobs:
     needs:
       - test-backend
       - test-frontend
+      - test-platform-lab
       - integration-backend
       - security-pip-audit
       - security-npm-audit
@@ -587,11 +607,11 @@ jobs:
           sbom: true
 
   build-frontend:
-    name: "Stage 6: Build Frontend (QUARANTINED DEC-150 B)"
-    if: false
+    name: "Stage 6: Build Frontend"
     needs:
       - test-backend
       - test-frontend
+      - test-platform-lab
       - integration-backend
       - security-pip-audit
       - security-npm-audit
@@ -602,15 +622,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set image tag
         id: meta
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
@@ -622,15 +635,14 @@ jobs:
           restore-keys: docker-frontend-${{ runner.os }}-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-      - name: Build and push frontend
+      - name: Build frontend
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           context: ./salesos/frontend
           file: ./salesos/frontend/Dockerfile
-          push: true
+          push: false
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ steps.meta.outputs.tag }}
+            salesos/frontend:${{ steps.meta.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
           platforms: linux/amd64
@@ -642,7 +654,7 @@ jobs:
   # Criterion 3.7 evidence path is the standalone workflow (own concurrency,
   # cancel-in-progress: false). Keep this job skipped so docs pushes cannot
   # cancel Stages 1–5 via a long E2E job on the same ci.yml group.
-  # Stage 6 stays quarantined (DEC-150 B). Do not un-quarantine GHCR.
+  # Stage 6 is build-only; image publication remains in deploy workflows.
   # ──────────────────────────────────────────────
   e2e:
     name: "Stage 7: E2E Tests (see e2e-stage7.yml)"
@@ -650,6 +662,7 @@ jobs:
     needs:
       - test-backend
       - test-frontend
+      - test-platform-lab
       - integration-backend
       - security-pip-audit
       - security-npm-audit
@@ -828,6 +841,7 @@ jobs:
       - typecheck-frontend
       - test-backend
       - test-frontend
+      - test-platform-lab
       - integration-backend
       - security-pip-audit
       - security-npm-audit
@@ -852,6 +866,7 @@ jobs:
           echo "| 2 Types | typecheck-frontend | ${{ needs.typecheck-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 3 Unit Tests | test-backend | ${{ needs.test-backend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 3 Unit Tests | test-frontend | ${{ needs.test-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 3 Unit Tests | test-platform-lab | ${{ needs.test-platform-lab.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 4 Integration | integration-backend | ${{ needs.integration-backend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 5 Security | pip-audit | ${{ needs.security-pip-audit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 5 Security | npm-audit | ${{ needs.security-npm-audit.result }} |" >> $GITHUB_STEP_SUMMARY
@@ -867,6 +882,7 @@ jobs:
           needs.lint-backend.result == 'failure' ||
           needs.typecheck-backend.result == 'failure' ||
           needs.test-backend.result == 'failure' ||
+          needs.test-platform-lab.result == 'failure' ||
           needs.integration-backend.result == 'failure' ||
           needs.security-secrets-scan.result == 'failure' ||
           needs.test-architecture.result == 'failure' ||
