@@ -4059,3 +4059,18 @@ Full evidence: `project-audit/171_MASTER_DATA_APPEND_ONLY_TEST_BASELINE_FIX_2026
 | P2 | CI/suite owners: re-point any remaining DI-estimate constants (usable/ready triage) before production | Eng |
 
 Full evidence: `project-audit/172_PHASE7_GATE_CAPTURE_APPLIED_AND_BASELINE_REALIGNED_2026-09-28.md`.
+
+---
+
+## 215. Session Summary (2026-09-29) — Full loop execution: Decision/Agents lab repaired, frontend CI/build gate restored, loaded Jest flake closed
+
+| Action | Result | Details |
+|---|:---:|---|
+| Decision/Agents lab boundary | **FIXED** | Added `salesos/packages/platform/agents/decisionHttp.ts` for the alternate `/api/v1/decision/evaluate` path; durable Decision Center `/api/v1/decisions*` remains unchanged. |
+| Lab regression suite | **PASS** | Decision 120/120 and Agents 38/38; standalone TypeScript checks both exit 0. |
+| Loaded frontend Jest flake | **FIXED + VERIFIED** | Review/task option tests now wait explicitly for async query data; full parallel run 335 suites passed / 2,691 passed / 1 skipped / 0 failed. |
+| Frontend build/lint/format | **PASS** | Docker Next build: 120/120 static pages, 138 routes; lint clean; frontend `src` Prettier check clean. |
+| CI | **UPDATED** | Frontend Stage 6 is active build-only (`push: false`); Decision/Agents lab is a Stage 3 job and is wired into downstream gates. Backend image publication remains quarantined. |
+| Production safety | **UNCHANGED** | No production writes, deploy, commit, or push; G8 remains NOT OPEN and Phase 7 human gates remain. |
+
+Full evidence: `project-audit/174_FULL_LOOP_EXECUTION_2026-09-29.md`.
