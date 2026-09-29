@@ -1,97 +1,167 @@
 import type {
   DecisionContext,
+  EvidenceKind,
   EvidenceItem,
   EvidenceType,
-} from '../contracts/index'
+} from "../contracts/index";
 
 export interface EvidenceProvider {
-  name: string
-  confidence: number
-  freshnessMax: number
+  name: string;
+  confidence: number;
+  freshnessMax: number;
 }
 
 export interface EvidenceSource {
-  type: EvidenceType
-  provider: EvidenceProvider
-  data: Record<string, unknown>[]
+  type: EvidenceType;
+  provider: EvidenceProvider;
+  data: Record<string, unknown>[];
 }
 
 export interface EvidenceCollectionResult {
-  items: EvidenceItem[]
-  deduplicated: number
-  totalSources: number
-  averageConfidence: number
-  collectionTimeMs: number
+  items: EvidenceItem[];
+  deduplicated: number;
+  totalSources: number;
+  averageConfidence: number;
+  evidenceStrength: number;
+  collectionTimeMs: number;
+}
+
+const EVIDENCE_WEIGHTS: Record<EvidenceKind, number> = {
+  "source.official_registry": 0.98,
+  "source.cr_number_exact_match": 0.95,
+  "source.license_verified": 0.9,
+  "source.entity_resolution_merge": 0.85,
+  "crm.email_signature": 0.8,
+  "crm.meeting_attendance": 0.7,
+  "crm.system_of_record": 0.55,
+  "web.government_source": 0.65,
+  "web.cited_claim": 0.4,
+  "source.name_match_only": 0.35,
+  "source.employer_match_only": 0.2,
+  contradiction: 0,
+};
+
+const PRIMARY_EVIDENCE_KINDS = new Set<EvidenceKind>([
+  "source.official_registry",
+  "source.cr_number_exact_match",
+  "source.license_verified",
+  "source.entity_resolution_merge",
+  "crm.email_signature",
+  "crm.meeting_attendance",
+  "web.government_source",
+]);
+
+export interface EvidenceStrengthResult {
+  score: number;
+  uncappedScore: number;
+  contradictionPresent: boolean;
+  primarySourceCount: number;
+  evidenceCount: number;
+}
+
+/** Noisy-OR evidence strength from ADR-0113; provider confidence is ignored. */
+export function scoreEvidenceStrength(
+  items: EvidenceItem[],
+): EvidenceStrengthResult {
+  const unique = new Map<string, EvidenceItem>();
+  for (const item of items) {
+    if (!item.evidenceKind) continue;
+    const key = `${item.sourceId || `unkeyed:${item.id}`}::${item.evidenceKind}`;
+    if (!unique.has(key)) unique.set(key, item);
+  }
+  const classified = Array.from(unique.values());
+  const remaining = classified.reduce(
+    (product, item) => product * (1 - EVIDENCE_WEIGHTS[item.evidenceKind!]),
+    1,
+  );
+  const uncappedScore = 1 - remaining;
+  const contradictionPresent = classified.some(
+    (item) => item.evidenceKind === "contradiction",
+  );
+  const primarySourceCount = new Set(
+    classified
+      .filter((item) => PRIMARY_EVIDENCE_KINDS.has(item.evidenceKind!))
+      .map((item) => item.sourceId || `unkeyed:${item.id}`),
+  ).size;
+  const cappedScore = Math.min(0.99, uncappedScore);
+  return {
+    score:
+      Math.round(
+        Math.min(contradictionPresent ? 0.45 : 0.99, cappedScore) * 1000,
+      ) / 1000,
+    uncappedScore: Math.round(uncappedScore * 1000) / 1000,
+    contradictionPresent,
+    primarySourceCount,
+    evidenceCount: classified.length,
+  };
 }
 
 const BUILTIN_PROVIDERS: Record<string, EvidenceProvider> = {
-  signals: { name: 'signals', confidence: 0.85, freshnessMax: 24 },
-  company_dna: { name: 'company_dna', confidence: 0.90, freshnessMax: 24 },
-  timeline: { name: 'timeline', confidence: 0.80, freshnessMax: 1 },
-  search: { name: 'search', confidence: 0.75, freshnessMax: 1 },
-  documents: { name: 'documents', confidence: 0.85, freshnessMax: 24 },
-}
+  signals: { name: "signals", confidence: 0.85, freshnessMax: 24 },
+  company_dna: { name: "company_dna", confidence: 0.9, freshnessMax: 24 },
+  timeline: { name: "timeline", confidence: 0.8, freshnessMax: 1 },
+  search: { name: "search", confidence: 0.75, freshnessMax: 1 },
+  documents: { name: "documents", confidence: 0.85, freshnessMax: 24 },
+};
 
-const EVIDENCE_TYPE_PROVIDER_MAP: Record<EvidenceType, string> = {
-  signal: 'signals',
-  document: 'documents',
-  timeline: 'timeline',
-  dna: 'company_dna',
-  meeting: 'timeline',
-  email: 'timeline',
-  search: 'search',
-  government: 'signals',
-}
+const EVIDENCE_TYPE_PROVIDER_MAP: Partial<Record<EvidenceType, string>> = {
+  signal: "signals",
+  document: "documents",
+  timeline: "timeline",
+  dna: "company_dna",
+  meeting: "timeline",
+  email: "timeline",
+  search: "search",
+  government: "signals",
+};
 
-const PROVIDER_TO_TYPES: Record<string, EvidenceType[]> = {}
-for (const [evidenceType, providerKey] of Object.entries(EVIDENCE_TYPE_PROVIDER_MAP)) {
+const PROVIDER_TO_TYPES: Record<string, EvidenceType[]> = {};
+for (const [evidenceType, providerKey] of Object.entries(
+  EVIDENCE_TYPE_PROVIDER_MAP,
+)) {
   if (!PROVIDER_TO_TYPES[providerKey]) {
-    PROVIDER_TO_TYPES[providerKey] = []
+    PROVIDER_TO_TYPES[providerKey] = [];
   }
-  PROVIDER_TO_TYPES[providerKey].push(evidenceType as EvidenceType)
+  PROVIDER_TO_TYPES[providerKey].push(evidenceType as EvidenceType);
 }
 
 function generateId(): string {
-  return 'evt_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
+  return (
+    "evt_" + Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
+  );
 }
 
 function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, ' ')
+  return text.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
 function freshnessHours(timestamp: string): number {
-  const now = Date.now()
-  const then = new Date(timestamp).getTime()
-  return (now - then) / (1000 * 60 * 60)
+  const now = Date.now();
+  const then = new Date(timestamp).getTime();
+  return (now - then) / (1000 * 60 * 60);
 }
 
 function freshnessLabel(hours: number): string {
-  if (hours < 1) return 'fresh'
-  if (hours < 24) return 'recent'
-  if (hours < 168) return 'stale'
-  return 'expired'
+  if (hours < 1) return "fresh";
+  if (hours < 24) return "recent";
+  if (hours < 168) return "stale";
+  return "expired";
 }
 
-function computeFreshness(
-  timestamp: string,
-  freshnessMax: number,
-): string {
-  const hours = freshnessHours(timestamp)
+function computeFreshness(timestamp: string, freshnessMax: number): string {
+  const hours = freshnessHours(timestamp);
   if (hours > freshnessMax) {
-    return 'expired'
+    return "expired";
   }
-  return freshnessLabel(hours)
+  return freshnessLabel(hours);
 }
 
 function isStale(timestamp: string, freshnessMax: number): boolean {
-  return freshnessHours(timestamp) > freshnessMax
+  return freshnessHours(timestamp) > freshnessMax;
 }
 
 function normalizeConfidence(confidence: number): number {
-  return Math.max(0, Math.min(1, Math.round(confidence * 100) / 100))
+  return Math.max(0, Math.min(1, Math.round(confidence * 100) / 100));
 }
 
 function extractEvidenceFromRecord(
@@ -104,46 +174,54 @@ function extractEvidenceFromRecord(
     (record.summary as string) ||
     (record.title as string) ||
     (record.text as string) ||
-    `${type} evidence`
-  const source =
-    (record.source as string) || provider.name
+    `${type} evidence`;
+  const source = (record.source as string) || provider.name;
+  const sourceId =
+    (record.source_id as string) || (record.sourceId as string) || undefined;
   const timestamp =
     (record.timestamp as string) ||
     (record.date as string) ||
     (record.created_at as string) ||
-    new Date().toISOString()
-  const severity =
-    (record.severity as EvidenceItem['severity']) || undefined
-  const url =
-    (record.url as string) || (record.link as string) || undefined
+    new Date().toISOString();
+  const severity = (record.severity as EvidenceItem["severity"]) || undefined;
+  const url = (record.url as string) || (record.link as string) || undefined;
+  const rawEvidenceKind = record.evidence_kind || record.evidenceKind;
+  const evidenceKind =
+    typeof rawEvidenceKind === "string" &&
+    Object.prototype.hasOwnProperty.call(EVIDENCE_WEIGHTS, rawEvidenceKind)
+      ? (rawEvidenceKind as EvidenceKind)
+      : undefined;
 
-  let confidence = provider.confidence
+  let confidence = provider.confidence;
   if (record.confidence !== undefined) {
-    confidence = Number(record.confidence) || provider.confidence
+    confidence = Number(record.confidence) || provider.confidence;
   }
-  confidence = normalizeConfidence(confidence)
+  confidence = normalizeConfidence(confidence);
 
   if (isStale(timestamp, provider.freshnessMax)) {
-    confidence = normalizeConfidence(confidence * 0.5)
+    confidence = normalizeConfidence(confidence * 0.5);
   }
 
-  const data: Record<string, unknown> = {}
+  const data: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(record)) {
     if (
-      key !== 'description' &&
-      key !== 'summary' &&
-      key !== 'title' &&
-      key !== 'text' &&
-      key !== 'source' &&
-      key !== 'timestamp' &&
-      key !== 'date' &&
-      key !== 'created_at' &&
-      key !== 'severity' &&
-      key !== 'url' &&
-      key !== 'link' &&
-      key !== 'confidence'
+      key !== "description" &&
+      key !== "summary" &&
+      key !== "title" &&
+      key !== "text" &&
+      key !== "source" &&
+      key !== "timestamp" &&
+      key !== "date" &&
+      key !== "created_at" &&
+      key !== "severity" &&
+      key !== "url" &&
+      key !== "link" &&
+      key !== "confidence" &&
+      key !== "source_id" &&
+      key !== "evidence_kind" &&
+      key !== "evidenceKind"
     ) {
-      data[key] = value
+      data[key] = value;
     }
   }
 
@@ -152,45 +230,47 @@ function extractEvidenceFromRecord(
     type,
     description,
     source,
+    ...(sourceId && { sourceId }),
     confidence,
+    ...(evidenceKind && { evidenceKind }),
     freshness: computeFreshness(timestamp, provider.freshnessMax),
     timestamp,
     ...(severity !== undefined && { severity }),
     ...(url !== undefined && { url }),
     ...(Object.keys(data).length > 0 && { data }),
-  }
+  };
 }
 
 function deduplicate(items: EvidenceItem[]): {
-  items: EvidenceItem[]
-  removed: number
+  items: EvidenceItem[];
+  removed: number;
 } {
-  const map = new Map<string, EvidenceItem>()
+  const map = new Map<string, EvidenceItem>();
 
   for (const item of items) {
-    const key = `${item.type}::${normalizeText(item.description)}`
-    const existing = map.get(key)
+    const key = `${item.type}::${normalizeText(item.description)}`;
+    const existing = map.get(key);
 
     if (!existing || item.confidence > existing.confidence) {
-      map.set(key, item)
+      map.set(key, item);
     }
   }
 
   return {
     items: Array.from(map.values()),
     removed: items.length - map.size,
-  }
+  };
 }
 
 function rankByConfidence(items: EvidenceItem[]): EvidenceItem[] {
-  return [...items].sort((a, b) => b.confidence - a.confidence)
+  return [...items].sort((a, b) => b.confidence - a.confidence);
 }
 
 export class EvidenceEngine {
-  private store = new Map<string, EvidenceItem[]>()
+  private store = new Map<string, EvidenceItem[]>();
 
   private tenantKey(tenantId: string, entityId: string): string {
-    return `${tenantId}::${entityId}`
+    return `${tenantId}::${entityId}`;
   }
 
   private storeItems(
@@ -198,34 +278,38 @@ export class EvidenceEngine {
     entityId: string,
     items: EvidenceItem[],
   ): void {
-    const key = this.tenantKey(tenantId, entityId)
-    const existing = this.store.get(key) || []
-    this.store.set(key, [...existing, ...items])
+    const key = this.tenantKey(tenantId, entityId);
+    const existing = this.store.get(key) || [];
+    this.store.set(key, [...existing, ...items]);
   }
 
   async collect(
     context: DecisionContext,
     sources?: EvidenceSource[],
   ): Promise<EvidenceCollectionResult> {
-    const start = Date.now()
-    const tenantId = context.tenantId
-    const entityId = context.entityId || context.companyId || context.opportunityId || 'unknown'
+    const start = Date.now();
+    const tenantId = context.tenantId;
+    const entityId =
+      context.entityId ||
+      context.companyId ||
+      context.opportunityId ||
+      "unknown";
 
-    const allItems: EvidenceItem[] = []
-    let totalSources = 0
+    const allItems: EvidenceItem[] = [];
+    let totalSources = 0;
 
     if (sources && sources.length > 0) {
       for (const source of sources) {
-        totalSources++
+        totalSources++;
         for (const record of source.data) {
           allItems.push(
             extractEvidenceFromRecord(record, source.type, source.provider),
-          )
+          );
         }
       }
     } else {
       for (const [providerKey, provider] of Object.entries(BUILTIN_PROVIDERS)) {
-        const matchingTypes = PROVIDER_TO_TYPES[providerKey] ?? []
+        const matchingTypes = PROVIDER_TO_TYPES[providerKey] ?? [];
 
         for (const evidenceType of matchingTypes) {
           const sourceRecord: Record<string, unknown> = {
@@ -234,19 +318,19 @@ export class EvidenceEngine {
             timestamp: new Date().toISOString(),
             confidence: provider.confidence,
             ...(context.metadata || {}),
-          }
-          totalSources++
+          };
+          totalSources++;
           allItems.push(
             extractEvidenceFromRecord(sourceRecord, evidenceType, provider),
-          )
+          );
         }
       }
     }
 
-    const { items: deduped, removed } = deduplicate(allItems)
-    const ranked = rankByConfidence(deduped)
+    const { items: deduped, removed } = deduplicate(allItems);
+    const ranked = rankByConfidence(deduped);
 
-    this.storeItems(tenantId, entityId, ranked)
+    this.storeItems(tenantId, entityId, ranked);
 
     const avgConfidence =
       ranked.length > 0
@@ -254,15 +338,17 @@ export class EvidenceEngine {
             ranked.reduce((sum, item) => sum + item.confidence, 0) /
               ranked.length,
           )
-        : 0
+        : 0;
+    const evidenceStrength = scoreEvidenceStrength(ranked).score;
 
     return {
       items: ranked,
       deduplicated: removed,
       totalSources,
       averageConfidence: avgConfidence,
+      evidenceStrength,
       collectionTimeMs: Date.now() - start,
-    }
+    };
   }
 
   async getRecent(
@@ -270,9 +356,9 @@ export class EvidenceEngine {
     entityId: string,
     limit: number = 50,
   ): Promise<EvidenceItem[]> {
-    const key = this.tenantKey(tenantId, entityId)
-    const items = this.store.get(key) || []
-    const ranked = rankByConfidence(items)
-    return ranked.slice(0, limit)
+    const key = this.tenantKey(tenantId, entityId);
+    const items = this.store.get(key) || [];
+    const ranked = rankByConfidence(items);
+    return ranked.slice(0, limit);
   }
 }

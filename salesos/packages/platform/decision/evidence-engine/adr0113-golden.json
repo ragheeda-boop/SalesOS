@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "empty input",
+      "items": [],
+      "expected": {
+        "score": 0,
+        "uncapped_score": 0,
+        "contradiction_present": false,
+        "primary_source_count": 0,
+        "evidence_count": 0
+      }
+    },
+    {
+      "name": "unclassified evidence is ignored",
+      "items": [
+        { "id": "typed", "source_id": "crm-1", "evidence_kind": "crm.system_of_record", "confidence": 0.99 },
+        { "id": "legacy", "source_id": "registry-1", "confidence": 0.99 }
+      ],
+      "expected": {
+        "score": 0.55,
+        "uncapped_score": 0.55,
+        "contradiction_present": false,
+        "primary_source_count": 0,
+        "evidence_count": 1
+      }
+    },
+    {
+      "name": "same source and kind deduplicate regardless of model confidence",
+      "items": [
+        { "id": "registry-low", "source_id": "registry-1", "evidence_kind": "source.official_registry", "confidence": 0.01 },
+        { "id": "registry-high", "source_id": "registry-1", "evidence_kind": "source.official_registry", "confidence": 0.99 }
+      ],
+      "expected": {
+        "score": 0.98,
+        "uncapped_score": 0.98,
+        "contradiction_present": false,
+        "primary_source_count": 1,
+        "evidence_count": 1
+      }
+    },
+    {
+      "name": "independent primary sources combine and cap at 0.99",
+      "items": [
+        { "id": "registry", "source_id": "registry-1", "evidence_kind": "source.official_registry", "confidence": 0.02 },
+        { "id": "signature", "source_id": "crm-1", "evidence_kind": "crm.email_signature", "confidence": 0.99 }
+      ],
+      "expected": {
+        "score": 0.99,
+        "uncapped_score": 0.996,
+        "contradiction_present": false,
+        "primary_source_count": 2,
+        "evidence_count": 2
+      }
+    },
+    {
+      "name": "contradiction applies the 0.45 cap",
+      "items": [
+        { "id": "registry", "source_id": "registry-1", "evidence_kind": "source.official_registry", "confidence": 0.99 },
+        { "id": "conflict", "source_id": "audit-1", "evidence_kind": "contradiction", "confidence": 0.99 }
+      ],
+      "expected": {
+        "score": 0.45,
+        "uncapped_score": 0.98,
+        "contradiction_present": true,
+        "primary_source_count": 1,
+        "evidence_count": 2
+      }
+    },
+    {
+      "name": "different primary kinds from one source count as one primary source",
+      "items": [
+        { "id": "registry", "source_id": "source-1", "evidence_kind": "source.official_registry", "confidence": 0.9 },
+        { "id": "government", "source_id": "source-1", "evidence_kind": "web.government_source", "confidence": 0.1 }
+      ],
+      "expected": {
+        "score": 0.99,
+        "uncapped_score": 0.993,
+        "contradiction_present": false,
+        "primary_source_count": 1,
+        "evidence_count": 2
+      }
+    },
+    {
+      "name": "records without source ids remain independent by evidence id",
+      "items": [
+        { "id": "record-1", "evidence_kind": "source.official_registry", "confidence": 0.5 },
+        { "id": "record-2", "evidence_kind": "source.official_registry", "confidence": 0.5 }
+      ],
+      "expected": {
+        "score": 0.99,
+        "uncapped_score": 1.0,
+        "contradiction_present": false,
+        "primary_source_count": 2,
+        "evidence_count": 2
+      }
+    },
+    {
+      "name": "records without source ids deduplicate by evidence id and kind",
+      "items": [
+        { "id": "record-1", "evidence_kind": "source.official_registry", "confidence": 0.1 },
+        { "id": "record-1", "evidence_kind": "source.official_registry", "confidence": 0.9 }
+      ],
+      "expected": {
+        "score": 0.98,
+        "uncapped_score": 0.98,
+        "contradiction_present": false,
+        "primary_source_count": 1,
+        "evidence_count": 1
+      }
+    }
+  ]
+}
