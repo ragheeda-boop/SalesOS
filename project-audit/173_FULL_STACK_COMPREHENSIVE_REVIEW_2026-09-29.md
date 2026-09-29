@@ -17,8 +17,11 @@ mutations; no fabricated rows; no external API calls).
 | Backend unit suite (full) | **PASS** | `3869 passed, 4 skipped, 6 xfailed, 4 xpassed` in 80.70s — **0 failed** |
 | Phase 6 unit (6 modules) | **PASS** | 91 tests within the 121-test run |
 | Phase 7 integration | **PASS** | `121 passed` (phase6+7 batch) · `22 passed, 1 skipped` (queue) |
-| Frontend typecheck | **PASS** | `tsc --noEmit` → 0 errors |
-| Frontend lint/build | **NOT VERIFIED** | host `node_modules` is partial (see §5) |
+| Frontend typecheck | **PASS** | `tsc --noEmit` → 0 errors (scoped to `salesos/frontend` — see §5.3) |
+| Frontend `next build` | **PASS** | Docker `node:22-alpine`, `next build` exit 0 — `✓ Compiled successfully in 114s`, `✓ Generating static pages (120/120)`, **138 routes** |
+| Frontend ESLint | **PASS** | in-image `npm run lint` → `✔ No ESLint warnings or errors` |
+| Frontend unit tests | **PASS (flaky observed)** | in-image `npm run test` → `335/335 suites, 2691 passed, 1 skipped, 0 failed` (see §5.4) |
+| Frontend Prettier (CI Stage 1) | **FAIL (pre-existing)** | `npx prettier --check 'src/**'` → **243 files** unformatted, all committed, none from this review |
 | DB contract counts | **PASS** | exactly matches the 2026-09-28 baseline |
 | Review queue state | **PASS** | matches gate bookkeeping exactly |
 | RLS | **PASS** | 139/139 RLS+FORCE; the signal path verified live |
@@ -171,17 +174,64 @@ Queue: `P1_CANDIDATE dispositioned 640` · `P3_PAIR pending 2661` ·
 
 ---
 
-## 5. Not verified — and why
+## 5. Frontend verification (closed via Docker) + remaining gaps
 
-- **Frontend `next build` / `next lint`:** the host `node_modules` is
-  incomplete — 581 top-level entries but `react`, `react-dom`, `next`
-  (no `package.json`), `eslint`, `tailwindcss`, `zod` are absent and
-  `node_modules/.bin` is empty. `package.json` is correct, so this is a local
-  install artifact, not a manifest defect. `tsc` (the one tool installed)
-  reports 0 errors. Re-running build/lint requires an approved
-  `npm install` (low-load protocol §3) or the CI pipeline.
-- **Full `phase6_apply`:** last full run (2026-09-28) completed in 796s with
-  `safety={}`; not repeated here because the DB contract proves the result is
+The host `node_modules` is unusable — 581 top-level entries but `react`,
+`react-dom`, `next` (no `package.json`), `eslint`, `tailwindcss`, `zod` are
+absent and `node_modules/.bin` is empty, so `npx` tried to download its own
+`next`. `package.json` is correct, so this is a local install artifact, not a
+manifest defect. Rather than mutate the host, verification ran inside the
+project's own `node:22-alpine` build stage (`fe-verify:build`), which installs
+875 packages from `package-lock.json` — i.e. the same input CI uses.
+
+### 5.1 `next build` — PASS
+`added 875 packages` → `✓ Compiled successfully in 114s` →
+`Linting and checking validity of types` → `✓ Generating static pages (120/120)`
+→ 138 routes (50 under `/v3`), exit 0. Note: the route count is **138, not the
+109 recorded in AGENTS §39** — the app has grown; the older figure is stale.
+
+### 5.2 ESLint — PASS
+`npm run lint` in-image → `✔ No ESLint warnings or errors`. (Next 15 emits a
+deprecation notice for `next lint`; not an error.)
+
+### 5.3 Typecheck scope — corrected claim
+`tsc --noEmit` = 0 errors is real, but it is **scoped to `salesos/frontend`**
+(root `tsconfig.json` `include: ["**/*.ts"]` resolves relative to that
+directory). The parallel agent's 10 TypeScript files live in
+**`salesos/packages/`** — a separate tree with its own `package.json`
+(`@salesos/decision-platform-lab`, `typecheck` + `test` scripts) that the
+frontend tsconfig cannot reach and **no CI workflow references**. An earlier
+statement in this session that typecheck covered those files was wrong and is
+withdrawn: `tsc=0` says nothing about them. `salesos/packages/` also has no CI
+coverage at all.
+
+### 5.4 Frontend unit tests — PASS, with observed flakiness
+- Run 1 (under concurrent load): `2 suites / 3 tests failed` —
+  `create-task-form.test.tsx`, `create-review-form.test.tsx`, both
+  `waitFor` timeouts in `@testing-library/dom`.
+- Run 2 (clean): `335/335 suites, 2691 passed, 1 skipped, 0 failed`.
+
+The same suites pass in isolation and in a clean full run, so these are
+**timing flakes under CPU contention, not defects** — but they will
+intermittently redden CI. The worker also reports
+`A worker process has failed to exit gracefully`, i.e. a teardown/timer leak.
+
+### 5.5 Prettier — FAIL, pre-existing (243 files)
+`npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"` → **243 files**
+unformatted. None of them were modified by this review or by the parallel
+agent (e.g. `src/lib/commands.ts` was last touched in `fb7073d7`). This is a
+**committed-state failure of CI Stage 1**, reproducible and unrelated to
+2026-09-29 work. It is deliberately **not** auto-fixed here: reformatting 243
+files would swamp the audit diff and touch code this review did not examine.
+Decision needed (owner: frontend/PO) — either run `prettier --write` as a
+dedicated formatting commit, or baseline the check.
+
+### 5.6 Still not verified
+- **`salesos/packages/platform/decision` lab twin** — its own `typecheck`/`test`
+  scripts were not run: no `node_modules` there, and no CI job. The 10
+  parallel-agent files remain unverified by any automated gate.
+- **Full `phase6_apply`** — last full run (2026-09-28) completed in 796s with
+  `safety={}`; not repeated because the DB contract proves the result is
   already applied and a re-run is a ~13 minute write pass.
 
 ---
@@ -210,8 +260,16 @@ python -m pytest tests/integration/test_signal_persistence_db.py -q
                                                            # 3 passed
 python scripts/phase7a_backfill_queue_linkage.py         # DRY RUN, 0 writes
 python -m alembic heads                                   # single head a1b2c3d4e5f7
-npx tsc --noEmit                                          # 0 errors
+npx tsc --noEmit                                          # 0 errors (frontend scope)
 psql: contract counts, queue breakdown, pg_class RLS census, live signal-loop probe
+
+# frontend, inside the project's own node:22-alpine build stage
+docker build -f Dockerfile -t salesos-frontend-verify:local .   # next build exit 0
+docker build --target build -f Dockerfile -t fe-verify:build . # tagged build stage
+docker run --rm fe-verify:build npm run lint                    # No ESLint warnings or errors
+docker run --rm fe-verify:build npm run test                    # 335/335 suites, 0 failed
+docker run --rm fe-verify:build npx prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'
+                                                               # 243 files (pre-existing)
 ```
 
 ## 8. Open items (unchanged, not code defects)
@@ -223,3 +281,16 @@ psql: contract counts, queue breakdown, pg_class RLS census, live signal-loop pr
   container-side `alembic` run.
 - `salesos` production `alembic_version` is empty — DevOps/PO decision.
 - `test_fact_proposal_service_db` 401-vs-403 was not re-examined in this pass.
+- **Prettier: 243 committed files unformatted ⇒ CI Stage 1 is red on the
+  current committed state.** Needs a dedicated formatting commit or a
+  baselined check (owner: frontend/PO). See §5.5.
+- **CI Stage 6 "Build Frontend" is disabled with `if: false`** (QUARANTINED
+  DEC-150 B), so `next build` was verified by nobody before this review. Either
+  re-enable it or record that build verification lives only in §5.1.
+- **`salesos/packages/` (decision-platform-lab) has no CI coverage.** Its
+  `typecheck`/`test` scripts are never executed by any workflow, so changes
+  there are unverified by default. See §5.3 / §5.6.
+- Frontend suites flake under CPU contention (`waitFor` timeouts in
+  `create-task-form` / `create-review-form`); a worker also fails to exit
+  cleanly. Worth a `--detectOpenHandles` pass. See §5.4.
+- AGENTS §39's "109 pages" figure is stale — the build emits 138 routes.
