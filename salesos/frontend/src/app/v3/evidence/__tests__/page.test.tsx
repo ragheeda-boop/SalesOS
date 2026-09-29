@@ -26,31 +26,35 @@ describe("Evidence page", () => {
 
   it("shows persisted insight, classified source evidence, and target link", async () => {
     mockList.mockResolvedValue({
-      items: [{
-        id: "insight-1",
-        category: "deal_risk",
-        title: "Stalled deal",
-        description: "No activity recorded in the current stage.",
-        target_id: "deal-1",
-        target_type: "opportunity",
-        overall_confidence: 0.7,
-        confidence_level: "medium",
-        created_at: "2026-09-21T10:00:00+00:00",
-        updated_at: "2026-09-21T10:00:00+00:00",
-        evidence_items: [{
-          id: "evidence-1",
-          evidence_type: "activity_signal",
-          source_domain: "activity",
-          source_type: "table_aggregate",
-          source_id: "activity-1",
-          source_name: "CRM activity",
+      items: [
+        {
+          id: "insight-1",
+          category: "deal_risk",
+          title: "Stalled deal",
           description: "No activity recorded in the current stage.",
-          confidence: 0.6,
+          target_id: "deal-1",
+          target_type: "opportunity",
+          overall_confidence: 0.7,
           confidence_level: "medium",
-          evidence_kind: "crm.system_of_record",
-          recorded_at: "2026-09-21T10:00:00+00:00",
-        }],
-      }],
+          created_at: "2026-09-21T10:00:00+00:00",
+          updated_at: "2026-09-21T10:00:00+00:00",
+          evidence_items: [
+            {
+              id: "evidence-1",
+              evidence_type: "activity_signal",
+              source_domain: "activity",
+              source_type: "table_aggregate",
+              source_id: "activity-1",
+              source_name: "CRM activity",
+              description: "No activity recorded in the current stage.",
+              confidence: 0.6,
+              confidence_level: "medium",
+              evidence_kind: "crm.system_of_record",
+              recorded_at: "2026-09-21T10:00:00+00:00",
+            },
+          ],
+        },
+      ],
       total: 1,
       page: 1,
       page_size: 20,
@@ -85,9 +89,12 @@ describe("Evidence page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply filters" }));
 
     await screen.findByText("No persisted insights");
-    expect(mockList).toHaveBeenLastCalledWith("tenant-1", expect.objectContaining({
-      target_type: "company",
-      target_id: "co-1",
-    }));
+    expect(mockList).toHaveBeenLastCalledWith(
+      "tenant-1",
+      expect.objectContaining({
+        target_type: "company",
+        target_id: "co-1",
+      })
+    );
   });
 });

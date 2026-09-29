@@ -6,8 +6,13 @@ import api from "@/lib/api";
 import { Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
 import { useTenant } from "@/lib/hooks/useTenant";
 import {
-  CheckCircle2, Plus, Filter, RefreshCw,
-  Building2, Handshake, Calendar
+  CheckCircle2,
+  Plus,
+  Filter,
+  RefreshCw,
+  Building2,
+  Handshake,
+  Calendar,
 } from "lucide-react";
 
 interface Task {
@@ -23,7 +28,9 @@ interface Task {
 }
 
 const PRIORITY_LABELS: Record<string, string> = {
-  high: "عاجل", medium: "متوسط", low: "منخفض",
+  high: "عاجل",
+  medium: "متوسط",
+  low: "منخفض",
 };
 const PRIORITY_COLORS: Record<string, string> = {
   high: "text-danger-600 bg-danger-50 border-danger-200",
@@ -57,15 +64,23 @@ export default function TasksPage() {
     }
   }, [tenantId, priorityFilter]);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const handleComplete = async (taskId: string) => {
     try {
-      await api.put(`/api/v1/tasks/${taskId}/complete`, {}, {
-        headers: { "X-Tenant-Id": tenantId },
-      });
+      await api.put(
+        `/api/v1/tasks/${taskId}/complete`,
+        {},
+        {
+          headers: { "X-Tenant-Id": tenantId },
+        }
+      );
       setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, completed: true } : t)));
-    } catch { /* handle gracefully */ }
+    } catch {
+      /* handle gracefully */
+    }
   };
 
   const filtered = tasks.filter((t) => {
@@ -79,7 +94,9 @@ export default function TasksPage() {
       <div className="space-y-4">
         <Skeleton className="h-8 w-32" />
         <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20" />
+          ))}
         </div>
       </div>
     );
@@ -108,7 +125,10 @@ export default function TasksPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2">
-        <span className="text-xs font-medium text-[var(--text-muted)]"><Filter className="h-3 w-3 inline mr-1" />تصفية</span>
+        <span className="text-xs font-medium text-[var(--text-muted)]">
+          <Filter className="h-3 w-3 inline mr-1" />
+          تصفية
+        </span>
         <div className="flex gap-1">
           {(["pending", "completed", "all"] as const).map((f) => (
             <button
@@ -116,7 +136,9 @@ export default function TasksPage() {
               onClick={() => setFilter(f)}
               className={cn(
                 "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
-                filter === f ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]" : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
+                filter === f
+                  ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]"
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
               {f === "pending" ? "المعلقة" : f === "completed" ? "المكتملة" : "الكل"}
@@ -150,7 +172,9 @@ export default function TasksPage() {
               key={task.id}
               className={cn(
                 "rounded-xl border bg-[var(--bg-primary)] p-4 transition-colors",
-                task.completed ? "border-[var(--border-default)] opacity-60" : "border-[var(--border-default)]"
+                task.completed
+                  ? "border-[var(--border-default)] opacity-60"
+                  : "border-[var(--border-default)]"
               )}
             >
               <div className="flex items-start gap-3">
@@ -167,26 +191,46 @@ export default function TasksPage() {
                   {task.completed && <CheckCircle2 className="h-3.5 w-3.5" />}
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className={cn("text-sm font-medium", task.completed && "line-through text-[var(--text-muted)]")}>
+                  <div
+                    className={cn(
+                      "text-sm font-medium",
+                      task.completed && "line-through text-[var(--text-muted)]"
+                    )}
+                  >
                     {task.title}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <Badge variant="default" className={cn("text-[10px]", PRIORITY_COLORS[task.priority] || "bg-[var(--bg-tertiary)]")}>
+                    <Badge
+                      variant="default"
+                      className={cn(
+                        "text-[10px]",
+                        PRIORITY_COLORS[task.priority] || "bg-[var(--bg-tertiary)]"
+                      )}
+                    >
                       {PRIORITY_LABELS[task.priority] || task.priority}
                     </Badge>
-                    {task.source && <span className="text-[10px] text-[var(--text-muted)]">{task.source}</span>}
+                    {task.source && (
+                      <span className="text-[10px] text-[var(--text-muted)]">{task.source}</span>
+                    )}
                     {task.due_date && (
                       <span className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
-                        <Calendar className="h-3 w-3" /> {new Date(task.due_date).toLocaleDateString("ar-SA")}
+                        <Calendar className="h-3 w-3" />{" "}
+                        {new Date(task.due_date).toLocaleDateString("ar-SA")}
                       </span>
                     )}
                     {task.company_id && (
-                      <Link href={`/companies/${task.company_id}`} className="flex items-center gap-1 text-[10px] text-[var(--muhide-orange)] hover:underline">
+                      <Link
+                        href={`/companies/${task.company_id}`}
+                        className="flex items-center gap-1 text-[10px] text-[var(--muhide-orange)] hover:underline"
+                      >
                         <Building2 className="h-3 w-3" />
                       </Link>
                     )}
                     {task.opportunity_id && (
-                      <Link href={`/opportunities/${task.opportunity_id}`} className="flex items-center gap-1 text-[10px] text-[var(--muhide-orange)] hover:underline">
+                      <Link
+                        href={`/opportunities/${task.opportunity_id}`}
+                        className="flex items-center gap-1 text-[10px] text-[var(--muhide-orange)] hover:underline"
+                      >
                         <Handshake className="h-3 w-3" />
                       </Link>
                     )}

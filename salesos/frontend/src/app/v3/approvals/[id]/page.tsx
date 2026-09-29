@@ -106,16 +106,12 @@ export default function V3ApprovalDetailPage() {
       />
 
       <div className="mb-6 flex items-center gap-3">
-        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>
-          {status}
-        </Badge>
+        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>{status}</Badge>
         <span className="text-sm text-[var(--text-muted)]">
           {a?.target_type} • Priority {a?.priority ?? 1}
         </span>
         {a?.assigned_to && (
-          <span className="text-sm text-[var(--text-muted)]">
-            Assigned to: {a.assigned_to}
-          </span>
+          <span className="text-sm text-[var(--text-muted)]">Assigned to: {a.assigned_to}</span>
         )}
       </div>
 
@@ -137,7 +133,10 @@ export default function V3ApprovalDetailPage() {
           <h3 className="mb-2 text-sm font-medium text-[var(--text-primary)]">Decision Timeline</h3>
           <div className="space-y-2">
             {a.decisions.map((d, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-lg border border-[var(--border-default)] p-3 text-sm">
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg border border-[var(--border-default)] p-3 text-sm"
+              >
                 <Badge className={statusColors[d.decision] ?? "bg-gray-100 text-gray-700"}>
                   {d.decision}
                 </Badge>
@@ -146,9 +145,7 @@ export default function V3ApprovalDetailPage() {
                 <span className="text-[var(--text-muted)]">
                   {new Date(d.decided_at).toLocaleString()}
                 </span>
-                {d.comments && (
-                  <span className="text-[var(--text-muted)]">— {d.comments}</span>
-                )}
+                {d.comments && <span className="text-[var(--text-muted)]">— {d.comments}</span>}
               </div>
             ))}
           </div>

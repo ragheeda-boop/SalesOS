@@ -48,7 +48,7 @@ export function TerritoriesStudio() {
   const [assignJson, setAssignJson] = useState('{\n  "region": "Riyadh",\n  "industry": "gov"\n}');
   const [lastAssign, setLastAssign] = useState<TerritoryAssignResult | null>(null);
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fields = metaQuery.data?.match_fields ?? ["region", "industry", "employee_count"];
   const ops = metaQuery.data?.match_ops ?? ["eq", "gte", "contains"];
 

@@ -59,7 +59,11 @@ export function AiModelTiersStudio() {
   }, [plansQuery.data, selectedPlanId]);
 
   const savePlanTier = async () => {
-    if (!selectedPlan?.entitlements || !allowedTiers.length || !allowedTiers.includes(defaultTier)) {
+    if (
+      !selectedPlan?.entitlements ||
+      !allowedTiers.length ||
+      !allowedTiers.includes(defaultTier)
+    ) {
       return;
     }
     try {

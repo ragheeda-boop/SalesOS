@@ -3,13 +3,7 @@ import { getTenantId } from "@/lib/hooks/useTenant";
 
 export type FactDecision = "approve" | "reject" | "dismiss";
 export type FactProposalStatus =
-  | "PROPOSED"
-  | "APPROVED"
-  | "REJECTED"
-  | "DISMISSED"
-  | "APPLIED"
-  | "SUPERSEDED"
-  | "STALE";
+  "PROPOSED" | "APPROVED" | "REJECTED" | "DISMISSED" | "APPLIED" | "SUPERSEDED" | "STALE";
 
 export type FactEvidenceSnapshot = {
   id?: string;
@@ -67,11 +61,17 @@ export async function decideFactProposal(input: {
   id: string;
   decision: FactDecision;
   reason: string;
-}): Promise<{ id: string; status: FactProposalStatus; reviewed_at: string; changed: boolean; crm_applied: false }> {
+}): Promise<{
+  id: string;
+  status: FactProposalStatus;
+  reviewed_at: string;
+  changed: boolean;
+  crm_applied: false;
+}> {
   const response = await apiClient.post(
     `/api/v1/facts/${encodeURIComponent(input.id)}/decision`,
     { decision: input.decision, reason: input.reason },
-    tenantConfig(),
+    tenantConfig()
   );
   return response.data;
 }

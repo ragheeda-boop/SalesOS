@@ -8,12 +8,7 @@ import { searchCompanies, type Company } from "@/lib/api";
 import { companyKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../_components/page-header";
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PermissionState,
-} from "../_components/states";
+import { EmptyState, ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 import { CreateCompanyForm } from "./create-company-form";
 

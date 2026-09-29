@@ -280,14 +280,13 @@ export default function Company360Page() {
         {
           title: "الفروع",
           icon: Building2,
-          items:
-            asArray<{ id: string; name: string; city: string | null; region: string | null }>(
-              organization.branches
-            ).map((b) => ({
-              id: b.id,
-              label: b.name,
-              subtitle: [b.city, b.region].filter(Boolean).join(","),
-            })),
+          items: asArray<{ id: string; name: string; city: string | null; region: string | null }>(
+            organization.branches
+          ).map((b) => ({
+            id: b.id,
+            label: b.name,
+            subtitle: [b.city, b.region].filter(Boolean).join(","),
+          })),
         },
         {
           title: "الأقسام",
@@ -533,9 +532,15 @@ export default function Company360Page() {
                   </Link>
                 </div>
               </CardHeader>
-               <CardContent>
+              <CardContent>
                 {(() => {
-                  const contacts = asArray<{ id?: string; name?: string; position?: string; email?: string; phone?: string }>(company360?.contacts);
+                  const contacts = asArray<{
+                    id?: string;
+                    name?: string;
+                    position?: string;
+                    email?: string;
+                    phone?: string;
+                  }>(company360?.contacts);
                   if (contacts.length > 0) {
                     return (
                       <div className="space-y-3">
@@ -549,10 +554,22 @@ export default function Company360Page() {
                               {(c.name || "?")[0]}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="font-medium text-[var(--text-primary)] truncate">{c.name || "—"}</div>
-                              {c.position && <div className="text-sm text-[var(--text-secondary)]">{c.position}</div>}
-                              {c.email && <div className="text-xs text-[var(--text-muted)] truncate">{c.email}</div>}
-                              {c.phone && <div className="text-xs text-[var(--text-muted)]">{c.phone}</div>}
+                              <div className="font-medium text-[var(--text-primary)] truncate">
+                                {c.name || "—"}
+                              </div>
+                              {c.position && (
+                                <div className="text-sm text-[var(--text-secondary)]">
+                                  {c.position}
+                                </div>
+                              )}
+                              {c.email && (
+                                <div className="text-xs text-[var(--text-muted)] truncate">
+                                  {c.email}
+                                </div>
+                              )}
+                              {c.phone && (
+                                <div className="text-xs text-[var(--text-muted)]">{c.phone}</div>
+                              )}
                             </div>
                           </Link>
                         ))}
@@ -654,57 +671,77 @@ export default function Company360Page() {
                     </Link>
                   </div>
                 </CardHeader>
-              <CardContent>
-                {(() => {
-                  const deals = asArray<{ id?: string; name?: string; value?: number; stage?: string; probability?: number; status?: string }>(opportunities);
-                  if (deals.length > 0) {
-                    return (
-                      <div className="space-y-3">
-                        {deals.map((d) => (
-                          <Link
-                            key={d.id || Math.random()}
-                            href={`/opportunities/${d.id}`}
-                            className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-default)] hover:bg-[var(--bg-secondary)] transition-colors"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium text-[var(--text-primary)] truncate">{d.name || "—"}</div>
-                              <div className="text-sm text-[var(--text-secondary)]">
-                                {d.stage && (() => {
-                                  const stageMap: Record<string, string> = {
-                                    prospecting: "استكشاف", qualification: "تأهيل",
-                                    proposal: "عرض سعر", negotiation: "تفاوض",
-                                    closed_won: "مغلق-مكسب", closed_lost: "مغلق-خسارة"
-                                  };
-                                  return stageMap[d.stage] || d.stage;
-                                })()}
+                <CardContent>
+                  {(() => {
+                    const deals = asArray<{
+                      id?: string;
+                      name?: string;
+                      value?: number;
+                      stage?: string;
+                      probability?: number;
+                      status?: string;
+                    }>(opportunities);
+                    if (deals.length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          {deals.map((d) => (
+                            <Link
+                              key={d.id || Math.random()}
+                              href={`/opportunities/${d.id}`}
+                              className="flex items-center justify-between p-3 rounded-lg border border-[var(--border-default)] hover:bg-[var(--bg-secondary)] transition-colors"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-[var(--text-primary)] truncate">
+                                  {d.name || "—"}
+                                </div>
+                                <div className="text-sm text-[var(--text-secondary)]">
+                                  {d.stage &&
+                                    (() => {
+                                      const stageMap: Record<string, string> = {
+                                        prospecting: "استكشاف",
+                                        qualification: "تأهيل",
+                                        proposal: "عرض سعر",
+                                        negotiation: "تفاوض",
+                                        closed_won: "مغلق-مكسب",
+                                        closed_lost: "مغلق-خسارة",
+                                      };
+                                      return stageMap[d.stage] || d.stage;
+                                    })()}
+                                </div>
                               </div>
-                            </div>
-                            <div className="text-right shrink-0 ml-3">
-                              {d.value != null && (
-                                <div className="font-semibold text-[var(--text-primary)]">
-                                  {typeof d.value === "number" ? `${(d.value / 1000).toFixed(0)}K ر.س` : String(d.value)}
-                                </div>
-                              )}
-                              {d.probability != null && (
-                                <div className="text-xs text-[var(--muhide-orange)]">
-                                  {Math.round(typeof d.probability === "number" ? d.probability * 100 : Number(d.probability) * 100)}%
-                                </div>
-                              )}
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
+                              <div className="text-right shrink-0 ml-3">
+                                {d.value != null && (
+                                  <div className="font-semibold text-[var(--text-primary)]">
+                                    {typeof d.value === "number"
+                                      ? `${(d.value / 1000).toFixed(0)}K ر.س`
+                                      : String(d.value)}
+                                  </div>
+                                )}
+                                {d.probability != null && (
+                                  <div className="text-xs text-[var(--muhide-orange)]">
+                                    {Math.round(
+                                      typeof d.probability === "number"
+                                        ? d.probability * 100
+                                        : Number(d.probability) * 100
+                                    )}
+                                    %
+                                  </div>
+                                )}
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return (
+                      <EmptyState
+                        icon={<Handshake className="h-10 w-10" />}
+                        title="لا توجد صفقات نشطة"
+                        description="ستظهر الصفقات النشطة والمغلقة هنا"
+                      />
                     );
-                  }
-                  return (
-                    <EmptyState
-                      icon={<Handshake className="h-10 w-10" />}
-                      title="لا توجد صفقات نشطة"
-                      description="ستظهر الصفقات النشطة والمغلقة هنا"
-                    />
-                  );
-                })()}
-              </CardContent>
+                  })()}
+                </CardContent>
               </Card>
               <Card>
                 <CardHeader>
@@ -772,12 +809,20 @@ export default function Company360Page() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const signalItems = asArray<{ title?: string; description?: string; type?: string; severity?: string }>(company360?.signals?.items);
+                  const signalItems = asArray<{
+                    title?: string;
+                    description?: string;
+                    type?: string;
+                    severity?: string;
+                  }>(company360?.signals?.items);
                   if (signalItems.length > 0) {
                     return (
                       <div className="space-y-3">
                         {signalItems.map((signal, i) => (
-                          <div key={i} className="p-3 rounded-lg border border-[var(--border-default)]">
+                          <div
+                            key={i}
+                            className="p-3 rounded-lg border border-[var(--border-default)]"
+                          >
                             <div className="flex items-start justify-between">
                               <Bell className="h-4 w-4 text-[var(--muhide-orange)] mt-0.5" />
                               <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-tertiary)] text-[var(--text-muted)]">
@@ -785,10 +830,14 @@ export default function Company360Page() {
                               </span>
                             </div>
                             {signal.title && (
-                              <div className="mt-1 font-medium text-[var(--text-primary)]">{signal.title}</div>
+                              <div className="mt-1 font-medium text-[var(--text-primary)]">
+                                {signal.title}
+                              </div>
                             )}
                             {signal.description && (
-                              <div className="mt-0.5 text-sm text-[var(--text-secondary)]">{signal.description}</div>
+                              <div className="mt-0.5 text-sm text-[var(--text-secondary)]">
+                                {signal.description}
+                              </div>
                             )}
                           </div>
                         ))}

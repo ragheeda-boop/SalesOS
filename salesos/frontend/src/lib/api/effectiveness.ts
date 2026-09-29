@@ -79,8 +79,14 @@ export interface EffectivenessDashboard {
     opportunity_lift: { value: number | null; reason: string | null; display: string };
     win_lift: { value: number | null; reason: string | null; display: string };
   };
-  by_level: Record<string, { count: number; action_rate: number; meeting_rate: number; win_rate: number }>;
-  by_seller: Record<string, { count: number; action_rate: number; meeting_rate: number; win_rate: number }>;
+  by_level: Record<
+    string,
+    { count: number; action_rate: number; meeting_rate: number; win_rate: number }
+  >;
+  by_seller: Record<
+    string,
+    { count: number; action_rate: number; meeting_rate: number; win_rate: number }
+  >;
 }
 
 export const effectivenessApi = {

@@ -1,7 +1,22 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, ArrowRight, Phone, Mail, MessageSquare, Calendar, FileText, Clock, CheckCircle2, AlertTriangle, TrendingUp, Zap, Target, Brain } from "lucide-react";
+import {
+  RefreshCw,
+  ArrowRight,
+  Phone,
+  Mail,
+  MessageSquare,
+  Calendar,
+  FileText,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  TrendingUp,
+  Zap,
+  Target,
+  Brain,
+} from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState, ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
@@ -108,16 +123,16 @@ function ActionCard({ action, onComplete }: { action: Action; onComplete: (id: s
           <h4 className="text-sm font-medium text-[var(--text-primary)] truncate">
             {action.company_name}
           </h4>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${STATUS_COLORS[action.status]}`}>
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${STATUS_COLORS[action.status]}`}
+          >
             {action.status}
           </span>
         </div>
         <p className="text-xs text-[var(--text-muted)] mt-0.5">
           {formatActionType(action.action_type)}
         </p>
-        <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">
-          {action.notes}
-        </p>
+        <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{action.notes}</p>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-[10px] text-[var(--text-muted)] whitespace-nowrap">
@@ -137,7 +152,17 @@ function ActionCard({ action, onComplete }: { action: Action; onComplete: (id: s
   );
 }
 
-function MetricCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: typeof TrendingUp; color: string }) {
+function MetricCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+}: {
+  label: string;
+  value: number;
+  icon: typeof TrendingUp;
+  color: string;
+}) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)]">
       <Icon className={`w-5 h-5 ${color}`} />
@@ -167,7 +192,9 @@ function ActionBreakdown({ actions }: { actions: Action[] }) {
         return (
           <div key={type} className="flex items-center gap-2">
             <Icon className={`w-4 h-4 ${color}`} />
-            <span className="text-sm text-[var(--text-primary)] flex-1">{formatActionType(type)}</span>
+            <span className="text-sm text-[var(--text-primary)] flex-1">
+              {formatActionType(type)}
+            </span>
             <span className="text-sm font-medium text-[var(--text-secondary)]">{count}</span>
           </div>
         );
@@ -180,7 +207,12 @@ export default function SalesDashboardPage() {
   const { ready, hasToken } = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { data: actions, isLoading, isError: actionsError, refetch } = useQuery({
+  const {
+    data: actions,
+    isLoading,
+    isError: actionsError,
+    refetch,
+  } = useQuery({
     queryKey: signalActionKeys.actions(),
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/signal-actions/actions", {
@@ -217,13 +249,17 @@ export default function SalesDashboardPage() {
 
   const completeMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      await apiClient.post("/api/v1/signal-actions/complete", {
-        action_id: actionId,
-        outcome: "positive",
-        notes: "Marked complete from Sales Dashboard",
-      }, {
-        headers: { "X-Tenant-Id": getTenantId() },
-      });
+      await apiClient.post(
+        "/api/v1/signal-actions/complete",
+        {
+          action_id: actionId,
+          outcome: "positive",
+          notes: "Marked complete from Sales Dashboard",
+        },
+        {
+          headers: { "X-Tenant-Id": getTenantId() },
+        }
+      );
     },
     onSuccess: (_result, actionId) => {
       const action = actions?.find((candidate) => candidate.id === actionId);
@@ -293,11 +329,36 @@ export default function SalesDashboardPage() {
       <div className="px-6 pb-8">
         {/* Metrics Row */}
         <div className="grid grid-cols-5 gap-4 mb-6">
-          <MetricCard label="Pending Actions" value={metrics?.active_actions ?? pendingActions.length} icon={Zap} color="text-orange-600" />
-          <MetricCard label="Completed" value={metrics?.completed_actions ?? 0} icon={CheckCircle2} color="text-green-600" />
-          <MetricCard label="Accounts" value={metrics?.total_accounts ?? 0} icon={TrendingUp} color="text-blue-600" />
-          <MetricCard label="Signals" value={metrics?.total_signals ?? 0} icon={Brain} color="text-purple-600" />
-          <MetricCard label="Immediate" value={immediateCount} icon={AlertTriangle} color="text-red-600" />
+          <MetricCard
+            label="Pending Actions"
+            value={metrics?.active_actions ?? pendingActions.length}
+            icon={Zap}
+            color="text-orange-600"
+          />
+          <MetricCard
+            label="Completed"
+            value={metrics?.completed_actions ?? 0}
+            icon={CheckCircle2}
+            color="text-green-600"
+          />
+          <MetricCard
+            label="Accounts"
+            value={metrics?.total_accounts ?? 0}
+            icon={TrendingUp}
+            color="text-blue-600"
+          />
+          <MetricCard
+            label="Signals"
+            value={metrics?.total_signals ?? 0}
+            icon={Brain}
+            color="text-purple-600"
+          />
+          <MetricCard
+            label="Immediate"
+            value={immediateCount}
+            icon={AlertTriangle}
+            color="text-red-600"
+          />
         </div>
 
         <div className="grid grid-cols-3 gap-6">
@@ -336,18 +397,20 @@ export default function SalesDashboardPage() {
             </div>
 
             <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-4">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-                By Priority
-              </h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">By Priority</h3>
               <div className="space-y-2">
                 {["CRITICAL", "HIGH", "MEDIUM", "LOW", "NOISE"].map((level) => {
                   const count = metrics?.by_priority?.[level] ?? 0;
                   if (count === 0) return null;
                   return (
                     <div key={level} className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${level === "CRITICAL" ? "bg-red-500" : level === "HIGH" ? "bg-orange-500" : level === "MEDIUM" ? "bg-yellow-500" : level === "LOW" ? "bg-blue-500" : "bg-gray-300"}`} />
+                      <span
+                        className={`w-2 h-2 rounded-full ${level === "CRITICAL" ? "bg-red-500" : level === "HIGH" ? "bg-orange-500" : level === "MEDIUM" ? "bg-yellow-500" : level === "LOW" ? "bg-blue-500" : "bg-gray-300"}`}
+                      />
                       <span className="text-sm text-[var(--text-primary)] flex-1">{level}</span>
-                      <span className="text-sm font-medium text-[var(--text-secondary)]">{count}</span>
+                      <span className="text-sm font-medium text-[var(--text-secondary)]">
+                        {count}
+                      </span>
                     </div>
                   );
                 })}
@@ -390,19 +453,27 @@ export default function SalesDashboardPage() {
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between">
                     <span className="text-[var(--text-muted)]">Acceptance Rate</span>
-                    <span className="font-medium text-[var(--text-primary)]">{(analytics.acceptance_rate * 100).toFixed(0)}%</span>
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {(analytics.acceptance_rate * 100).toFixed(0)}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-muted)]">Conversion Rate</span>
-                    <span className="font-medium text-[var(--text-primary)]">{(analytics.conversion_rate * 100).toFixed(0)}%</span>
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {(analytics.conversion_rate * 100).toFixed(0)}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-muted)]">Avg Time-to-Action</span>
-                    <span className="font-medium text-[var(--text-primary)]">{analytics.avg_hours_to_action.toFixed(1)}h</span>
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {analytics.avg_hours_to_action.toFixed(1)}h
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-muted)]">Total Feedback</span>
-                    <span className="font-medium text-[var(--text-primary)]">{analytics.total_feedback}</span>
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {analytics.total_feedback}
+                    </span>
                   </div>
                 </div>
               </div>

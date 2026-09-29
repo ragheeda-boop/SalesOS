@@ -52,7 +52,8 @@ describe("getCompanyAccountIntelligence", () => {
         previous_90_days: 0,
         change_percent: null,
         method: "activity_count_90d_comparison_v1" as const,
-        interpretation: "Activity volume only; it does not measure customer sentiment or deal quality.",
+        interpretation:
+          "Activity volume only; it does not measure customer sentiment or deal quality.",
       },
       generated_at: "2026-09-21T10:00:00+00:00",
       method: "persisted_crm_records_with_explainable_rules" as const,
@@ -61,10 +62,9 @@ describe("getCompanyAccountIntelligence", () => {
     mockApi.get.mockResolvedValueOnce({ data: response });
 
     await expect(getCompanyAccountIntelligence("co/1", "tenant-1")).resolves.toEqual(response);
-    expect(mockApi.get).toHaveBeenCalledWith(
-      "/api/v1/companies/co%2F1/account-intelligence",
-      { headers: { "X-Tenant-Id": "tenant-1" } }
-    );
+    expect(mockApi.get).toHaveBeenCalledWith("/api/v1/companies/co%2F1/account-intelligence", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("records an idempotent evidence snapshot through the tenant API", async () => {

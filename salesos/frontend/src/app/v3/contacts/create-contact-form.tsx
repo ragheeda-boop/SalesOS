@@ -20,9 +20,7 @@ const COMPANY_LIST_PARAMS = {
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create contacts.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
@@ -31,7 +29,11 @@ function createErrorMessage(err: unknown): string {
   return "Could not create contact.";
 }
 
-function companyLabel(nameEn: string | null | undefined, nameAr: string | undefined, id: string): string {
+function companyLabel(
+  nameEn: string | null | undefined,
+  nameAr: string | undefined,
+  id: string
+): string {
   return nameEn?.trim() || nameAr?.trim() || id;
 }
 
@@ -156,7 +158,10 @@ export function CreateContactForm({ onCancel }: { onCancel?: () => void }) {
         </p>
       ) : null}
       {!companiesQuery.isLoading && !companiesQuery.isError && companies.length === 0 ? (
-        <p className="text-sm text-[var(--text-secondary)]" data-testid="create-contact-no-companies">
+        <p
+          className="text-sm text-[var(--text-secondary)]"
+          data-testid="create-contact-no-companies"
+        >
           No companies in this tenant. Create a company first — POST /api/v1/contacts requires
           company_id.{" "}
           <Link

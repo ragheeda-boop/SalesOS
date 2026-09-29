@@ -34,7 +34,14 @@ describe("CreatePipelineButton", () => {
     mockedCreate.mockResolvedValueOnce({
       id: "pipe-tenant-1",
       name: "Sales Pipeline",
-      stages: ["prospecting", "qualification", "proposal", "negotiation", "closed_won", "closed_lost"],
+      stages: [
+        "prospecting",
+        "qualification",
+        "proposal",
+        "negotiation",
+        "closed_won",
+        "closed_lost",
+      ],
     });
     renderButton();
     expect(screen.queryByTestId("create-pipeline-name")).toBeNull();

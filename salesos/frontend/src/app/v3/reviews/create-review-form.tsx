@@ -33,9 +33,7 @@ function defaultTargetType(reviewType: ReviewType): TargetType {
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create reviews.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
@@ -67,8 +65,7 @@ export function CreateReviewForm({ onCancel }: { onCancel?: () => void }) {
   const [pickedTargetId, setPickedTargetId] = useState("");
 
   const needsDealFilter = targetType === "quote" || targetType === "proposal";
-  const targetId =
-    targetType === "opportunity" ? pickedOpportunityId : pickedTargetId;
+  const targetId = targetType === "opportunity" ? pickedOpportunityId : pickedTargetId;
 
   const dealsQuery = useQuery({
     queryKey: opportunityKeys.list(),
@@ -97,8 +94,7 @@ export function CreateReviewForm({ onCancel }: { onCancel?: () => void }) {
   const canSubmit = Boolean(reviewType && targetType && targetId);
 
   const createMutation = useMutation({
-    mutationFn: () =>
-      createReview(getTenantId(), reviewType, targetId, targetType),
+    mutationFn: () => createReview(getTenantId(), reviewType, targetId, targetType),
     onSuccess: (review: { id?: string }) => {
       void queryClient.invalidateQueries({ queryKey: ["reviews"] });
       if (review?.id) {
@@ -160,7 +156,9 @@ export function CreateReviewForm({ onCancel }: { onCancel?: () => void }) {
             data-testid="create-review-target-type"
             disabled={!reviewType}
           >
-            <option value="">{reviewType ? "Select a target type" : "Select a review type first"}</option>
+            <option value="">
+              {reviewType ? "Select a target type" : "Select a review type first"}
+            </option>
             <option value="opportunity">opportunity</option>
             <option value="quote">quote</option>
             <option value="proposal">proposal</option>
@@ -182,9 +180,7 @@ export function CreateReviewForm({ onCancel }: { onCancel?: () => void }) {
               data-testid="create-review-opportunity"
               disabled={dealsQuery.isLoading || deals.length === 0}
             >
-              <option value="">
-                {dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}
-              </option>
+              <option value="">{dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}</option>
               {deals.map((deal) => (
                 <option key={deal.id} value={deal.id}>
                   {dealLabel(deal.name, deal.id)}
@@ -292,7 +288,10 @@ export function CreateReviewForm({ onCancel }: { onCancel?: () => void }) {
       !proposalsQuery.isLoading &&
       !proposalsQuery.isError &&
       proposals.length === 0 ? (
-        <p className="text-sm text-[var(--text-secondary)]" data-testid="create-review-no-proposals">
+        <p
+          className="text-sm text-[var(--text-secondary)]"
+          data-testid="create-review-no-proposals"
+        >
           No proposals for this deal. GET /proposals without opportunity_id returns [].{" "}
           <Link
             href="/v3/proposals"

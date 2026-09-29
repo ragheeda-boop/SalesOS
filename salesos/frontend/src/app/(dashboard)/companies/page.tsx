@@ -146,7 +146,7 @@ function CompaniesPageContent() {
 
   const [exportLoading, setExportLoading] = useState(false);
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const params: Record<string, unknown> = { page, page_size: 20 };
   if (debouncedQuery) params.q = debouncedQuery;
   if (statusFilter) params.status = statusFilter;
@@ -459,7 +459,9 @@ function CompaniesPageContent() {
         const status = getValue() as string;
         return (
           <Badge variant={STATUS_VARIANT[status] || "default"}>
-            {t(`status.${status}`, undefined) === `status.${status}` ? status : t(`status.${status}`)}
+            {t(`status.${status}`, undefined) === `status.${status}`
+              ? status
+              : t(`status.${status}`)}
           </Badge>
         );
       },
@@ -798,8 +800,7 @@ function CompaniesPageContent() {
                       label: t("companies.add_company"),
                       onClick: () => setModalOpen(true),
                     },
-}
-
+                  }
                 : {}),
             }}
           />

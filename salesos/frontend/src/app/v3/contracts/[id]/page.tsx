@@ -81,9 +81,19 @@ export default function V3ContractDetailPage() {
     quote_id?: string;
     effective_date?: string;
     expiry_date?: string;
-    parties?: Array<{ name: string; role: string; contact_email?: string; signatory_name?: string }>;
+    parties?: Array<{
+      name: string;
+      role: string;
+      contact_email?: string;
+      signatory_name?: string;
+    }>;
     obligations?: Array<{ description: string; owner?: string; due_date?: string; status: string }>;
-    renewal?: { auto_renew: boolean; notice_days: number; renewal_term_months: number; max_renewals: number };
+    renewal?: {
+      auto_renew: boolean;
+      notice_days: number;
+      renewal_term_months: number;
+      max_renewals: number;
+    };
     legal_terms?: string;
     governing_law?: string;
     signed_by_provider?: string;
@@ -105,12 +115,8 @@ export default function V3ContractDetailPage() {
       />
 
       <div className="mb-6 flex items-center gap-3">
-        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>
-          {status}
-        </Badge>
-        <span className="text-sm text-[var(--text-muted)]">
-          {c?.opportunity_id}
-        </span>
+        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>{status}</Badge>
+        <span className="text-sm text-[var(--text-muted)]">{c?.opportunity_id}</span>
         {c?.effective_date && (
           <span className="text-sm text-[var(--text-muted)]">
             Effective: {new Date(c.effective_date).toLocaleDateString()}
@@ -142,12 +148,20 @@ export default function V3ContractDetailPage() {
                   <tr key={i} className="hover:bg-[var(--bg-hover)]">
                     <td className="px-4 py-3 font-medium">{p.name}</td>
                     <td className="px-4 py-3">
-                      <Badge className={p.role === "provider" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}>
+                      <Badge
+                        className={
+                          p.role === "provider"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-green-100 text-green-700"
+                        }
+                      >
                         {p.role}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-[var(--text-muted)]">{p.contact_email || "-"}</td>
-                    <td className="px-4 py-3 text-[var(--text-muted)]">{p.signatory_name || "-"}</td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">
+                      {p.signatory_name || "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -179,7 +193,13 @@ export default function V3ContractDetailPage() {
                       {o.due_date ? new Date(o.due_date).toLocaleDateString() : "-"}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge className={o.status === "fulfilled" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
+                      <Badge
+                        className={
+                          o.status === "fulfilled"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-700"
+                        }
+                      >
                         {o.status}
                       </Badge>
                     </td>
@@ -196,10 +216,22 @@ export default function V3ContractDetailPage() {
         <div className="mb-6 rounded-lg border border-[var(--border-default)] p-4">
           <h3 className="mb-2 text-sm font-medium text-[var(--text-primary)]">Renewal Rules</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div><span className="text-[var(--text-muted)]">Auto-renew:</span> {c.renewal.auto_renew ? "Yes" : "No"}</div>
-            <div><span className="text-[var(--text-muted)]">Notice period:</span> {c.renewal.notice_days} days</div>
-            <div><span className="text-[var(--text-muted)]">Term:</span> {c.renewal.renewal_term_months} months</div>
-            <div><span className="text-[var(--text-muted)]">Max renewals:</span> {c.renewal.max_renewals === 0 ? "Unlimited" : c.renewal.max_renewals}</div>
+            <div>
+              <span className="text-[var(--text-muted)]">Auto-renew:</span>{" "}
+              {c.renewal.auto_renew ? "Yes" : "No"}
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Notice period:</span>{" "}
+              {c.renewal.notice_days} days
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Term:</span>{" "}
+              {c.renewal.renewal_term_months} months
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Max renewals:</span>{" "}
+              {c.renewal.max_renewals === 0 ? "Unlimited" : c.renewal.max_renewals}
+            </div>
           </div>
         </div>
       )}
@@ -209,7 +241,9 @@ export default function V3ContractDetailPage() {
         <div className="mb-6 rounded-lg border border-[var(--border-default)] p-4">
           <h3 className="mb-2 text-sm font-medium text-[var(--text-primary)]">Legal</h3>
           {c.legal_terms && <p className="text-sm text-[var(--text-muted)]">{c.legal_terms}</p>}
-          {c.governing_law && <p className="text-sm text-[var(--text-muted)]">Governing law: {c.governing_law}</p>}
+          {c.governing_law && (
+            <p className="text-sm text-[var(--text-muted)]">Governing law: {c.governing_law}</p>
+          )}
         </div>
       )}
 
@@ -218,8 +252,16 @@ export default function V3ContractDetailPage() {
         <div className="mb-6 rounded-lg border border-[var(--border-default)] p-4">
           <h3 className="mb-2 text-sm font-medium text-[var(--text-primary)]">Signatures</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            {c.signed_by_provider && <div><span className="text-[var(--text-muted)]">Provider:</span> {c.signed_by_provider}</div>}
-            {c.signed_by_customer && <div><span className="text-[var(--text-muted)]">Customer:</span> {c.signed_by_customer}</div>}
+            {c.signed_by_provider && (
+              <div>
+                <span className="text-[var(--text-muted)]">Provider:</span> {c.signed_by_provider}
+              </div>
+            )}
+            {c.signed_by_customer && (
+              <div>
+                <span className="text-[var(--text-muted)]">Customer:</span> {c.signed_by_customer}
+              </div>
+            )}
           </div>
         </div>
       )}

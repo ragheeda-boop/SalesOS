@@ -20,10 +20,7 @@ interface ForecastData {
   };
 }
 
-function formatConfidencePct(
-  raw: unknown,
-  fallback: string
-): string {
+function formatConfidencePct(raw: unknown, fallback: string): string {
   const n = typeof raw === "number" ? raw : Number(raw);
   if (!Number.isFinite(n)) return fallback;
   const pct = n <= 1 ? n * 100 : n;
@@ -116,7 +113,10 @@ export default function ForecastPage() {
           label={t("forecast.total_expected")}
           value={forecast.total_expected ?? t("forecast.na")}
         />
-        <ForecastCard label={t("forecast.weighted")} value={forecast.weighted ?? t("forecast.na")} />
+        <ForecastCard
+          label={t("forecast.weighted")}
+          value={forecast.weighted ?? t("forecast.na")}
+        />
         <ForecastCard
           label={t("forecast.confidence")}
           value={formatConfidencePct(confidenceRaw, t("forecast.na"))}

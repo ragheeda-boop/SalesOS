@@ -130,7 +130,7 @@ export function IcpProfilesPanel() {
     setWTitles(String(row.weights.titles));
     setWKeywords(String(row.weights.keywords));
     setIsActive(row.is_active);
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailQuery.data?.id, detailQuery.data?.schema_version, selectedId, hydrated]);
 
   function bodyFromForm() {

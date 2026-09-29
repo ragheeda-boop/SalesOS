@@ -8,7 +8,10 @@ jest.mock("@salesos/ui", () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props}>{children}</button>
   ),
-  Input: ({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label?: string }) => (
+  Input: ({
+    label,
+    ...props
+  }: React.InputHTMLAttributes<HTMLInputElement> & { label?: string }) => (
     <label>
       {label}
       <input {...props} />
@@ -41,19 +44,25 @@ jest.mock("@/lib/hooks/aiModelTiersStudioQueries", () => ({
 
 jest.mock("@/lib/hooks/adminQueries", () => {
   const plans = [
-      {
-        id: "plan-1",
-        name: "Starter",
-        tier: "starter",
-        entitlements: {
-          version: 1,
-          domains: {},
-          quotas: { seats: 5, ai_tokens_monthly: 100, connectors: 1, storage_mb: 100, api_calls_monthly: 1000 },
-          deployment_tier: "pooled",
-          support_sla: "standard",
-          ai_model_tier: { default: "economy", allowed: ["economy"] },
+    {
+      id: "plan-1",
+      name: "Starter",
+      tier: "starter",
+      entitlements: {
+        version: 1,
+        domains: {},
+        quotas: {
+          seats: 5,
+          ai_tokens_monthly: 100,
+          connectors: 1,
+          storage_mb: 100,
+          api_calls_monthly: 1000,
         },
+        deployment_tier: "pooled",
+        support_sla: "standard",
+        ai_model_tier: { default: "economy", allowed: ["economy"] },
       },
+    },
   ];
   return {
     useAdminPlans: () => ({ data: plans, isLoading: false, isError: false }),
@@ -70,7 +79,9 @@ describe("AiModelTiersStudio", () => {
   it("saves validated default and allowed tiers through the plan entitlement API", async () => {
     render(<AiModelTiersStudio />);
 
-    await waitFor(() => expect(screen.getByTestId("ai-model-tiers-plan-select")).toHaveValue("plan-1"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ai-model-tiers-plan-select")).toHaveValue("plan-1")
+    );
     fireEvent.change(screen.getByTestId("ai-model-tiers-default-select"), {
       target: { value: "standard" },
     });
@@ -84,12 +95,16 @@ describe("AiModelTiersStudio", () => {
         ai_model_tier: { default: "standard", allowed: ["economy", "standard"] },
       }),
     });
-    expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ title: "Plan model tiers saved" }));
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Plan model tiers saved" })
+    );
   });
 
   it("disables saving when the default tier is not allowed", async () => {
     render(<AiModelTiersStudio />);
-    await waitFor(() => expect(screen.getByTestId("ai-model-tiers-plan-select")).toHaveValue("plan-1"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ai-model-tiers-plan-select")).toHaveValue("plan-1")
+    );
     fireEvent.click(screen.getByTestId("ai-model-tiers-allowed-economy"));
     expect(screen.getByTestId("ai-model-tiers-save-plan")).toBeDisabled();
   });

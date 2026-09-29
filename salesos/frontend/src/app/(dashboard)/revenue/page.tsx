@@ -195,7 +195,9 @@ function EmptyStateComponent({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <BarChart3 className="h-12 w-12 text-[var(--text-muted)] mb-4" />
-      <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t("revenue.empty_title")}</h3>
+      <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+        {t("revenue.empty_title")}
+      </h3>
       <p className="text-sm text-[var(--text-muted)] mt-1 max-w-md">{t("revenue.empty_hint")}</p>
       <button
         onClick={onRetry}

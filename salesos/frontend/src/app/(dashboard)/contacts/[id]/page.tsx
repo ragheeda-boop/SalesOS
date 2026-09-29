@@ -4,12 +4,27 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
-import { Breadcrumbs, Card, CardContent, CardHeader, Skeleton, EmptyState, Badge } from "@salesos/ui";
+import {
+  Breadcrumbs,
+  Card,
+  CardContent,
+  CardHeader,
+  Skeleton,
+  EmptyState,
+  Badge,
+} from "@salesos/ui";
 import { useTranslation } from "@/lib/i18n";
 import { useTenant } from "@/lib/hooks/useTenant";
 import {
-  User, Building2, Handshake, Mail, Phone, MapPin,
-  Briefcase, Trash2, Pencil
+  User,
+  Building2,
+  Handshake,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 
 interface ContactDetail {
@@ -65,24 +80,26 @@ export default function ContactDetailPage() {
     const load = async () => {
       try {
         const { data } = await api.get(`/api/v1/contacts/${id}`, {
-          headers: { "X-Tenant-Id": tenantId }
+          headers: { "X-Tenant-Id": tenantId },
         });
         setContact(data);
 
         if (data.company_id) {
           try {
             const cr = await api.get(`/api/v1/companies/${data.company_id}`, {
-              headers: { "X-Tenant-Id": tenantId }
+              headers: { "X-Tenant-Id": tenantId },
             });
             setCompany(cr.data);
-          } catch { /* best-effort */ }
+          } catch {
+            /* best-effort */
+          }
         }
 
         // Load linked opportunities via ADR-030
         try {
           const or = await api.get("/api/v1/opportunity-contacts", {
             params: { contact_id: id },
-            headers: { "X-Tenant-Id": tenantId }
+            headers: { "X-Tenant-Id": tenantId },
           });
           const items = or.data?.items || or.data || [];
           const enriched: LinkedOpportunity[] = [];
@@ -90,21 +107,28 @@ export default function ContactDetailPage() {
             let oppDetail: Record<string, unknown> = {};
             try {
               const oppRes = await api.get(`/api/v1/opportunities/${oc.opportunity_id}`, {
-                headers: { "X-Tenant-Id": tenantId }
+                headers: { "X-Tenant-Id": tenantId },
               });
               oppDetail = oppRes.data || {};
-            } catch { /* best-effort */ }
+            } catch {
+              /* best-effort */
+            }
             enriched.push({
               ...oc,
               opp_name: (oppDetail.name as string) || oc.opportunity_id,
-              opp_stage: (oppDetail.stage as string),
-              opp_value: (oppDetail.value as number),
+              opp_stage: oppDetail.stage as string,
+              opp_value: oppDetail.value as number,
             });
           }
           setOpportunities(enriched);
-        } catch { /* optional */ }
-      } catch { /* handled by empty state */ }
-      finally { setLoading(false); }
+        } catch {
+          /* optional */
+        }
+      } catch {
+        /* handled by empty state */
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id, tenantId]);
@@ -114,7 +138,7 @@ export default function ContactDetailPage() {
     setDeleting(true);
     try {
       await api.delete(`/api/v1/contacts/${id}`, {
-        headers: { "X-Tenant-Id": tenantId }
+        headers: { "X-Tenant-Id": tenantId },
       });
       router.push("/v3/contacts");
     } catch {
@@ -148,9 +172,12 @@ export default function ContactDetailPage() {
   }
 
   const stageLabels: Record<string, string> = {
-    prospecting: "استكشاف", qualification: "تأهيل",
-    proposal: "عرض", negotiation: "تفاوض",
-    closed_won: "فوز", closed_lost: "خسارة",
+    prospecting: "استكشاف",
+    qualification: "تأهيل",
+    proposal: "عرض",
+    negotiation: "تفاوض",
+    closed_won: "فوز",
+    closed_lost: "خسارة",
   };
 
   return (
@@ -182,7 +209,9 @@ export default function ContactDetailPage() {
                 </span>
               )}
               {contact.is_primary && <Badge variant="default">أساسي</Badge>}
-              {contact.source && <span className="text-xs text-[var(--text-muted)]">المصدر: {contact.source}</span>}
+              {contact.source && (
+                <span className="text-xs text-[var(--text-muted)]">المصدر: {contact.source}</span>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -207,20 +236,29 @@ export default function ContactDetailPage() {
         {/* Contact Info */}
         <Card>
           <CardHeader>
-            <span className="text-sm font-semibold text-[var(--text-primary)]">معلومات الاتصال</span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">
+              معلومات الاتصال
+            </span>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {contact.email && (
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
-                  <a href={`mailto:${contact.email}`} className="text-sm text-[var(--text-primary)] hover:text-[var(--muhide-orange)]">{contact.email}</a>
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="text-sm text-[var(--text-primary)] hover:text-[var(--muhide-orange)]"
+                  >
+                    {contact.email}
+                  </a>
                 </div>
               )}
               {contact.phone && (
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
-                  <a href={`tel:${contact.phone}`} className="text-sm text-[var(--text-primary)]">{contact.phone}</a>
+                  <a href={`tel:${contact.phone}`} className="text-sm text-[var(--text-primary)]">
+                    {contact.phone}
+                  </a>
                 </div>
               )}
               {contact.mobile && (
@@ -256,9 +294,21 @@ export default function ContactDetailPage() {
                 >
                   {company.name_ar || company.name_en}
                 </Link>
-                {company.cr_number && <div className="text-sm text-[var(--text-secondary)]">س.ت: {company.cr_number}</div>}
-                {company.city && <div className="text-sm text-[var(--text-secondary)] flex items-center gap-1"><MapPin className="h-3 w-3" />{company.city}</div>}
-                <Link href={`/companies/${company.id}/360`} className="text-xs text-[var(--muhide-orange)] hover:underline">
+                {company.cr_number && (
+                  <div className="text-sm text-[var(--text-secondary)]">
+                    س.ت: {company.cr_number}
+                  </div>
+                )}
+                {company.city && (
+                  <div className="text-sm text-[var(--text-secondary)] flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {company.city}
+                  </div>
+                )}
+                <Link
+                  href={`/companies/${company.id}/360`}
+                  className="text-xs text-[var(--muhide-orange)] hover:underline"
+                >
                   عرض 360
                 </Link>
               </div>
@@ -273,9 +323,13 @@ export default function ContactDetailPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Handshake className="h-5 w-5 text-[var(--text-muted)]" />
-              <span className="text-sm font-semibold text-[var(--text-primary)]">الفرص المرتبطة</span>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">
+                الفرص المرتبطة
+              </span>
               {opportunities.length > 0 && (
-                <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{opportunities.length}</span>
+                <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
+                  {opportunities.length}
+                </span>
               )}
             </div>
           </CardHeader>
@@ -300,13 +354,17 @@ export default function ContactDetailPage() {
                           {oc.opp_value.toLocaleString()} ر.س
                         </span>
                       )}
-                      {oc.role && <span className="text-[10px] text-[var(--text-muted)]">{oc.role}</span>}
+                      {oc.role && (
+                        <span className="text-[10px] text-[var(--text-muted)]">{oc.role}</span>
+                      )}
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[var(--text-muted)] py-4 text-center">لا توجد فرص مرتبطة</p>
+              <p className="text-sm text-[var(--text-muted)] py-4 text-center">
+                لا توجد فرص مرتبطة
+              </p>
             )}
           </CardContent>
         </Card>

@@ -6,14 +6,18 @@ import { BarChart3, TrendingUp, Users, Zap, Target, Trophy } from "lucide-react"
 import { effectivenessApi, EffectivenessDashboard } from "@/lib/api/effectiveness";
 import { effectivenessKeys } from "@/lib/queryKeys";
 import { PageHeader } from "../_components/page-header";
-import {
-  ErrorState,
-  LoadingState,
-  PermissionState,
-} from "../_components/states";
+import { ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 
-function Stat({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) {
+function Stat({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ElementType;
+}) {
   return (
     <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-4">
       <div className="flex items-center gap-2">
@@ -25,7 +29,13 @@ function Stat({ label, value, icon: Icon }: { label: string; value: string | num
   );
 }
 
-function CohortCard({ name, data }: { name: string; data: EffectivenessDashboard["cohorts"][string] }) {
+function CohortCard({
+  name,
+  data,
+}: {
+  name: string;
+  data: EffectivenessDashboard["cohorts"][string];
+}) {
   return (
     <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-4">
       <div className="flex items-center justify-between">
@@ -61,20 +71,30 @@ function LiftPanel({ lift }: { lift: EffectivenessDashboard["lift"] }) {
       <div className="mt-4 grid grid-cols-2 gap-6">
         <div>
           <p className="text-xs text-[var(--text-muted)] mb-1">Elevated (critical + high)</p>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{lift.elevated_total} accounts</p>
-          <p className="text-sm text-[var(--text-muted)]">{lift.elevated_meetings} meetings / {lift.elevated_connections} connections</p>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">
+            {lift.elevated_total} accounts
+          </p>
+          <p className="text-sm text-[var(--text-muted)]">
+            {lift.elevated_meetings} meetings / {lift.elevated_connections} connections
+          </p>
         </div>
         <div>
           <p className="text-xs text-[var(--text-muted)] mb-1">Baseline (medium + low)</p>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{lift.baseline_total} accounts</p>
-          <p className="text-sm text-[var(--text-muted)]">{lift.baseline_meetings} meetings / {lift.baseline_connections} connections</p>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">
+            {lift.baseline_total} accounts
+          </p>
+          <p className="text-sm text-[var(--text-muted)]">
+            {lift.baseline_meetings} meetings / {lift.baseline_connections} connections
+          </p>
         </div>
       </div>
       <div className="mt-4 p-3 rounded-md bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-[var(--text-primary)]">Meeting Lift</span>
           {isNumerator ? (
-            <span className={`text-lg font-bold ${meetingLift.value! >= 1 ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>
+            <span
+              className={`text-lg font-bold ${meetingLift.value! >= 1 ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}
+            >
               {meetingLift.display}
             </span>
           ) : (
@@ -83,7 +103,9 @@ function LiftPanel({ lift }: { lift: EffectivenessDashboard["lift"] }) {
         </div>
         <p className="text-xs text-[var(--text-muted)] mt-1">
           {isNumerator
-            ? (pct && parseFloat(pct) >= 0 ? `+${pct}% more meetings per account` : `${pct}% fewer meetings per account`)
+            ? pct && parseFloat(pct) >= 0
+              ? `+${pct}% more meetings per account`
+              : `${pct}% fewer meetings per account`
             : "Baseline rate = 0% — comparison not computable"}
         </p>
       </div>
@@ -91,7 +113,9 @@ function LiftPanel({ lift }: { lift: EffectivenessDashboard["lift"] }) {
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-[var(--text-primary)]">Connection Lift</span>
           {lift.connection_lift.value !== null ? (
-            <span className="text-lg font-bold text-[var(--text-primary)]">{lift.connection_lift.display}</span>
+            <span className="text-lg font-bold text-[var(--text-primary)]">
+              {lift.connection_lift.display}
+            </span>
           ) : (
             <span className="text-lg font-bold text-[var(--text-muted)]">N/A</span>
           )}
@@ -213,7 +237,9 @@ export default function EffectivenessPage() {
       {d && (
         <div className="grid grid-cols-2 gap-6">
           <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">By Intent Level</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
+              By Intent Level
+            </h3>
             {byLevelEntries.length === 0 ? (
               <p className="text-sm text-[var(--text-muted)]">No intent-level data yet.</p>
             ) : (
@@ -246,10 +272,24 @@ export default function EffectivenessPage() {
             <Zap className="h-4 w-4" /> NBA Effectiveness
           </h3>
           <div className="grid grid-cols-4 gap-4 text-sm">
-            <div><span className="text-[var(--text-muted)]">Total Actions:</span> <span className="font-bold text-[var(--text-primary)]">{d.nba.total_actions}</span></div>
-            <div><span className="text-[var(--text-muted)]">Accepted:</span> <span className="font-bold text-[var(--text-primary)]">{d.nba.acceptance_rate}%</span></div>
-            <div><span className="text-[var(--text-muted)]">Modified:</span> <span className="font-bold text-[var(--text-primary)]">{d.nba.modification_rate}%</span></div>
-            <div><span className="text-[var(--text-muted)]">Rejected:</span> <span className="font-bold text-[var(--text-primary)]">{d.nba.rejection_rate}%</span></div>
+            <div>
+              <span className="text-[var(--text-muted)]">Total Actions:</span>{" "}
+              <span className="font-bold text-[var(--text-primary)]">{d.nba.total_actions}</span>
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Accepted:</span>{" "}
+              <span className="font-bold text-[var(--text-primary)]">{d.nba.acceptance_rate}%</span>
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Modified:</span>{" "}
+              <span className="font-bold text-[var(--text-primary)]">
+                {d.nba.modification_rate}%
+              </span>
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Rejected:</span>{" "}
+              <span className="font-bold text-[var(--text-primary)]">{d.nba.rejection_rate}%</span>
+            </div>
           </div>
         </div>
       )}
@@ -258,7 +298,9 @@ export default function EffectivenessPage() {
       {!isLoading && d && d.summary.total_accounts === 0 && (
         <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-12 text-center">
           <BarChart3 className="h-10 w-10 text-[var(--text-muted)] mx-auto mb-4" />
-          <p className="text-[var(--text-muted)]">No effectiveness data yet. Accounts need funnel events to appear here.</p>
+          <p className="text-[var(--text-muted)]">
+            No effectiveness data yet. Accounts need funnel events to appear here.
+          </p>
         </div>
       )}
     </div>

@@ -10,12 +10,7 @@ jest.mock("@/lib/api/client", () => ({
 
 import { renderHook, act } from "@testing-library/react";
 import apiClient from "@/lib/api/client";
-import {
-  track,
-  useNbaExposureTracking,
-  usePageTracking,
-  useWidgetTracking,
-} from "../analytics";
+import { track, useNbaExposureTracking, usePageTracking, useWidgetTracking } from "../analytics";
 
 function parseRequestBody(callIndex = 0): {
   events: Array<{
@@ -82,15 +77,20 @@ describe("track", () => {
 
     expect(apiClient.post).toHaveBeenCalledWith(
       "/api/v1/analytics/events",
-      expect.objectContaining({ events: [expect.objectContaining({ widgetId: "widget-before-exit" })] }),
-      { adapter: "fetch", fetchOptions: { keepalive: true } },
+      expect.objectContaining({
+        events: [expect.objectContaining({ widgetId: "widget-before-exit" })],
+      }),
+      { adapter: "fetch", fetchOptions: { keepalive: true } }
     );
   });
 
   it("retries in-flight events on pagehide with the same idempotency ID", async () => {
     let resolveInitial!: (value: unknown) => void;
     (apiClient.post as jest.Mock).mockImplementationOnce(
-      () => new Promise((resolve) => { resolveInitial = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveInitial = resolve;
+        })
     );
     track({ type: "nba.accepted", companyId: "company-1", metadata: { actionId: "action-1" } });
     const originalEventId = parseRequestBody(0).events[0].eventId;
@@ -137,7 +137,7 @@ describe("track", () => {
       expect(apiClient.post).toHaveBeenCalledTimes(1);
       expect(parseRequestBody().events).toHaveLength(1);
       expect(parseRequestBody().events[0].type).toBe(type);
-    },
+    }
   );
 });
 
@@ -210,7 +210,7 @@ describe("useNbaExposureTracking", () => {
     const { rerender } = renderHook(
       ({ recommendations, enabled }) =>
         useNbaExposureTracking("company-1", recommendations, enabled),
-      { initialProps: { recommendations: initial, enabled: false } },
+      { initialProps: { recommendations: initial, enabled: false } }
     );
     rerender({ recommendations: [...initial], enabled: true });
     rerender({ recommendations: [...initial], enabled: true });

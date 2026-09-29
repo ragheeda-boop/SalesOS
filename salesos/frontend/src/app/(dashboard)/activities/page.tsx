@@ -182,7 +182,7 @@ export default function ActivitiesPage() {
   }, [actionFilter]);
 
   const { data, isLoading, isError, error, refetch } = useGlobalActivities(filters);
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const activities = data?.items || [];
   const total = data?.total || 0;
 

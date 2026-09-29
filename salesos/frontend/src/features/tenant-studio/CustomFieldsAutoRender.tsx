@@ -83,7 +83,7 @@ export function CustomFieldsAutoRender({
     if (formQuery.data?.values) {
       setValues({ ...formQuery.data.values });
     }
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formQuery.data?.id, formQuery.data?.schema_version]);
 
   const fields = formQuery.data?.fields ?? [];
@@ -118,9 +118,9 @@ export function CustomFieldsAutoRender({
           className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
           data-testid="custom-fields-auto-honesty"
         >
-          Tip GET .../form-schema returns Form Engine descriptors (renderer=custom_fields_auto). POST
-          .../values projects metadata.custom_fields for known keys only — no ORM write / no Postgres
-          persistence on tip. Not Production GO / RAG GO.
+          Tip GET .../form-schema returns Form Engine descriptors (renderer=custom_fields_auto).
+          POST .../values projects metadata.custom_fields for known keys only — no ORM write / no
+          Postgres persistence on tip. Not Production GO / RAG GO.
         </p>
       ) : null}
 

@@ -65,9 +65,9 @@ describe("TasksPage", () => {
     expect(await screen.findByText("متابعة العميل")).toBeInTheDocument();
     expect(screen.queryByText("إرسال العرض")).not.toBeInTheDocument();
 
-    const completeBtn = screen.getAllByRole("button").find((btn) =>
-      btn.className.includes("rounded border-2")
-    );
+    const completeBtn = screen
+      .getAllByRole("button")
+      .find((btn) => btn.className.includes("rounded border-2"));
     expect(completeBtn).toBeDefined();
     fireEvent.click(completeBtn as HTMLElement);
 

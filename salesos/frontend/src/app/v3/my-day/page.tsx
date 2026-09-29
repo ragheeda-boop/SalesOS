@@ -3,9 +3,21 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  RefreshCw, Phone, Mail, MessageSquare, Calendar, Target, FileText,
-  Clock, CheckCircle2, TrendingUp, Zap, Brain, ArrowRight,
-  ThumbsDown, HelpCircle,
+  RefreshCw,
+  Phone,
+  Mail,
+  MessageSquare,
+  Calendar,
+  Target,
+  FileText,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+  Zap,
+  Brain,
+  ArrowRight,
+  ThumbsDown,
+  HelpCircle,
 } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState, ErrorState, LoadingState, PermissionState } from "../_components/states";
@@ -17,15 +29,26 @@ import { track } from "@/lib/analytics";
 import SellerGuidance from "@/components/v3/seller-guidance";
 
 const ACTION_ICONS: Record<string, typeof Phone> = {
-  call: Phone, email: Mail, whatsapp: MessageSquare, meeting: Calendar,
-  create_opportunity: Target, proposal: FileText, follow_up: Clock,
-  research: Brain, no_action: Clock,
+  call: Phone,
+  email: Mail,
+  whatsapp: MessageSquare,
+  meeting: Calendar,
+  create_opportunity: Target,
+  proposal: FileText,
+  follow_up: Clock,
+  research: Brain,
+  no_action: Clock,
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  call: "text-orange-600", email: "text-blue-600", whatsapp: "text-emerald-600",
-  meeting: "text-purple-600", create_opportunity: "text-amber-600",
-  proposal: "text-indigo-600", follow_up: "text-gray-600", research: "text-teal-600",
+  call: "text-orange-600",
+  email: "text-blue-600",
+  whatsapp: "text-emerald-600",
+  meeting: "text-purple-600",
+  create_opportunity: "text-amber-600",
+  proposal: "text-indigo-600",
+  follow_up: "text-gray-600",
+  research: "text-teal-600",
   no_action: "text-gray-400",
 };
 
@@ -63,13 +86,18 @@ function ActionCard({ workQueue }: { workQueue: WorkQueue }) {
 
   const acceptMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      return recordFeedback({
-        action_id: actionId,
-        recommendation_id: actionId,
-        company_name: workQueue.pending_actions.find((a) => a.id === actionId)?.company_name || "",
-        decision: "accepted",
-        original_action_type: workQueue.pending_actions.find((a) => a.id === actionId)?.action_type || "",
-      }, tenantId);
+      return recordFeedback(
+        {
+          action_id: actionId,
+          recommendation_id: actionId,
+          company_name:
+            workQueue.pending_actions.find((a) => a.id === actionId)?.company_name || "",
+          decision: "accepted",
+          original_action_type:
+            workQueue.pending_actions.find((a) => a.id === actionId)?.action_type || "",
+        },
+        tenantId
+      );
     },
     onSuccess: (_result, actionId) => {
       const action = workQueue.pending_actions.find((candidate) => candidate.id === actionId);
@@ -91,15 +119,18 @@ function ActionCard({ workQueue }: { workQueue: WorkQueue }) {
   const rejectMutation = useMutation({
     mutationFn: async ({ actionId, reasonCode }: { actionId: string; reasonCode: string }) => {
       const action = workQueue.pending_actions.find((candidate) => candidate.id === actionId);
-      return recordFeedback({
-        action_id: actionId,
-        recommendation_id: actionId,
-        company_name: action?.company_name || "",
-        decision: "rejected",
-        reason_code: reasonCode,
-        notes: "Rejected from My Day",
-        original_action_type: action?.action_type || "",
-      }, tenantId);
+      return recordFeedback(
+        {
+          action_id: actionId,
+          recommendation_id: actionId,
+          company_name: action?.company_name || "",
+          decision: "rejected",
+          reason_code: reasonCode,
+          notes: "Rejected from My Day",
+          original_action_type: action?.action_type || "",
+        },
+        tenantId
+      );
     },
     onSuccess: (_result, { actionId, reasonCode }) => {
       const action = workQueue.pending_actions.find((candidate) => candidate.id === actionId);
@@ -132,13 +163,18 @@ function ActionCard({ workQueue }: { workQueue: WorkQueue }) {
   return (
     <div className="space-y-2">
       {workQueue.pending_actions.map((action) => (
-        <div key={action.id} className="flex items-start gap-3 p-4 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)]">
+        <div
+          key={action.id}
+          className="flex items-start gap-3 p-4 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)]"
+        >
           <div className="mt-0.5">
             <ActionIcon type={action.action_type} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-medium text-[var(--text-primary)]">{action.company_name}</h4>
+              <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                {action.company_name}
+              </h4>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-secondary)] text-[var(--text-muted)] font-medium">
                 {action.action_type.replace(/_/g, " ")}
               </span>
@@ -153,7 +189,9 @@ function ActionCard({ workQueue }: { workQueue: WorkQueue }) {
                 Accept
               </button>
               <button
-                onClick={() => setRejectingActionId(rejectingActionId === action.id ? null : action.id)}
+                onClick={() =>
+                  setRejectingActionId(rejectingActionId === action.id ? null : action.id)
+                }
                 className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--border-primary)] border border-[var(--border-primary)] transition-colors"
               >
                 <ThumbsDown className="w-3 h-3" />
@@ -184,7 +222,9 @@ function ActionCard({ workQueue }: { workQueue: WorkQueue }) {
             )}
           </div>
           <div className="flex flex-col items-end gap-1">
-            <span className="text-[10px] text-[var(--text-muted)]">{formatTimeAgo(action.created_at)}</span>
+            <span className="text-[10px] text-[var(--text-muted)]">
+              {formatTimeAgo(action.created_at)}
+            </span>
           </div>
         </div>
       ))}
@@ -192,7 +232,13 @@ function ActionCard({ workQueue }: { workQueue: WorkQueue }) {
   );
 }
 
-function FollowupCard({ followup, onDone }: { followup: WorkQueue["pending_followups"][0]; onDone: () => void }) {
+function FollowupCard({
+  followup,
+  onDone,
+}: {
+  followup: WorkQueue["pending_followups"][0];
+  onDone: () => void;
+}) {
   const queryClient = useQueryClient();
   const tenantId = getTenantId();
 
@@ -215,7 +261,9 @@ function FollowupCard({ followup, onDone }: { followup: WorkQueue["pending_follo
         <div className="text-[10px] text-[var(--text-muted)] mt-1">{followup.rationale}</div>
       </div>
       <div className="flex flex-col items-end gap-1">
-        <span className={`text-[10px] ${isOverdue ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]"}`}>
+        <span
+          className={`text-[10px] ${isOverdue ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]"}`}
+        >
           {formatDue(followup.due_at)}
         </span>
         <button
@@ -236,15 +284,30 @@ function MetricsBar({ workQueue }: { workQueue: WorkQueue }) {
     <div className="grid grid-cols-4 gap-3 mb-6">
       {[
         { label: "Pending Actions", value: s.pending_actions, icon: Zap, color: "text-orange-600" },
-        { label: "Follow-ups Due", value: s.pending_followups, icon: Clock, color: "text-blue-600" },
-        { label: "Outcomes (7d)", value: s.outcomes_7d, icon: TrendingUp, color: "text-purple-600" },
+        {
+          label: "Follow-ups Due",
+          value: s.pending_followups,
+          icon: Clock,
+          color: "text-blue-600",
+        },
+        {
+          label: "Outcomes (7d)",
+          value: s.outcomes_7d,
+          icon: TrendingUp,
+          color: "text-purple-600",
+        },
         { label: "Connected (7d)", value: s.connected_7d, icon: Phone, color: "text-emerald-600" },
       ].map((m) => (
-        <div key={m.label} className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)]">
+        <div
+          key={m.label}
+          className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)]"
+        >
           <m.icon className={`w-5 h-5 ${m.color}`} />
           <div>
             <div className="text-lg font-semibold text-[var(--text-primary)]">{m.value}</div>
-            <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">{m.label}</div>
+            <div className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">
+              {m.label}
+            </div>
           </div>
         </div>
       ))}
@@ -256,7 +319,13 @@ export default function MyDayPage() {
   const { ready, hasToken } = useAccessToken();
   const [showGuidance, setShowGuidance] = useState(false);
 
-  const { data: workQueue, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: workQueue,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: hitlKeys.myDay("current-user"),
     queryFn: () => getMyDay(getTenantId()),
     enabled: ready && hasToken,
@@ -283,7 +352,12 @@ export default function MyDayPage() {
       </div>
     );
 
-  const wq = workQueue ?? { pending_actions: [], pending_followups: [], recent_outcomes: [], summary: { pending_actions: 0, pending_followups: 0, outcomes_7d: 0, connected_7d: 0 } };
+  const wq = workQueue ?? {
+    pending_actions: [],
+    pending_followups: [],
+    recent_outcomes: [],
+    summary: { pending_actions: 0, pending_followups: 0, outcomes_7d: 0, connected_7d: 0 },
+  };
 
   return (
     <div className="min-h-screen">
@@ -299,7 +373,10 @@ export default function MyDayPage() {
             >
               <HelpCircle className="w-3.5 h-3.5" /> Seller Guide
             </button>
-            <button onClick={() => refetch()} className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+            <button
+              onClick={() => refetch()}
+              className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </button>
           </div>
@@ -339,8 +416,12 @@ export default function MyDayPage() {
                 <div className="space-y-1.5">
                   {wq.recent_outcomes.slice(0, 5).map((o) => (
                     <div key={o.id} className="flex items-center gap-2 text-xs">
-                      <span className="text-[var(--text-muted)]">{formatTimeAgo(o.occurred_at)}</span>
-                      <span className="text-[var(--text-primary)] font-medium">{o.company_name}</span>
+                      <span className="text-[var(--text-muted)]">
+                        {formatTimeAgo(o.occurred_at)}
+                      </span>
+                      <span className="text-[var(--text-primary)] font-medium">
+                        {o.company_name}
+                      </span>
                       <span className="text-[var(--text-muted)]">{o.outcome_type}</span>
                     </div>
                   ))}
@@ -348,13 +429,28 @@ export default function MyDayPage() {
               )}
             </div>
             <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-4">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">How It Works</h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
+                How It Works
+              </h3>
               <div className="space-y-2 text-xs text-[var(--text-muted)]">
-                <p className="flex items-start gap-2"><ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Accept = proceed with recommendation</p>
-                <p className="flex items-start gap-2"><ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Reject = skip (with reason)</p>
-                <p className="flex items-start gap-2"><ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Log outcome after action</p>
-                <p className="flex items-start gap-2"><ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Follow-ups auto-generated from outcomes</p>
-                <p className="flex items-start gap-2"><ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Feedback loop improves recommendations</p>
+                <p className="flex items-start gap-2">
+                  <ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Accept = proceed with
+                  recommendation
+                </p>
+                <p className="flex items-start gap-2">
+                  <ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Reject = skip (with reason)
+                </p>
+                <p className="flex items-start gap-2">
+                  <ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Log outcome after action
+                </p>
+                <p className="flex items-start gap-2">
+                  <ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Follow-ups auto-generated from
+                  outcomes
+                </p>
+                <p className="flex items-start gap-2">
+                  <ArrowRight className="w-3 h-3 mt-0.5 shrink-0" /> Feedback loop improves
+                  recommendations
+                </p>
               </div>
             </div>
           </div>

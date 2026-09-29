@@ -90,9 +90,7 @@ function revenueAmount(
   if (revenue.currency_consistent) {
     return formatMoney(revenue[field], revenue.by_currency[0]?.currency ?? "SAR");
   }
-  return revenue.by_currency
-    .map((row) => formatMoney(row[field], row.currency))
-    .join(" · ") || "—";
+  return revenue.by_currency.map((row) => formatMoney(row[field], row.currency)).join(" · ") || "—";
 }
 
 function ProgressBar({
@@ -113,7 +111,9 @@ function ProgressBar({
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{label}</span>
-        <span className="font-medium text-[var(--text-primary)]">{formatMoney(value, currency)}</span>
+        <span className="font-medium text-[var(--text-primary)]">
+          {formatMoney(value, currency)}
+        </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
         <div
@@ -290,7 +290,10 @@ export function ExecutiveDashboard() {
                 <span className="text-[var(--text-secondary)]">{t("executive.avg_deal_size")}</span>
                 <span className="font-bold text-[var(--text-primary)]">
                   {d.pipeline.avg_deal_size != null
-                    ? formatMoney(d.pipeline.avg_deal_size, d.pipeline.by_currency[0]?.currency ?? "SAR")
+                    ? formatMoney(
+                        d.pipeline.avg_deal_size,
+                        d.pipeline.by_currency[0]?.currency ?? "SAR"
+                      )
                     : d.pipeline.by_currency
                         .map((row) => formatMoney(row.avg_deal_size, row.currency))
                         .join(" · ") || "—"}

@@ -5,12 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@salesos/ui";
 import { PageHeader } from "../_components/page-header";
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PermissionState,
-} from "../_components/states";
+import { EmptyState, ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 import apiClient from "@/lib/api/client";
 import { getTenantId } from "@/lib/hooks/useTenant";
@@ -49,7 +44,12 @@ export default function V3ApprovalsPage() {
   const { ready, hasToken } = useAccessToken();
   const [tab, setTab] = React.useState<TabKey>("pending");
 
-  const { data: pendingData, isLoading: pendingLoading, isError: pendingError, error: pendingErr } = useQuery({
+  const {
+    data: pendingData,
+    isLoading: pendingLoading,
+    isError: pendingError,
+    error: pendingErr,
+  } = useQuery({
     queryKey: ["approvals", "pending"],
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/approvals/pending", {
@@ -60,7 +60,12 @@ export default function V3ApprovalsPage() {
     enabled: ready && hasToken && tab === "pending",
   });
 
-  const { data: allData, isLoading: allLoading, isError: allError, error: allErr } = useQuery({
+  const {
+    data: allData,
+    isLoading: allLoading,
+    isError: allError,
+    error: allErr,
+  } = useQuery({
     queryKey: ["approvals", "all"],
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/approvals", {
@@ -71,7 +76,12 @@ export default function V3ApprovalsPage() {
     enabled: ready && hasToken && tab === "all",
   });
 
-  const { data: kpis, isLoading: kpisLoading, isError: kpisError, error: kpisErr } = useQuery({
+  const {
+    data: kpis,
+    isLoading: kpisLoading,
+    isError: kpisError,
+    error: kpisErr,
+  } = useQuery({
     queryKey: ["approvals", "kpis"],
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/approvals/kpis", {
@@ -104,18 +114,17 @@ export default function V3ApprovalsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Approvals"
-        description="Review and decide on approval requests"
-      />
+      <PageHeader title="Approvals" description="Review and decide on approval requests" />
 
       {/* Tabs */}
       <div className="mb-4 flex gap-1 rounded-lg border border-[var(--border-default)] p-1">
-        {([
-          { key: "pending", label: "Pending" },
-          { key: "all", label: "All" },
-          { key: "kpis", label: "KPIs" },
-        ] as const).map((t) => (
+        {(
+          [
+            { key: "pending", label: "Pending" },
+            { key: "all", label: "All" },
+            { key: "kpis", label: "KPIs" },
+          ] as const
+        ).map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -186,7 +195,9 @@ export default function V3ApprovalsPage() {
                       <td className="px-4 py-3 text-[var(--text-muted)]">{a.target_type}</td>
                       <td className="px-4 py-3 text-[var(--text-muted)]">{a.requested_by}</td>
                       <td className="px-4 py-3 text-[var(--text-muted)]">{a.required_level}</td>
-                      <td className="px-4 py-3 text-[var(--text-muted)]">{a.decisions?.length ?? 0}</td>
+                      <td className="px-4 py-3 text-[var(--text-muted)]">
+                        {a.decisions?.length ?? 0}
+                      </td>
                       <td className="px-4 py-3 text-[var(--text-muted)]">
                         {new Date(a.created_at).toLocaleDateString()}
                       </td>

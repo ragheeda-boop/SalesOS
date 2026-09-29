@@ -44,7 +44,9 @@ export default function V3RecommendationsPage() {
         }
       />
 
-      {!ready ? <LoadingState label="Checking session…" /> : !hasToken ? (
+      {!ready ? (
+        <LoadingState label="Checking session…" />
+      ) : !hasToken ? (
         <PermissionState nextPath="/v3/recommendations" />
       ) : query.isLoading ? (
         <LoadingState label="Loading recommendations…" />
@@ -58,7 +60,11 @@ export default function V3RecommendationsPage() {
         <EmptyState
           title="No recommendations to review"
           description={`Checked ${query.data?.source_opportunities ?? 0} open deals. Deals without a recorded probability are skipped instead of scored as if their probability were known.`}
-          action={<Link href="/v3/crm" className="text-sm underline">Review CRM deals</Link>}
+          action={
+            <Link href="/v3/crm" className="text-sm underline">
+              Review CRM deals
+            </Link>
+          }
         />
       ) : (
         <div className="space-y-3" data-testid="recommendation-list">
@@ -69,9 +75,13 @@ export default function V3RecommendationsPage() {
                   <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
                     {item.priority} priority · {Math.round(item.confidence * 100)}% rule confidence
                   </p>
-                  <h2 className="mt-1 text-base font-semibold text-[var(--text-primary)]">{item.title}</h2>
+                  <h2 className="mt-1 text-base font-semibold text-[var(--text-primary)]">
+                    {item.title}
+                  </h2>
                 </div>
-                <span className={`rounded-full border px-2 py-1 text-xs ${PRIORITY_CLASS[item.priority]}`}>
+                <span
+                  className={`rounded-full border px-2 py-1 text-xs ${PRIORITY_CLASS[item.priority]}`}
+                >
                   {item.priority}
                 </span>
               </div>
@@ -81,20 +91,25 @@ export default function V3RecommendationsPage() {
                 <ul className="mt-3 space-y-1 text-xs text-[var(--text-secondary)]">
                   {item.evidence.map((evidence, index) => (
                     <li key={`${evidence.source_domain}-${index}`}>
-                      {evidence.source_domain} · {evidence.description} · {Math.round(evidence.confidence * 100)}%
+                      {evidence.source_domain} · {evidence.description} ·{" "}
+                      {Math.round(evidence.confidence * 100)}%
                     </li>
                   ))}
                 </ul>
               ) : null}
               {item.target_type === "opportunity" ? (
-                <Link href={`/v3/crm/${encodeURIComponent(item.target_id)}`} className="mt-3 inline-block text-sm underline">
+                <Link
+                  href={`/v3/crm/${encodeURIComponent(item.target_id)}`}
+                  className="mt-3 inline-block text-sm underline"
+                >
                   Review deal
                 </Link>
               ) : null}
             </article>
           ))}
           <p className="text-xs text-[var(--text-muted)]">
-            These suggestions do not change CRM records or send communications. Review the linked deal and evidence before taking action.
+            These suggestions do not change CRM records or send communications. Review the linked
+            deal and evidence before taking action.
           </p>
         </div>
       )}

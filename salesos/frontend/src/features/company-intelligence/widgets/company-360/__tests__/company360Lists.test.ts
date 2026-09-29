@@ -10,15 +10,13 @@ describe("company360Lists (REMAINING_GAPS U04)", () => {
         metadata: { name: "اتفاقية", type: "PDF" },
       },
     ]);
-    expect(rows).toEqual([
-      { id: "d1", name: "اتفاقية", type: "PDF", date: "2026-07-05" },
-    ]);
+    expect(rows).toEqual([{ id: "d1", name: "اتفاقية", type: "PDF", date: "2026-07-05" }]);
   });
 
   it("maps DTO-shaped documents and ignores empty payloads", () => {
-    expect(asDocumentRows({ items: [{ id: "x", name: "شهادة", type: "PDF", date: "2026-01-10" }] })).toEqual([
-      { id: "x", name: "شهادة", type: "PDF", date: "2026-01-10" },
-    ]);
+    expect(
+      asDocumentRows({ items: [{ id: "x", name: "شهادة", type: "PDF", date: "2026-01-10" }] })
+    ).toEqual([{ id: "x", name: "شهادة", type: "PDF", date: "2026-01-10" }]);
     expect(asDocumentRows(null)).toEqual([]);
     expect(asDocumentRows(undefined)).toEqual([]);
   });

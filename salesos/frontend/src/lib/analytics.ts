@@ -2,12 +2,7 @@
 
 import { useEffect, useCallback, useRef } from "react";
 import apiClient from "@/lib/api/client";
-import {
-  CSRF_COOKIE,
-  CSRF_TOKEN_PATH,
-  mirrorCsrfCookie,
-  readCookie,
-} from "@/lib/auth/csrf";
+import { CSRF_COOKIE, CSRF_TOKEN_PATH, mirrorCsrfCookie, readCookie } from "@/lib/auth/csrf";
 
 type EventType =
   | "widget.rendered"
@@ -49,9 +44,7 @@ function flush(options: { keepalive?: boolean } = {}) {
   if (typeof window === "undefined") return;
   const batch = options.keepalive
     ? Array.from(
-        new Map(
-          [...inFlight.values(), ...queue].map((event) => [event.eventId, event]),
-        ).values(),
+        new Map([...inFlight.values(), ...queue].map((event) => [event.eventId, event])).values()
       ).slice(0, 50)
     : queue.splice(0, 50);
   if (batch.length === 0) return;
@@ -70,7 +63,7 @@ function flush(options: { keepalive?: boolean } = {}) {
     ? apiClient.post(
         "/api/v1/analytics/events",
         { events: batch },
-        { adapter: "fetch", fetchOptions: { keepalive: true } },
+        { adapter: "fetch", fetchOptions: { keepalive: true } }
       )
     : apiClient.post("/api/v1/analytics/events", { events: batch });
   void request.then(
@@ -80,7 +73,7 @@ function flush(options: { keepalive?: boolean } = {}) {
       batch.forEach((event) => {
         if (!queuedIds.has(event.eventId)) queue.push(event);
       });
-    },
+    }
   );
 }
 
@@ -157,7 +150,7 @@ export function useWidgetTracking(widgetId: string) {
 export function useNbaExposureTracking(
   companyId: string,
   recommendations: readonly { id?: string; action?: string }[],
-  enabled = true,
+  enabled = true
 ) {
   const tracked = useRef(new Set<string>());
 

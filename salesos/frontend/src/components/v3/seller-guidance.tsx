@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { X, CheckCircle2, XCircle, AlertTriangle, Brain, ThumbsUp, ArrowRight, Shield } from "lucide-react";
+import {
+  X,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Brain,
+  ThumbsUp,
+  ArrowRight,
+  Shield,
+} from "lucide-react";
 
 const TRUST_RULES = [
   {
@@ -48,8 +57,16 @@ const OVERRIDE_REASONS = [
   { code: "wrong_person", label: "Wrong Person", desc: "Recommendation targets incorrect contact" },
   { code: "bad_timing", label: "Bad Timing", desc: "Action is premature or poorly timed" },
   { code: "not_relevant", label: "Not Relevant", desc: "Signal does not apply to this account" },
-  { code: "already_contacted", label: "Already Contacted", desc: "This touchpoint was already executed" },
-  { code: "budget_constraint", label: "Budget Constraint", desc: "Account has no budget for this action" },
+  {
+    code: "already_contacted",
+    label: "Already Contacted",
+    desc: "This touchpoint was already executed",
+  },
+  {
+    code: "budget_constraint",
+    label: "Budget Constraint",
+    desc: "Account has no budget for this action",
+  },
 ];
 
 export default function SellerGuidance({ onClose }: { onClose: () => void }) {
@@ -61,10 +78,17 @@ export default function SellerGuidance({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-primary)]">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Seller Operating Model</h2>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">How to work with AI recommendations</p>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              Seller Operating Model
+            </h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+              How to work with AI recommendations
+            </p>
           </div>
-          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+          <button
+            onClick={onClose}
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -95,14 +119,22 @@ export default function SellerGuidance({ onClose }: { onClose: () => void }) {
           {activeTab === "trust" && (
             <div className="space-y-5">
               {TRUST_RULES.map((section) => (
-                <div key={section.label} className="rounded-lg border border-[var(--border-primary)] p-4">
+                <div
+                  key={section.label}
+                  className="rounded-lg border border-[var(--border-primary)] p-4"
+                >
                   <div className="flex items-center gap-2 mb-3">
                     <section.icon className={`w-4 h-4 ${section.color}`} />
-                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">{section.label}</h3>
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                      {section.label}
+                    </h3>
                   </div>
                   <ul className="space-y-2">
                     {section.rules.map((rule, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-[var(--text-muted)]">
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-xs text-[var(--text-muted)]"
+                      >
                         <ArrowRight className="w-3 h-3 mt-0.5 shrink-0 text-[var(--text-muted)]" />
                         {rule}
                       </li>
@@ -120,10 +152,15 @@ export default function SellerGuidance({ onClose }: { onClose: () => void }) {
                 This feedback directly improves future recommendations for your accounts.
               </p>
               {OVERRIDE_REASONS.map((reason) => (
-                <div key={reason.code} className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border-primary)]">
+                <div
+                  key={reason.code}
+                  className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border-primary)]"
+                >
                   <XCircle className="w-4 h-4 text-[var(--text-muted)] mt-0.5 shrink-0" />
                   <div>
-                    <div className="text-sm font-medium text-[var(--text-primary)]">{reason.label}</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)]">
+                      {reason.label}
+                    </div>
                     <div className="text-xs text-[var(--text-muted)] mt-0.5">{reason.desc}</div>
                   </div>
                 </div>
@@ -134,27 +171,43 @@ export default function SellerGuidance({ onClose }: { onClose: () => void }) {
           {activeTab === "feedback" && (
             <div className="space-y-4">
               <div className="rounded-lg border border-[var(--border-primary)] p-4">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">How your feedback improves recommendations</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
+                  How your feedback improves recommendations
+                </h3>
                 <div className="space-y-3 text-xs text-[var(--text-muted)]">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0 text-[var(--text-primary)]" />
-                    <span><strong>Accept</strong> reinforces the signal pattern. Similar accounts will see the same recommendation with higher priority.</span>
+                    <span>
+                      <strong>Accept</strong> reinforces the signal pattern. Similar accounts will
+                      see the same recommendation with higher priority.
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <XCircle className="w-3 h-3 mt-0.5 shrink-0 text-[var(--text-secondary)]" />
-                    <span><strong>Reject</strong> teaches the system what does not work for your accounts. The pattern will be deprioritized for similar signals.</span>
+                    <span>
+                      <strong>Reject</strong> teaches the system what does not work for your
+                      accounts. The pattern will be deprioritized for similar signals.
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <ThumbsUp className="w-3 h-3 mt-0.5 shrink-0 text-[var(--text-muted)]" />
-                    <span><strong>Modify</strong> captures your judgment about the right approach. The system learns your preferred action types and timing.</span>
+                    <span>
+                      <strong>Modify</strong> captures your judgment about the right approach. The
+                      system learns your preferred action types and timing.
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-lg border border-[var(--border-primary)] p-4">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Outcome tracking</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
+                  Outcome tracking
+                </h3>
                 <div className="text-xs text-[var(--text-muted)] space-y-2">
-                  <p>After taking an action, log the outcome (connected, meeting set, no answer, etc.). This closes the feedback loop:</p>
+                  <p>
+                    After taking an action, log the outcome (connected, meeting set, no answer,
+                    etc.). This closes the feedback loop:
+                  </p>
                   <ol className="list-decimal list-inside space-y-1 ml-2">
                     <li>Signal detected and recommendation generated</li>
                     <li>You accept or override the recommendation</li>
@@ -167,23 +220,37 @@ export default function SellerGuidance({ onClose }: { onClose: () => void }) {
               </div>
 
               <div className="rounded-lg border border-[var(--border-primary)] p-4">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Key metrics to watch</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
+                  Key metrics to watch
+                </h3>
                 <div className="grid grid-cols-2 gap-3 text-xs text-[var(--text-muted)]">
                   <div>
                     <div className="font-medium text-[var(--text-primary)]">Acceptance Rate</div>
-                    <div>How often you follow AI recommendations. Higher is not always better -- override when you have better information.</div>
+                    <div>
+                      How often you follow AI recommendations. Higher is not always better --
+                      override when you have better information.
+                    </div>
                   </div>
                   <div>
                     <div className="font-medium text-[var(--text-primary)]">Conversion Rate</div>
-                    <div>Percentage of actions that result in a positive outcome (connected, meeting set, proposal sent).</div>
+                    <div>
+                      Percentage of actions that result in a positive outcome (connected, meeting
+                      set, proposal sent).
+                    </div>
                   </div>
                   <div>
                     <div className="font-medium text-[var(--text-primary)]">Time-to-Action</div>
-                    <div>Average hours between recommendation and your first response. Faster response correlates with higher conversion.</div>
+                    <div>
+                      Average hours between recommendation and your first response. Faster response
+                      correlates with higher conversion.
+                    </div>
                   </div>
                   <div>
                     <div className="font-medium text-[var(--text-primary)]">Follow-up Rate</div>
-                    <div>Outcomes that generate follow-ups. A high rate means you are building pipeline, not just making calls.</div>
+                    <div>
+                      Outcomes that generate follow-ups. A high rate means you are building
+                      pipeline, not just making calls.
+                    </div>
                   </div>
                 </div>
               </div>

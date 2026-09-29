@@ -3,14 +3,25 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowRight, Brain, CheckCircle2, Clock, Mail, MessageSquare, Phone,
-  Target, FileText, Calendar, ThumbsDown,
+  ArrowRight,
+  Brain,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MessageSquare,
+  Phone,
+  Target,
+  FileText,
+  Calendar,
+  ThumbsDown,
 } from "lucide-react";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import apiClient from "@/lib/api/client";
 import {
-  recordFeedback, recordOutcome,
-  getCompanyFeedback, getCompanyOutcomes,
+  recordFeedback,
+  recordOutcome,
+  getCompanyFeedback,
+  getCompanyOutcomes,
 } from "@/lib/api/hitl";
 import type { Opportunity } from "@/lib/api";
 import { hitlKeys } from "@/lib/queryKeys";
@@ -122,7 +133,10 @@ function formatTimeAgo(dateStr: string): string {
 
 function ExplainabilityBlock({ notes }: { notes: string }) {
   if (!notes) return null;
-  const lines = notes.split(";").map((l) => l.trim()).filter(Boolean);
+  const lines = notes
+    .split(";")
+    .map((l) => l.trim())
+    .filter(Boolean);
   return (
     <div className="rounded-md bg-[var(--bg-secondary)] p-3 space-y-1">
       <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">
@@ -137,7 +151,13 @@ function ExplainabilityBlock({ notes }: { notes: string }) {
   );
 }
 
-function OutcomeForm({ actionId, companyId, companyName, opportunities, onSuccess }: {
+function OutcomeForm({
+  actionId,
+  companyId,
+  companyName,
+  opportunities,
+  onSuccess,
+}: {
   actionId: string;
   companyId: string;
   companyName: string;
@@ -152,14 +172,17 @@ function OutcomeForm({ actionId, companyId, companyName, opportunities, onSucces
 
   const mutation = useMutation({
     mutationFn: async (outcomeType: string) => {
-      return recordOutcome({
-        action_id: actionId,
-        company_name: companyName,
-        opportunity_id: opportunityId || undefined,
-        idempotency_key: idempotencyKey,
-        outcome_type: outcomeType,
-        followup_required: true,
-      }, tenantId);
+      return recordOutcome(
+        {
+          action_id: actionId,
+          company_name: companyName,
+          opportunity_id: opportunityId || undefined,
+          idempotency_key: idempotencyKey,
+          outcome_type: outcomeType,
+          followup_required: true,
+        },
+        tenantId
+      );
     },
     onSuccess: (_result, outcomeType) => {
       track({
@@ -212,22 +235,33 @@ function OutcomeForm({ actionId, companyId, companyName, opportunities, onSucces
   );
 }
 
-function RejectForm({ actionId, companyId, companyName, onSuccess }: {
-  actionId: string; companyId: string; companyName: string; onSuccess: () => void;
+function RejectForm({
+  actionId,
+  companyId,
+  companyName,
+  onSuccess,
+}: {
+  actionId: string;
+  companyId: string;
+  companyName: string;
+  onSuccess: () => void;
 }) {
   const queryClient = useQueryClient();
   const tenantId = getTenantId();
 
   const mutation = useMutation({
     mutationFn: async (reasonCode: string) => {
-      return recordFeedback({
-        action_id: actionId,
-        recommendation_id: actionId,
-        company_name: companyName,
-        decision: "rejected",
-        reason_code: reasonCode,
-        original_action_type: "",
-      }, tenantId);
+      return recordFeedback(
+        {
+          action_id: actionId,
+          recommendation_id: actionId,
+          company_name: companyName,
+          decision: "rejected",
+          reason_code: reasonCode,
+          original_action_type: "",
+        },
+        tenantId
+      );
     },
     onSuccess: (_result, reasonCode) => {
       track({
@@ -274,7 +308,11 @@ export function CompanyNbaTab({
   const [outcomeActionId, setOutcomeActionId] = useState<string | null>(null);
   const tenantId = getTenantId();
 
-  const { data: actions, isLoading: actionsLoading, isError: actionsError } = useQuery({
+  const {
+    data: actions,
+    isLoading: actionsLoading,
+    isError: actionsError,
+  } = useQuery({
     queryKey: ["companyNba", companyName, "actions"],
     queryFn: async () => {
       const res = await apiClient.get("/api/v1/signal-actions/actions", {
@@ -297,11 +335,15 @@ export function CompanyNbaTab({
   const { data: scoreResult, isLoading: scoreLoading } = useQuery({
     queryKey: ["companyNba", companyName, "score"],
     queryFn: async () => {
-      const res = await apiClient.post("/api/v1/signal-actions/score", {
-        company_name: companyName,
-      }, {
-        headers: { "X-Tenant-Id": tenantId },
-      });
+      const res = await apiClient.post(
+        "/api/v1/signal-actions/score",
+        {
+          company_name: companyName,
+        },
+        {
+          headers: { "X-Tenant-Id": tenantId },
+        }
+      );
       return res.data as { priority: AccountPriority; nba: NextBestAction };
     },
     enabled: showScore,
@@ -319,13 +361,16 @@ export function CompanyNbaTab({
 
   const acceptMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      return recordFeedback({
-        action_id: actionId,
-        recommendation_id: actionId,
-        company_name: companyName,
-        decision: "accepted",
-        original_action_type: actions?.find((a) => a.id === actionId)?.action_type || "",
-      }, tenantId);
+      return recordFeedback(
+        {
+          action_id: actionId,
+          recommendation_id: actionId,
+          company_name: companyName,
+          decision: "accepted",
+          original_action_type: actions?.find((a) => a.id === actionId)?.action_type || "",
+        },
+        tenantId
+      );
     },
     onSuccess: (_result, actionId) => {
       track({
@@ -342,13 +387,17 @@ export function CompanyNbaTab({
 
   const completeMutation = useMutation({
     mutationFn: async (actionId: string) => {
-      await apiClient.post("/api/v1/signal-actions/complete", {
-        action_id: actionId,
-        outcome: "positive",
-        notes: "Completed from Company 360",
-      }, {
-        headers: { "X-Tenant-Id": tenantId },
-      });
+      await apiClient.post(
+        "/api/v1/signal-actions/complete",
+        {
+          action_id: actionId,
+          outcome: "positive",
+          notes: "Completed from Company 360",
+        },
+        {
+          headers: { "X-Tenant-Id": tenantId },
+        }
+      );
     },
     onSuccess: (_result, actionId) => {
       track({
@@ -366,7 +415,7 @@ export function CompanyNbaTab({
   useNbaExposureTracking(
     companyId,
     pendingActions.map((action) => ({ id: action.id, action: action.action_type })),
-    !actionsLoading && !actionsError && pendingActions.length > 0,
+    !actionsLoading && !actionsError && pendingActions.length > 0
   );
   const priority = scoreResult?.priority;
   const nba = scoreResult?.nba;
@@ -392,12 +441,16 @@ export function CompanyNbaTab({
           <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">Intent Score</h3>
-              <span className={`text-xs px-2 py-0.5 rounded font-medium ${URGENCY_COLORS[priority.action_urgency] || "bg-[var(--bg-secondary)] text-[var(--text-muted)]"}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded font-medium ${URGENCY_COLORS[priority.action_urgency] || "bg-[var(--bg-secondary)] text-[var(--text-muted)]"}`}
+              >
                 {priority.action_urgency}
               </span>
             </div>
             <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-3xl font-bold text-[var(--text-primary)]">{priority.intent_score}</span>
+              <span className="text-3xl font-bold text-[var(--text-primary)]">
+                {priority.intent_score}
+              </span>
               <span className="text-sm text-[var(--text-muted)]">/ 100</span>
               <span className="text-sm text-[var(--text-muted)] ml-2">
                 ({priority.signal_count} signals, {priority.critical_signals} critical)
@@ -405,8 +458,13 @@ export function CompanyNbaTab({
             </div>
             {/* NBA */}
             <div className="flex items-center gap-3 p-3 rounded-md bg-[var(--bg-secondary)]">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${ACTION_COLORS[nba.action_type] || "bg-[var(--bg-secondary)] text-[var(--text-muted)]"}`}>
-                {(() => { const I = ACTION_ICONS[nba.action_type] || Clock; return <I className="w-4 h-4" />; })()}
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${ACTION_COLORS[nba.action_type] || "bg-[var(--bg-secondary)] text-[var(--text-muted)]"}`}
+              >
+                {(() => {
+                  const I = ACTION_ICONS[nba.action_type] || Clock;
+                  return <I className="w-4 h-4" />;
+                })()}
               </div>
               <div className="flex-1">
                 <div className="text-sm font-medium text-[var(--text-primary)]">{nba.title}</div>
@@ -435,27 +493,42 @@ export function CompanyNbaTab({
         {actionsLoading ? (
           <p className="text-sm text-[var(--text-muted)]">Loading pending actions…</p>
         ) : actionsError ? (
-          <p role="alert" className="text-sm text-[var(--text-muted)]">Could not load pending actions.</p>
+          <p role="alert" className="text-sm text-[var(--text-muted)]">
+            Could not load pending actions.
+          </p>
         ) : pendingActions.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]">No pending actions for this company.</p>
         ) : (
           <div className="space-y-2">
             {pendingActions.map((action) => {
               const Icon = ACTION_ICONS[action.action_type] || Clock;
-              const color = ACTION_COLORS[action.action_type] || "bg-[var(--bg-secondary)] text-[var(--text-muted)]";
+              const color =
+                ACTION_COLORS[action.action_type] ||
+                "bg-[var(--bg-secondary)] text-[var(--text-muted)]";
               const isRejectOpen = rejectActionId === action.id;
               const isOutcomeOpen = outcomeActionId === action.id;
               return (
-                <div key={action.id} className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-3">
+                <div
+                  key={action.id}
+                  className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] p-3"
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${color}`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${color}`}
+                    >
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-[var(--text-primary)]">{formatActionType(action.action_type)}</div>
-                      <div className="text-xs text-[var(--text-muted)] line-clamp-1">{action.notes}</div>
+                      <div className="text-sm font-medium text-[var(--text-primary)]">
+                        {formatActionType(action.action_type)}
+                      </div>
+                      <div className="text-xs text-[var(--text-muted)] line-clamp-1">
+                        {action.notes}
+                      </div>
                     </div>
-                    <span className="text-[10px] text-[var(--text-muted)]">{formatTimeAgo(action.created_at)}</span>
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      {formatTimeAgo(action.created_at)}
+                    </span>
                   </div>
                   {/* Feedback buttons */}
                   <div className="flex items-center gap-2 mt-2">
@@ -468,14 +541,20 @@ export function CompanyNbaTab({
                       Accept
                     </button>
                     <button
-                      onClick={() => { setRejectActionId(isRejectOpen ? null : action.id); setOutcomeActionId(null); }}
+                      onClick={() => {
+                        setRejectActionId(isRejectOpen ? null : action.id);
+                        setOutcomeActionId(null);
+                      }}
                       className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--border-primary)] border border-[var(--border-primary)] transition-colors"
                     >
                       <ThumbsDown className="w-3 h-3" />
                       Reject
                     </button>
                     <button
-                      onClick={() => { setOutcomeActionId(isOutcomeOpen ? null : action.id); setRejectActionId(null); }}
+                      onClick={() => {
+                        setOutcomeActionId(isOutcomeOpen ? null : action.id);
+                        setRejectActionId(null);
+                      }}
                       className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--border-primary)] border border-[var(--border-primary)] transition-colors"
                     >
                       Log Outcome
@@ -491,7 +570,12 @@ export function CompanyNbaTab({
                   </div>
                   {/* Inline forms */}
                   {isRejectOpen && (
-                    <RejectForm actionId={action.id} companyId={companyId} companyName={companyName} onSuccess={() => setRejectActionId(null)} />
+                    <RejectForm
+                      actionId={action.id}
+                      companyId={companyId}
+                      companyName={companyName}
+                      onSuccess={() => setRejectActionId(null)}
+                    />
                   )}
                   {isOutcomeOpen && (
                     <OutcomeForm
@@ -519,11 +603,15 @@ export function CompanyNbaTab({
             {(feedbackHistory?.feedback ?? []).slice(0, 5).map((fb) => (
               <div key={fb.id} className="flex items-center gap-2 text-xs">
                 <span className="text-[var(--text-muted)]">{formatTimeAgo(fb.created_at)}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  fb.decision === "accepted" ? "bg-[var(--bg-secondary)] text-[var(--text-primary)]"
-                    : fb.decision === "rejected" ? "bg-[var(--bg-secondary)] text-[var(--text-muted)]"
-                    : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
-                }`}>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                    fb.decision === "accepted"
+                      ? "bg-[var(--bg-secondary)] text-[var(--text-primary)]"
+                      : fb.decision === "rejected"
+                        ? "bg-[var(--bg-secondary)] text-[var(--text-muted)]"
+                        : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
+                  }`}
+                >
                   {fb.decision}
                 </span>
                 {fb.reason_code && (
@@ -546,7 +634,9 @@ export function CompanyNbaTab({
               <div key={o.id} className="flex items-center gap-2 text-xs">
                 <span className="text-[var(--text-muted)]">{formatTimeAgo(o.occurred_at)}</span>
                 <span className="text-[var(--text-primary)] font-medium">{o.outcome_type}</span>
-                {o.notes && <span className="text-[var(--text-muted)] line-clamp-1">{o.notes}</span>}
+                {o.notes && (
+                  <span className="text-[var(--text-muted)] line-clamp-1">{o.notes}</span>
+                )}
               </div>
             ))}
           </div>

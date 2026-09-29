@@ -84,7 +84,9 @@ export function IntelligenceTab({ companyId }: { companyId: string }) {
       <section className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-[var(--text-primary)]">CRM account facts</h2>
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">
+              CRM account facts
+            </h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">
               {data.company_name}
               {[data.industry, data.city].filter(Boolean).length > 0
@@ -179,7 +181,9 @@ export function IntelligenceTab({ companyId }: { companyId: string }) {
           <div className="mt-3 border-t border-[var(--border-default)] pt-3">
             <h4 className="text-xs font-medium text-[var(--text-muted)]">Suggested next actions</h4>
             <ul className="mt-1 list-inside list-disc space-y-1 text-sm text-[var(--text-secondary)]">
-              {data.account_signals.recommendations.map((item) => <li key={item}>{item}</li>)}
+              {data.account_signals.recommendations.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </div>
         )}
@@ -197,12 +201,15 @@ export function IntelligenceTab({ companyId }: { companyId: string }) {
           </span>
         </div>
         <p className="mt-2 text-sm text-[var(--text-secondary)]">
-          Recent 90 days: {data.engagement_trend.recent_90_days} activities · Previous 90 days: {data.engagement_trend.previous_90_days} activities
+          Recent 90 days: {data.engagement_trend.recent_90_days} activities · Previous 90 days:{" "}
+          {data.engagement_trend.previous_90_days} activities
           {data.engagement_trend.change_percent == null
             ? " · percentage change unavailable"
             : ` · ${data.engagement_trend.change_percent > 0 ? "+" : ""}${data.engagement_trend.change_percent}%`}
         </p>
-        <p className="mt-1 text-xs text-[var(--text-muted)]">{data.engagement_trend.interpretation}</p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">
+          {data.engagement_trend.interpretation}
+        </p>
       </section>
 
       {missingMessages.length > 0 && (
@@ -212,13 +219,16 @@ export function IntelligenceTab({ companyId }: { companyId: string }) {
         >
           <h3 className="text-sm font-medium text-[var(--text-primary)]">Data gaps</h3>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[var(--text-secondary)]">
-            {missingMessages.map((message) => <li key={message}>{message}</li>)}
+            {missingMessages.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
           </ul>
         </section>
       )}
 
       <p className="text-xs text-[var(--text-muted)]">
-        Signals are deterministic rules over persisted CRM records, with source tables shown. No predictive score is calculated and no CRM data is changed.
+        Signals are deterministic rules over persisted CRM records, with source tables shown. No
+        predictive score is calculated and no CRM data is changed.
       </p>
     </div>
   );

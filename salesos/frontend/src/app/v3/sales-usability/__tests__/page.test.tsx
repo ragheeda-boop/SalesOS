@@ -1,15 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SalesUsabilityPage from "../page";
-import {
-  fetchSalesUsabilityAccounts,
-  fetchSalesUsabilitySummary,
-} from "@/lib/reviewQueueQueries";
+import { fetchSalesUsabilityAccounts, fetchSalesUsabilitySummary } from "@/lib/reviewQueueQueries";
 
 jest.mock("next/link", () => ({
   __esModule: true,
   default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -27,7 +26,7 @@ function renderPage() {
   return render(
     <QueryClientProvider client={client}>
       <SalesUsabilityPage />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -80,6 +79,6 @@ test("filters send usable and blocker params and reset to page 1", async () => {
       blocker: "PENDING_P3_FUZZY_PAIR",
       page: 1,
       pageSize: 100,
-    }),
+    })
   );
 });

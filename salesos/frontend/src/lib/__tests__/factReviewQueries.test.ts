@@ -20,9 +20,9 @@ describe("fact review API client", () => {
     const payload = { items: [], limit: 50, offset: 0 };
     mockedApi.get.mockResolvedValueOnce({ data: payload } as never);
 
-    await expect(
-      fetchFactProposals({ status: "PROPOSED", limit: 50, offset: 0 }),
-    ).resolves.toEqual(payload);
+    await expect(fetchFactProposals({ status: "PROPOSED", limit: 50, offset: 0 })).resolves.toEqual(
+      payload
+    );
     expect(getTenantId).toHaveBeenCalled();
     expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/facts/proposals", {
       params: { status: "PROPOSED", limit: 50, offset: 0 },
@@ -45,12 +45,12 @@ describe("fact review API client", () => {
         id: "fact/1",
         decision: "approve",
         reason: "Confirmed against the source.",
-      }),
+      })
     ).resolves.toEqual(payload);
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/facts/fact%2F1/decision",
       { decision: "approve", reason: "Confirmed against the source." },
-      { headers: { "X-Tenant-Id": "tenant-42" } },
+      { headers: { "X-Tenant-Id": "tenant-42" } }
     );
   });
 });

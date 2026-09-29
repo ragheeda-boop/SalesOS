@@ -57,11 +57,14 @@ export interface DecisionCenterListResponse {
   total: number;
 }
 
-function mapCenterStatus(
-  status: string | undefined
-): DecisionCenterLedgerItem["status"] {
+function mapCenterStatus(status: string | undefined): DecisionCenterLedgerItem["status"] {
   if (status === "accepted" || status === "executed") return status;
-  if (status === "rejected" || status === "expired" || status === "superseded" || status === "dismissed") {
+  if (
+    status === "rejected" ||
+    status === "expired" ||
+    status === "superseded" ||
+    status === "dismissed"
+  ) {
     return "dismissed";
   }
   return "pending";

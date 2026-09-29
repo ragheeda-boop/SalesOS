@@ -32,7 +32,8 @@ import { IntelligenceTab } from "./intelligence-tab";
 import { CompanyNbaTab } from "./company-nba-tab";
 import { CreateDealForm } from "../../crm/create-deal-form";
 
-type TabId = "overview" | "contacts" | "timeline" | "opportunities" | "tasks" | "intelligence" | "actions";
+type TabId =
+  "overview" | "contacts" | "timeline" | "opportunities" | "tasks" | "intelligence" | "actions";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },

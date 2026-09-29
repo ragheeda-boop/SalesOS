@@ -70,7 +70,6 @@ function OwnerLoginPageContent() {
             } else {
               setError("Owner login failed.");
             }
-
           } else {
             setError("Unexpected error.");
           }
@@ -87,7 +86,10 @@ function OwnerLoginPageContent() {
     >
       <Card className="w-full max-w-md p-8">
         <CardContent>
-          <p className="text-xs uppercase tracking-wide text-center mb-2" style={{ color: "var(--text-muted)" }}>
+          <p
+            className="text-xs uppercase tracking-wide text-center mb-2"
+            style={{ color: "var(--text-muted)" }}
+          >
             Owner Platform
           </p>
           <h1
@@ -97,8 +99,8 @@ function OwnerLoginPageContent() {
             Owner login
           </h1>
           <p className="text-xs text-center mb-6" style={{ color: "var(--text-muted)" }}>
-            Mints audience <code>{OWNER_JWT_AUDIENCE}</code> for{" "}
-            <code>/api/v1/admin/*</code>. Admin role required. Not Production GO.
+            Mints audience <code>{OWNER_JWT_AUDIENCE}</code> for <code>/api/v1/admin/*</code>. Admin
+            role required. Not Production GO.
           </p>
           <form onSubmit={handleSubmit} className="space-y-4" data-testid="owner-login-form">
             <Input
@@ -140,7 +142,11 @@ function OwnerLoginPageContent() {
           </form>
           <p className="mt-4 text-sm text-center" style={{ color: "var(--text-muted)" }}>
             Tenant app login?{" "}
-            <Link href="/login" style={{ color: "var(--muhide-orange)" }} className="hover:underline">
+            <Link
+              href="/login"
+              style={{ color: "var(--muhide-orange)" }}
+              className="hover:underline"
+            >
               /login
             </Link>
           </p>

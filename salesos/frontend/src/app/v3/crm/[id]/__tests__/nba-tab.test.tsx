@@ -14,7 +14,9 @@ const getNbaMock = getOpportunityNBA as jest.MockedFunction<typeof getOpportunit
 const refreshNbaMock = refreshOpportunityNBA as jest.MockedFunction<typeof refreshOpportunityNBA>;
 
 function renderTab() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={client}>
       <DealNbaTab opportunityId="opp-1" />
@@ -34,8 +36,17 @@ describe("DealNbaTab", () => {
       confidence_label: "medium",
       source: "rule",
       alternatives: [],
-      evidence: [{ type: "activity", description: "No activity in the last two weeks.", source: "activity_records", confidence: 0.8 }],
-      potential_risks: [{ type: "stale", level: "medium", description: "The deal may be stalled." }],
+      evidence: [
+        {
+          type: "activity",
+          description: "No activity in the last two weeks.",
+          source: "activity_records",
+          confidence: 0.8,
+        },
+      ],
+      potential_risks: [
+        { type: "stale", level: "medium", description: "The deal may be stalled." },
+      ],
       status: "pending",
       created_at: "2026-09-21T08:00:00Z",
       updated_at: "2026-09-21T08:00:00Z",
@@ -48,7 +59,9 @@ describe("DealNbaTab", () => {
     expect(await screen.findByText("Schedule Follow Up")).toBeInTheDocument();
     expect(screen.getByText("The opportunity has not had recent activity.")).toBeInTheDocument();
     expect(screen.getByText("No activity in the last two weeks.")).toBeInTheDocument();
-    expect(screen.getByText(/does not send a message or change the opportunity/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/does not send a message or change the opportunity/i)
+    ).toBeInTheDocument();
   });
 
   it("refreshes using the supported API and replaces the displayed recommendation", async () => {

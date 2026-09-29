@@ -149,10 +149,7 @@ export async function addOpportunityNote(
   _author: string
 ): Promise<RevenueOpportunity[]> {
   await api.post(`/api/v1/opportunities/${id}/notes`, { text });
-  const [opportunities, notes] = await Promise.all([
-    loadOpportunities(),
-    getOpportunityNotes(id),
-  ]);
+  const [opportunities, notes] = await Promise.all([loadOpportunities(), getOpportunityNotes(id)]);
   return opportunities.map((opportunity) =>
     opportunity.id === id ? { ...opportunity, notes } : opportunity
   );

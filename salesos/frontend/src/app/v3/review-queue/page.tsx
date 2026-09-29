@@ -19,7 +19,11 @@ import {
 type TabKey = "p3" | "short-cr" | "triage";
 
 const TABS: { key: TabKey; label: string; description: string }[] = [
-  { key: "p3", label: "P3 Fuzzy Pairs", description: "114 domain-equal first, then remaining pending" },
+  {
+    key: "p3",
+    label: "P3 Fuzzy Pairs",
+    description: "114 domain-equal first, then remaining pending",
+  },
   { key: "short-cr", label: "Suspicious Short-CR", description: "36 separator-list CR accounts" },
   { key: "triage", label: "P1/P2 Triage", description: "Read-only review candidate triage" },
 ];
@@ -32,7 +36,11 @@ const P3_ACTION_LABELS: Record<string, string> = {
   ESCALATE: "تصعيد للمالك",
 };
 
-const SHORT_CR_DISPOSITIONS = ["CONFIRMED_VALID_SHORT_CR", "CONFIRMED_ARTIFACT", "UNRESOLVED_ESCALATE"];
+const SHORT_CR_DISPOSITIONS = [
+  "CONFIRMED_VALID_SHORT_CR",
+  "CONFIRMED_ARTIFACT",
+  "UNRESOLVED_ESCALATE",
+];
 const P3_PAGE_SIZE = 100;
 const TRIAGE_PAGE_SIZE = 100;
 
@@ -63,7 +71,8 @@ export default function V3ReviewQueuePage() {
 
   const p3 = useQuery({
     queryKey: ["review-queue", "p3", p3Batch, p3Page],
-    queryFn: () => fetchP3Pairs({ status: "pending", batch: p3Batch, page: p3Page, pageSize: P3_PAGE_SIZE }),
+    queryFn: () =>
+      fetchP3Pairs({ status: "pending", batch: p3Batch, page: p3Page, pageSize: P3_PAGE_SIZE }),
     enabled: ready && hasToken,
   });
   const p3Count = useQuery({
@@ -178,31 +187,47 @@ export default function V3ReviewQueuePage() {
           {p3.isLoading || p3Count.isLoading ? (
             <LoadingState />
           ) : p3.isError || p3Count.isError ? (
-            <ErrorState description={(p3.error as Error)?.message ?? "Failed to load P3 pairs"} onRetry={() => { p3.refetch(); p3Count.refetch(); }} />
+            <ErrorState
+              description={(p3.error as Error)?.message ?? "Failed to load P3 pairs"}
+              onRetry={() => {
+                p3.refetch();
+                p3Count.refetch();
+              }}
+            />
           ) : (
             <>
               <div className="rounded-lg border bg-card p-4 space-y-2 text-sm">
                 <p className="font-semibold">الدفعة الأولى — 114 زوج بنفس النطاق</p>
-                <p>الدومين متطابق. هذا أقوى دليل إيجابي في الطابور، لكنه ليس دمجاً تلقائياً. MATCH يسجّل «نفس الشركة» فقط.</p>
+                <p>
+                  الدومين متطابق. هذا أقوى دليل إيجابي في الطابور، لكنه ليس دمجاً تلقائياً. MATCH
+                  يسجّل «نفس الشركة» فقط.
+                </p>
                 <p>إذا اختلف الاسم جوهرياً أو شككت، صعّد. القرارات تسجيل فقط — لا دمج ولا إنتاج.</p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <button
                   type="button"
-                  onClick={() => { setP3Batch("priority"); setP3Page(1); }}
+                  onClick={() => {
+                    setP3Batch("priority");
+                    setP3Page(1);
+                  }}
                   className={`rounded border px-3 py-1 ${p3Batch === "priority" ? "border-primary bg-primary/10" : "border-border"}`}
                 >
                   أول دفعة (دومين متطابق)
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setP3Batch("remainder"); setP3Page(1); }}
+                  onClick={() => {
+                    setP3Batch("remainder");
+                    setP3Page(1);
+                  }}
                   className={`rounded border px-3 py-1 ${p3Batch === "remainder" ? "border-primary bg-primary/10" : "border-border"}`}
                 >
                   باقي المعلّق
                 </button>
                 <span className="text-muted-foreground">
-                  في هذه الدفعة: <span className="font-semibold text-foreground">{p3.data?.total ?? "—"}</span>
+                  في هذه الدفعة:{" "}
+                  <span className="font-semibold text-foreground">{p3.data?.total ?? "—"}</span>
                 </span>
                 <label className="ml-auto flex items-center gap-2 text-muted-foreground">
                   <span>المراجع:</span>
@@ -244,7 +269,9 @@ export default function V3ReviewQueuePage() {
                           <td className="p-2 font-medium">{pair.name_b ?? "—"}</td>
                           <td className="p-2 font-mono text-xs">
                             {pair.domain_a ?? "—"}
-                            {pair.domain_b && pair.domain_b !== pair.domain_a ? ` / ${pair.domain_b}` : ""}
+                            {pair.domain_b && pair.domain_b !== pair.domain_a
+                              ? ` / ${pair.domain_b}`
+                              : ""}
                           </td>
                           <td className="p-2 font-mono text-xs">
                             {pair.cr_a ?? "—"}
@@ -257,7 +284,12 @@ export default function V3ReviewQueuePage() {
                                 <button
                                   key={d}
                                   type="button"
-                                  onClick={() => p3Disposition.mutate({ subjectKey: pair.subject_key, disposition: d })}
+                                  onClick={() =>
+                                    p3Disposition.mutate({
+                                      subjectKey: pair.subject_key,
+                                      disposition: d,
+                                    })
+                                  }
                                   disabled={p3Disposition.isPending}
                                   className="rounded border border-border bg-card px-2 py-1 text-left text-xs hover:bg-secondary"
                                 >
@@ -275,17 +307,41 @@ export default function V3ReviewQueuePage() {
                   </table>
                 </div>
               ) : (
-                <EmptyState title={p3Batch === "priority" ? "لا بقي أزواج في دفعة الدومين." : "لا بقي أزواج معلّقة في هذا الفلتر."} />
+                <EmptyState
+                  title={
+                    p3Batch === "priority"
+                      ? "لا بقي أزواج في دفعة الدومين."
+                      : "لا بقي أزواج معلّقة في هذا الفلتر."
+                  }
+                />
               )}
               {(p3.data?.total ?? 0) > P3_PAGE_SIZE && (
                 <div className="flex items-center justify-between border-t border-border pt-3 text-sm text-muted-foreground">
                   <span>
-                    عرض {(p3Page - 1) * P3_PAGE_SIZE + 1}–{Math.min(p3Page * P3_PAGE_SIZE, p3.data?.total ?? 0)} من {p3.data?.total ?? 0}
+                    عرض {(p3Page - 1) * P3_PAGE_SIZE + 1}–
+                    {Math.min(p3Page * P3_PAGE_SIZE, p3.data?.total ?? 0)} من {p3.data?.total ?? 0}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span>صفحة {p3Page} من {Math.max(1, Math.ceil((p3.data?.total ?? 0) / P3_PAGE_SIZE))}</span>
-                    <button type="button" disabled={p3Page <= 1} onClick={() => setP3Page((page) => Math.max(1, page - 1))} className="rounded border border-border px-3 py-1 disabled:opacity-40">السابق</button>
-                    <button type="button" disabled={p3Page >= Math.ceil((p3.data?.total ?? 0) / P3_PAGE_SIZE)} onClick={() => setP3Page((page) => page + 1)} className="rounded border border-border px-3 py-1 disabled:opacity-40">التالي</button>
+                    <span>
+                      صفحة {p3Page} من{" "}
+                      {Math.max(1, Math.ceil((p3.data?.total ?? 0) / P3_PAGE_SIZE))}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={p3Page <= 1}
+                      onClick={() => setP3Page((page) => Math.max(1, page - 1))}
+                      className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                    >
+                      السابق
+                    </button>
+                    <button
+                      type="button"
+                      disabled={p3Page >= Math.ceil((p3.data?.total ?? 0) / P3_PAGE_SIZE)}
+                      onClick={() => setP3Page((page) => page + 1)}
+                      className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                    >
+                      التالي
+                    </button>
                   </div>
                 </div>
               )}
@@ -299,14 +355,22 @@ export default function V3ReviewQueuePage() {
           {shortCr.isLoading ? (
             <LoadingState />
           ) : shortCr.isError ? (
-            <ErrorState description={(shortCr.error as Error)?.message ?? "Failed to load short-CR accounts"} onRetry={() => shortCr.refetch()} />
+            <ErrorState
+              description={(shortCr.error as Error)?.message ?? "Failed to load short-CR accounts"}
+              onRetry={() => shortCr.refetch()}
+            />
           ) : (
             <>
               {/* Plain-language guidance panel (non-engineer friendly) */}
               <div className="rounded-lg border bg-card p-4 space-y-2 text-sm">
                 <p className="font-semibold">إرشادات المراجعة — أرقام CR القصيرة</p>
-                <p>راجع الأرقام القصيرة المرفوضة. إذا كان الرقم القصير مجرد بقايا/كود وليس سجلًا تجاريًا، اختر: <span className="font-medium">استبعاد الرقم القصير</span>.</p>
-                <p>إذا لم تستطع الحكم، اختر: <span className="font-medium">تصعيد للمراجعة</span>.</p>
+                <p>
+                  راجع الأرقام القصيرة المرفوضة. إذا كان الرقم القصير مجرد بقايا/كود وليس سجلًا
+                  تجاريًا، اختر: <span className="font-medium">استبعاد الرقم القصير</span>.
+                </p>
+                <p>
+                  إذا لم تستطع الحكم، اختر: <span className="font-medium">تصعيد للمراجعة</span>.
+                </p>
                 <p>لا تعتمد رقمًا قصيرًا كسجل تجاري إلا إذا كان لديك مصدر موثوق.</p>
                 <div className="mt-2 border-t pt-2 text-xs text-muted-foreground">
                   هذه القرارات تسجيلٌ فقط ولا تغيّر بيانات الشركة ولا الإنتاج.
@@ -316,7 +380,9 @@ export default function V3ReviewQueuePage() {
               <div className="flex items-center justify-between gap-3">
                 <div className="text-sm text-muted-foreground">
                   Total accounts:{" "}
-                  <span className="font-semibold text-foreground">{shortCr.data?.total ?? "—"}</span>
+                  <span className="font-semibold text-foreground">
+                    {shortCr.data?.total ?? "—"}
+                  </span>
                 </div>
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>اسم المراجع:</span>
@@ -351,7 +417,9 @@ export default function V3ReviewQueuePage() {
                             <td className="p-2">{row.master_account_id}</td>
                             <td className="p-2 font-mono">{row.cr_number_raw}</td>
                             <td className="p-2">{row.valid_cr_count}</td>
-                            <td className="p-2 font-mono text-destructive">{row.rejected_tokens.join(", ")}</td>
+                            <td className="p-2 font-mono text-destructive">
+                              {row.rejected_tokens.join(", ")}
+                            </td>
                             <td className="p-2">
                               <span className="text-xs text-muted-foreground">يُقترح: </span>
                               <span className="text-xs font-medium">{suggested.label}</span>
@@ -362,7 +430,12 @@ export default function V3ReviewQueuePage() {
                                   <button
                                     key={d}
                                     type="button"
-                                    onClick={() => shortCrDisposition.mutate({ subjectKey: row.master_account_id, disposition: d })}
+                                    onClick={() =>
+                                      shortCrDisposition.mutate({
+                                        subjectKey: row.master_account_id,
+                                        disposition: d,
+                                      })
+                                    }
                                     disabled={shortCrDisposition.isPending}
                                     className={`rounded border px-2 py-1 text-left text-xs ${
                                       d === suggested.disposition
@@ -378,7 +451,9 @@ export default function V3ReviewQueuePage() {
                                 <span className="text-xs text-muted-foreground">جارٍ الحفظ...</span>
                               )}
                               {shortCrDisposition.isError && (
-                                <span className="text-xs text-destructive">فشل الحفظ — حاول مجددًا</span>
+                                <span className="text-xs text-destructive">
+                                  فشل الحفظ — حاول مجددًا
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -400,7 +475,13 @@ export default function V3ReviewQueuePage() {
           {triage.isLoading || triageCounts.isLoading ? (
             <LoadingState />
           ) : triage.isError || triageCounts.isError ? (
-            <ErrorState description={(triage.error as Error)?.message ?? "Failed to load triage candidates"} onRetry={() => { triage.refetch(); triageCounts.refetch(); }} />
+            <ErrorState
+              description={(triage.error as Error)?.message ?? "Failed to load triage candidates"}
+              onRetry={() => {
+                triage.refetch();
+                triageCounts.refetch();
+              }}
+            />
           ) : (
             <>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-5">
@@ -445,12 +526,33 @@ export default function V3ReviewQueuePage() {
               {(triage.data?.total ?? 0) > TRIAGE_PAGE_SIZE && (
                 <div className="flex items-center justify-between border-t border-border pt-3 text-sm text-muted-foreground">
                   <span>
-                    عرض {(triagePage - 1) * TRIAGE_PAGE_SIZE + 1}–{Math.min(triagePage * TRIAGE_PAGE_SIZE, triage.data?.total ?? 0)} من {triage.data?.total ?? 0}
+                    عرض {(triagePage - 1) * TRIAGE_PAGE_SIZE + 1}–
+                    {Math.min(triagePage * TRIAGE_PAGE_SIZE, triage.data?.total ?? 0)} من{" "}
+                    {triage.data?.total ?? 0}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span>صفحة {triagePage} من {Math.max(1, Math.ceil((triage.data?.total ?? 0) / TRIAGE_PAGE_SIZE))}</span>
-                    <button type="button" disabled={triagePage <= 1} onClick={() => setTriagePage((page) => Math.max(1, page - 1))} className="rounded border border-border px-3 py-1 disabled:opacity-40">السابق</button>
-                    <button type="button" disabled={triagePage >= Math.ceil((triage.data?.total ?? 0) / TRIAGE_PAGE_SIZE)} onClick={() => setTriagePage((page) => page + 1)} className="rounded border border-border px-3 py-1 disabled:opacity-40">التالي</button>
+                    <span>
+                      صفحة {triagePage} من{" "}
+                      {Math.max(1, Math.ceil((triage.data?.total ?? 0) / TRIAGE_PAGE_SIZE))}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={triagePage <= 1}
+                      onClick={() => setTriagePage((page) => Math.max(1, page - 1))}
+                      className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                    >
+                      السابق
+                    </button>
+                    <button
+                      type="button"
+                      disabled={
+                        triagePage >= Math.ceil((triage.data?.total ?? 0) / TRIAGE_PAGE_SIZE)
+                      }
+                      onClick={() => setTriagePage((page) => page + 1)}
+                      className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                    >
+                      التالي
+                    </button>
                   </div>
                 </div>
               )}

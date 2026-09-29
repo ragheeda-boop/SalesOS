@@ -3,13 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
 import { Card, Badge, cn, Spinner } from "@salesos/ui";
-import {
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  ShieldCheck,
-  Server,
-} from "lucide-react";
+import { CheckCircle, XCircle, RefreshCw, ShieldCheck, Server } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 interface VersionResponse {
@@ -61,8 +55,7 @@ export default function SystemPage() {
   };
 
   const backendReachable = Boolean(backend);
-  const sameCommit =
-    Boolean(FE_BUILD_COMMIT) && backend?.backend_commit === FE_BUILD_COMMIT;
+  const sameCommit = Boolean(FE_BUILD_COMMIT) && backend?.backend_commit === FE_BUILD_COMMIT;
   const schemaKnown = Boolean(backend?.schema_version) && backend?.schema_version !== "unavailable";
 
   const commitParity = backendReachable && sameCommit;
@@ -112,7 +105,11 @@ export default function SystemPage() {
                 {t("system.backend")}
               </h2>
               <dl className="space-y-3 text-sm">
-                <Row label={t("system.commit")} value={shortCommit(backend?.backend_commit || "")} mono />
+                <Row
+                  label={t("system.commit")}
+                  value={shortCommit(backend?.backend_commit || "")}
+                  mono
+                />
                 <Row label={t("system.build_date")} value={backend?.build_date || "—"} mono />
                 <Row label={t("system.build_id")} value={backend?.build_id || "—"} mono />
               </dl>
@@ -135,10 +132,7 @@ export default function SystemPage() {
           <Card className="p-5">
             <h2 className="mb-4 font-semibold">{t("system.parity_checks")}</h2>
             <div className="space-y-3 text-sm">
-              <CheckRow
-                label={t("system.backend_reachable")}
-                ok={backendReachable}
-              />
+              <CheckRow label={t("system.backend_reachable")} ok={backendReachable} />
               <CheckRow label={t("system.same_commit")} ok={commitParity} />
               <CheckRow label={t("system.schema_known")} ok={schemaParity} />
               <CheckRow label={t("system.hash_verified")} ok={hashVerified} />
@@ -158,12 +152,12 @@ export default function SystemPage() {
               <p
                 className={cn(
                   "text-xl font-bold",
-                  allPass ? "text-success-600 dark:text-success-400" : "text-danger-600 dark:text-danger-400"
+                  allPass
+                    ? "text-success-600 dark:text-success-400"
+                    : "text-danger-600 dark:text-danger-400"
                 )}
               >
-                {allPass
-                  ? t("system.production_parity_verified")
-                  : t("system.parity_failed")}
+                {allPass ? t("system.production_parity_verified") : t("system.parity_failed")}
               </p>
             </div>
             {allPass ? (

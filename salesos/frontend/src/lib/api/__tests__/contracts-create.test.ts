@@ -43,10 +43,7 @@ describe("createContract — contract", () => {
       },
     });
 
-    await createContract(
-      { opportunity_id: "opp-1", quote_id: "q-1", title: "MSA" },
-      "tenant-1"
-    );
+    await createContract({ opportunity_id: "opp-1", quote_id: "q-1", title: "MSA" }, "tenant-1");
 
     expect(mockApi.post).toHaveBeenCalledWith(
       "/api/v1/contracts",

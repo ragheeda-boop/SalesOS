@@ -38,13 +38,29 @@ export function DealIntelligenceTab({ opportunityId }: { opportunityId: string }
           Rule-based CRM health
         </p>
         <h2 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
-          {data.health_score == null ? "Insufficient CRM data" : `${label(data.health_level)} · ${Math.round(data.health_score * 100)}%`}
+          {data.health_score == null
+            ? "Insufficient CRM data"
+            : `${label(data.health_level)} · ${Math.round(data.health_score * 100)}%`}
         </h2>
         <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <div><dt className="text-xs text-[var(--text-muted)]">Stage</dt><dd>{label(data.stage) || "—"}</dd></div>
-          <div><dt className="text-xs text-[var(--text-muted)]">Probability</dt><dd>{data.probability == null ? "Missing" : `${Math.round(data.probability * 100)}%`}</dd></div>
-          <div><dt className="text-xs text-[var(--text-muted)]">Days in stage</dt><dd>{data.days_in_stage == null ? "Not recorded" : Math.floor(data.days_in_stage)}</dd></div>
-          <div><dt className="text-xs text-[var(--text-muted)]">Recorded activities</dt><dd>{data.activity_count}</dd></div>
+          <div>
+            <dt className="text-xs text-[var(--text-muted)]">Stage</dt>
+            <dd>{label(data.stage) || "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-[var(--text-muted)]">Probability</dt>
+            <dd>
+              {data.probability == null ? "Missing" : `${Math.round(data.probability * 100)}%`}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-[var(--text-muted)]">Days in stage</dt>
+            <dd>{data.days_in_stage == null ? "Not recorded" : Math.floor(data.days_in_stage)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-[var(--text-muted)]">Recorded activities</dt>
+            <dd>{data.activity_count}</dd>
+          </div>
         </dl>
       </div>
 
@@ -56,25 +72,49 @@ export function DealIntelligenceTab({ opportunityId }: { opportunityId: string }
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="space-y-2" aria-labelledby="deal-intelligence-risks">
-          <h3 id="deal-intelligence-risks" className="text-sm font-medium text-[var(--text-primary)]">Risks</h3>
+          <h3
+            id="deal-intelligence-risks"
+            className="text-sm font-medium text-[var(--text-primary)]"
+          >
+            Risks
+          </h3>
           {data.risk_factors.length ? (
             <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--text-secondary)]">
-              {data.risk_factors.map((factor) => <li key={factor}>{factor}</li>)}
+              {data.risk_factors.map((factor) => (
+                <li key={factor}>{factor}</li>
+              ))}
             </ul>
-          ) : <p className="text-sm text-[var(--text-muted)]">No rule-based risks from the available fields.</p>}
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">
+              No rule-based risks from the available fields.
+            </p>
+          )}
         </section>
         <section className="space-y-2" aria-labelledby="deal-intelligence-opportunities">
-          <h3 id="deal-intelligence-opportunities" className="text-sm font-medium text-[var(--text-primary)]">Positive signals</h3>
+          <h3
+            id="deal-intelligence-opportunities"
+            className="text-sm font-medium text-[var(--text-primary)]"
+          >
+            Positive signals
+          </h3>
           {data.opportunity_factors.length ? (
             <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--text-secondary)]">
-              {data.opportunity_factors.map((factor) => <li key={factor}>{factor}</li>)}
+              {data.opportunity_factors.map((factor) => (
+                <li key={factor}>{factor}</li>
+              ))}
             </ul>
-          ) : <p className="text-sm text-[var(--text-muted)]">No positive rule matches from the available fields.</p>}
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">
+              No positive rule matches from the available fields.
+            </p>
+          )}
         </section>
       </div>
 
       <p className="text-xs text-[var(--text-muted)]">
-        Calculated from this tenant&apos;s opportunity, stage history, and activity records at {new Date(data.generated_at).toLocaleString()}. This is an explainable rule summary, not a calibrated sales prediction or an automatic CRM update.
+        Calculated from this tenant&apos;s opportunity, stage history, and activity records at{" "}
+        {new Date(data.generated_at).toLocaleString()}. This is an explainable rule summary, not a
+        calibrated sales prediction or an automatic CRM update.
       </p>
     </div>
   );

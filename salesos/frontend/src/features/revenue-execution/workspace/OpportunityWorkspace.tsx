@@ -6,8 +6,14 @@ import Link from "next/link";
 import { cn, Card, CardContent, CardHeader, Skeleton, Badge } from "@salesos/ui";
 import { NBAWidget } from "../widgets/nba-widget/NBAWidget";
 import {
-  Building2, Users, Target, CheckCircle, AlertTriangle,
-  XCircle, Activity, ShieldCheck
+  Building2,
+  Users,
+  Target,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  Activity,
+  ShieldCheck,
 } from "lucide-react";
 
 interface Opportunity {
@@ -87,7 +93,7 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
     const loadContacts = async () => {
       try {
         const { data } = await api.get(`/api/v1/opportunity-contacts`, {
-          params: { opportunity_id: opportunityId }
+          params: { opportunity_id: opportunityId },
         });
         const items = data.items || data || [];
         // Enrich with contact details
@@ -97,7 +103,9 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
           try {
             const cr = await api.get(`/api/v1/contacts/${oc.contact_id}`);
             contactDetail = cr.data || {};
-          } catch { /* best-effort */ }
+          } catch {
+            /* best-effort */
+          }
           enriched.push({
             ...oc,
             contact_name: (contactDetail.name || oc.contact_name) as string,
@@ -106,8 +114,11 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
           });
         }
         setContacts(enriched);
-      } catch { /* contacts are optional */ }
-      finally { setContactsLoaded(true); }
+      } catch {
+        /* contacts are optional */
+      } finally {
+        setContactsLoaded(true);
+      }
     };
     if (opportunity) loadContacts();
   }, [opportunityId, opportunity]);
@@ -117,11 +128,14 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
     const loadAttr = async () => {
       try {
         const { data } = await api.get("/api/v1/attributions", {
-          params: { opportunity_id: opportunityId, limit: 10 }
+          params: { opportunity_id: opportunityId, limit: 10 },
         });
         setAttributions(data.items || data || []);
-      } catch { /* optional */ }
-      finally { setAttributionsLoaded(true); }
+      } catch {
+        /* optional */
+      } finally {
+        setAttributionsLoaded(true);
+      }
     };
     if (opportunity) loadAttr();
   }, [opportunityId, opportunity]);
@@ -136,13 +150,18 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
     );
 
   const stageLabels: Record<string, string> = {
-    prospecting: "استكشاف", qualification: "تأهيل",
-    proposal: "عرض", negotiation: "تفاوض",
-    closed_won: "فوز", closed_lost: "خسارة",
+    prospecting: "استكشاف",
+    qualification: "تأهيل",
+    proposal: "عرض",
+    negotiation: "تفاوض",
+    closed_won: "فوز",
+    closed_lost: "خسارة",
   };
 
   const healthLabel: Record<string, string> = {
-    healthy: "سليم", at_risk: "في خطر", critical: "حرج",
+    healthy: "سليم",
+    at_risk: "في خطر",
+    critical: "حرج",
   };
 
   return (
@@ -184,9 +203,13 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-[var(--text-muted)]" />
-                <span className="text-sm font-semibold text-[var(--text-primary)]">جهات الاتصال</span>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">
+                  جهات الاتصال
+                </span>
                 {contacts.length > 0 && (
-                  <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{contacts.length}</span>
+                  <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
+                    {contacts.length}
+                  </span>
                 )}
               </div>
             </CardHeader>
@@ -203,21 +226,39 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                         {(c.contact_name || "?")[0]}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-medium text-[var(--text-primary)]">{c.contact_name || c.contact_id}</div>
-                        {c.contact_position && <div className="text-sm text-[var(--text-secondary)]">{c.contact_position}</div>}
-                        {c.contact_email && <div className="text-xs text-[var(--text-muted)] truncate">{c.contact_email}</div>}
+                        <div className="font-medium text-[var(--text-primary)]">
+                          {c.contact_name || c.contact_id}
+                        </div>
+                        {c.contact_position && (
+                          <div className="text-sm text-[var(--text-secondary)]">
+                            {c.contact_position}
+                          </div>
+                        )}
+                        {c.contact_email && (
+                          <div className="text-xs text-[var(--text-muted)] truncate">
+                            {c.contact_email}
+                          </div>
+                        )}
                       </div>
                       <div className="shrink-0 flex flex-col items-end gap-1">
                         {c.is_primary && <Badge variant="default">أساسي</Badge>}
-                        {c.role && <span className="text-[10px] text-[var(--text-muted)]">{c.role}</span>}
+                        {c.role && (
+                          <span className="text-[10px] text-[var(--text-muted)]">{c.role}</span>
+                        )}
                       </div>
                     </Link>
                   ))}
                 </div>
               ) : contactsLoaded ? (
-                <p className="text-sm text-[var(--text-muted)] py-4 text-center">لا توجد جهات اتصال مرتبطة بهذه الفرصة</p>
+                <p className="text-sm text-[var(--text-muted)] py-4 text-center">
+                  لا توجد جهات اتصال مرتبطة بهذه الفرصة
+                </p>
               ) : (
-                <div className="space-y-2">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
+                <div className="space-y-2">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16" />
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -227,9 +268,13 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-[var(--text-muted)]" />
-                <span className="text-sm font-semibold text-[var(--text-primary)]">النشاطات المنسوبة</span>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">
+                  النشاطات المنسوبة
+                </span>
                 {attributions.length > 0 && (
-                  <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{attributions.length}</span>
+                  <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
+                    {attributions.length}
+                  </span>
                 )}
               </div>
             </CardHeader>
@@ -238,8 +283,10 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                 <div className="space-y-2">
                   {attributions.map((a: Record<string, unknown>, i: number) => {
                     const methodLabels: Record<string, string> = {
-                      explicit_reference: "مرجع مباشر", contact_match: "تطابق جهة اتصال",
-                      company_match: "تطابق شركة", domain_match: "تطابق نطاق",
+                      explicit_reference: "مرجع مباشر",
+                      contact_match: "تطابق جهة اتصال",
+                      company_match: "تطابق شركة",
+                      domain_match: "تطابق نطاق",
                     };
                     const stateColors: Record<string, string> = {
                       confirmed: "text-success-600 bg-success-50",
@@ -248,16 +295,25 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                       unresolved: "text-[var(--text-muted)] bg-[var(--bg-tertiary)]",
                     };
                     return (
-                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border-default)]">
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border-default)]"
+                      >
                         <ShieldCheck className="h-4 w-4 mt-0.5 text-[var(--muhide-orange)]/70 shrink-0" />
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-medium text-[var(--text-primary)]">
                             {String(a.activity_type || "").replace("_", " ")}
                             <span className="text-[var(--text-muted)] mx-1">·</span>
-                            {methodLabels[String(a.resolution_method)] || String(a.resolution_method)}
+                            {methodLabels[String(a.resolution_method)] ||
+                              String(a.resolution_method)}
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <span className={cn("text-[10px] px-1.5 py-0.5 rounded", stateColors[String(a.resolution_state)] || "bg-[var(--bg-tertiary)]")}>
+                            <span
+                              className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded",
+                                stateColors[String(a.resolution_state)] || "bg-[var(--bg-tertiary)]"
+                              )}
+                            >
                               {String(a.resolution_state)}
                             </span>
                             {a.confidence != null ? (
@@ -266,7 +322,9 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                               </span>
                             ) : null}
                             {a.algorithm_version != null && a.algorithm_version !== "" ? (
-                              <span className="text-[10px] text-[var(--text-muted)]">{String(a.algorithm_version)}</span>
+                              <span className="text-[10px] text-[var(--text-muted)]">
+                                {String(a.algorithm_version)}
+                              </span>
                             ) : null}
                           </div>
                         </div>
@@ -275,9 +333,15 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                   })}
                 </div>
               ) : attributionsLoaded ? (
-                <p className="text-sm text-[var(--text-muted)] py-4 text-center">لا توجد نشاطات منسوبة لهذه الفرصة</p>
+                <p className="text-sm text-[var(--text-muted)] py-4 text-center">
+                  لا توجد نشاطات منسوبة لهذه الفرصة
+                </p>
               ) : (
-                <div className="space-y-2">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+                <div className="space-y-2">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12" />
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -303,10 +367,14 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                     {company.name_ar || company.name_en || company.id}
                   </Link>
                   {company.cr_number && (
-                    <div className="text-sm text-[var(--text-secondary)]">س.ت: {company.cr_number}</div>
+                    <div className="text-sm text-[var(--text-secondary)]">
+                      س.ت: {company.cr_number}
+                    </div>
                   )}
                   {company.city && (
-                    <div className="text-sm text-[var(--text-secondary)]">المدينة: {company.city}</div>
+                    <div className="text-sm text-[var(--text-secondary)]">
+                      المدينة: {company.city}
+                    </div>
                   )}
                   <Link
                     href={`/companies/${company.id}/360`}
@@ -316,7 +384,9 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                   </Link>
                 </div>
               ) : (
-                <p className="text-sm text-[var(--text-muted)]">معلومات الشركة من Company Intelligence</p>
+                <p className="text-sm text-[var(--text-muted)]">
+                  معلومات الشركة من Company Intelligence
+                </p>
               )}
             </CardContent>
           </Card>
@@ -333,19 +403,27 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[var(--text-secondary)]">المرحلة</span>
-                  <span className="text-sm font-medium text-[var(--text-primary)]">{stageLabels[opportunity.stage] || opportunity.stage}</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
+                    {stageLabels[opportunity.stage] || opportunity.stage}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[var(--text-secondary)]">الاحتمالية</span>
-                  <span className="text-sm font-medium text-[var(--text-primary)]">{Math.round(opportunity.probability * 100)}%</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
+                    {Math.round(opportunity.probability * 100)}%
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[var(--text-secondary)]">القيمة</span>
-                  <span className="text-sm font-medium text-[var(--text-primary)]">{opportunity.value.toLocaleString()} {opportunity.currency}</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
+                    {opportunity.value.toLocaleString()} {opportunity.currency}
+                  </span>
                 </div>
                 {opportunity.expectedCloseDate && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--text-secondary)]">تاريخ الإغلاق المتوقع</span>
+                    <span className="text-sm text-[var(--text-secondary)]">
+                      تاريخ الإغلاق المتوقع
+                    </span>
                     <span className="text-sm font-medium text-[var(--text-primary)]">
                       {new Date(opportunity.expectedCloseDate).toLocaleDateString("ar-SA")}
                     </span>
@@ -353,15 +431,23 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[var(--text-secondary)]">الحالة</span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    opportunity.health === "healthy" && "text-success-600",
-                    opportunity.health === "at_risk" && "text-warning-600",
-                    opportunity.health === "critical" && "text-danger-600"
-                  )}>
-                    {opportunity.health === "healthy" && <CheckCircle className="h-4 w-4 inline mr-1" />}
-                    {opportunity.health === "at_risk" && <AlertTriangle className="h-4 w-4 inline mr-1" />}
-                    {opportunity.health === "critical" && <XCircle className="h-4 w-4 inline mr-1" />}
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      opportunity.health === "healthy" && "text-success-600",
+                      opportunity.health === "at_risk" && "text-warning-600",
+                      opportunity.health === "critical" && "text-danger-600"
+                    )}
+                  >
+                    {opportunity.health === "healthy" && (
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
+                    )}
+                    {opportunity.health === "at_risk" && (
+                      <AlertTriangle className="h-4 w-4 inline mr-1" />
+                    )}
+                    {opportunity.health === "critical" && (
+                      <XCircle className="h-4 w-4 inline mr-1" />
+                    )}
                     {healthLabel[opportunity.health] || opportunity.health}
                   </span>
                 </div>

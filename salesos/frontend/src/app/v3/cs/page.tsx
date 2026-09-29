@@ -103,7 +103,9 @@ function SurveyPanel({ companies, enabled }: { companies: Company[]; enabled: bo
       {summaryQuery.isError ? (
         <ErrorState
           title="Could not load survey metrics"
-          description={summaryQuery.error instanceof Error ? summaryQuery.error.message : "Request failed"}
+          description={
+            summaryQuery.error instanceof Error ? summaryQuery.error.message : "Request failed"
+          }
           onRetry={() => void summaryQuery.refetch()}
         />
       ) : null}
@@ -115,14 +117,15 @@ function SurveyPanel({ companies, enabled }: { companies: Company[]; enabled: bo
               { label: "NPS responses", value: formatCount(summary.nps_responses) },
               {
                 label: "CSAT average",
-                value: summary.csat_average === null ? "—" : `${summary.csat_average.toFixed(1)} / 5`,
+                value:
+                  summary.csat_average === null ? "—" : `${summary.csat_average.toFixed(1)} / 5`,
               },
               { label: "CSAT responses", value: formatCount(summary.csat_responses) },
             ]}
           />
           <p className="text-[12px] text-[var(--text-muted)]">
-            Scores use recorded responses only. Response rate is unavailable until survey invitations
-            are tracked.
+            Scores use recorded responses only. Response rate is unavailable until survey
+            invitations are tracked.
           </p>
         </>
       ) : null}
@@ -193,7 +196,9 @@ function SurveyPanel({ companies, enabled }: { companies: Company[]; enabled: bo
           </button>
           {recordMutation.isError ? (
             <p className="mt-2 text-xs text-[var(--text-danger)]">
-              {recordMutation.error instanceof Error ? recordMutation.error.message : "Could not save response"}
+              {recordMutation.error instanceof Error
+                ? recordMutation.error.message
+                : "Could not save response"}
             </p>
           ) : null}
         </div>

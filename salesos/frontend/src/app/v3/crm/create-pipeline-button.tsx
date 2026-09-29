@@ -7,9 +7,7 @@ import { getTenantId } from "@/lib/hooks/useTenant";
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create pipelines.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;

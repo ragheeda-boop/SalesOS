@@ -376,10 +376,7 @@ export default function V3Deal360Page() {
 
           {showCreateQuote ? (
             <div className="mb-4">
-              <CreateQuoteForm
-                opportunityId={deal.id}
-                onCancel={() => setShowCreateQuote(false)}
-              />
+              <CreateQuoteForm opportunityId={deal.id} onCancel={() => setShowCreateQuote(false)} />
             </div>
           ) : null}
 

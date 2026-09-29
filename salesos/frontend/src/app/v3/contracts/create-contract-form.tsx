@@ -15,9 +15,7 @@ const INPUT_CLASS =
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create contracts.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
@@ -95,8 +93,8 @@ export function CreateContractForm({ onCancel }: { onCancel?: () => void }) {
     >
       <h2 className="text-sm font-medium text-[var(--text-primary)]">New contract</h2>
       <p className="text-[12px] text-[var(--text-muted)]">
-        POST /api/v1/contracts — required opportunity_id. quote_id and title are optional. No
-        sign or activate here.
+        POST /api/v1/contracts — required opportunity_id. quote_id and title are optional. No sign
+        or activate here.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
@@ -112,9 +110,7 @@ export function CreateContractForm({ onCancel }: { onCancel?: () => void }) {
             data-testid="create-contract-opportunity"
             disabled={dealsQuery.isLoading || deals.length === 0}
           >
-            <option value="">
-              {dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}
-            </option>
+            <option value="">{dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}</option>
             {deals.map((deal) => (
               <option key={deal.id} value={deal.id}>
                 {dealLabel(deal.name, deal.id)}
@@ -123,9 +119,7 @@ export function CreateContractForm({ onCancel }: { onCancel?: () => void }) {
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">
-            Title (optional)
-          </span>
+          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">Title (optional)</span>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -135,9 +129,7 @@ export function CreateContractForm({ onCancel }: { onCancel?: () => void }) {
           />
         </label>
         <label className="block sm:col-span-2">
-          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">
-            Quote (optional)
-          </span>
+          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">Quote (optional)</span>
           <select
             value={pickedQuoteId}
             onChange={(e) => setPickedQuoteId(e.target.value)}

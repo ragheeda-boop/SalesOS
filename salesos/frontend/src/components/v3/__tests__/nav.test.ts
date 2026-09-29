@@ -74,7 +74,9 @@ describe("V3_DOMAIN_NAV", () => {
 
 describe("V3_CMD_EXTRA", () => {
   it("exposes only the approved knowledge and intelligence destinations", () => {
-    expect(V3_CMD_EXTRA.map((item) => item.href)).toEqual(MUST_KEEP_IN_CMDK.slice(MUST_KEEP.length));
+    expect(V3_CMD_EXTRA.map((item) => item.href)).toEqual(
+      MUST_KEEP_IN_CMDK.slice(MUST_KEEP.length)
+    );
     const cmdk = [...V3_DOMAIN_NAV, ...V3_CMD_EXTRA].map((item) => item.href);
     expect(cmdk).toEqual(MUST_KEEP_IN_CMDK);
     expect(cmdk).not.toContain("/v3/shell");

@@ -102,11 +102,7 @@ export default function V3TaskDetailPage() {
           />
           <ErrorState
             title="Could not load tasks"
-            description={
-              error instanceof Error
-                ? error.message
-                : "Task detail request failed"
-            }
+            description={error instanceof Error ? error.message : "Task detail request failed"}
             onRetry={() => void refetch()}
           />
         </>

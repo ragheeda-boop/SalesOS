@@ -25,12 +25,7 @@ import { useTranslation } from "@/lib/i18n";
 import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
 /** Company 360 quick-action query keys (REMAINING_GAPS U03 / UX_ARCH V1.5). */
-const ACTIVITY_ACTIONS = new Set([
-  "add-note",
-  "schedule-meeting",
-  "send-email",
-  "log-call",
-]);
+const ACTIVITY_ACTIONS = new Set(["add-note", "schedule-meeting", "send-email", "log-call"]);
 
 export default function CompanyPage() {
   const params = useParams();
@@ -87,7 +82,9 @@ export default function CompanyPage() {
       return;
     }
     if (ACTIVITY_ACTIONS.has(action)) {
-      router.replace(`/activities?company_id=${encodeURIComponent(id)}&action=${encodeURIComponent(action)}`);
+      router.replace(
+        `/activities?company_id=${encodeURIComponent(id)}&action=${encodeURIComponent(action)}`
+      );
     }
   }, [searchParams, clearActionParam, id, router]);
 

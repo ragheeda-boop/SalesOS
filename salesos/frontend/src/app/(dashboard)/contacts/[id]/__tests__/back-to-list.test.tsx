@@ -46,7 +46,10 @@ describe("leftover contact 360 back-to-list", () => {
 
     expect(await screen.findByRole("heading", { name: "Ada Contact" })).toBeInTheDocument();
     expect(document.querySelector('a[href="/contacts"]')).toBeNull();
-    expect(screen.getByRole("link", { name: "nav.contacts" })).toHaveAttribute("href", "/v3/contacts");
+    expect(screen.getByRole("link", { name: "nav.contacts" })).toHaveAttribute(
+      "href",
+      "/v3/contacts"
+    );
   });
 
   it("sends leftover contact empty-state back-to-list to /v3/contacts", async () => {

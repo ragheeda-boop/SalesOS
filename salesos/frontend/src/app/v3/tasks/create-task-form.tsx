@@ -4,12 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  createTask,
-  listOpportunities,
-  searchCompanies,
-  type TaskResponse,
-} from "@/lib/api";
+import { createTask, listOpportunities, searchCompanies, type TaskResponse } from "@/lib/api";
 import { companyKeys, opportunityKeys, taskKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 
@@ -27,9 +22,7 @@ const PRIORITIES = ["critical", "high", "medium", "low"] as const;
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create tasks.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
@@ -38,7 +31,11 @@ function createErrorMessage(err: unknown): string {
   return "Could not create task.";
 }
 
-function companyLabel(nameEn: string | null | undefined, nameAr: string | undefined, id: string): string {
+function companyLabel(
+  nameEn: string | null | undefined,
+  nameAr: string | undefined,
+  id: string
+): string {
   return nameEn?.trim() || nameAr?.trim() || id;
 }
 
@@ -139,7 +136,9 @@ export function CreateTaskForm({ onCancel }: { onCancel?: () => void }) {
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">Company (optional)</span>
+          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">
+            Company (optional)
+          </span>
           <select
             value={companyId}
             onChange={(e) => setCompanyId(e.target.value)}
@@ -147,9 +146,7 @@ export function CreateTaskForm({ onCancel }: { onCancel?: () => void }) {
             data-testid="create-task-company"
             disabled={companiesQuery.isLoading}
           >
-            <option value="">
-              {companiesQuery.isLoading ? "Loading companies…" : "None"}
-            </option>
+            <option value="">{companiesQuery.isLoading ? "Loading companies…" : "None"}</option>
             {companies.map((company) => (
               <option key={company.id} value={company.id}>
                 {companyLabel(company.name_en, company.name_ar, company.id)}
@@ -158,7 +155,9 @@ export function CreateTaskForm({ onCancel }: { onCancel?: () => void }) {
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">Opportunity (optional)</span>
+          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">
+            Opportunity (optional)
+          </span>
           <select
             value={opportunityId}
             onChange={(e) => setOpportunityId(e.target.value)}
@@ -166,9 +165,7 @@ export function CreateTaskForm({ onCancel }: { onCancel?: () => void }) {
             data-testid="create-task-opportunity"
             disabled={opportunitiesQuery.isLoading}
           >
-            <option value="">
-              {opportunitiesQuery.isLoading ? "Loading deals…" : "None"}
-            </option>
+            <option value="">{opportunitiesQuery.isLoading ? "Loading deals…" : "None"}</option>
             {opportunities.map((opp) => (
               <option key={opp.id} value={opp.id}>
                 {opp.name?.trim() || opp.id}
@@ -177,7 +174,9 @@ export function CreateTaskForm({ onCancel }: { onCancel?: () => void }) {
           </select>
         </label>
         <label className="block sm:col-span-2">
-          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">Due date (optional)</span>
+          <span className="mb-1 block text-[12px] text-[var(--text-muted)]">
+            Due date (optional)
+          </span>
           <input
             type="date"
             value={dueDate}

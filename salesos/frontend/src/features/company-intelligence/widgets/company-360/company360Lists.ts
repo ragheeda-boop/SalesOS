@@ -91,12 +91,7 @@ function joinTags(raw: unknown): string {
     .join("، ");
 }
 
-function pushRow(
-  rows: Company360SettingsRow[],
-  id: string,
-  label: string,
-  value: string
-): void {
+function pushRow(rows: Company360SettingsRow[], id: string, label: string, value: string): void {
   if (value) rows.push({ id, label, value });
 }
 
@@ -130,18 +125,8 @@ export function asSettingsRows(
   pushRow(rows, "phone", "الهاتف", str(company.phone));
   pushRow(rows, "email", "البريد", str(company.email));
   pushRow(rows, "website", "الموقع", str(company.website));
-  pushRow(
-    rows,
-    "legal_form",
-    "الشكل القانوني",
-    str(org.legal_form || company.legal_form)
-  );
-  pushRow(
-    rows,
-    "industry",
-    "النشاط",
-    str(company.industry || company.activity_description)
-  );
+  pushRow(rows, "legal_form", "الشكل القانوني", str(org.legal_form || company.legal_form));
+  pushRow(rows, "industry", "النشاط", str(company.industry || company.activity_description));
   if (typeof company.employees_count === "number") {
     pushRow(rows, "employees_count", "عدد الموظفين", str(company.employees_count));
   } else if (typeof org.employees_count === "number" && org.employees_count > 0) {

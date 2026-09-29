@@ -4,12 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PermissionState,
-} from "../_components/states";
+import { EmptyState, ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 import apiClient from "@/lib/api/client";
 import { getTenantId } from "@/lib/hooks/useTenant";
@@ -77,12 +72,18 @@ export default function V3ICPPage() {
           name,
           description: "Created from v3 ICP admin",
           criteria: {
-            industries: industries.split(",").map((s) => s.trim()).filter(Boolean),
-            cities: cities.split(",").map((s) => s.trim()).filter(Boolean),
+            industries: industries
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+            cities: cities
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
           },
           is_active: true,
         },
-        { headers: { "X-Tenant-Id": getTenantId() } },
+        { headers: { "X-Tenant-Id": getTenantId() } }
       );
       return res.data;
     },
@@ -103,7 +104,7 @@ export default function V3ICPPage() {
           employees_count: companyEmployees.trim() ? Number(companyEmployees) : null,
           title: companyTitle,
         },
-        { headers: { "X-Tenant-Id": getTenantId() } },
+        { headers: { "X-Tenant-Id": getTenantId() } }
       );
       return response.data;
     },
@@ -196,10 +197,16 @@ export default function V3ICPPage() {
           </table>
         </div>
       )}
-      <section className="mt-6 rounded-lg border border-[var(--border-default)] p-4" aria-labelledby="icp-score-title">
-        <h2 id="icp-score-title" className="text-sm font-semibold">Score a company snapshot</h2>
+      <section
+        className="mt-6 rounded-lg border border-[var(--border-default)] p-4"
+        aria-labelledby="icp-score-title"
+      >
+        <h2 id="icp-score-title" className="text-sm font-semibold">
+          Score a company snapshot
+        </h2>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
-          Rule-based matching against the saved profile and the values entered here. It does not look up external data or predict sales outcomes.
+          Rule-based matching against the saved profile and the values entered here. It does not
+          look up external data or predict sales outcomes.
         </p>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <label className="space-y-1 text-xs text-[var(--text-secondary)]">
@@ -211,7 +218,9 @@ export default function V3ICPPage() {
               onChange={(event) => setSelectedProfileId(event.target.value)}
             >
               {profiles.map((profile) => (
-                <option key={profile.id} value={profile.id}>{profile.name}</option>
+                <option key={profile.id} value={profile.id}>
+                  {profile.name}
+                </option>
               ))}
             </select>
           </label>
@@ -262,19 +271,30 @@ export default function V3ICPPage() {
         </button>
         {scoreMutation.isError ? (
           <p className="mt-3 text-sm text-[var(--status-danger,#dc2626)]" role="alert">
-            {scoreMutation.error instanceof Error ? scoreMutation.error.message : "Could not score company"}
+            {scoreMutation.error instanceof Error
+              ? scoreMutation.error.message
+              : "Could not score company"}
           </p>
         ) : null}
         {scoreMutation.data ? (
-          <div className="mt-4 rounded-md bg-[var(--bg-secondary)] p-3" aria-live="polite" data-testid="icp-score-result">
+          <div
+            className="mt-4 rounded-md bg-[var(--bg-secondary)] p-3"
+            aria-live="polite"
+            data-testid="icp-score-result"
+          >
             <p className="text-sm font-medium text-[var(--text-primary)]">
-              Fit: {Math.round(scoreMutation.data.fit_ratio * 100)}% · {scoreMutation.data.score} / {scoreMutation.data.max_score} points
+              Fit: {Math.round(scoreMutation.data.fit_ratio * 100)}% · {scoreMutation.data.score} /{" "}
+              {scoreMutation.data.max_score} points
             </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Profile version {scoreMutation.data.schema_version}</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              Profile version {scoreMutation.data.schema_version}
+            </p>
             <ul className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)]">
               {Object.entries(scoreMutation.data.matched)
                 .filter(([criterion]) => {
-                  const profile = profiles.find((item) => item.id === scoreMutation.data?.profile_id);
+                  const profile = profiles.find(
+                    (item) => item.id === scoreMutation.data?.profile_id
+                  );
                   const criteria = profile?.criteria;
                   if (!criteria) return criterion === "empty_profile";
                   if (criterion === "industry") return criteria.industries.length > 0;
@@ -287,9 +307,12 @@ export default function V3ICPPage() {
                   return criterion === "empty_profile";
                 })
                 .map(([criterion, matched]) => (
-                <li key={criterion} className="rounded border border-[var(--border-default)] px-2 py-1">
-                  {criterion.replace(/_/g, " ")}: {matched ? "match" : "no match"}
-                </li>
+                  <li
+                    key={criterion}
+                    className="rounded border border-[var(--border-default)] px-2 py-1"
+                  >
+                    {criterion.replace(/_/g, " ")}: {matched ? "match" : "no match"}
+                  </li>
                 ))}
             </ul>
           </div>

@@ -20,7 +20,9 @@ describe("listAIGovernanceAudit", () => {
     };
     mockApi.get.mockResolvedValueOnce({ data: response });
 
-    await expect(listAIGovernanceAudit("tenant-1", { page: 1, page_size: 25 })).resolves.toEqual(response);
+    await expect(listAIGovernanceAudit("tenant-1", { page: 1, page_size: 25 })).resolves.toEqual(
+      response
+    );
     expect(mockApi.get).toHaveBeenCalledWith("/api/v1/ai-governance/audit", {
       params: { page: 1, page_size: 25 },
       headers: { "X-Tenant-Id": "tenant-1" },

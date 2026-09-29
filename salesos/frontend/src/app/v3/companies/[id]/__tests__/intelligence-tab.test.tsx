@@ -68,7 +68,8 @@ describe("company account intelligence tab", () => {
         previous_90_days: 1,
         change_percent: 200,
         method: "activity_count_90d_comparison_v1",
-        interpretation: "Activity volume only; it does not measure customer sentiment or deal quality.",
+        interpretation:
+          "Activity volume only; it does not measure customer sentiment or deal quality.",
       },
       generated_at: "2026-09-21T10:00:00+00:00",
       method: "persisted_crm_records_with_explainable_rules",
@@ -129,7 +130,8 @@ describe("company account intelligence tab", () => {
         previous_90_days: 0,
         change_percent: null,
         method: "activity_count_90d_comparison_v1",
-        interpretation: "Activity volume only; it does not measure customer sentiment or deal quality.",
+        interpretation:
+          "Activity volume only; it does not measure customer sentiment or deal quality.",
       },
       generated_at: "2026-09-21T10:00:00+00:00",
       method: "persisted_crm_records_with_explainable_rules",
@@ -138,7 +140,9 @@ describe("company account intelligence tab", () => {
 
     renderTab();
 
-    expect(await screen.findByText("No opportunities are linked to this company yet.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("No opportunities are linked to this company yet.")
+    ).toBeInTheDocument();
     expect(screen.getByText("No company activity is recorded yet.")).toBeInTheDocument();
     expect(
       within(screen.getByTestId("engagement-trend")).getByText("insufficient data")
@@ -186,7 +190,8 @@ describe("company account intelligence tab", () => {
         previous_90_days: 0,
         change_percent: null,
         method: "activity_count_90d_comparison_v1",
-        interpretation: "Activity volume only; it does not measure customer sentiment or deal quality.",
+        interpretation:
+          "Activity volume only; it does not measure customer sentiment or deal quality.",
       },
       generated_at: "2026-09-21T10:00:00+00:00",
       method: "persisted_crm_records_with_explainable_rules",

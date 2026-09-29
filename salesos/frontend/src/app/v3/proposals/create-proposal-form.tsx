@@ -15,9 +15,7 @@ const INPUT_CLASS =
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create proposals.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
@@ -30,11 +28,7 @@ function dealLabel(name: string | undefined, id: string): string {
   return name?.trim() || id;
 }
 
-function quoteLabel(quote: {
-  id: string;
-  status?: string;
-  version?: number;
-}): string {
+function quoteLabel(quote: { id: string; status?: string; version?: number }): string {
   const status = quote.status?.trim();
   const version = quote.version != null ? `v${quote.version}` : "";
   return [quote.id, status, version].filter(Boolean).join(" · ");
@@ -112,9 +106,7 @@ export function CreateProposalForm({
               data-testid="create-proposal-opportunity"
               disabled={dealsQuery.isLoading || deals.length === 0}
             >
-              <option value="">
-                {dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}
-              </option>
+              <option value="">{dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}</option>
               {deals.map((deal) => (
                 <option key={deal.id} value={deal.id}>
                   {dealLabel(deal.name, deal.id)}
@@ -177,10 +169,7 @@ export function CreateProposalForm({
           Could not load quotes for this deal. Retry or create a quote in v3 first.
         </p>
       ) : null}
-      {opportunityId &&
-      !quotesQuery.isLoading &&
-      !quotesQuery.isError &&
-      quotes.length === 0 ? (
+      {opportunityId && !quotesQuery.isLoading && !quotesQuery.isError && quotes.length === 0 ? (
         <p className="text-sm text-[var(--text-secondary)]" data-testid="create-proposal-no-quotes">
           No quotes for this deal. POST /api/v1/proposals requires quote_id.{" "}
           <Link

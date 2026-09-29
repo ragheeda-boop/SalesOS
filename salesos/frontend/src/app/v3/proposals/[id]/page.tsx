@@ -63,7 +63,13 @@ export default function V3ProposalDetailPage() {
   if (isError)
     return <ErrorState description={(error as Error)?.message} onRetry={() => refetch()} />;
 
-  const p = data as { id?: string; status?: string; title?: string; sections?: number; delivery_method?: string };
+  const p = data as {
+    id?: string;
+    status?: string;
+    title?: string;
+    sections?: number;
+    delivery_method?: string;
+  };
   const status = p?.status ?? "unknown";
 
   return (
@@ -77,9 +83,7 @@ export default function V3ProposalDetailPage() {
       <PageHeader title={p?.title || "Proposal"} description={`ID: ${proposalId}`} />
 
       <div className="mb-6 flex items-center gap-3">
-        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>
-          {status}
-        </Badge>
+        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>{status}</Badge>
         <span className="text-sm text-[var(--text-muted)]">
           {p?.sections ?? 0} sections • {p?.delivery_method ?? "email"}
         </span>

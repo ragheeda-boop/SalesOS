@@ -49,7 +49,7 @@ export default function V3ActivitiesPage() {
     staleTime: 15_000,
   });
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const items = data?.items ?? [];
   const total = data?.total ?? items.length;
   const dash = intelligence.dashboard.data;

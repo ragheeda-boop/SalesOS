@@ -115,9 +115,7 @@ export default function FactReviewPage() {
               ))}
             </select>
           </label>
-          <span className="text-sm text-muted-foreground">
-            {items.length} نتيجة في هذه الصفحة
-          </span>
+          <span className="text-sm text-muted-foreground">{items.length} نتيجة في هذه الصفحة</span>
           <button
             type="button"
             onClick={() => void proposals.refetch()}
@@ -159,7 +157,9 @@ export default function FactReviewPage() {
                     </h2>
                   </div>
                   <div className="text-right text-sm">
-                    <span className="rounded-full border px-2 py-1">{STATUS_LABELS[fact.status]}</span>
+                    <span className="rounded-full border px-2 py-1">
+                      {STATUS_LABELS[fact.status]}
+                    </span>
                     <p className="mt-2 text-muted-foreground">
                       الثقة {Math.round(fact.score * 100)}% · {fact.evidence_band}
                     </p>
@@ -202,11 +202,13 @@ export default function FactReviewPage() {
                       placeholder="اكتب ما راجعته ولماذا اتخذت هذا القرار"
                     />
                     <div className="flex flex-wrap gap-2">
-                      {([
-                        ["approve", "موافقة"],
-                        ["reject", "رفض"],
-                        ["dismiss", "استبعاد"],
-                      ] as const).map(([action, label]) => (
+                      {(
+                        [
+                          ["approve", "موافقة"],
+                          ["reject", "رفض"],
+                          ["dismiss", "استبعاد"],
+                        ] as const
+                      ).map(([action, label]) => (
                         <button
                           key={action}
                           type="button"

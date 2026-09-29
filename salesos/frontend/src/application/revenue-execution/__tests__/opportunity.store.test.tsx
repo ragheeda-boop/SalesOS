@@ -198,10 +198,9 @@ describe("opportunity store", () => {
         );
       const updated = await addOpportunityNote(all[0].id, "مذكرة مهمة", "أحمد");
 
-      expect(mockedApi.post).toHaveBeenLastCalledWith(
-        `/api/v1/opportunities/${all[0].id}/notes`,
-        { text: "مذكرة مهمة" }
-      );
+      expect(mockedApi.post).toHaveBeenLastCalledWith(`/api/v1/opportunities/${all[0].id}/notes`, {
+        text: "مذكرة مهمة",
+      });
       expect(updated[0].notes).toEqual([
         {
           id: "note-1",

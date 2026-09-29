@@ -61,7 +61,9 @@ describe("V3 ICP scoring", () => {
     renderPage();
 
     fireEvent.change(await screen.findByLabelText("Company name"), { target: { value: "Acme" } });
-    fireEvent.change(screen.getByLabelText("Company industry"), { target: { value: "Technology" } });
+    fireEvent.change(screen.getByLabelText("Company industry"), {
+      target: { value: "Technology" },
+    });
     fireEvent.change(screen.getByLabelText("Company city"), { target: { value: "Riyadh" } });
     fireEvent.click(screen.getByRole("button", { name: "Calculate profile fit" }));
 

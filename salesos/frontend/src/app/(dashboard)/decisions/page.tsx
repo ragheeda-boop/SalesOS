@@ -229,9 +229,7 @@ function AuditTrailPanel({ decisionId, onClose }: { decisionId: string; onClose:
               <p className="text-xs font-medium text-[var(--text-muted)] mb-1">
                 {t("decisions.expected_impact")}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {audit.expectedImpact}
-              </p>
+              <p className="text-sm text-[var(--text-secondary)]">{audit.expectedImpact}</p>
             </div>
           )}
         </div>
@@ -402,8 +400,7 @@ export default function DecisionCenterPage() {
     queryFn: getCurrentUser,
     staleTime: 5 * 60 * 1000,
   });
-  const showHonestyBanner =
-    currentUser?.role === "admin" || currentUser?.role === "owner";
+  const showHonestyBanner = currentUser?.role === "admin" || currentUser?.role === "owner";
 
   const { data, isLoading, isError, error, refetch } = useDecisionCenterList(50);
 
@@ -676,7 +673,9 @@ export default function DecisionCenterPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("decisions.title")}</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+              {t("decisions.title")}
+            </h1>
             <ExperimentalAiBadge />
           </div>
           <p className="mt-1 text-sm text-[var(--text-muted)]">{t("decisions.subtitle")}</p>
@@ -685,10 +684,9 @@ export default function DecisionCenterPage() {
               className="mt-1 text-xs text-[var(--text-muted)]"
               data-testid="decisions-honesty-banner"
             >
-              Ledger list = Decision Center /api/v1/decisions. Accept/dismiss =
-              Center feedback (up→accepted, down→rejected). Evaluate/scores stay
-              on Platform /api/v1/decision/*. Not FE STUB; not AI-native GA.
-              Not Production GO / RAG GO.
+              Ledger list = Decision Center /api/v1/decisions. Accept/dismiss = Center feedback
+              (up→accepted, down→rejected). Evaluate/scores stay on Platform /api/v1/decision/*. Not
+              FE STUB; not AI-native GA. Not Production GO / RAG GO.
             </p>
           ) : null}
         </div>

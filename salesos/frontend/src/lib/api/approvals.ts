@@ -43,7 +43,13 @@ export interface ApprovalListResponse {
 }
 
 export async function listApprovals(
-  params?: { status?: string; target_type?: string; assigned_to?: string; page?: number; page_size?: number },
+  params?: {
+    status?: string;
+    target_type?: string;
+    assigned_to?: string;
+    page?: number;
+    page_size?: number;
+  },
   tenantId?: string
 ): Promise<ApprovalListResponse> {
   const response = await api.get("/api/v1/approvals", {

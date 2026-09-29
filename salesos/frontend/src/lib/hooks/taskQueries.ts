@@ -7,9 +7,7 @@ import { getTenantId } from "./useTenant";
 
 export function useTasks(priority?: string, opportunityId?: string) {
   return useQuery<TaskResponse[]>({
-    queryKey: taskKeys.list(
-      priority || opportunityId ? { priority, opportunityId } : undefined
-    ),
+    queryKey: taskKeys.list(priority || opportunityId ? { priority, opportunityId } : undefined),
     queryFn: () => listTasks(getTenantId(), priority, opportunityId),
     staleTime: 15_000,
     refetchInterval: 60_000,

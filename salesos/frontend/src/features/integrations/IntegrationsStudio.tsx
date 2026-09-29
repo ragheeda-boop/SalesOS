@@ -153,7 +153,7 @@ export function IntegrationsStudio() {
   const scheduleMutation = useScheduleHubSync();
   const disconnectMutation = useDisconnectHubConnection();
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const connections = connectionsQuery.data || [];
   const filteredConnections = useMemo(() => {
     if (connectionActiveFilter === "all") return connections;

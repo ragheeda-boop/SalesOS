@@ -101,59 +101,59 @@ export default function V3ContractsPage() {
         />
       ) : (
         <>
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => refetch()}
-          className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
-        >
-          Refresh
-        </button>
-      </div>
-      <div className="overflow-hidden rounded-lg border border-[var(--border-default)]">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--bg-secondary)] text-left text-xs uppercase text-[var(--text-muted)]">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Version</th>
-              <th className="px-4 py-3">Effective</th>
-              <th className="px-4 py-3">Expiry</th>
-              <th className="px-4 py-3">Opportunity</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border-default)]">
-            {contracts.map((c) => (
-              <tr key={c.id} className="hover:bg-[var(--bg-hover)]">
-                <td className="px-4 py-3 font-medium">{c.title || "Untitled"}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] ${statusColors[c.status] ?? "bg-gray-100 text-gray-700"}`}
-                  >
-                    {c.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">v{c.version}</td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">
-                  {c.effective_date ? new Date(c.effective_date).toLocaleDateString() : "-"}
-                </td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">
-                  {c.expiry_date ? new Date(c.expiry_date).toLocaleDateString() : "-"}
-                </td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">{c.opportunity_id}</td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/v3/contracts/${c.id}`}
-                    className="text-[var(--text-link,theme(colors.blue.600))] hover:underline"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <div className="mb-4 flex gap-2">
+            <button
+              onClick={() => refetch()}
+              className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+            >
+              Refresh
+            </button>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-[var(--border-default)]">
+            <table className="w-full text-sm">
+              <thead className="bg-[var(--bg-secondary)] text-left text-xs uppercase text-[var(--text-muted)]">
+                <tr>
+                  <th className="px-4 py-3">Title</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Version</th>
+                  <th className="px-4 py-3">Effective</th>
+                  <th className="px-4 py-3">Expiry</th>
+                  <th className="px-4 py-3">Opportunity</th>
+                  <th className="px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-default)]">
+                {contracts.map((c) => (
+                  <tr key={c.id} className="hover:bg-[var(--bg-hover)]">
+                    <td className="px-4 py-3 font-medium">{c.title || "Untitled"}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] ${statusColors[c.status] ?? "bg-gray-100 text-gray-700"}`}
+                      >
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">v{c.version}</td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">
+                      {c.effective_date ? new Date(c.effective_date).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">
+                      {c.expiry_date ? new Date(c.expiry_date).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">{c.opportunity_id}</td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/v3/contracts/${c.id}`}
+                        className="text-[var(--text-link,theme(colors.blue.600))] hover:underline"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </>

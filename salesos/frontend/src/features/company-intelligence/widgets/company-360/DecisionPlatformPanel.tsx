@@ -97,13 +97,10 @@ export function DecisionPlatformPanel({
   const isLoading = loading360 || loadingRecs || loadingScores;
 
   const dealScore =
-    scores?.find((s) => s.type === "company")?.value ||
-    company360?.health_score ||
-    0;
+    scores?.find((s) => s.type === "company")?.value || company360?.health_score || 0;
   const nextBestActions = recommendations?.slice(0, 5) || [];
   useNbaExposureTracking(companyId, nextBestActions, !isLoading && nextBestActions.length > 0);
-  const riskFlags =
-    scores?.filter((s) => s.type === "risk" && s.value > 0.3) || [];
+  const riskFlags = scores?.filter((s) => s.type === "risk" && s.value > 0.3) || [];
 
   if (isLoading) {
     return (
@@ -223,8 +220,12 @@ export function DecisionPlatformPanel({
                           <Zap className="h-3.5 w-3.5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-[var(--text-primary)]">{rec.actionLabel ?? rec.action}</p>
-                          <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">{rec.reason}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">
+                            {rec.actionLabel ?? rec.action}
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
+                            {rec.reason}
+                          </p>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           <ConfidenceBadge value={rec.confidence ?? 0} />
@@ -254,7 +255,9 @@ export function DecisionPlatformPanel({
                           {impact && (
                             <div className="mt-2 flex items-center gap-1">
                               <TrendingUp className="h-3 w-3 text-[var(--color-success)]" />
-                              <span className="text-[10px] text-[var(--color-success)]">الأثر: {impact}</span>
+                              <span className="text-[10px] text-[var(--color-success)]">
+                                الأثر: {impact}
+                              </span>
                             </div>
                           )}
                         </div>

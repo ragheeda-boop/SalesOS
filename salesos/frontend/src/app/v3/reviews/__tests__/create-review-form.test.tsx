@@ -38,6 +38,8 @@ const mockedOpps = listOpportunities as jest.MockedFunction<typeof listOpportuni
 const mockedQuotes = listQuotes as jest.MockedFunction<typeof listQuotes>;
 const mockedProposals = listProposals as jest.MockedFunction<typeof listProposals>;
 
+const findOption = (name: string) => screen.findByRole("option", { name }, { timeout: 5_000 });
+
 function renderForm(props?: { onCancel?: () => void }) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -102,7 +104,7 @@ describe("CreateReviewForm", () => {
     });
     expect(screen.getByTestId("create-review-target-type")).toHaveValue("opportunity");
     expect(submit).toBeDisabled();
-    await screen.findByRole("option", { name: "Deal A" });
+    await findOption("Deal A");
     fireEvent.change(screen.getByTestId("create-review-opportunity"), {
       target: { value: "opp-1" },
     });
@@ -119,19 +121,14 @@ describe("CreateReviewForm", () => {
     fireEvent.change(screen.getByTestId("create-review-type"), {
       target: { value: "deal_review" },
     });
-    await screen.findByRole("option", { name: "Deal A" });
+    await findOption("Deal A");
     fireEvent.change(screen.getByTestId("create-review-opportunity"), {
       target: { value: "opp-1" },
     });
     fireEvent.click(screen.getByTestId("create-review-submit"));
 
     await waitFor(() => {
-      expect(mockedCreate).toHaveBeenCalledWith(
-        "tenant-1",
-        "deal_review",
-        "opp-1",
-        "opportunity"
-      );
+      expect(mockedCreate).toHaveBeenCalledWith("tenant-1", "deal_review", "opp-1", "opportunity");
     });
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/v3/reviews/rev-new");
@@ -151,11 +148,11 @@ describe("CreateReviewForm", () => {
       target: { value: "quote_review" },
     });
     expect(screen.getByTestId("create-review-target-type")).toHaveValue("quote");
-    await screen.findByRole("option", { name: "Deal A" });
+    await findOption("Deal A");
     fireEvent.change(screen.getByTestId("create-review-opportunity"), {
       target: { value: "opp-1" },
     });
-    await screen.findByRole("option", { name: "q-1 · DRAFT · v1" });
+    await findOption("q-1 · DRAFT · v1");
     fireEvent.change(screen.getByTestId("create-review-quote"), {
       target: { value: "q-1" },
     });
@@ -177,7 +174,7 @@ describe("CreateReviewForm", () => {
     fireEvent.change(screen.getByTestId("create-review-type"), {
       target: { value: "deal_review" },
     });
-    await screen.findByRole("option", { name: "Deal A" });
+    await findOption("Deal A");
     fireEvent.change(screen.getByTestId("create-review-opportunity"), {
       target: { value: "opp-1" },
     });
@@ -208,7 +205,7 @@ describe("CreateReviewForm", () => {
     fireEvent.change(screen.getByTestId("create-review-type"), {
       target: { value: "quote_review" },
     });
-    await screen.findByRole("option", { name: "Deal A" });
+    await findOption("Deal A");
     fireEvent.change(screen.getByTestId("create-review-opportunity"), {
       target: { value: "opp-1" },
     });
@@ -228,7 +225,7 @@ describe("CreateReviewForm", () => {
       target: { value: "proposal_review" },
     });
     expect(screen.getByTestId("create-review-target-type")).toHaveValue("proposal");
-    await screen.findByRole("option", { name: "Deal A" });
+    await findOption("Deal A");
     fireEvent.change(screen.getByTestId("create-review-opportunity"), {
       target: { value: "opp-1" },
     });

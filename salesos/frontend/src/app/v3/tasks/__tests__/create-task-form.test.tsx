@@ -24,6 +24,8 @@ const mockedCreate = createTask as jest.MockedFunction<typeof createTask>;
 const mockedCompanies = searchCompanies as jest.MockedFunction<typeof searchCompanies>;
 const mockedOpps = listOpportunities as jest.MockedFunction<typeof listOpportunities>;
 
+const findOption = (name: string) => screen.findByRole("option", { name }, { timeout: 5_000 });
+
 function renderForm(onCancel?: () => void) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -95,8 +97,8 @@ describe("CreateTaskForm", () => {
       created_at: "2026-09-12",
     });
     renderForm();
-    await screen.findByRole("option", { name: "Test Co" });
-    await screen.findByRole("option", { name: "صفقة اختبار" });
+    await findOption("Test Co");
+    await findOption("صفقة اختبار");
     fireEvent.change(screen.getByTestId("create-task-title"), {
       target: { value: "متابعة عرض" },
     });

@@ -73,7 +73,15 @@ export default function V3ReviewDetailPage() {
   if (isError)
     return <ErrorState description={(error as Error)?.message} onRetry={() => refetch()} />;
 
-  const r = data as { id?: string; status?: string; review_type?: string; target_type?: string; target_id?: string; assigned_to?: string; decision_count?: number };
+  const r = data as {
+    id?: string;
+    status?: string;
+    review_type?: string;
+    target_type?: string;
+    target_id?: string;
+    assigned_to?: string;
+    decision_count?: number;
+  };
   const status = r?.status ?? "unknown";
   const isTerminal = ["approved", "rejected", "cancelled"].includes(status);
 
@@ -99,7 +107,9 @@ export default function V3ReviewDetailPage() {
         </div>
         <div className="rounded-lg border border-[var(--border-default)] p-4">
           <p className="text-xs uppercase text-[var(--text-muted)]">Target</p>
-          <p className="font-medium">{r?.target_type}: {r?.target_id}</p>
+          <p className="font-medium">
+            {r?.target_type}: {r?.target_id}
+          </p>
         </div>
         <div className="rounded-lg border border-[var(--border-default)] p-4">
           <p className="text-xs uppercase text-[var(--text-muted)]">Assigned To</p>

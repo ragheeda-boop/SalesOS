@@ -70,7 +70,9 @@ export default function EvidencePage() {
         title="Evidence chain"
         description="Review persisted commercial insights alongside their recorded sources, timestamps, and confidence. Read-only."
       />
-      {!ready ? <LoadingState label="Checking session…" /> : !hasToken ? (
+      {!ready ? (
+        <LoadingState label="Checking session…" />
+      ) : !hasToken ? (
         <PermissionState nextPath="/v3/evidence" />
       ) : (
         <>
@@ -88,7 +90,9 @@ export default function EvidencePage() {
               >
                 <option value="">All categories</option>
                 {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>{category.replace(/_/g, " ")}</option>
+                  <option key={category} value={category}>
+                    {category.replace(/_/g, " ")}
+                  </option>
                 ))}
               </select>
             </label>
@@ -125,7 +129,9 @@ export default function EvidencePage() {
             </button>
           </form>
 
-          {query.isLoading ? <LoadingState label="Loading evidence chains…" /> : query.isError ? (
+          {query.isLoading ? (
+            <LoadingState label="Loading evidence chains…" />
+          ) : query.isError ? (
             <ErrorState
               title="Could not load evidence chains"
               description={query.error instanceof Error ? query.error.message : "Request failed"}
@@ -143,27 +149,52 @@ export default function EvidencePage() {
               </p>
               <div className="space-y-3">
                 {query.data.items.map((insight) => (
-                  <article key={insight.id} className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
+                  <article
+                    key={insight.id}
+                    className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-4"
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">
                           {insight.category.replace(/_/g, " ")} · {insight.target_type}
                         </p>
-                        <h2 className="mt-1 text-base font-semibold text-[var(--text-primary)]">{insight.title}</h2>
+                        <h2 className="mt-1 text-base font-semibold text-[var(--text-primary)]">
+                          {insight.title}
+                        </h2>
                       </div>
                       <span className="rounded-full border border-[var(--border-default)] px-2.5 py-1 text-xs capitalize text-[var(--text-secondary)]">
                         {insight.confidence_level} · {Math.round(insight.overall_confidence * 100)}%
                       </span>
                     </div>
                     {insight.description ? (
-                      <p className="mt-2 text-sm text-[var(--text-secondary)]">{insight.description}</p>
+                      <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                        {insight.description}
+                      </p>
                     ) : null}
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
                       Target {insight.target_id} · recorded {formatWhen(insight.created_at)}
                       {insight.target_type === "company" ? (
-                        <> · <Link href={`/v3/companies/${encodeURIComponent(insight.target_id)}`} className="underline">Open company</Link></>
+                        <>
+                          {" "}
+                          ·{" "}
+                          <Link
+                            href={`/v3/companies/${encodeURIComponent(insight.target_id)}`}
+                            className="underline"
+                          >
+                            Open company
+                          </Link>
+                        </>
                       ) : insight.target_type === "opportunity" ? (
-                        <> · <Link href={`/v3/crm/${encodeURIComponent(insight.target_id)}`} className="underline">Open deal</Link></>
+                        <>
+                          {" "}
+                          ·{" "}
+                          <Link
+                            href={`/v3/crm/${encodeURIComponent(insight.target_id)}`}
+                            className="underline"
+                          >
+                            Open deal
+                          </Link>
+                        </>
                       ) : null}
                     </p>
                     <div className="mt-3 border-t border-[var(--border-default)] pt-3">
@@ -173,21 +204,31 @@ export default function EvidencePage() {
                       {insight.evidence_items.length ? (
                         <ul className="mt-2 space-y-2">
                           {insight.evidence_items.map((evidence) => (
-                            <li key={evidence.id} className="rounded-md bg-[var(--bg-secondary)] p-3">
-                              <p className="text-sm text-[var(--text-primary)]">{evidence.description}</p>
+                            <li
+                              key={evidence.id}
+                              className="rounded-md bg-[var(--bg-secondary)] p-3"
+                            >
+                              <p className="text-sm text-[var(--text-primary)]">
+                                {evidence.description}
+                              </p>
                               <p className="mt-1 text-xs text-[var(--text-secondary)]">
                                 {evidence.source_domain} · {evidence.source_type}
                                 {evidence.source_name ? ` · ${evidence.source_name}` : ""}
                                 {evidence.source_id ? ` · ${evidence.source_id}` : ""}
                               </p>
                               <p className="mt-1 text-xs text-[var(--text-muted)]">
-                                {evidence.evidence_kind || "Unclassified legacy evidence"} · {evidence.confidence_level} · {Math.round(evidence.confidence * 100)}% · {formatWhen(evidence.recorded_at)}
+                                {evidence.evidence_kind || "Unclassified legacy evidence"} ·{" "}
+                                {evidence.confidence_level} ·{" "}
+                                {Math.round(evidence.confidence * 100)}% ·{" "}
+                                {formatWhen(evidence.recorded_at)}
                               </p>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-2 text-sm text-[var(--text-muted)]">No evidence items are linked to this insight.</p>
+                        <p className="mt-2 text-sm text-[var(--text-muted)]">
+                          No evidence items are linked to this insight.
+                        </p>
                       )}
                     </div>
                   </article>
@@ -199,7 +240,9 @@ export default function EvidencePage() {
                   disabled={page <= 1 || query.isFetching}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                   className="rounded-md border border-[var(--border-default)] px-3 py-2 text-sm disabled:opacity-50"
-                >Previous</button>
+                >
+                  Previous
+                </button>
                 <span className="text-xs text-[var(--text-muted)]">
                   Page {page} of {Math.max(1, Math.ceil(query.data.total / query.data.page_size))}
                 </span>
@@ -208,12 +251,15 @@ export default function EvidencePage() {
                   disabled={page * query.data.page_size >= query.data.total || query.isFetching}
                   onClick={() => setPage((current) => current + 1)}
                   className="rounded-md border border-[var(--border-default)] px-3 py-2 text-sm disabled:opacity-50"
-                >Next</button>
+                >
+                  Next
+                </button>
               </div>
             </>
           )}
           <p className="text-xs text-[var(--text-muted)]">
-            This view does not recalculate confidence or apply evidence to company, contact, or deal records.
+            This view does not recalculate confidence or apply evidence to company, contact, or deal
+            records.
           </p>
         </>
       )}

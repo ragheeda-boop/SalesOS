@@ -78,9 +78,7 @@ function EvidenceCard({ item }: { item: EvidenceItem }) {
           <span className="text-sm font-medium text-[var(--text-primary)]">
             {item.title || item.evidence_type}
           </span>
-          <span className="text-[10px] text-[var(--text-muted)]">
-            {item.evidence_type}
-          </span>
+          <span className="text-[10px] text-[var(--text-muted)]">{item.evidence_type}</span>
         </div>
         <button
           onClick={() => setOpen(!open)}
@@ -113,9 +111,7 @@ function SignalCard({ signal }: { signal: Signal }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] p-3">
       <div className="flex items-center gap-2">
-        <span className={`text-xs font-medium uppercase ${color}`}>
-          {signal.signal_type}
-        </span>
+        <span className={`text-xs font-medium uppercase ${color}`}>{signal.signal_type}</span>
         <span
           className={`text-[10px] font-medium ${
             signal.confidence === "high"
@@ -148,7 +144,13 @@ function SignalCard({ signal }: { signal: Signal }) {
   );
 }
 
-export function ExternalIntelTab({ companyName, companyId }: { companyName: string; companyId: string }) {
+export function ExternalIntelTab({
+  companyName,
+  companyId,
+}: {
+  companyName: string;
+  companyId: string;
+}) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"evidence" | "signals">("evidence");
 
@@ -159,7 +161,16 @@ export function ExternalIntelTab({ companyName, companyId }: { companyName: stri
       const res = await fetch(`/api/v1/agent-reach/intel/${encodeURIComponent(companyName)}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!res.ok) return { company: companyName, evidence_count: 0, signal_count: 0, channels_searched: [], last_researched: null, evidence: [], signals: [] };
+      if (!res.ok)
+        return {
+          company: companyName,
+          evidence_count: 0,
+          signal_count: 0,
+          channels_searched: [],
+          last_researched: null,
+          evidence: [],
+          signals: [],
+        };
       return res.json();
     },
   });
@@ -218,7 +229,9 @@ export function ExternalIntelTab({ companyName, companyId }: { companyName: stri
       {researchMutation.isError && (
         <ErrorState
           title="Research failed"
-          description={researchMutation.error instanceof Error ? researchMutation.error.message : undefined}
+          description={
+            researchMutation.error instanceof Error ? researchMutation.error.message : undefined
+          }
         />
       )}
 

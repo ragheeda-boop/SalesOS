@@ -6,10 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "../_components/page-header";
 import { EmptyState, ErrorState, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
-import {
-  fetchSalesUsabilityAccounts,
-  fetchSalesUsabilitySummary,
-} from "@/lib/reviewQueueQueries";
+import { fetchSalesUsabilityAccounts, fetchSalesUsabilitySummary } from "@/lib/reviewQueueQueries";
 
 const PAGE_SIZE = 100;
 
@@ -77,7 +74,8 @@ export default function SalesUsabilityPage() {
       />
 
       <div className="mb-5 rounded-lg border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4 text-sm text-[var(--status-warning-text)]">
-        عرض للقراءة فقط. لا تفتح هذه الشاشة أي بوابة ولا تعتمد أي حساب؛ البوابات تُغلق بقرار بشري موثّق.
+        عرض للقراءة فقط. لا تفتح هذه الشاشة أي بوابة ولا تعتمد أي حساب؛ البوابات تُغلق بقرار بشري
+        موثّق.
       </div>
 
       {summary.isLoading ? (
@@ -156,7 +154,9 @@ export default function SalesUsabilityPage() {
               ))}
             </select>
           </label>
-          <span className="text-sm text-muted-foreground">{total.toLocaleString("en-US")} حساب</span>
+          <span className="text-sm text-muted-foreground">
+            {total.toLocaleString("en-US")} حساب
+          </span>
         </div>
 
         {accounts.isLoading ? (

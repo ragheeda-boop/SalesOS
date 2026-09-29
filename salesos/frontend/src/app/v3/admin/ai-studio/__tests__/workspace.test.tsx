@@ -30,13 +30,16 @@ describe("AiStudioWorkspace", () => {
     accessTokenMock.mockReturnValue({ ready: true, hasToken: true, audienceKind: "tenant" });
   });
 
-  it.each(cases)("renders the $title workspace with its honest status", ({ surface, title, content }) => {
-    render(<AiStudioWorkspace surface={surface} />);
+  it.each(cases)(
+    "renders the $title workspace with its honest status",
+    ({ surface, title, content }) => {
+      render(<AiStudioWorkspace surface={surface} />);
 
-    expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
-    expect(screen.getByText(content)).toBeInTheDocument();
-    expect(screen.getByRole("note")).toBeInTheDocument();
-  });
+      expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
+      expect(screen.getByText(content)).toBeInTheDocument();
+      expect(screen.getByRole("note")).toBeInTheDocument();
+    }
+  );
 
   it("does not render admin tools before authentication", () => {
     accessTokenMock.mockReturnValue({ ready: true, hasToken: false, audienceKind: null });

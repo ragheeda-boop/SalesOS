@@ -105,59 +105,59 @@ export default function V3QuotesPage() {
         />
       ) : (
         <>
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => refetch()}
-          className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
-        >
-          Refresh
-        </button>
-      </div>
-      <div className="overflow-hidden rounded-lg border border-[var(--border-default)]">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--bg-secondary)] text-left text-xs uppercase text-[var(--text-muted)]">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Version</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Opportunity</th>
-              <th className="px-4 py-3">Created</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border-default)]">
-            {quotes.map((q) => (
-              <tr key={q.id} className="hover:bg-[var(--bg-hover)]">
-                <td className="px-4 py-3 font-medium">{q.title || "Untitled"}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] ${statusColors[q.status] ?? "bg-gray-100 text-gray-700"}`}
-                  >
-                    {q.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">v{q.version}</td>
-                <td className="px-4 py-3 font-medium">
-                  {formatCurrency(q.grand_total, q.currency)}
-                </td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">{q.opportunity_id}</td>
-                <td className="px-4 py-3 text-[var(--text-muted)]">
-                  {new Date(q.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/v3/quotes/${q.id}`}
-                    className="text-[var(--text-link,theme(colors.blue.600))] hover:underline"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <div className="mb-4 flex gap-2">
+            <button
+              onClick={() => refetch()}
+              className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm hover:bg-[var(--bg-secondary)]"
+            >
+              Refresh
+            </button>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-[var(--border-default)]">
+            <table className="w-full text-sm">
+              <thead className="bg-[var(--bg-secondary)] text-left text-xs uppercase text-[var(--text-muted)]">
+                <tr>
+                  <th className="px-4 py-3">Title</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Version</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Opportunity</th>
+                  <th className="px-4 py-3">Created</th>
+                  <th className="px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-default)]">
+                {quotes.map((q) => (
+                  <tr key={q.id} className="hover:bg-[var(--bg-hover)]">
+                    <td className="px-4 py-3 font-medium">{q.title || "Untitled"}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] ${statusColors[q.status] ?? "bg-gray-100 text-gray-700"}`}
+                      >
+                        {q.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">v{q.version}</td>
+                    <td className="px-4 py-3 font-medium">
+                      {formatCurrency(q.grand_total, q.currency)}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">{q.opportunity_id}</td>
+                    <td className="px-4 py-3 text-[var(--text-muted)]">
+                      {new Date(q.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/v3/quotes/${q.id}`}
+                        className="text-[var(--text-link,theme(colors.blue.600))] hover:underline"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </>

@@ -38,27 +38,33 @@ function formatRevenueAmount(
   if (revenue.currency_consistent) {
     return formatCurrency(revenue[field], revenue.by_currency[0]?.currency ?? "SAR");
   }
-  return revenue.by_currency
-    .map((row) => `${row.currency}: ${formatCurrency(row[field], row.currency)}`)
-    .join(" · ") || "—";
+  return (
+    revenue.by_currency
+      .map((row) => `${row.currency}: ${formatCurrency(row[field], row.currency)}`)
+      .join(" · ") || "—"
+  );
 }
 
 function formatPipelineAmount(pipeline: PipelineHealth): string {
   if (pipeline.total_value != null) {
     return formatCurrency(pipeline.total_value, pipeline.by_currency[0]?.currency ?? "SAR");
   }
-  return pipeline.by_currency
-    .map((row) => `${row.currency}: ${formatCurrency(row.total_value, row.currency)}`)
-    .join(" · ") || "—";
+  return (
+    pipeline.by_currency
+      .map((row) => `${row.currency}: ${formatCurrency(row.total_value, row.currency)}`)
+      .join(" · ") || "—"
+  );
 }
 
 function formatAverageDealSize(pipeline: PipelineHealth): string {
   if (pipeline.avg_deal_size != null) {
     return formatCurrency(pipeline.avg_deal_size, pipeline.by_currency[0]?.currency ?? "SAR");
   }
-  return pipeline.by_currency
-    .map((row) => `${row.currency}: ${formatCurrency(row.avg_deal_size, row.currency)}`)
-    .join(" · ") || "—";
+  return (
+    pipeline.by_currency
+      .map((row) => `${row.currency}: ${formatCurrency(row.avg_deal_size, row.currency)}`)
+      .join(" · ") || "—"
+  );
 }
 
 export function AnalyticsWorkspace() {

@@ -129,12 +129,8 @@ export default function V3QuoteDetailPage() {
       />
 
       <div className="mb-6 flex items-center gap-3">
-        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>
-          {status}
-        </Badge>
-        <span className="text-sm text-[var(--text-muted)]">
-          {q?.opportunity_id}
-        </span>
+        <Badge className={statusColors[status] ?? "bg-gray-100 text-gray-700"}>{status}</Badge>
+        <span className="text-sm text-[var(--text-muted)]">{q?.opportunity_id}</span>
       </div>
 
       {/* Line Items */}
@@ -169,20 +165,36 @@ export default function V3QuoteDetailPage() {
               </tbody>
               <tfoot className="bg-[var(--bg-secondary)]">
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right font-medium">Subtotal</td>
-                  <td className="px-4 py-3 font-medium">{formatCurrency(q?.subtotal ?? 0, q?.currency)}</td>
+                  <td colSpan={5} className="px-4 py-3 text-right font-medium">
+                    Subtotal
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    {formatCurrency(q?.subtotal ?? 0, q?.currency)}
+                  </td>
                 </tr>
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right text-[var(--text-muted)]">Discount</td>
-                  <td className="px-4 py-3 text-[var(--text-muted)]">-{formatCurrency(q?.total_discount ?? 0, q?.currency)}</td>
+                  <td colSpan={5} className="px-4 py-3 text-right text-[var(--text-muted)]">
+                    Discount
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-muted)]">
+                    -{formatCurrency(q?.total_discount ?? 0, q?.currency)}
+                  </td>
                 </tr>
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right text-[var(--text-muted)]">Tax</td>
-                  <td className="px-4 py-3 text-[var(--text-muted)]">+{formatCurrency(q?.total_tax ?? 0, q?.currency)}</td>
+                  <td colSpan={5} className="px-4 py-3 text-right text-[var(--text-muted)]">
+                    Tax
+                  </td>
+                  <td className="px-4 py-3 text-[var(--text-muted)]">
+                    +{formatCurrency(q?.total_tax ?? 0, q?.currency)}
+                  </td>
                 </tr>
                 <tr>
-                  <td colSpan={5} className="px-4 py-3 text-right font-bold">Grand Total</td>
-                  <td className="px-4 py-3 font-bold">{formatCurrency(q?.grand_total ?? 0, q?.currency)}</td>
+                  <td colSpan={5} className="px-4 py-3 text-right font-bold">
+                    Grand Total
+                  </td>
+                  <td className="px-4 py-3 font-bold">
+                    {formatCurrency(q?.grand_total ?? 0, q?.currency)}
+                  </td>
                 </tr>
               </tfoot>
             </table>
@@ -195,10 +207,22 @@ export default function V3QuoteDetailPage() {
         <div className="mb-6 rounded-lg border border-[var(--border-default)] p-4">
           <h3 className="mb-2 text-sm font-medium text-[var(--text-primary)]">Approval</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div><span className="text-[var(--text-muted)]">Level:</span> {q.approval.level}</div>
-            <div><span className="text-[var(--text-muted)]">Approved by:</span> {q.approval.approved_by}</div>
-            <div><span className="text-[var(--text-muted)]">Date:</span> {q.approval.approved_at ? new Date(q.approval.approved_at).toLocaleString() : "-"}</div>
-            {q.approval.comments && <div><span className="text-[var(--text-muted)]">Comments:</span> {q.approval.comments}</div>}
+            <div>
+              <span className="text-[var(--text-muted)]">Level:</span> {q.approval.level}
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Approved by:</span>{" "}
+              {q.approval.approved_by}
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">Date:</span>{" "}
+              {q.approval.approved_at ? new Date(q.approval.approved_at).toLocaleString() : "-"}
+            </div>
+            {q.approval.comments && (
+              <div>
+                <span className="text-[var(--text-muted)]">Comments:</span> {q.approval.comments}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -209,8 +233,13 @@ export default function V3QuoteDetailPage() {
           <h3 className="mb-2 text-sm font-medium text-[var(--text-primary)]">Revision History</h3>
           <div className="space-y-2">
             {q.revisions.map((rev) => (
-              <div key={rev.version} className="flex items-center gap-3 rounded-lg border border-[var(--border-default)] p-3 text-sm">
-                <Badge className="bg-[var(--bg-secondary)] text-[var(--text-muted)]">v{rev.version}</Badge>
+              <div
+                key={rev.version}
+                className="flex items-center gap-3 rounded-lg border border-[var(--border-default)] p-3 text-sm"
+              >
+                <Badge className="bg-[var(--bg-secondary)] text-[var(--text-muted)]">
+                  v{rev.version}
+                </Badge>
                 <Badge className={statusColors[rev.status] ?? "bg-gray-100 text-gray-700"}>
                   {rev.status}
                 </Badge>

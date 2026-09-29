@@ -107,11 +107,9 @@ describe("opportunity NBA — contract", () => {
     await expect(refreshOpportunityNBA("opp-1", "tenant-1")).resolves.toMatchObject({
       id: "nba-2",
     });
-    expect(mockApi.post).toHaveBeenCalledWith(
-      "/api/v1/opportunities/opp-1/nba/refresh",
-      null,
-      { headers: { "X-Tenant-Id": "tenant-1" } }
-    );
+    expect(mockApi.post).toHaveBeenCalledWith("/api/v1/opportunities/opp-1/nba/refresh", null, {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 });
 
@@ -129,10 +127,9 @@ describe("getDealIntelligence — contract", () => {
       deal_id: "opp-1",
       health_level: "unknown",
     });
-    expect(mockApi.get).toHaveBeenCalledWith(
-      "/api/v1/opportunities/opp%201/intelligence",
-      { headers: { "X-Tenant-Id": "tenant-1" } }
-    );
+    expect(mockApi.get).toHaveBeenCalledWith("/api/v1/opportunities/opp%201/intelligence", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 });
 

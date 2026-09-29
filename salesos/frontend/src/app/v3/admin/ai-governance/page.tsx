@@ -35,7 +35,9 @@ export default function AIGovernanceAuditPage() {
         title="AI Governance Audit"
         description="Tenant-scoped policy enforcement, human approval, and PII guardrail events. Read-only."
       />
-      {!ready ? <LoadingState label="Checking session…" /> : !hasToken ? (
+      {!ready ? (
+        <LoadingState label="Checking session…" />
+      ) : !hasToken ? (
         <PermissionState nextPath="/v3/admin/ai-governance" />
       ) : query.isLoading ? (
         <LoadingState label="Loading governance events…" />
@@ -60,28 +62,49 @@ export default function AIGovernanceAuditPage() {
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="border-b border-[var(--border-default)] bg-[var(--bg-secondary)] text-xs text-[var(--text-muted)]">
                   <tr>
-                    <th scope="col" className="px-3 py-2.5 font-medium">Event</th>
-                    <th scope="col" className="px-3 py-2.5 font-medium">Policy / decision</th>
-                    <th scope="col" className="px-3 py-2.5 font-medium">Actor</th>
-                    <th scope="col" className="px-3 py-2.5 font-medium">Outcome</th>
-                    <th scope="col" className="px-3 py-2.5 font-medium">Recorded</th>
+                    <th scope="col" className="px-3 py-2.5 font-medium">
+                      Event
+                    </th>
+                    <th scope="col" className="px-3 py-2.5 font-medium">
+                      Policy / decision
+                    </th>
+                    <th scope="col" className="px-3 py-2.5 font-medium">
+                      Actor
+                    </th>
+                    <th scope="col" className="px-3 py-2.5 font-medium">
+                      Outcome
+                    </th>
+                    <th scope="col" className="px-3 py-2.5 font-medium">
+                      Recorded
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {query.data.items.map((event) => (
-                    <tr key={event.id} className="border-b border-[var(--border-default)] last:border-0">
+                    <tr
+                      key={event.id}
+                      className="border-b border-[var(--border-default)] last:border-0"
+                    >
                       <td className="px-3 py-2.5">
                         <span className="block font-medium text-[var(--text-primary)]">
                           {event.action.replace(/[:_]/g, " ")}
                         </span>
-                        <span className="text-xs text-[var(--text-muted)]">{event.resource_type}</span>
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {event.resource_type}
+                        </span>
                       </td>
                       <td className="px-3 py-2.5 text-[var(--text-secondary)]">
                         {event.policy_name || event.decision || event.enforcement_action || "—"}
                       </td>
-                      <td className="px-3 py-2.5 text-[var(--text-secondary)]">{event.user_id || "System"}</td>
-                      <td className="px-3 py-2.5 capitalize text-[var(--text-secondary)]">{event.outcome}</td>
-                      <td className="px-3 py-2.5 text-[var(--text-secondary)]">{formatDate(event.created_at)}</td>
+                      <td className="px-3 py-2.5 text-[var(--text-secondary)]">
+                        {event.user_id || "System"}
+                      </td>
+                      <td className="px-3 py-2.5 capitalize text-[var(--text-secondary)]">
+                        {event.outcome}
+                      </td>
+                      <td className="px-3 py-2.5 text-[var(--text-secondary)]">
+                        {formatDate(event.created_at)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -110,7 +133,8 @@ export default function AIGovernanceAuditPage() {
             </button>
           </div>
           <p className="text-xs text-[var(--text-muted)]">
-            Sensitive comments and raw payloads are omitted. Access requires the tenant audit read permission.
+            Sensitive comments and raw payloads are omitted. Access requires the tenant audit read
+            permission.
           </p>
         </>
       )}

@@ -145,10 +145,7 @@ describe("CreateProposalForm", () => {
       expect(mockedCreate).toHaveBeenCalledWith("tenant-1", "opp-locked", "q-1");
     });
     expect(mockedOpps).not.toHaveBeenCalled();
-    expect(mockedQuotes).toHaveBeenCalledWith(
-      { opportunity_id: "opp-locked" },
-      "tenant-1"
-    );
+    expect(mockedQuotes).toHaveBeenCalledWith({ opportunity_id: "opp-locked" }, "tenant-1");
   });
 
   it("shows an honest API error and does not invent a proposal", async () => {

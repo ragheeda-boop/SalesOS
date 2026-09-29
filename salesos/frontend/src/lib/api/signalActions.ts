@@ -80,21 +80,34 @@ export interface ExecuteRequest {
   user_id: string;
 }
 
-export async function qualifySignal(data: QualifyRequest, tenantId?: string): Promise<SignalQualification> {
+export async function qualifySignal(
+  data: QualifyRequest,
+  tenantId?: string
+): Promise<SignalQualification> {
   const response = await api.post("/api/v1/signal-actions/qualify", data, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
   return response.data;
 }
 
-export async function qualifyBatch(data: QualifyRequest[], tenantId?: string): Promise<SignalQualification[]> {
-  const response = await api.post("/api/v1/signal-actions/qualify-batch", { signals: data }, {
-    headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
-  });
+export async function qualifyBatch(
+  data: QualifyRequest[],
+  tenantId?: string
+): Promise<SignalQualification[]> {
+  const response = await api.post(
+    "/api/v1/signal-actions/qualify-batch",
+    { signals: data },
+    {
+      headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
+    }
+  );
   return response.data;
 }
 
-export async function scoreAccount(data: ScoreRequest, tenantId?: string): Promise<{ priority: AccountPriority; nba: NextBestAction }> {
+export async function scoreAccount(
+  data: ScoreRequest,
+  tenantId?: string
+): Promise<{ priority: AccountPriority; nba: NextBestAction }> {
   const response = await api.post("/api/v1/signal-actions/score", data, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
@@ -113,13 +126,20 @@ export async function completeAction(
   data: { outcome: string; notes?: string },
   tenantId?: string
 ): Promise<SalesAction> {
-  const response = await api.post("/api/v1/signal-actions/complete", { ...data, action_id: actionId }, {
-    headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
-  });
+  const response = await api.post(
+    "/api/v1/signal-actions/complete",
+    { ...data, action_id: actionId },
+    {
+      headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
+    }
+  );
   return response.data;
 }
 
-export async function listActions(params?: { status?: string; company_name?: string }, tenantId?: string): Promise<SalesAction[]> {
+export async function listActions(
+  params?: { status?: string; company_name?: string },
+  tenantId?: string
+): Promise<SalesAction[]> {
   const response = await api.get("/api/v1/signal-actions/actions", {
     params,
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,

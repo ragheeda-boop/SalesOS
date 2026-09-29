@@ -14,9 +14,7 @@ const INPUT_CLASS =
 
 function createErrorMessage(err: unknown): string {
   if (err && typeof err === "object" && "response" in err) {
-    const res = (
-      err as { response?: { status?: number; data?: { detail?: unknown } } }
-    ).response;
+    const res = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
     if (res?.status === 403) return "You don't have permission to create quotes.";
     const detail = res?.data?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
@@ -101,9 +99,7 @@ export function CreateQuoteForm({
               data-testid="create-quote-opportunity"
               disabled={dealsQuery.isLoading || deals.length === 0}
             >
-              <option value="">
-                {dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}
-              </option>
+              <option value="">{dealsQuery.isLoading ? "Loading deals…" : "Select a deal"}</option>
               {deals.map((deal) => (
                 <option key={deal.id} value={deal.id}>
                   {dealLabel(deal.name, deal.id)}

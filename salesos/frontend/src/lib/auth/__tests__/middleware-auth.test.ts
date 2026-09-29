@@ -123,7 +123,9 @@ describe("middleware-auth", () => {
     }
 
     it("sends tenant JWT on /admin to owner login", () => {
-      expect(shouldRedirectOwnerConsoleToOwnerLogin("/admin", jwtWithAud("salesos-api"))).toBe(true);
+      expect(shouldRedirectOwnerConsoleToOwnerLogin("/admin", jwtWithAud("salesos-api"))).toBe(
+        true
+      );
       expect(
         shouldRedirectOwnerConsoleToOwnerLogin("/admin/tenants", jwtWithAud("salesos-api"))
       ).toBe(true);

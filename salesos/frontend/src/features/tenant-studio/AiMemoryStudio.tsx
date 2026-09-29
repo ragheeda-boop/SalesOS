@@ -54,8 +54,7 @@ export function AiMemoryStudio() {
     setRetentionHours(String(settingsQuery.data.retention_hours));
   }, [settingsQuery.data]);
 
-  const busy =
-    putSettings.isPending || appendTurn.isPending || deleteConv.isPending;
+  const busy = putSettings.isPending || appendTurn.isPending || deleteConv.isPending;
 
   return (
     <div className="space-y-4" data-testid="ai-memory-studio">
@@ -334,7 +333,6 @@ export function AiMemoryStudio() {
           ) : null}
         </section>
       ) : null}
-
     </div>
   );
 }

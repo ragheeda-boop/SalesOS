@@ -25,24 +25,19 @@ import {
 import { formatCount, formatCurrencySAR, formatPercent, stageLabel } from "../_components/format";
 import { useAccessToken } from "../_hooks/useAccessToken";
 
-type RevenueCurrencyField =
-  | "total_booked"
-  | "total_pipeline"
-  | "weighted_pipeline"
-  | "forecast";
+type RevenueCurrencyField = "total_booked" | "total_pipeline" | "weighted_pipeline" | "forecast";
 
-function formatExecutiveRevenue(
-  revenue: RevenueKPI,
-  field: RevenueCurrencyField
-): string {
+function formatExecutiveRevenue(revenue: RevenueKPI, field: RevenueCurrencyField): string {
   if (revenue.currency_consistent) {
     const rowCurrency = revenue.by_currency[0]?.currency ?? "SAR";
     const value = revenue[field];
     return value == null ? "—" : formatForecastCurrency(value, rowCurrency);
   }
-  return revenue.by_currency
-    .map((row) => `${row.currency}: ${formatForecastCurrency(row[field], row.currency)}`)
-    .join(" · ") || "—";
+  return (
+    revenue.by_currency
+      .map((row) => `${row.currency}: ${formatForecastCurrency(row[field], row.currency)}`)
+      .join(" · ") || "—"
+  );
 }
 
 function formatExecutiveGrowth(revenue: {
@@ -54,7 +49,10 @@ function formatExecutiveGrowth(revenue: {
     const growth = revenue.growth_percent ?? 0;
     return `${growth >= 0 ? "+" : ""}${growth}% growth`;
   }
-  return revenue.by_currency.map((row) => `${row.currency}: ${row.growth_percent}%`).join(" · ") || "Growth unavailable";
+  return (
+    revenue.by_currency.map((row) => `${row.currency}: ${row.growth_percent}%`).join(" · ") ||
+    "Growth unavailable"
+  );
 }
 
 function formatForecastCurrency(value: number, currency: string): string {
@@ -174,201 +172,208 @@ export default function V3AnalyticsPage() {
       </div>
     );
 
-    const pipelineBody = !ready || !hasToken || pipelineQuery.isLoading ? (
-      <LoadingState label="Loading pipeline analytics…" />
-    ) : pipelineQuery.isError ? (
-      <ErrorState
-        title="Could not load pipeline analytics"
-        description={
-          pipelineQuery.error instanceof Error
-            ? pipelineQuery.error.message
-            : "Pipeline analytics request failed"
-        }
-        onRetry={() => void pipelineQuery.refetch()}
-      />
-    ) : !pipelineQuery.data ? (
-      <EmptyState
-        title="No pipeline analytics"
-        description="The pipeline analytics service returned no summary."
-      />
-    ) : (
-      <div className="space-y-4">
-        <MetricCards
-          items={[
-            {
-              label: "Open deals",
-              value: formatCount(pipelineQuery.data.total_open_deals),
-            },
-            {
-              label: "Healthy",
-              value: formatCount(pipelineQuery.data.health_map.healthy),
-            },
-            {
-              label: "At risk",
-              value: formatCount(pipelineQuery.data.health_map.at_risk),
-            },
-            {
-              label: "Critical",
-              value: formatCount(pipelineQuery.data.health_map.critical),
-            },
-            {
-              label: "Unknown probability",
-              value: formatCount(pipelineQuery.data.health_map.unknown),
-              hint: "No guessed health score",
-            },
-          ]}
+    const pipelineBody =
+      !ready || !hasToken || pipelineQuery.isLoading ? (
+        <LoadingState label="Loading pipeline analytics…" />
+      ) : pipelineQuery.isError ? (
+        <ErrorState
+          title="Could not load pipeline analytics"
+          description={
+            pipelineQuery.error instanceof Error
+              ? pipelineQuery.error.message
+              : "Pipeline analytics request failed"
+          }
+          onRetry={() => void pipelineQuery.refetch()}
         />
-        {Object.keys(pipelineQuery.data.velocity).length > 0 ? (
-          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead className="border-b border-[var(--border-default)] bg-[var(--bg-secondary)] text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-                <tr>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Stage
-                  </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Avg days in stage
-                  </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
-                    Stage exits
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(pipelineQuery.data.velocity).map(([stage, row]) => (
-                  <tr
-                    key={stage}
-                    className="border-b border-[var(--border-default)] last:border-b-0"
-                  >
-                    <td className="px-3 py-2 capitalize text-[var(--text-primary)]">
-                      {stageLabel(stage)}
-                    </td>
-                    <td className="px-3 py-2 tabular-nums text-[var(--text-secondary)]">
-                      {row.avg_days.toFixed(1)}
-                    </td>
-                    <td className="px-3 py-2 tabular-nums text-[var(--text-secondary)]">
-                      {formatCount(row.entries)}
-                    </td>
+      ) : !pipelineQuery.data ? (
+        <EmptyState
+          title="No pipeline analytics"
+          description="The pipeline analytics service returned no summary."
+        />
+      ) : (
+        <div className="space-y-4">
+          <MetricCards
+            items={[
+              {
+                label: "Open deals",
+                value: formatCount(pipelineQuery.data.total_open_deals),
+              },
+              {
+                label: "Healthy",
+                value: formatCount(pipelineQuery.data.health_map.healthy),
+              },
+              {
+                label: "At risk",
+                value: formatCount(pipelineQuery.data.health_map.at_risk),
+              },
+              {
+                label: "Critical",
+                value: formatCount(pipelineQuery.data.health_map.critical),
+              },
+              {
+                label: "Unknown probability",
+                value: formatCount(pipelineQuery.data.health_map.unknown),
+                hint: "No guessed health score",
+              },
+            ]}
+          />
+          {Object.keys(pipelineQuery.data.velocity).length > 0 ? (
+            <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead className="border-b border-[var(--border-default)] bg-[var(--bg-secondary)] text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
+                  <tr>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Stage
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Avg days in stage
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Stage exits
+                    </th>
                   </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(pipelineQuery.data.velocity).map(([stage, row]) => (
+                    <tr
+                      key={stage}
+                      className="border-b border-[var(--border-default)] last:border-b-0"
+                    >
+                      <td className="px-3 py-2 capitalize text-[var(--text-primary)]">
+                        {stageLabel(stage)}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums text-[var(--text-secondary)]">
+                        {row.avg_days.toFixed(1)}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums text-[var(--text-secondary)]">
+                        {formatCount(row.entries)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">
+              No completed stage intervals are recorded yet.
+            </p>
+          )}
+
+          <p className="text-[12px] text-[var(--text-muted)]">
+            Source: <code className="font-mono">GET /api/v1/pipeline/summary</code>. Stage health is
+            a deterministic view of stored opportunity probability. Missing probability stays
+            unknown.
+          </p>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">Largest open deals</h3>
+              <GhostButtonLink href="/v3/crm">All deals</GhostButtonLink>
+            </div>
+            {oppQuery.isLoading ? (
+              <LoadingState label="Loading deals…" />
+            ) : oppQuery.isError ? (
+              <p className="text-sm text-[var(--text-muted)]">Could not load opportunity list.</p>
+            ) : deals.length === 0 ? (
+              <EmptyState
+                title="No deals yet"
+                description="Create opportunities from a company record."
+                action={<GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>}
+              />
+            ) : (
+              <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
+                {deals.map((opp) => (
+                  <li
+                    key={opp.id}
+                    className="flex items-center justify-between gap-3 border-b border-[var(--border-default)] px-3 py-2.5 text-sm last:border-b-0"
+                  >
+                    <span className="min-w-0">
+                      <Link
+                        href={`/v3/crm/${opp.id}`}
+                        className="block truncate font-medium text-[var(--text-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                      >
+                        {opp.name}
+                      </Link>
+                      <span className="mt-0.5 block truncate text-[12px] text-[var(--text-muted)]">
+                        {opp.company_id ? (
+                          <Link
+                            href={`/v3/companies/${opp.company_id}`}
+                            className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+                          >
+                            {opp.company_name || "Company"}
+                          </Link>
+                        ) : (
+                          opp.company_name || "—"
+                        )}
+                        {" · "}
+                        <span className="capitalize">{stageLabel(opp.stage)}</span>
+                      </span>
+                    </span>
+                    <span className="shrink-0 tabular-nums text-[var(--text-secondary)]">
+                      {formatCurrencySAR(opp.value)}
+                    </span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
+              </ul>
+            )}
           </div>
-        ) : (
-          <p className="text-sm text-[var(--text-muted)]">No completed stage intervals are recorded yet.</p>
-        )}
+        </div>
+      );
 
-        <p className="text-[12px] text-[var(--text-muted)]">
-          Source: <code className="font-mono">GET /api/v1/pipeline/summary</code>. Stage health is
-          a deterministic view of stored opportunity probability. Missing probability stays unknown.
-        </p>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-[var(--text-primary)]">Largest open deals</h3>
-            <GhostButtonLink href="/v3/crm">All deals</GhostButtonLink>
-          </div>
-          {oppQuery.isLoading ? (
-            <LoadingState label="Loading deals…" />
-          ) : oppQuery.isError ? (
-            <p className="text-sm text-[var(--text-muted)]">Could not load opportunity list.</p>
-          ) : deals.length === 0 ? (
-            <EmptyState
-              title="No deals yet"
-              description="Create opportunities from a company record."
-              action={<GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>}
+    const forecastBody =
+      !ready || !hasToken || pipelineQuery.isLoading ? (
+        <LoadingState label="Loading pipeline forecast…" />
+      ) : pipelineQuery.isError ? (
+        <ErrorState
+          title="Could not load forecast"
+          description={
+            pipelineQuery.error instanceof Error
+              ? pipelineQuery.error.message
+              : "Pipeline forecast request failed"
+          }
+          onRetry={() => void pipelineQuery.refetch()}
+        />
+      ) : !pipelineQuery.data ? (
+        <EmptyState title="No forecast data" description="No forecast summary is available." />
+      ) : (
+        <div className="space-y-4">
+          {pipelineQuery.data.forecast.by_currency.length > 0 ? (
+            <MetricCards
+              items={pipelineQuery.data.forecast.by_currency.flatMap((forecast) => [
+                {
+                  label: `Commit · ${forecast.currency}`,
+                  value: formatForecastCurrency(forecast.commit, forecast.currency),
+                },
+                {
+                  label: `Best case · ${forecast.currency}`,
+                  value: formatForecastCurrency(forecast.best_case, forecast.currency),
+                },
+                {
+                  label: `Open pipeline · ${forecast.currency}`,
+                  value: formatForecastCurrency(forecast.pipeline, forecast.currency),
+                },
+                {
+                  label: `Unweighted gap · ${forecast.currency}`,
+                  value: formatForecastCurrency(forecast.gap, forecast.currency),
+                },
+              ])}
             />
           ) : (
-            <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
-              {deals.map((opp) => (
-                <li
-                  key={opp.id}
-                  className="flex items-center justify-between gap-3 border-b border-[var(--border-default)] px-3 py-2.5 text-sm last:border-b-0"
-                >
-                  <span className="min-w-0">
-                    <Link
-                      href={`/v3/crm/${opp.id}`}
-                      className="block truncate font-medium text-[var(--text-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-                    >
-                      {opp.name}
-                    </Link>
-                    <span className="mt-0.5 block truncate text-[12px] text-[var(--text-muted)]">
-                      {opp.company_id ? (
-                        <Link
-                          href={`/v3/companies/${opp.company_id}`}
-                          className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-                        >
-                          {opp.company_name || "Company"}
-                        </Link>
-                      ) : (
-                        opp.company_name || "—"
-                      )}
-                      {" · "}
-                      <span className="capitalize">{stageLabel(opp.stage)}</span>
-                    </span>
-                  </span>
-                  <span className="shrink-0 tabular-nums text-[var(--text-secondary)]">
-                    {formatCurrencySAR(opp.value)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <EmptyState
+              title="No open pipeline"
+              description="No open opportunities are available to include in this forecast."
+            />
           )}
+          <p className="text-[12px] text-[var(--text-muted)]">
+            Based on {formatCount(pipelineQuery.data.forecast.total_deals)} open opportunities and
+            their stored probabilities (average{" "}
+            {formatPercent(pipelineQuery.data.forecast.avg_probability, { ratio: true })}). Amounts
+            are separated by opportunity currency. This is a deterministic baseline, not a
+            calibrated forecast or manager commit.
+          </p>
+          <GhostButtonLink href="/v3/crm">Review open opportunities</GhostButtonLink>
         </div>
-      </div>
-    );
-
-    const forecastBody = !ready || !hasToken || pipelineQuery.isLoading ? (
-      <LoadingState label="Loading pipeline forecast…" />
-    ) : pipelineQuery.isError ? (
-      <ErrorState
-        title="Could not load forecast"
-        description={
-          pipelineQuery.error instanceof Error
-            ? pipelineQuery.error.message
-            : "Pipeline forecast request failed"
-        }
-        onRetry={() => void pipelineQuery.refetch()}
-      />
-    ) : !pipelineQuery.data ? (
-      <EmptyState title="No forecast data" description="No forecast summary is available." />
-    ) : (
-      <div className="space-y-4">
-        {pipelineQuery.data.forecast.by_currency.length > 0 ? (
-          <MetricCards
-            items={pipelineQuery.data.forecast.by_currency.flatMap((forecast) => [
-              {
-                label: `Commit · ${forecast.currency}`,
-                value: formatForecastCurrency(forecast.commit, forecast.currency),
-              },
-              {
-                label: `Best case · ${forecast.currency}`,
-                value: formatForecastCurrency(forecast.best_case, forecast.currency),
-              },
-              {
-                label: `Open pipeline · ${forecast.currency}`,
-                value: formatForecastCurrency(forecast.pipeline, forecast.currency),
-              },
-              {
-                label: `Unweighted gap · ${forecast.currency}`,
-                value: formatForecastCurrency(forecast.gap, forecast.currency),
-              },
-            ])}
-          />
-        ) : (
-          <EmptyState
-            title="No open pipeline"
-            description="No open opportunities are available to include in this forecast."
-          />
-        )}
-        <p className="text-[12px] text-[var(--text-muted)]">
-          Based on {formatCount(pipelineQuery.data.forecast.total_deals)} open opportunities and
-          their stored probabilities (average {formatPercent(pipelineQuery.data.forecast.avg_probability, { ratio: true })}).
-          Amounts are separated by opportunity currency. This is a deterministic baseline, not a calibrated forecast or manager commit.
-        </p>
-        <GhostButtonLink href="/v3/crm">Review open opportunities</GhostButtonLink>
-      </div>
-    );
+      );
 
     const performanceBody = loading ?? (
       <div className="space-y-4">
@@ -501,9 +506,7 @@ export default function V3AnalyticsPage() {
         label: "Forecast",
         audience: "Managers",
         description: "Commit / best-case views — requires forecast models, not invented scores.",
-        body: (
-          forecastBody
-        ),
+        body: forecastBody,
       },
       {
         id: "performance",
@@ -546,7 +549,16 @@ export default function V3AnalyticsPage() {
         ),
       },
     ];
-  }, [ready, hasToken, execQuery, data, oppQuery.isLoading, oppQuery.isError, deals, pipelineQuery]);
+  }, [
+    ready,
+    hasToken,
+    execQuery,
+    data,
+    oppQuery.isLoading,
+    oppQuery.isError,
+    deals,
+    pipelineQuery,
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">

@@ -170,8 +170,8 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
             >
               Sign in at {OWNER_LOGIN_PATH}
             </Link>{" "}
-            with an <strong>admin</strong> user to mint <code>{OWNER_JWT_AUDIENCE}</code>. Tenant JWT
-            cannot call <code>/api/v1/admin/*</code>. Not Production GO.
+            with an <strong>admin</strong> user to mint <code>{OWNER_JWT_AUDIENCE}</code>. Tenant
+            JWT cannot call <code>/api/v1/admin/*</code>. Not Production GO.
           </p>
         </div>
       ) : (

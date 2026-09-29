@@ -98,37 +98,43 @@ export interface FeedbackMetrics {
   };
 }
 
-export async function recordFeedback(data: {
-  action_id: string;
-  recommendation_id: string;
-  company_name: string;
-  seller_id?: string;
-  decision: string;
-  reason_code?: string;
-  notes?: string;
-  original_action_type: string;
-  modified_action_type?: string;
-  modified_target_contact_id?: string;
-}, tenantId?: string): Promise<NbaFeedback> {
+export async function recordFeedback(
+  data: {
+    action_id: string;
+    recommendation_id: string;
+    company_name: string;
+    seller_id?: string;
+    decision: string;
+    reason_code?: string;
+    notes?: string;
+    original_action_type: string;
+    modified_action_type?: string;
+    modified_target_contact_id?: string;
+  },
+  tenantId?: string
+): Promise<NbaFeedback> {
   const res = await api.post("/api/v1/hitl/feedback", data, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
   return res.data;
 }
 
-export async function recordOutcome(data: {
-  action_id: string;
-  company_name: string;
-  opportunity_id?: string;
-  idempotency_key: string;
-  seller_id?: string;
-  outcome_type: string;
-  notes?: string;
-  contact_reached?: string;
-  duration_seconds?: number;
-  followup_required?: boolean;
-  occurred_at?: string;
-}, tenantId?: string): Promise<{ outcome: ActionOutcome; followup: SalesFollowup | null }> {
+export async function recordOutcome(
+  data: {
+    action_id: string;
+    company_name: string;
+    opportunity_id?: string;
+    idempotency_key: string;
+    seller_id?: string;
+    outcome_type: string;
+    notes?: string;
+    contact_reached?: string;
+    duration_seconds?: number;
+    followup_required?: boolean;
+    occurred_at?: string;
+  },
+  tenantId?: string
+): Promise<{ outcome: ActionOutcome; followup: SalesFollowup | null }> {
   const res = await api.post("/api/v1/hitl/outcomes", data, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
@@ -142,7 +148,10 @@ export async function getMyDay(tenantId?: string): Promise<WorkQueue> {
   return res.data;
 }
 
-export async function listFollowups(sellerId?: string, tenantId?: string): Promise<{ count: number; followups: SalesFollowup[] }> {
+export async function listFollowups(
+  sellerId?: string,
+  tenantId?: string
+): Promise<{ count: number; followups: SalesFollowup[] }> {
   const res = await api.get("/api/v1/hitl/followups", {
     params: sellerId ? { seller_id: sellerId } : undefined,
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
@@ -150,27 +159,44 @@ export async function listFollowups(sellerId?: string, tenantId?: string): Promi
   return res.data;
 }
 
-export async function completeFollowup(followupId: string, outcome = "completed", tenantId?: string): Promise<void> {
-  await api.post(`/api/v1/hitl/followups/${followupId}/complete`, { outcome }, {
-    headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
-  });
+export async function completeFollowup(
+  followupId: string,
+  outcome = "completed",
+  tenantId?: string
+): Promise<void> {
+  await api.post(
+    `/api/v1/hitl/followups/${followupId}/complete`,
+    { outcome },
+    {
+      headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
+    }
+  );
 }
 
-export async function getFeedbackMetrics(sellerId: string, tenantId?: string): Promise<FeedbackMetrics> {
+export async function getFeedbackMetrics(
+  sellerId: string,
+  tenantId?: string
+): Promise<FeedbackMetrics> {
   const res = await api.get(`/api/v1/hitl/metrics/${sellerId}`, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
   return res.data;
 }
 
-export async function getCompanyFeedback(companyName: string, tenantId?: string): Promise<{ count: number; feedback: NbaFeedback[] }> {
+export async function getCompanyFeedback(
+  companyName: string,
+  tenantId?: string
+): Promise<{ count: number; feedback: NbaFeedback[] }> {
   const res = await api.get(`/api/v1/hitl/feedback/company/${encodeURIComponent(companyName)}`, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
   return res.data;
 }
 
-export async function getCompanyOutcomes(companyName: string, tenantId?: string): Promise<{ count: number; outcomes: ActionOutcome[] }> {
+export async function getCompanyOutcomes(
+  companyName: string,
+  tenantId?: string
+): Promise<{ count: number; outcomes: ActionOutcome[] }> {
   const res = await api.get(`/api/v1/hitl/outcomes/company/${encodeURIComponent(companyName)}`, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
@@ -198,7 +224,10 @@ export interface FeedbackAnalytics {
   }>;
 }
 
-export async function getFeedbackAnalytics(sellerId?: string, tenantId?: string): Promise<FeedbackAnalytics> {
+export async function getFeedbackAnalytics(
+  sellerId?: string,
+  tenantId?: string
+): Promise<FeedbackAnalytics> {
   const res = await api.get("/api/v1/hitl/analytics", {
     params: sellerId ? { seller_id: sellerId } : undefined,
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,

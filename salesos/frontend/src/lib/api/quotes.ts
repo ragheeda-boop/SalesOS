@@ -111,7 +111,15 @@ export async function createQuote(
 
 export async function addQuoteLine(
   quoteId: string,
-  data: { description: string; quantity: number; unit_price: number; discount_percent?: number; tax_percent?: number; product_code?: string; notes?: string },
+  data: {
+    description: string;
+    quantity: number;
+    unit_price: number;
+    discount_percent?: number;
+    tax_percent?: number;
+    product_code?: string;
+    notes?: string;
+  },
   tenantId?: string
 ): Promise<QuoteLine> {
   const response = await api.post(`/api/v1/quotes/${quoteId}/lines`, data, {

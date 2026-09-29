@@ -124,7 +124,7 @@ export async function recordDisposition(params: {
       reviewer: params.reviewer,
       notes: params.notes,
     },
-    auth(),
+    auth()
   );
   return res.data;
 }
@@ -158,7 +158,10 @@ export type SalesUsabilityPage = {
 };
 
 export async function fetchSalesUsabilitySummary(): Promise<SalesUsabilitySummary> {
-  const res = await apiClient.get("/api/v1/master-data/review-queue/sales-usability/summary", auth());
+  const res = await apiClient.get(
+    "/api/v1/master-data/review-queue/sales-usability/summary",
+    auth()
+  );
   return res.data;
 }
 

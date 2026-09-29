@@ -52,7 +52,10 @@ describe("leftover company 360 back-to-list", () => {
     render(<Company360Page />);
 
     expect(document.querySelector('a[href="/companies"]')).toBeNull();
-    expect(screen.getByRole("link", { name: "nav.companies" })).toHaveAttribute("href", "/v3/companies");
+    expect(screen.getByRole("link", { name: "nav.companies" })).toHaveAttribute(
+      "href",
+      "/v3/companies"
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "companies.back_to_list" }));
     expect(push).toHaveBeenCalledWith("/v3/companies");

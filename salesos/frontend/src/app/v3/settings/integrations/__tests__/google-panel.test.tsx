@@ -74,7 +74,9 @@ describe("GoogleIntegrationPanel sync buttons", () => {
         max_results: 100,
       });
     });
-    expect(await screen.findByTestId("google-sync-status")).toHaveTextContent(/Synced 3 emails|Syncing Gmail/);
+    expect(await screen.findByTestId("google-sync-status")).toHaveTextContent(
+      /Synced 3 emails|Syncing Gmail/
+    );
   });
 
   it("Sync Calendar click posts /api/v1/integrations/google/calendar-sync", async () => {

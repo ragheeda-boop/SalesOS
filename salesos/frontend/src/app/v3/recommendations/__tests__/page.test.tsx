@@ -18,22 +18,26 @@ describe("V3RecommendationsPage", () => {
 
   it("shows rule-based recommendations, source evidence, and a deal review link", async () => {
     recommendationsMock.mockResolvedValue({
-      items: [{
-        id: "rec-1",
-        title: "Escalate: Stalled deal at critical risk",
-        description: "Deal health is 20% (critical). Escalate to management.",
-        reasoning: "Health score 20% below 40%",
-        priority: "critical",
-        confidence: 0.3,
-        target_id: "opp-1",
-        target_type: "opportunity",
-        evidence: [{
-          source_domain: "deal_intelligence",
-          source_type: "risk_factor",
-          description: "Stalled 46 days in proposal",
-          confidence: 0.8,
-        }],
-      }],
+      items: [
+        {
+          id: "rec-1",
+          title: "Escalate: Stalled deal at critical risk",
+          description: "Deal health is 20% (critical). Escalate to management.",
+          reasoning: "Health score 20% below 40%",
+          priority: "critical",
+          confidence: 0.3,
+          target_id: "opp-1",
+          target_type: "opportunity",
+          evidence: [
+            {
+              source_domain: "deal_intelligence",
+              source_type: "risk_factor",
+              description: "Stalled 46 days in proposal",
+              confidence: 0.8,
+            },
+          ],
+        },
+      ],
       total: 1,
       source_opportunities: 1,
       skipped_missing_probability: 0,
@@ -51,7 +55,12 @@ describe("V3RecommendationsPage", () => {
 
     expect(await screen.findByText("Escalate: Stalled deal at critical risk")).toBeInTheDocument();
     expect(screen.getByText("Stalled 46 days in proposal", { exact: false })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Review deal" })).toHaveAttribute("href", "/v3/crm/opp-1");
-    expect(screen.getByText(/do not change CRM records or send communications/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Review deal" })).toHaveAttribute(
+      "href",
+      "/v3/crm/opp-1"
+    );
+    expect(
+      screen.getByText(/do not change CRM records or send communications/i)
+    ).toBeInTheDocument();
   });
 });

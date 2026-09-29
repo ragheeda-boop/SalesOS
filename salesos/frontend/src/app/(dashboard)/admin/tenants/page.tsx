@@ -243,7 +243,7 @@ function AdminTenantsPageContent() {
   const hardDeleteMutation = useHardDeleteAdminTenant();
   const rowReprovisionMutation = useReprovisionAdminTenant();
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const tenants = tenantsPage?.items ?? [];
   const totalCount = tenantsPage?.total ?? 0;
 
@@ -1501,7 +1501,7 @@ function TenantDetailModal({
                         ) : (
                           <RefreshCw className="h-4 w-4" />
                         )
-}
+                      }
                     >
                       {reprovisionMutation.isPending ? "Reprovisioning…" : "Reprovision"}
                     </Button>

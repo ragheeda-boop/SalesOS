@@ -116,7 +116,7 @@ export default function AutomationAnalyticsOverviewPage() {
 
   useEffect(() => {
     fetchData();
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, workflows]);
 
   if (loading || workflowsLoading) return <LoadingSkeleton />;

@@ -7,7 +7,9 @@ import { decideFactProposal, fetchFactProposals } from "@/lib/factReviewQueries"
 jest.mock("next/link", () => ({
   __esModule: true,
   default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -59,7 +61,7 @@ function renderPage() {
   return render(
     <QueryClientProvider client={client}>
       <FactReviewPage />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -100,13 +102,13 @@ describe("Fact Review page", () => {
         id: "fact-1",
         decision: "approve",
         reason: "Checked the official company page.",
-      }),
+      })
     );
   });
 
   it("explains when the reviewer permission is missing", async () => {
     (fetchFactProposals as jest.Mock).mockRejectedValueOnce(
-      Object.assign(new Error("forbidden"), { response: { status: 403 } }),
+      Object.assign(new Error("forbidden"), { response: { status: 403 } })
     );
     renderPage();
 

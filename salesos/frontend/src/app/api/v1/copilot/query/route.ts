@@ -55,10 +55,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("[copilot-query-proxy] upstream fetch failed:", err);
-    return NextResponse.json(
-      { detail: "Copilot upstream unavailable" },
-      { status: 502 }
-    );
+    return NextResponse.json({ detail: "Copilot upstream unavailable" }, { status: 502 });
   }
 
   const text = await upstream.text();

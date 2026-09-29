@@ -64,7 +64,15 @@ const DEPARTMENT_VALUES = [
   "operations",
 ] as const;
 
-const ROLE_VALUES = ["", "executive", "manager", "sales_rep", "engineer", "analyst", "admin"] as const;
+const ROLE_VALUES = [
+  "",
+  "executive",
+  "manager",
+  "sales_rep",
+  "engineer",
+  "analyst",
+  "admin",
+] as const;
 
 function TrendIcon({ trend }: { trend: string | null | undefined }) {
   if (!trend) return null;
@@ -111,7 +119,7 @@ function EmployeesPageContent() {
 
   const [exportLoading, setExportLoading] = useState(false);
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const params: Record<string, unknown> = { page_size: 20 };
   if (debouncedQuery) params.q = debouncedQuery;
   if (departmentFilter) params.department = departmentFilter;
@@ -228,7 +236,7 @@ function EmployeesPageContent() {
         description: "Bulk delete failed",
       });
     }
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIds, selectAllAcross, data, bulkDelete, handleClearSelection, toast]);
 
   const handleBulkExport = useCallback(async () => {
