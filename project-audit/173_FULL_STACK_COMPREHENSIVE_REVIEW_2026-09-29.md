@@ -226,13 +226,29 @@ files would swamp the audit diff and touch code this review did not examine.
 Decision needed (owner: frontend/PO) — either run `prettier --write` as a
 dedicated formatting commit, or baseline the check.
 
-### 5.6 Still not verified
-- **`salesos/packages/platform/decision` lab twin** — its own `typecheck`/`test`
-  scripts were not run: no `node_modules` there, and no CI job. The 10
-  parallel-agent files remain unverified by any automated gate.
-- **Full `phase6_apply`** — last full run (2026-09-28) completed in 796s with
-  `safety={}`; not repeated because the DB contract proves the result is
-  already applied and a re-run is a ~13 minute write pass.
+### 5.6 Parallel-agent lab (`salesos/packages/`) — a real defect found
+
+The lab twin is not covered by the frontend tsconfig **or** any CI job, so I
+reproduced its own `package.json` scripts inside the verified image (borrowing
+the app's `jest`/`ts-jest`, reproducing `platform/` as a whole because
+`decision/__tests__/integration.test.ts` imports `../../agents/memory`):
+
+- `__tests__/decision-platform.test.ts` → **PASS**
+- `__tests__/evidence-scoring-parity.test.ts` (new, untracked) → **PASS**
+- `__tests__/integration.test.ts` → **FAIL: suite cannot run**
+  - `Cannot find module '../decisionHttp' from '../agents/orchestrator/index.ts'`
+
+**`agents/orchestrator/index.ts` (modified, uncommitted by the parallel agent)
+adds `import { evaluateDecision } from "../decisionHttp";`, but
+`platform/agents/decisionHttp.ts` does not exist — and never has in git
+history** (`git log --all` empty for that path). The import was added in the
+uncommitted diff; the file it points at was never created or committed. So the
+`agents` lab package and its integration test are broken as they stand, and
+this is invisible to CI.
+
+**Status: NOT fixed here — owner is the parallel agent.** The import is the
+one blocking issue; the referenced module must either be committed or the
+import removed. 102/102 lab unit tests that do run are green.
 
 ---
 
@@ -270,6 +286,12 @@ docker run --rm fe-verify:build npm run lint                    # No ESLint warn
 docker run --rm fe-verify:build npm run test                    # 335/335 suites, 0 failed
 docker run --rm fe-verify:build npx prettier --check 'src/**/*.{ts,tsx,js,jsx,json,css,md}'
                                                                # 243 files (pre-existing)
+
+# parallel-agent lab twin, reproduced in the same image
+docker build -f packages/platform/decision/Dockerfile.verify -t lab-verify:local .
+                                                               # 102 tests pass;
+                                                               # integration.test.ts fails:
+                                                               # Cannot find module '../decisionHttp'
 ```
 
 ## 8. Open items (unchanged, not code defects)
@@ -288,8 +310,11 @@ docker run --rm fe-verify:build npx prettier --check 'src/**/*.{ts,tsx,js,jsx,js
   DEC-150 B), so `next build` was verified by nobody before this review. Either
   re-enable it or record that build verification lives only in §5.1.
 - **`salesos/packages/` (decision-platform-lab) has no CI coverage.** Its
-  `typecheck`/`test` scripts are never executed by any workflow, so changes
-  there are unverified by default. See §5.3 / §5.6.
+  `typecheck`/`test` scripts are never executed by any workflow. Reproduced
+  manually: 102 unit tests pass, but `agents/orchestrator/index.ts` imports a
+  non-existent `../decisionHttp` (never in git history), so
+  `decision/__tests__/integration.test.ts` cannot run. **Owner: parallel
+  agent — commit the module or drop the import.** See §5.6.
 - Frontend suites flake under CPU contention (`waitFor` timeouts in
   `create-task-form` / `create-review-form`); a worker also fails to exit
   cleanly. Worth a `--detectOpenHandles` pass. See §5.4.
