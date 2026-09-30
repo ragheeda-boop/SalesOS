@@ -54,16 +54,16 @@ _KEEP_EXPRESSION_INDEXES = frozenset({"ix_graph_nodes_search"})
 # Railway health check is 30s start period + 30s interval.  10s matches
 # the existing command_timeout=10 on the application engine.
 #
-# Command timeout (command_timeout=30): migration DDL (CREATE TABLE,
-# ALTER TABLE, CREATE INDEX) can be slow but must not block indefinitely.
-# 30s is generous for DDL while preventing indefinite hangs.
+# Command timeout (command_timeout=120): one DDL statement on a populated
+# table must be able to finish. 30s aborted legitimate index builds.
 #
-# Overall timeout (asyncio.wait_for, 60s): safety net for the entire
-# operation (connect + migrate + dispose).  If individual statements hit
-# the command_timeout first, this is the backstop for the full cycle.
+# Overall timeout (asyncio.wait_for, 900s): Railway pre-deploy runs
+# `alembic upgrade head` as one call. A stamp several dozen revisions
+# behind head cannot finish in 60s. 15 minutes covers that chain and
+# still aborts a hung connection.
 _MIGRATION_CONNECT_TIMEOUT = 10  # seconds — TCP connection establishment
-_MIGRATION_COMMAND_TIMEOUT = 30  # seconds — per-statement execution
-_MIGRATION_OVERALL_TIMEOUT = 60  # seconds — entire run_async_migrations call
+_MIGRATION_COMMAND_TIMEOUT = 120  # seconds — per-statement execution
+_MIGRATION_OVERALL_TIMEOUT = 900  # seconds — entire run_async_migrations call
 
 
 def include_object(_object, name, type_, _reflected, _compare_to):
@@ -130,8 +130,8 @@ async def run_async_migrations() -> None:
 
     Timeout layers:
       1. connect_timeout (10s) — asyncpg TCP connection establishment
-      2. command_timeout (30s) — per-statement execution
-      3. asyncio.wait_for (60s) — overall operation backstop
+      2. command_timeout (120s) — per-statement execution
+      3. asyncio.wait_for (900s) — overall operation backstop
     """
     log = logging.getLogger("salesos.alembic")
     try:
