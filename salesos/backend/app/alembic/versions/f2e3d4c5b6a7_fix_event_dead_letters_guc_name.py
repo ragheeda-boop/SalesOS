@@ -41,6 +41,32 @@ _TABLE = "event_dead_letters"
 
 
 def upgrade() -> None:
+    # g1 created this table before the staging stamp. The relation is absent,
+    # so the policy rewrite has to create the original table first.
+    exists = op.get_bind().execute(
+        sa.text("SELECT to_regclass(:qualified) IS NOT NULL"),
+        {"qualified": f"public.{_TABLE}"},
+    ).scalar()
+    if not exists:
+        op.create_table(
+            _TABLE,
+            sa.Column("id", sa.String(36), primary_key=True),
+            sa.Column("tenant_id", sa.String(36), nullable=False, index=True),
+            sa.Column("event_id", sa.String(36), nullable=False, index=True),
+            sa.Column("event_type", sa.String(128), nullable=False, index=True),
+            sa.Column("subscriber_name", sa.String(256), nullable=False),
+            sa.Column("error", sa.Text(), nullable=False),
+            sa.Column("attempts", sa.Integer(), nullable=False, server_default="0"),
+            sa.Column("event_data", sa.JSON(), nullable=True),
+            sa.Column("failed_at", sa.DateTime(timezone=True), nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+            sa.Column("replayed_at", sa.DateTime(timezone=True), nullable=True),
+        )
+        op.create_index(
+            "ix_event_dl_tenant_status",
+            _TABLE,
+            ["tenant_id", "event_type"],
+        )
     op.execute(sa.text(f'DROP POLICY IF EXISTS "{_OLD_POLICY}" ON "{_TABLE}"'))
     sql = generate_policy_sql(_TABLE)
     for statement in sql.strip().split(";\n"):
