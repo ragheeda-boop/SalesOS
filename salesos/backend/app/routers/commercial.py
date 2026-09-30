@@ -1199,24 +1199,6 @@ async def list_reviews(
     }
 
 
-@router.get("/reviews/{review_id}", tags=["Reviews"])
-async def get_review(
-    review_id: str,
-    tenant_id: str = Depends(get_current_tenant_id),
-    db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep("review", PermissionAction.READ)),
-):
-    svc = _get_review(db)
-    r = await svc.get(review_id)
-    if not r:
-        raise HTTPException(status_code=404, detail="Review not found")
-    return {
-        "id": r.id, "status": r.status.value, "review_type": r.review_type.value,
-        "target_id": r.target_id, "target_type": r.target_type,
-        "assigned_to": r.assigned_to, "decision_count": r.decision_count,
-    }
-
-
 @router.post("/reviews/{review_id}/assign", tags=["Reviews"])
 async def assign_review(
     review_id: str,
@@ -1272,6 +1254,25 @@ async def review_kpis(
 ):
     svc = _get_review(db)
     return await svc.kpis(tenant_id)
+
+
+# Must stay after the static /reviews/* GET routes, or it shadows them.
+@router.get("/reviews/{review_id}", tags=["Reviews"])
+async def get_review(
+    review_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("review", PermissionAction.READ)),
+):
+    svc = _get_review(db)
+    r = await svc.get(review_id)
+    if not r:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return {
+        "id": r.id, "status": r.status.value, "review_type": r.review_type.value,
+        "target_id": r.target_id, "target_type": r.target_type,
+        "assigned_to": r.assigned_to, "decision_count": r.decision_count,
+    }
 
 
 # ─────────────────────────────────────────────
