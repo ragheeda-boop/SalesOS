@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, require_role_dep, verify_token
+from app.dependencies import get_current_tenant_id, require_platform_owner_dep, verify_token
 from app.modules.marketplace_listings.catalog_install import (
     DEFAULT_CATALOG_INSTALL_STORE,
     MemCatalogInstallStore,
@@ -48,8 +48,9 @@ _AUTH = [Depends(verify_token)]
 # need more than mere authentication. install_listing/list_catalog_installs
 # are untouched -- they are already correctly tenant-scoped via
 # get_current_tenant_id, a tenant recording its own install, not a catalog
-# mutation.
-_ADMIN_AUTH = [Depends(require_role_dep("admin"))]
+# mutation. Every self-registered tenant creator holds tenant "admin", so
+# catalog mutation is gated to designated platform owners.
+_ADMIN_AUTH = [Depends(require_platform_owner_dep())]
 
 _STORE = DEFAULT_MARKETPLACE_LISTING_STORE
 _INSTALLS = DEFAULT_CATALOG_INSTALL_STORE

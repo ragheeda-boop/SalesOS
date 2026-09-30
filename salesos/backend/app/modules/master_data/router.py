@@ -8,7 +8,12 @@ Legacy mappings (md_legacy_id_mappings) — cross-tenant lookup.
 from fastapi import APIRouter, Depends, Path, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.dependencies import (
+    get_current_tenant_id,
+    get_db_session,
+    require_permission_dep,
+    require_platform_owner_dep,
+)
 from sdk.permissions import PermissionAction
 
 from .schemas import (
@@ -50,7 +55,10 @@ def get_service(
     status_code=201,
     summary="Create a global company",
     description="Create a new global company entity with canonical name, CR number, VAT number, and other identifiers.",
-    dependencies=[Depends(require_permission_dep("master-data", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("master-data", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def create_global_company(
     body: GlobalCompanyCreate,
@@ -111,7 +119,10 @@ async def get_global_company(
     response_model=GlobalCompanyResponse,
     summary="Update a global company",
     description="Partially update a global company entity. Only provided fields are updated.",
-    dependencies=[Depends(require_permission_dep("master-data", PermissionAction.UPDATE))],
+    dependencies=[
+        Depends(require_permission_dep("master-data", PermissionAction.UPDATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def update_global_company(
     company_id: str = Path(...),
@@ -138,7 +149,10 @@ async def update_global_company(
     status_code=201,
     summary="Create a global person",
     description="Create a new global person entity with name, email, phone, and optional company association.",
-    dependencies=[Depends(require_permission_dep("master-data", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("master-data", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def create_global_person(
     body: GlobalPersonCreate,
@@ -199,7 +213,10 @@ async def get_global_person(
     response_model=GlobalPersonResponse,
     summary="Update a global person",
     description="Partially update a global person entity. Only provided fields are updated.",
-    dependencies=[Depends(require_permission_dep("master-data", PermissionAction.UPDATE))],
+    dependencies=[
+        Depends(require_permission_dep("master-data", PermissionAction.UPDATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def update_global_person(
     person_id: str = Path(...),
@@ -226,7 +243,10 @@ async def update_global_person(
     status_code=201,
     summary="Register a legacy ID mapping",
     description="Register a mapping from a legacy ID (e.g. MA-001234) to a global entity. Fails if mapping already exists.",
-    dependencies=[Depends(require_permission_dep("master-data", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("master-data", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def register_legacy_id(
     body: LegacyIDMappingCreate,

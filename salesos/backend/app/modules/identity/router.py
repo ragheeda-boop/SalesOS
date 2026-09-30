@@ -13,6 +13,7 @@ from app.dependencies import (
     get_current_user_id,
     get_db_session,
     require_permission_dep,
+    require_platform_owner_dep,
 )
 from sdk.permissions import PermissionAction
 
@@ -184,6 +185,7 @@ async def create_tenant(
     service: IdentityService = Depends(get_service),
     db: AsyncSession = Depends(get_db_session),
     _: None = Depends(require_permission_dep("tenant", PermissionAction.ADMIN)),
+    _owner: bool = Depends(require_platform_owner_dep()),
 ):
     tenant = await service.create_tenant(
         name=body.name,
@@ -345,6 +347,9 @@ async def register(
             full_name_ar=body.full_name_ar,
             tenant_id=tenant_id,
             defer_side_effects=True,
+            # Creator of a brand-new tenant administers that tenant only;
+            # Owner Platform access still requires User.is_platform_owner.
+            role="admin",
         )
         _mark("create_user")
     except TimeoutError as exc:
@@ -452,8 +457,9 @@ async def owner_login(
 ):
     """Mint Owner Platform JWT (``salesos-owner-platform``). DEC-093 follow-up.
 
-    Reuses password authenticate; gates on active ``admin`` role (same bar as
-    ``require_owner_role_dep("admin")``). Does **not** mint tenant ``salesos-api``
+    Reuses password authenticate; gates on active ``admin`` role **and** the
+    explicit ``is_platform_owner`` marker (same bar as
+    ``require_owner_role_dep``). Does **not** mint tenant ``salesos-api``
     tokens and does not weaken tenant ``/login``.
     """
     from sdk.audit import AuditTrail
@@ -467,6 +473,11 @@ async def owner_login(
         raise HTTPException(
             status_code=403,
             detail="Owner Platform requires admin role",
+        )
+    if not getattr(user, "is_platform_owner", False):
+        raise HTTPException(
+            status_code=403,
+            detail="Owner Platform requires a designated platform owner",
         )
 
     uid = str(user.id)

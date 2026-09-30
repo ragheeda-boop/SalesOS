@@ -19,7 +19,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.dependencies import get_current_user_role
+from app.dependencies import get_current_user_is_platform_owner, get_current_user_role
 from app.modules.cache.router import router as cache_router
 from sdk.cache import CacheService
 
@@ -61,10 +61,11 @@ class _TestCacheService(CacheService):
         return bool(await self._redis.ping())
 
 
-def _make_app(role: str = "admin") -> FastAPI:
+def _make_app(role: str = "admin", is_owner: bool = True) -> FastAPI:
     app = FastAPI()
     app.include_router(cache_router)
     app.dependency_overrides[get_current_user_role] = lambda: role
+    app.dependency_overrides[get_current_user_is_platform_owner] = lambda: is_owner
     app.state.cache = _TestCacheService(WorkingRedis())
     return app
 
@@ -125,3 +126,11 @@ def test_non_admin_role_is_rejected_on_every_endpoint():
 def test_manager_role_is_also_rejected_admin_only():
     with TestClient(_make_app(role="manager")) as client:
         assert client.get("/api/v1/cache/health").status_code == 403
+
+
+def test_tenant_admin_without_platform_owner_marker_is_rejected():
+    with TestClient(_make_app(role="admin", is_owner=False)) as client:
+        assert client.get("/api/v1/cache/health").status_code == 403
+        assert (
+            client.post("/api/v1/cache/flush", json={"pattern": "*"}).status_code == 403
+        )

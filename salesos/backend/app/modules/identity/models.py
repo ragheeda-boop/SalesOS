@@ -70,6 +70,11 @@ class User(BaseModel):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name_ar: Mapped[str | None] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(50), default="user")
+    # Owner Platform access requires this marker; tenant role "admin" alone is
+    # not enough. No API sets it — designation is an explicit ops action.
+    is_platform_owner: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
     department: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None

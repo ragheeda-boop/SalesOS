@@ -1,16 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from app.dependencies import require_role_dep
+from app.dependencies import require_platform_owner_dep
 
 # DEC-159: raw key-based get/set/delete plus a wildcard flush() is a wider
 # blast radius than most per-tenant endpoints (any caller-supplied key,
-# cache-wide flush by pattern) — gated at "admin" role, not just any
-# authenticated user. require_role_dep("admin") already depends on
-# verify_token transitively (via get_current_user_role), so no separate
-# verify_token dependency is needed here.
+# cache-wide flush by pattern). The cache is shared by every tenant, and
+# every self-registered tenant creator holds the "admin" role, so this is
+# gated to designated platform owners. The dependency reaches verify_token
+# transitively, so no separate verify_token dependency is needed here.
 router = APIRouter(
-    prefix="/api/v1/cache", tags=["Cache"], dependencies=[Depends(require_role_dep("admin"))]
+    prefix="/api/v1/cache", tags=["Cache"], dependencies=[Depends(require_platform_owner_dep())]
 )
 
 

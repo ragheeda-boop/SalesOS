@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
 from app.common.metrics import metrics
-from app.dependencies import require_role_dep, verify_token
+from app.dependencies import require_platform_owner_dep, verify_token
 from app.metrics.collector import collector
 from app.metrics.sla_monitor import sla_monitor
 from intelligence.providers.observability import ai_observability
@@ -137,7 +137,7 @@ async def app_metrics():
 
 @router.get("/api/v1/admin/sla-report")
 async def sla_report(
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """SLA compliance report per endpoint category (24h window)."""
     return sla_monitor.get_report()

@@ -607,6 +607,7 @@ class IdentityService:
         tenant_id: str | None = None,
         *,
         defer_side_effects: bool = False,
+        role: str = "user",
     ) -> User:
         # Bound DB awaits — Railway register hung ~60s on unbounded flush/select.
         try:
@@ -628,6 +629,7 @@ class IdentityService:
             full_name=full_name,
             full_name_ar=full_name_ar,
             tenant_id=tenant_id,
+            role=role,
         )
         try:
             await asyncio.wait_for(self._user_repo.save(user), timeout=8.0)

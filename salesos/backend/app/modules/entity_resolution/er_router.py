@@ -25,7 +25,12 @@ from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.dependencies import (
+    get_current_tenant_id,
+    get_db_session,
+    require_permission_dep,
+    require_platform_owner_dep,
+)
 from sdk.permissions import PermissionAction
 
 from .er_schemas import (
@@ -56,7 +61,10 @@ router = APIRouter(tags=["Entity Resolution"])
     status_code=201,
     summary="Run matching pipeline",
     description="Run the entity resolution matching pipeline. Finds candidate pairs via deterministic blocking, evaluates them using evidence-first policy, and persists match/conflict results.",
-    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def run_matching(
     body: RunMatchingRequest,
@@ -185,7 +193,10 @@ async def list_conflicts(
     "/er/conflicts/{conflict_id}/resolve",
     summary="Resolve a conflict",
     description="Resolve a field-level conflict by selecting use_a, use_b, custom value, or dismiss.",
-    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.UPDATE))],
+    dependencies=[
+        Depends(require_permission_dep("entity-resolution", PermissionAction.UPDATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def resolve_conflict(
     conflict_id: str = Path(...),
@@ -285,7 +296,10 @@ async def get_quality_score(
     status_code=201,
     summary="Compute quality score",
     description="Compute and persist a fresh quality score for a global entity.",
-    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def compute_quality_score(
     entity_id: str = Path(...),
@@ -306,7 +320,10 @@ async def compute_quality_score(
     status_code=201,
     summary="Merge two entities",
     description="Merge a source entity into a target entity. Transfers source_row provenance, updates source rows to point to target, and records merge history.",
-    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def merge_entities(
     body: MergeRequest = ...,
@@ -408,7 +425,10 @@ async def merge_entities(
     status_code=201,
     summary="Unmerge entities",
     description="Unmerge (rollback) a previous merge operation, restoring the source entity.",
-    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("entity-resolution", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def unmerge_entities(
     body: UnmergeRequest = ...,

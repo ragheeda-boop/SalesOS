@@ -11,7 +11,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.dependencies import (
+    get_current_tenant_id,
+    get_db_session,
+    require_permission_dep,
+    require_platform_owner_dep,
+)
 from sdk.permissions import PermissionAction
 
 from .ingestion import IngestionPipeline
@@ -90,7 +95,10 @@ def get_pipeline(
     status_code=201,
     summary="Ingest rows into master data pipeline",
     description="Ingest a file's rows into the master data pipeline. Flow: hash check, register file, insert rows, detect duplicates, create global entities, create legacy mappings. Returns duplicate status if file hash already exists.",
-    dependencies=[Depends(require_permission_dep("master-data", PermissionAction.CREATE))],
+    dependencies=[
+        Depends(require_permission_dep("master-data", PermissionAction.CREATE)),
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def ingest_file(
     body: IngestFileRequest,

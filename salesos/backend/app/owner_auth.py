@@ -44,11 +44,20 @@ async def get_current_owner_user_role(
     token_payload: dict = Depends(verify_owner_token),
     db: AsyncSession = Depends(get_db_session),
 ) -> str:
-    """Resolve role for an Owner Platform caller (owner audience only)."""
+    """Resolve role for an Owner Platform caller (owner audience only).
+
+    Tenant role alone never grants Owner Platform access: the caller must be a
+    designated platform owner (``User.is_platform_owner``).
+    """
     from app.modules.identity.service import IdentityService
 
     service = IdentityService(db=db)
     user = await service.get_user(token_payload.get("sub", ""))
+    if not getattr(user, "is_platform_owner", False):
+        raise HTTPException(
+            status_code=403,
+            detail="Owner Platform requires a designated platform owner",
+        )
     return user.role
 
 

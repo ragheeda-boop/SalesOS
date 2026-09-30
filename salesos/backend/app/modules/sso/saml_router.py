@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
 from app.common.rate_limit import check_rate_limit_by_key
-from app.dependencies import get_db_session, require_role_dep
+from app.dependencies import get_current_tenant_id, get_db_session, require_role_dep
 
 from .saml_service import SAMLService, decode_saml_response, register_saml_config
 
@@ -124,7 +124,10 @@ async def saml_configure(
     idp_sso_url: str = Form(...),
     idp_entity_id: str = Form(...),
     idp_cert: str = Form(""),
+    caller_tenant_id: str = Depends(get_current_tenant_id),
 ):
+    if tenant_id != caller_tenant_id:
+        raise HTTPException(status_code=403, detail="Cannot configure SAML for another tenant")
     register_saml_config(
         tenant_id,
         {

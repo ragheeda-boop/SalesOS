@@ -10,7 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 
 from app.common.schemas import PaginatedResponse
-from app.dependencies import get_current_tenant_id, get_db_session, require_role_dep
+from app.dependencies import (
+    get_current_tenant_id,
+    get_db_session,
+    require_platform_owner_dep,
+    require_role_dep,
+)
 
 router = APIRouter(prefix="/api/v1/admin")
 
@@ -33,7 +38,7 @@ _dlq = table(
 async def system_metrics(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """Prometheus-style system metrics."""
     lines = [
@@ -127,7 +132,7 @@ async def system_metrics(
 async def full_health(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """Detailed health status of all system components."""
     import redis.asyncio as aioredis

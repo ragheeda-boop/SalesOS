@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from app.dependencies import require_role_dep
+from app.dependencies import require_platform_owner_dep
 
 # _get_registry()/_get_permission_gate() cache a SINGLE, process-wide
 # PluginRegistry/PermissionGate on app.state with no tenant_id anywhere in
@@ -17,10 +17,12 @@ from app.dependencies import require_role_dep
 # gap on /api/v1/cache/*. Whether plugin management should instead be
 # tenant-scoped (which would need a schema change -- see the accompanying
 # report) is a separate, undecided product question this does not resolve.
+# Tenant "admin" is granted to every self-registered tenant creator, so the
+# shared registry is gated to designated platform owners.
 router = APIRouter(
     prefix="/api/v1/marketplace",
     tags=["Marketplace"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_platform_owner_dep())],
 )
 
 

@@ -25,7 +25,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.dependencies import get_current_user_role
+from app.dependencies import get_current_user_is_platform_owner, get_current_user_role
 from domains.marketplace.router import router as marketplace_router
 
 _VALID_MANIFEST = {
@@ -37,10 +37,11 @@ _VALID_MANIFEST = {
 }
 
 
-def _make_app(role: str = "admin") -> FastAPI:
+def _make_app(role: str = "admin", is_owner: bool = True) -> FastAPI:
     app = FastAPI()
     app.include_router(marketplace_router)
     app.dependency_overrides[get_current_user_role] = lambda: role
+    app.dependency_overrides[get_current_user_is_platform_owner] = lambda: is_owner
     return app
 
 
@@ -65,6 +66,15 @@ def test_non_admin_role_is_rejected_on_every_endpoint():
 def test_manager_role_is_also_rejected_admin_only():
     with TestClient(_make_app(role="manager")) as client:
         assert client.get("/api/v1/marketplace").status_code == 403
+
+
+def test_tenant_admin_without_platform_owner_marker_is_rejected():
+    with TestClient(_make_app(role="admin", is_owner=False)) as client:
+        assert client.get("/api/v1/marketplace").status_code == 403
+        assert (
+            client.post("/api/v1/marketplace/install", json={"manifest": _VALID_MANIFEST}).status_code
+            == 403
+        )
 
 
 def test_admin_role_can_install_and_list_a_plugin():

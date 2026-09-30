@@ -23,16 +23,21 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import app.modules.marketplace_listings.router as listings_router_module
-from app.dependencies import get_current_user_role, verify_token
+from app.dependencies import (
+    get_current_user_is_platform_owner,
+    get_current_user_role,
+    verify_token,
+)
 from app.modules.marketplace_listings.router import router as listings_router
 from app.modules.marketplace_listings.store import MemMarketplaceListingStore
 
 
-def _make_app(role: str = "admin") -> FastAPI:
+def _make_app(role: str = "admin", is_owner: bool = True) -> FastAPI:
     app = FastAPI()
     app.include_router(listings_router)
     app.dependency_overrides[verify_token] = lambda: {"sub": "test-user"}
     app.dependency_overrides[get_current_user_role] = lambda: role
+    app.dependency_overrides[get_current_user_is_platform_owner] = lambda: is_owner
     # Fresh, isolated store per app instance -- the module default is a
     # process-wide singleton that would otherwise leak state between tests.
     listings_router_module._STORE = MemMarketplaceListingStore()
@@ -62,6 +67,13 @@ def test_non_admin_role_is_rejected_on_every_mutating_endpoint():
 def test_manager_role_is_also_rejected_admin_only():
     with TestClient(_make_app(role="manager")) as client:
         assert client.post("/marketplace/listings", json=_VALID_LISTING).status_code == 403
+
+
+def test_tenant_admin_without_platform_owner_marker_is_rejected():
+    with TestClient(_make_app(role="admin", is_owner=False)) as client:
+        assert client.post("/marketplace/listings", json=_VALID_LISTING).status_code == 403
+        assert client.post("/marketplace/listings/seed-first-party").status_code == 403
+        assert client.get("/marketplace/listings").status_code == 200
 
 
 def test_non_admin_can_still_browse_the_shared_catalog():

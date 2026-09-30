@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from app.dependencies import require_role_dep, verify_token
+from app.dependencies import require_platform_owner_dep, verify_token
 from app.modules.demo_mode import DemoModeService, get_demo_mode_service
 
 router = APIRouter(prefix="/api/v1/demo", tags=["Demo"])
@@ -79,7 +79,7 @@ async def list_scenarios(
 async def reset_demo(
     demo_service: DemoModeService = Depends(get_demo_mode_service),
     _auth=Depends(verify_token),
-    _role=Depends(require_role_dep("admin")),
+    _role=Depends(require_platform_owner_dep()),
 ):
     """Reset all demo data and re-seed. Only available when DEMO_MODE is enabled."""
     if not demo_service.enabled:

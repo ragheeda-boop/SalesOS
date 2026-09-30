@@ -139,6 +139,35 @@ def require_permission_dep(resource: str, action: PermissionAction) -> Callable:
     return _require_permission
 
 
+async def get_current_user_is_platform_owner(
+    token_payload: dict = Depends(verify_token),
+    db: AsyncSession = Depends(get_db_session),
+) -> bool:
+    from app.modules.identity.service import IdentityService
+
+    service = IdentityService(db=db)
+    user = await service.get_user(token_payload.get("sub", ""))
+    return bool(getattr(user, "is_platform_owner", False))
+
+
+def require_platform_owner_dep() -> Callable:
+    """Gate for platform-wide / cross-tenant operations.
+
+    The tenant ``admin`` role is granted to every self-registered tenant
+    creator, so it must not unlock platform-wide state on its own.
+    """
+
+    async def _require_platform_owner(
+        user_role: str = Depends(get_current_user_role),
+        is_platform_owner: bool = Depends(get_current_user_is_platform_owner),
+    ) -> bool:
+        if user_role != "admin" or not is_platform_owner:
+            raise HTTPException(status_code=403, detail="Requires a designated platform owner")
+        return True
+
+    return _require_platform_owner
+
+
 # ── Search Repository Dependency ────────────────────────────────
 
 

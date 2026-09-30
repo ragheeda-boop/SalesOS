@@ -11,7 +11,7 @@ from app.dependencies import (
     get_current_tenant_id,
     get_current_user_id,
     get_db_session,
-    require_role_dep,
+    require_platform_owner_dep,
 )
 from domains.notifications.models import (
     InMemoryNotificationRepository,
@@ -154,7 +154,7 @@ async def unread_count(
 
 @router.get("/notifications/ws/metrics")
 async def websocket_metrics(
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """Return WebSocket connection metrics for monitoring (admin only)."""
     return await _ws_manager.get_metrics()

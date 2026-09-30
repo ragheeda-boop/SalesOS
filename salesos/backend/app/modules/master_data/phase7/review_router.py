@@ -18,7 +18,7 @@ No business logic changed: every handler below calls the exact same
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 
 from app.config import settings
-from app.dependencies import require_permission_dep
+from app.dependencies import require_permission_dep, require_platform_owner_dep
 from sdk.permissions import PermissionAction
 
 from .review_queue import ReviewQueueService
@@ -211,7 +211,10 @@ async def export_triage(service: ReviewQueueService = Depends(get_service)):
     response_model=ReviewQueueDispositionResponse,
     summary="Record a review disposition",
     description="Capture a review disposition (record-only; no merge, CR, or classification side effects). Canonical global_company_id is resolved from the subject and only asserted when it maps to a real Global Company; structured evidence lands in evidence_ref.",
-    dependencies=[_REVIEW_UPDATE_PERMISSION],
+    dependencies=[
+        _REVIEW_UPDATE_PERMISSION,
+        Depends(require_platform_owner_dep()),
+    ],
 )
 async def record_disposition(
     queue_type: str = Path(...),

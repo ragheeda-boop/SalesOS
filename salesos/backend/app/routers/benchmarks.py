@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.common.exceptions import safe_error_detail
-from app.dependencies import require_role_dep
+from app.dependencies import require_platform_owner_dep
 from benchmarks.runner import RESULTS_DIR, BenchmarkRunner
 
 router = APIRouter(prefix="/api/v1/admin/benchmarks", tags=["Benchmarks"])
@@ -44,7 +44,7 @@ class BenchmarkComparisonResponse(BaseModel):
 async def list_benchmark_runs(
     limit: int = Query(20, ge=1, le=200, description="Max results"),
     cursor: str | None = Query(None, description="Pagination cursor"),
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """List benchmark runs with cursor-based pagination."""
     runs = _load_runs()
@@ -63,7 +63,7 @@ async def list_benchmark_runs(
 async def trigger_benchmark_run(
     request: Request,
     domain: str = Query("all", description="Domain to benchmark (or 'all')"),
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """Trigger a new benchmark run."""
     from benchmarks import (
@@ -111,7 +111,7 @@ async def trigger_benchmark_run(
 
 @router.get("/latest", response_model=BenchmarkDetailResponse)
 async def get_latest_benchmark(
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """Get the latest benchmark run results."""
     runs = _load_runs()
@@ -125,7 +125,7 @@ async def get_latest_benchmark(
 async def compare_benchmark(
     request: Request,
     baseline: str = Query(..., description="Baseline run ID"),
-    _=Depends(require_role_dep("admin")),
+    _=Depends(require_platform_owner_dep()),
 ):
     """Compare current results against a baseline run."""
     from benchmarks import (
