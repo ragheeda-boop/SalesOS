@@ -230,6 +230,9 @@ class RateLimitMiddleware:
         key = self._rate_limit_key(client_ip, path, tenant, user)
 
         # --- Redis path ---
+        # Only the Redis calls are guarded: the downstream app must run exactly
+        # once, and its exceptions must propagate (never replay a drained body).
+        count: int | None = None
         if self._redis:
             try:
                 import asyncio
@@ -239,28 +242,18 @@ class RateLimitMiddleware:
                 count = await asyncio.wait_for(self._redis.incr(key), timeout=2.0)
                 if count == 1:
                     await asyncio.wait_for(self._redis.expire(key, self.window), timeout=2.0)
-                if count > tier_rate:
-                    retry_after = self.window
-                    response = JSONResponse(
-                        status_code=429,
-                        content={"detail": "Too many requests", "retry_after": retry_after},
-                        headers={"Retry-After": str(retry_after)},
-                    )
-                    await response(scope, receive, send)
-                    return
-                await self.app(scope, receive, send)
-                return
             except Exception:
-                pass  # fall through to in-memory
+                count = None  # fall through to in-memory
 
         # --- In-memory sliding window path ---
-        self._cleanup_local(now)
-        window_start = now - self.window
-        timestamps = self._local.get(key, [])
-        timestamps = [t for t in timestamps if t > window_start]
-        timestamps.append(now)
-        self._local[key] = timestamps
-        count = len(timestamps)
+        if count is None:
+            self._cleanup_local(now)
+            window_start = now - self.window
+            timestamps = self._local.get(key, [])
+            timestamps = [t for t in timestamps if t > window_start]
+            timestamps.append(now)
+            self._local[key] = timestamps
+            count = len(timestamps)
 
         if count > tier_rate:
             retry_after = self.window
