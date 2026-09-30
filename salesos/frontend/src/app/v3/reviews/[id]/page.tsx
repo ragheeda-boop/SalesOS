@@ -42,7 +42,7 @@ export default function V3ReviewDetailPage() {
   const decide = useMutation({
     mutationFn: async (decision: string) => {
       await apiClient.post(
-        `/api/v1/reviews/${reviewId}/decide?decision=${decision}&decided_by=manager&comments=`,
+        `/api/v1/reviews/${reviewId}/decide?decision=${decision}&comments=`,
         {},
         { headers: { "X-Tenant-Id": getTenantId() } }
       );
