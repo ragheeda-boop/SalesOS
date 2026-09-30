@@ -113,7 +113,6 @@ async def registered_user(client: AsyncClient, test_tenant: str, db_session: Asy
             "email": email,
             "password": password,
             "full_name": "E2E Test User",
-            "tenant_id": test_tenant,
         },
     )
     assert resp.status_code in (200, 201), f"Register failed: {resp.text}"
@@ -132,7 +131,7 @@ async def registered_user(client: AsyncClient, test_tenant: str, db_session: Asy
     return {
         "access_token": reg["access_token"],
         "refresh_token": reg["refresh_token"],
-        "tenant_id": reg.get("tenant_id", test_tenant),
+        "tenant_id": reg["tenant_id"],
         "user_email": email,
         "password": password,
     }

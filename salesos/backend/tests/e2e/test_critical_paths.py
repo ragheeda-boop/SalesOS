@@ -54,7 +54,6 @@ class TestRegistrationLoginDashboard:
                     "email": email,
                     "password": "SecurePass123!",
                     "full_name": "New User",
-                    "tenant_id": test_tenant,
                 },
             ),
             timeout=_TEST_TIMEOUT,
@@ -64,7 +63,29 @@ class TestRegistrationLoginDashboard:
         assert "access_token" in body
         assert "refresh_token" in body
         assert body["expires_in"] > 0
-        assert body["tenant_id"] == test_tenant
+        assert body["tenant_id"] != test_tenant
+        uuid.UUID(body["tenant_id"])
+
+    async def test_register_rejects_existing_tenant_id(
+        self,
+        client: AsyncClient,
+        test_tenant: str,
+    ):
+        """Self-registration cannot join an existing tenant by supplying its UUID."""
+        resp = await asyncio.wait_for(
+            client.post(
+                "/api/v1/identity/register",
+                json={
+                    "email": f"join-{uuid.uuid4().hex[:8]}@test.com",
+                    "password": "SecurePass123!",
+                    "full_name": "Intruder",
+                    "tenant_id": test_tenant,
+                },
+            ),
+            timeout=_TEST_TIMEOUT,
+        )
+        assert resp.status_code == 400, resp.text
+        assert "access_token" not in resp.text
 
     async def test_login_with_registered_credentials(
         self,
@@ -147,7 +168,6 @@ class TestRegistrationLoginDashboard:
                     "email": email,
                     "password": password,
                     "full_name": "Journey User",
-                    "tenant_id": test_tenant,
                 },
             ),
             timeout=_TEST_TIMEOUT,

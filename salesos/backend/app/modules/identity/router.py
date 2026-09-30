@@ -263,10 +263,17 @@ async def register(
             await abort_db_session(db)
             raise
 
-    tenant_id = str(body.tenant_id) if body.tenant_id else str(uuid4())
+    if body.tenant_id:
+        # Unauthenticated callers must not join an existing tenant by UUID;
+        # membership in an existing tenant is granted only via admin /invite.
+        raise HTTPException(
+            status_code=400,
+            detail="register.tenant_id_not_allowed — use an admin invite to join an existing tenant",
+        )
+    tenant_id = str(uuid4())
     # RLS on users/device_sessions (FORCE) requires app.tenant_id GUC before
     # INSERT/SELECT. Self-service register has no JWT yet — pin GUC to the
-    # tenant being created/joined so WITH CHECK and email uniqueness work.
+    # tenant being created so WITH CHECK and email uniqueness work.
     set_current_tenant_id(tenant_id)
     try:
         await _bounded_exec(
