@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY salesos/backend/pyproject.toml .
 COPY salesos/backend/alembic.ini .
 COPY salesos/backend/app/ app/
+# Root build context has no .dockerignore: drop any local git-ignored RSA signing keys.
+RUN rm -rf app/modules/identity/_keys
 COPY salesos/backend/domains/ domains/
 COPY salesos/backend/intelligence/ intelligence/
 COPY salesos/backend/runtime/ runtime/
@@ -56,6 +58,9 @@ COPY --from=builder /app/modules ./modules
 COPY --from=builder /app/design_tokens ./design_tokens
 COPY --from=builder /app/alembic.ini .
 
+# Signing keys live outside the source tree (never baked into the image); mount a
+# volume here to persist them across container recreation.
+ENV SALESOS_JWKS_KEY_DIR="/data/jwks"
 RUN mkdir -p /data/jwks && chown -R salesos:salesos /app /data/jwks
 
 USER salesos
