@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { PanelLeftClose, PanelLeft } from "lucide-react";
 import { cn } from "@salesos/ui";
-import { V3_DOMAIN_NAV, isV3NavActive } from "./nav";
+import { getCurrentUser } from "@/lib/api/identity";
+import { isV3NavActive, v3SidebarItems } from "./nav";
 
 type V3ShellProps = {
   collapsed: boolean;
@@ -13,6 +15,12 @@ type V3ShellProps = {
 
 export function V3Shell({ collapsed, onToggleCollapsed }: V3ShellProps) {
   const pathname = usePathname();
+  const { data: me } = useQuery({
+    queryKey: ["identity", "me"],
+    queryFn: getCurrentUser,
+    retry: false,
+  });
+  const navItems = v3SidebarItems(Boolean(me?.is_platform_owner));
 
   return (
     <aside
@@ -55,7 +63,7 @@ export function V3Shell({ collapsed, onToggleCollapsed }: V3ShellProps) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 p-2" aria-label="Domains">
-        {V3_DOMAIN_NAV.map((item) => {
+        {navItems.map((item) => {
           const active = isV3NavActive(pathname, item.href);
           const Icon = item.icon;
           return (

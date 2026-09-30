@@ -510,6 +510,7 @@ class CsrfEnforcementMiddleware:
     _PUBLIC_PATHS = frozenset(
         {
             "/api/v1/identity/register",
+            "/api/v1/identity/org-registration-requests",
             "/api/v1/identity/login",
             "/api/v1/identity/owner/login",
             "/api/v1/identity/local-login",

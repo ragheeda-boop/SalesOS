@@ -92,10 +92,9 @@ export async function createContract(
 
 export async function signContract(
   contractId: string,
-  data: { signed_by: string; signed_by_name: string },
   tenantId?: string
 ): Promise<Contract> {
-  const response = await api.post(`/api/v1/contracts/${contractId}/sign`, data, {
+  const response = await api.post(`/api/v1/contracts/${contractId}/sign`, undefined, {
     headers: tenantId ? { "X-Tenant-Id": tenantId } : undefined,
   });
   return response.data;

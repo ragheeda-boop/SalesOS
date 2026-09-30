@@ -104,6 +104,12 @@ export const V3_DOMAIN_NAV: V3NavItem[] = [
  */
 export const V3_CMD_EXTRA: V3NavItem[] = [
   {
+    href: "/v3/admin/org-registrations",
+    label: "Organization approvals",
+    icon: ShieldCheck,
+    keywords: ["organization", "approval", "platform owner", "منشأة"],
+  },
+  {
     href: "/v3/admin/ai-prompts",
     label: "Prompt Library",
     icon: FileText,
@@ -152,6 +158,23 @@ export const V3_CMD_EXTRA: V3NavItem[] = [
     keywords: ["evidence", "sources", "provenance", "confidence", "insights"],
   },
 ];
+
+export const ORG_APPROVALS_HREF = "/v3/admin/org-registrations";
+
+/** Sidebar stays on the customer path. The owner link is added only for the platform owner. */
+export function v3SidebarItems(isPlatformOwner: boolean): V3NavItem[] {
+  if (!isPlatformOwner) return V3_DOMAIN_NAV;
+  const ownerItem = V3_CMD_EXTRA.find((item) => item.href === ORG_APPROVALS_HREF);
+  return ownerItem ? [...V3_DOMAIN_NAV, ownerItem] : V3_DOMAIN_NAV;
+}
+
+/** Command palette hides organization approvals from everyone except the platform owner. */
+export function v3CommandItems(isPlatformOwner: boolean): V3NavItem[] {
+  const extra = isPlatformOwner
+    ? V3_CMD_EXTRA
+    : V3_CMD_EXTRA.filter((item) => item.href !== ORG_APPROVALS_HREF);
+  return [...V3_DOMAIN_NAV, ...extra];
+}
 
 export function isV3NavActive(pathname: string, href: string): boolean {
   if (href === "/v3") return pathname === "/v3" || pathname === "/v3/";

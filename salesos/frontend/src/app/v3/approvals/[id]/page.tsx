@@ -50,7 +50,6 @@ export default function V3ApprovalDetailPage() {
         `/api/v1/approvals/${approvalId}/decide`,
         {
           decision: decisionValue,
-          decided_by: "current-user",
           authority_level: "MANAGER",
         },
         { headers: { "X-Tenant-Id": getTenantId() } }

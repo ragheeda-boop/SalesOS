@@ -4,6 +4,7 @@ export interface UserProfile {
   full_name: string;
   full_name_ar: string | null;
   role: string;
+  is_platform_owner?: boolean;
   is_active: boolean;
   is_verified: boolean;
   tenant_id: string;

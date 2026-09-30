@@ -106,6 +106,21 @@ async def registered_user(client: AsyncClient, test_tenant: str, db_session: Asy
     email = f"e2e-user-{uuid.uuid4().hex[:8]}@test.com"
     password = "TestPass123!"
 
+    from sqlalchemy import text
+
+    await db_session.execute(
+        text(
+            "INSERT INTO org_registration_approvals ("
+            "id, organization_name, manager_email, manager_full_name, status, "
+            "decided_at, created_at, updated_at"
+            ") VALUES ("
+            "CAST(:id AS uuid), 'E2E Org', :email, 'E2E Test User', 'approved', "
+            "NOW(), NOW(), NOW())"
+        ),
+        {"id": str(uuid.uuid4()), "email": email},
+    )
+    await db_session.commit()
+
     # Register
     resp = await client.post(
         "/api/v1/identity/register",

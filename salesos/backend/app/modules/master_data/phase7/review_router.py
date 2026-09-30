@@ -18,7 +18,11 @@ No business logic changed: every handler below calls the exact same
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 
 from app.config import settings
-from app.dependencies import require_permission_dep, require_platform_owner_dep
+from app.dependencies import (
+    get_current_user_id,
+    require_permission_dep,
+    require_platform_owner_dep,
+)
 from sdk.permissions import PermissionAction
 
 from .review_queue import ReviewQueueService
@@ -221,13 +225,16 @@ async def record_disposition(
     subject_key: str = Path(...),
     body: ReviewQueueDisposition = Body(...),
     service: ReviewQueueService = Depends(get_service),
+    user_id: str = Depends(get_current_user_id),
 ):
     """Capture a review disposition (record-only; no merge/CR/classification side effect)."""
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated reviewer required")
     result = await service.record_disposition(
         queue_type=queue_type,
         subject_key=subject_key,
         disposition=body.disposition,
-        reviewer=body.reviewer,
+        reviewer=user_id,
         notes=body.notes,
         evidence=body.evidence,
     )

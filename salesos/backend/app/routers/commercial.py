@@ -1092,6 +1092,7 @@ async def get_contract(
 async def sign_contract(
     contract_id: str,
     body: ContractSignBody | None = Body(None),
+    user_id: str = Depends(get_current_user_id),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE)),
@@ -1100,8 +1101,9 @@ async def sign_contract(
     existing = await svc.get(contract_id)
     if not existing or existing.tenant_id != tenant_id:
         raise HTTPException(status_code=404, detail="Contract not found")
-    signer = body.signed_by_name or body.signed_by if body else ""
-    c = await svc.sign(contract_id, signed_by_provider=signer or "", signed_by_customer=signer or "")
+    # The signer is the authenticated session actor.  Do not trust a client
+    # supplied name/ID for the audit event or signature timestamps.
+    c = await svc.sign(contract_id, signed_by_provider=user_id, signed_by_customer=user_id)
     c = await svc.activate(contract_id)
     return _contract_response(c)
 

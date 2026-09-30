@@ -27,6 +27,7 @@ from sqlalchemy import text
 
 from app.dependencies import (
     get_current_tenant_id,
+    get_current_user_id,
     get_db_session,
     require_permission_dep,
     require_platform_owner_dep,
@@ -69,10 +70,11 @@ router = APIRouter(tags=["Entity Resolution"])
 async def run_matching(
     body: RunMatchingRequest,
     db: AsyncSession = Depends(get_db_session),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     result = await run_matching_pipeline(
         session=db,
-        tenant_id=body.tenant_id,
+        tenant_id=tenant_id,
         source_file_id=body.source_file_id,
         max_candidates=body.max_candidates,
     )
@@ -202,10 +204,16 @@ async def resolve_conflict(
     conflict_id: str = Path(...),
     body: ResolveConflictRequest = ...,
     db: AsyncSession = Depends(get_db_session),
+    user_id: str = Depends(get_current_user_id),
 ):
     """Resolve a field-level conflict."""
     import uuid
     from datetime import UTC, datetime
+
+    from fastapi import HTTPException
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated actor required")
 
     now = datetime.now(UTC)
 
@@ -244,7 +252,7 @@ async def resolve_conflict(
             "resolved_value = :value, resolved_by = :by, resolved_at = :now "
             "WHERE id = :id"
         ),
-        {"id": conflict_id, "value": resolved_value, "by": body.resolved_by, "now": now},
+        {"id": conflict_id, "value": resolved_value, "by": user_id, "now": now},
     )
 
     return {"message": f"Conflict {conflict_id} resolved", "resolution": body.resolution}
@@ -328,14 +336,20 @@ async def compute_quality_score(
 async def merge_entities(
     body: MergeRequest = ...,
     db: AsyncSession = Depends(get_db_session),
+    user_id: str = Depends(get_current_user_id),
 ):
     """Merge a source entity into a target entity.
 
     Transfers source_row provenance, updates source rows to point to target,
-    and records merge history.
+    and records merge history. This route does not auto-merge a review queue.
     """
     import uuid
     from datetime import UTC, datetime
+
+    from fastapi import HTTPException
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated actor required")
 
     now = datetime.now(UTC)
 
@@ -406,7 +420,7 @@ async def merge_entities(
             "id": history_id,
             "target": body.target_entity_id,
             "sources": json.dumps([body.source_entity_id]),
-            "by": body.performed_by,
+            "by": user_id,
             "now": now,
             "details": json.dumps({"reason": "manual_merge"}),
         },
@@ -433,10 +447,16 @@ async def merge_entities(
 async def unmerge_entities(
     body: UnmergeRequest = ...,
     db: AsyncSession = Depends(get_db_session),
+    user_id: str = Depends(get_current_user_id),
 ):
     """Unmerge (rollback) a previous merge operation."""
     import uuid
     from datetime import UTC, datetime
+
+    from fastapi import HTTPException
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authenticated actor required")
 
     now = datetime.now(UTC)
 
@@ -494,7 +514,7 @@ async def unmerge_entities(
             "id": unmerge_id,
             "target": target_id,
             "sources": json.dumps([source_id]),
-            "by": body.performed_by,
+            "by": user_id,
             "now": now,
             "details": json.dumps({"rollback_of": body.merge_history_id}),
         },

@@ -114,15 +114,14 @@ export async function recordDisposition(params: {
   queueType: string;
   subjectKey: string;
   disposition: string;
-  reviewer: string;
   notes?: string;
 }) {
   const res = await apiClient.post(
     `/api/v1/master-data/review-queue/${params.queueType}/${encodeURIComponent(params.subjectKey)}/disposition`,
     {
       disposition: params.disposition,
-      reviewer: params.reviewer,
       notes: params.notes,
+      evidence: { reason: params.notes || "signed-in reviewer decision" },
     },
     auth()
   );

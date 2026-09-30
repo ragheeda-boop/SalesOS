@@ -32,6 +32,7 @@ SKIP_PATH_PREFIXES = (
     "/api/v1/auth",
     "/api/v1/owner",
     "/api/v1/identity/register",
+    "/api/v1/identity/org-registration-requests",
     "/api/v1/identity/login",
     "/api/v1/identity/owner/login",
     "/api/v1/identity/local-login",

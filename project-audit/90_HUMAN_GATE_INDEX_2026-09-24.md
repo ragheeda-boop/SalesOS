@@ -6,6 +6,8 @@ A single, current index of every human-owned gate standing between the audit sta
 
 Nothing in this report is a closure, a promotion, or an approval. Phase 7 remains BLOCKED; production remains NOT APPROVED. This report's own sign-off section does not lift either.
 
+**Status overlay 2026-09-30 (PO):** production stays **NOT APPROVED**. G8's task list was opened in report 182; that is not a production approval. The G8 row below is the 2026-09-24 inventory and is superseded for status by this line and by report 182.
+
 ---
 
 ## 1. Gate inventory (summary)

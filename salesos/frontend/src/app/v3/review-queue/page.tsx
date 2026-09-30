@@ -64,7 +64,6 @@ export default function V3ReviewQueuePage() {
   const { ready, hasToken } = useAccessToken();
   const [tab, setTab] = useState<TabKey>("p3");
   const queryClient = useQueryClient();
-  const [reviewer, setReviewer] = useState("");
   const [p3Batch, setP3Batch] = useState<"priority" | "remainder">("priority");
   const [p3Page, setP3Page] = useState(1);
   const [triagePage, setTriagePage] = useState(1);
@@ -114,7 +113,6 @@ export default function V3ReviewQueuePage() {
         queueType: "P3_PAIR",
         subjectKey: vars.subjectKey,
         disposition: vars.disposition,
-        reviewer: reviewer || "Ragheb (PO)",
         notes: "PHASE7A_PO_DECISION_2026-09-09 D3 human review",
       }),
     onSuccess: () => {
@@ -129,7 +127,7 @@ export default function V3ReviewQueuePage() {
         queueType: "SHORT_CR",
         subjectKey: vars.subjectKey,
         disposition: vars.disposition,
-        reviewer: reviewer || "Ragheb (PO)",
+        notes: "short-CR human review",
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["review-queue", "short-cr"] });
@@ -229,16 +227,9 @@ export default function V3ReviewQueuePage() {
                   في هذه الدفعة:{" "}
                   <span className="font-semibold text-foreground">{p3.data?.total ?? "—"}</span>
                 </span>
-                <label className="ml-auto flex items-center gap-2 text-muted-foreground">
-                  <span>المراجع:</span>
-                  <input
-                    value={reviewer}
-                    onChange={(e) => setReviewer(e.target.value)}
-                    placeholder="Ragheb (PO)"
-                    className="rounded border bg-input px-2 py-1 text-sm"
-                    style={{ width: 180 }}
-                  />
-                </label>
+                <span className="ml-auto text-muted-foreground">
+                  يُسجَّل القرار باسم حسابك المسجّل.
+                </span>
                 <RefreshCw
                   className="h-4 w-4 cursor-pointer"
                   onClick={() => {
@@ -384,16 +375,9 @@ export default function V3ReviewQueuePage() {
                     {shortCr.data?.total ?? "—"}
                   </span>
                 </div>
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>اسم المراجع:</span>
-                  <input
-                    value={reviewer}
-                    onChange={(e) => setReviewer(e.target.value)}
-                    placeholder="اكتب اسمك هنا (اختياري)"
-                    className="rounded border bg-input px-2 py-1 text-sm"
-                    style={{ width: 180 }}
-                  />
-                </label>
+                <span className="text-sm text-muted-foreground">
+                  يُسجَّل القرار باسم حسابك المسجّل.
+                </span>
               </div>
 
               {(shortCr.data?.items ?? []).length > 0 ? (

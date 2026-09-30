@@ -9,16 +9,16 @@ Production `salesos` was not connected to.
 
 ## 1. Roster (as given by the owner)
 
-| Person | Role | Tenant | Reports to |
-|---|---|---|---|
-| ragheed | Platform owner (`users.is_platform_owner = true`), the only one | — | — |
-| muhide | Tenant company | — | — |
-| sultan | Tenant `admin` of muhide only; **not** platform owner | muhide | — |
-| ibrahem | `user` | muhide | sultan |
-| feras | `user` | muhide | sultan |
-| shaher | `user` | muhide | sultan |
-| maria | `user` | muhide | shaher |
-| nojood | `user` | muhide | shaher |
+| Person | Role | Tenant | Reports to | Email (owner-supplied 2026-09-30) |
+|---|---|---|---|---|
+| ragheed | Platform owner (`users.is_platform_owner = true`), the only one | — | — | ragheed@outlook.sa |
+| muhide | Tenant company | — | — | — |
+| sultan | Tenant `admin` of muhide only; **not** platform owner | muhide | — | sultan@muhide.com |
+| ibrahem | `user` | muhide | sultan | ibrahim@muhide.com |
+| feras | `user` | muhide | sultan | feras@muhide.com |
+| shaher | `user` | muhide | sultan | shahir@muhide.com |
+| maria | `user` | muhide | shaher | maria@muhide.com |
+| nojood | `user` | muhide | shaher | nojood@muhide.com |
 
 ## 2. Identity model (inspected, not changed)
 
@@ -49,7 +49,7 @@ Matching was case-insensitive on email and full name for all 7 names, and on ten
 - changed any role;
 - created any user or tenant.
 
-No email or password was guessed.
+No password was guessed. On 2026-09-30 the owner supplied two addresses only: `ragheed@outlook.sa` and `sultan@muhide.com`. No account was created from them.
 
 ## 5. Gaps (for the owner or operator)
 
@@ -68,3 +68,17 @@ No email or password was guessed.
 - `feature_ai_copilot` was not touched.
 - **Production is NOT APPROVED.**
 - No migration and no production write were made.
+
+## 7. Mailboxes supplied 2026-09-30 (evening) — not invited
+
+Owner typed these addresses. No account was created and `/invite` was not called.
+
+| Person | Email |
+|---|---|
+| feras | feras@muhide.com |
+| shaher | shahir@muhide.com (mailbox spelling as typed) |
+| maria | maria@muhide.com |
+| nojood | nojood@muhide.com |
+| ibrahem | ibrahim@muhide.com (mailbox spelling as typed; person name stays ibrahem) |
+
+Sultan's open session invited all five on 2026-09-30 as `user` in the muhide tenant. Each response was 201. None is a platform owner. Email delivery is not configured, so the one-time passwords were shown to the owner in chat and were not written into this file. Shaher's role is `user`, so he cannot invite anyone. Reporting lines stay in this report only.

@@ -98,7 +98,7 @@ export async function createApproval(
 
 export async function decideApproval(
   approvalId: string,
-  data: { decision: string; decided_by: string; comments?: string; authority_level: string },
+  data: { decision: string; comments?: string; authority_level: string },
   tenantId?: string
 ): Promise<ApprovalRequest> {
   const response = await api.post(`/api/v1/approvals/${approvalId}/decide`, data, {

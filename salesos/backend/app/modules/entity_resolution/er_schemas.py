@@ -13,7 +13,10 @@ from pydantic import BaseModel, Field
 
 class RunMatchingRequest(BaseModel):
     """Request to run the matching pipeline."""
-    tenant_id: str | None = None
+    tenant_id: str | None = Field(
+        default=None,
+        description="Ignored. The route uses the authenticated tenant.",
+    )
     source_file_id: str | None = None
     max_candidates: int = Field(default=10000, ge=1, le=100000)
 
@@ -74,7 +77,10 @@ class ResolveConflictRequest(BaseModel):
     """Request to resolve a conflict."""
     resolution: str = Field(..., description="Resolution strategy: use_a, use_b, custom, dismiss")
     resolved_value: str | None = None
-    resolved_by: str | None = None
+    resolved_by: str | None = Field(
+        default=None,
+        description="Ignored. The route stores the authenticated user id.",
+    )
 
 
 # ── Field Provenance ─────────────────────────────────────────────────────────
@@ -133,10 +139,16 @@ class MergeRequest(BaseModel):
     """Request to merge two entities."""
     target_entity_id: str
     source_entity_id: str
-    performed_by: str | None = None
+    performed_by: str | None = Field(
+        default=None,
+        description="Ignored. The route stores the authenticated user id.",
+    )
 
 
 class UnmergeRequest(BaseModel):
     """Request to unmerge (rollback) a merge."""
     merge_history_id: str
-    performed_by: str | None = None
+    performed_by: str | None = Field(
+        default=None,
+        description="Ignored. The route stores the authenticated user id.",
+    )

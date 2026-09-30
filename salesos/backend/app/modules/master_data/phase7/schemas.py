@@ -219,7 +219,11 @@ class ReviewQueueDisposition(BaseModel):
     """
 
     disposition: str = Field(..., description="One of the queue-type dispositions")
-    reviewer: str = Field(..., min_length=1, max_length=255)
+    reviewer: str | None = Field(
+        default=None,
+        max_length=255,
+        description="Ignored. The route stores the authenticated user id.",
+    )
     notes: str | None = Field(None, max_length=2000)
     evidence: ReviewEvidence = Field(
         ...,

@@ -93,6 +93,7 @@ class UserCreate(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=255)
     full_name_ar: str | None = None
     tenant_id: UUID | None = None
+    organization_name: str | None = Field(None, max_length=255)
 
     @model_validator(mode="after")
     def validate_password(self) -> "UserCreate":
@@ -106,6 +107,7 @@ class UserResponse(BaseModel):
     full_name: str
     full_name_ar: str | None
     role: str
+    is_platform_owner: bool = False
     is_active: bool
     is_verified: bool
     tenant_id: UUID

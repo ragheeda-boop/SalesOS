@@ -21,6 +21,7 @@ import uuid
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
@@ -30,6 +31,22 @@ pytestmark = pytest.mark.e2e
 
 # Timeout guard (seconds) per individual test
 _TEST_TIMEOUT = 30
+
+
+async def _approve_org(db_session: AsyncSession, email: str, organization_name: str = "E2E Org") -> None:
+    """Self-registration now requires a platform-owner approval row."""
+    await db_session.execute(
+        text(
+            "INSERT INTO org_registration_approvals ("
+            "id, organization_name, manager_email, manager_full_name, status, "
+            "decided_at, created_at, updated_at"
+            ") VALUES ("
+            "CAST(:id AS uuid), :org, :email, 'E2E Manager', 'approved', "
+            "NOW(), NOW(), NOW())"
+        ),
+        {"id": str(uuid.uuid4()), "org": organization_name, "email": email},
+    )
+    await db_session.commit()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -44,9 +61,11 @@ class TestRegistrationLoginDashboard:
         self,
         client: AsyncClient,
         test_tenant: str,
+        db_session: AsyncSession,
     ):
         """POST /api/v1/identity/register returns access + refresh tokens."""
         email = f"reg-{uuid.uuid4().hex[:8]}@test.com"
+        await _approve_org(db_session, email)
         resp = await asyncio.wait_for(
             client.post(
                 "/api/v1/identity/register",
@@ -159,6 +178,7 @@ class TestRegistrationLoginDashboard:
         """Happy path: register → login → dashboard — single test, full flow."""
         email = f"journey-{uuid.uuid4().hex[:8]}@test.com"
         password = "JourneyPass123!"
+        await _approve_org(db_session, email)
 
         # Step 1 — Register
         reg = await asyncio.wait_for(

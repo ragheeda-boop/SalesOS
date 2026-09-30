@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.rate_limit import check_rate_limit_by_key
@@ -15,6 +15,7 @@ from app.dependencies import (
     require_permission_dep,
     require_platform_owner_dep,
 )
+from app.owner_auth import get_current_owner_user_id, require_owner_role_dep
 from sdk.permissions import PermissionAction
 
 from .schemas import (
@@ -31,6 +32,13 @@ from .schemas import (
     TokenResponse,
     UserCreate,
     UserResponse,
+)
+from .org_registration import (
+    consume_approved_organization,
+    decide_org_registration,
+    list_open_org_registration_requests,
+    lock_approved_organization,
+    submit_org_registration_request,
 )
 from .service import (
     IdentityService,
@@ -156,6 +164,24 @@ def get_register_service(
     )
 
 
+_OWNER_ROLE_RANK = {"admin": 3, "manager": 2, "user": 1, "api": 1, "auditor": 0}
+
+
+def _require_owner_platform_account(
+    *, is_active: bool, role: str, is_platform_owner: bool
+) -> None:
+    """Same bar as ``/owner/login``. Used again on owner refresh."""
+    if not is_active:
+        raise HTTPException(status_code=403, detail="Account inactive")
+    if _OWNER_ROLE_RANK.get(role, 0) < _OWNER_ROLE_RANK["admin"]:
+        raise HTTPException(status_code=403, detail="Owner Platform requires admin role")
+    if not is_platform_owner:
+        raise HTTPException(
+            status_code=403,
+            detail="Owner Platform requires a designated platform owner",
+        )
+
+
 def _extract_refresh_token(request: Request, body: RefreshTokenRequest) -> str:
     token = body.refresh_token
     if not token:
@@ -224,6 +250,72 @@ async def get_tenant(
         is_active=tenant.is_active,
         created_at=tenant.created_at,
         updated_at=tenant.updated_at,
+    )
+
+
+class OrgRegistrationRequestBody(BaseModel):
+    organization_name: str = Field(..., min_length=2, max_length=255)
+    manager_email: EmailStr
+    manager_full_name: str = Field(..., min_length=1, max_length=255)
+
+
+class OrgRegistrationDecisionBody(BaseModel):
+    decision: str = Field(..., pattern="^(approve|reject)$")
+    reason: str | None = Field(None, max_length=500)
+
+
+@router.post("/org-registration-requests", status_code=202)
+async def request_org_registration(
+    body: OrgRegistrationRequestBody,
+    db: AsyncSession = Depends(get_register_db),
+):
+    """Ask the platform owner to approve an organization and its manager.
+
+    Creates no tenant, user, or session. The manager registers only after approval.
+    """
+    await check_rate_limit_by_key(
+        f"org-reg:{body.manager_email.strip().lower()}",
+        limit=5,
+        window=3600,
+    )
+    request_id = await submit_org_registration_request(
+        db,
+        organization_name=body.organization_name,
+        manager_email=body.manager_email,
+        manager_full_name=body.manager_full_name,
+    )
+    return {"id": str(request_id), "status": "pending"}
+
+
+@router.get("/org-registration-requests")
+async def list_org_registration_requests(
+    db: AsyncSession = Depends(get_db_session),
+    _owner: bool = Depends(require_owner_role_dep("admin")),
+):
+    rows = await list_open_org_registration_requests(db)
+    return {"items": rows}
+
+
+@router.post("/org-registration-requests/{request_id}/decision")
+async def decide_org_registration_request(
+    request_id: str,
+    body: OrgRegistrationDecisionBody,
+    db: AsyncSession = Depends(get_db_session),
+    owner_id: str = Depends(get_current_owner_user_id),
+    _owner: bool = Depends(require_owner_role_dep("admin")),
+):
+    from uuid import UUID
+
+    try:
+        parsed = UUID(request_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="org_registration.id_invalid") from exc
+    return await decide_org_registration(
+        db,
+        request_id=parsed,
+        decision=body.decision,
+        reason=body.reason,
+        decided_by=owner_id,
     )
 
 
@@ -300,6 +392,24 @@ async def register(
         ) from exc
     if not body.tenant_id:
         # Raw INSERT — avoid ORM flush + relationship load (Railway hang/OOM).
+        # The tenant name is the organization the platform owner approved,
+        # not the manager's personal name.
+        try:
+            approval_id, organization_name = await _bounded_exec(
+                "owner_approval",
+                lock_approved_organization(
+                    db,
+                    email=body.email,
+                    organization_name=body.organization_name,
+                ),
+                5.0,
+            )
+            _mark("owner_approval")
+        except TimeoutError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="register.owner_approval_timeout",
+            ) from exc
         try:
             await _bounded_exec(
                 "tenant_insert",
@@ -315,13 +425,22 @@ async def register(
                     ),
                     {
                         "id": tenant_id,
-                        "name": body.full_name,
+                        "name": organization_name,
                         "slug": tenant_id[:8],
                     },
                 ),
                 8.0,
             )
+            await _bounded_exec(
+                "approval_consume",
+                consume_approved_organization(
+                    db, approval_id=approval_id, tenant_id=tenant_id
+                ),
+                5.0,
+            )
             _mark("tenant_insert")
+        except HTTPException:
+            raise
         except TimeoutError as exc:
             raise HTTPException(
                 status_code=503,
@@ -465,20 +584,11 @@ async def owner_login(
     from sdk.audit import AuditTrail
 
     user = await service.authenticate(email=body.email, password=body.password)
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Account inactive")
-    # Match require_role / require_owner_role_dep("admin") hierarchy.
-    role_hierarchy = {"admin": 3, "manager": 2, "user": 1, "api": 1, "auditor": 0}
-    if role_hierarchy.get(user.role, 0) < role_hierarchy.get("admin", 0):
-        raise HTTPException(
-            status_code=403,
-            detail="Owner Platform requires admin role",
-        )
-    if not getattr(user, "is_platform_owner", False):
-        raise HTTPException(
-            status_code=403,
-            detail="Owner Platform requires a designated platform owner",
-        )
+    _require_owner_platform_account(
+        is_active=bool(user.is_active),
+        role=str(user.role or ""),
+        is_platform_owner=bool(getattr(user, "is_platform_owner", False)),
+    )
 
     uid = str(user.id)
     tid = str(user.tenant_id)
@@ -533,6 +643,7 @@ async def get_current_user(
         full_name=user.full_name,
         full_name_ar=user.full_name_ar,
         role=user.role,
+        is_platform_owner=bool(user.is_platform_owner),
         is_active=user.is_active,
         is_verified=user.is_verified,
         tenant_id=user.tenant_id,
@@ -556,6 +667,7 @@ async def list_users(
             full_name=u.full_name,
             full_name_ar=u.full_name_ar,
             role=u.role,
+            is_platform_owner=bool(u.is_platform_owner),
             is_active=u.is_active,
             is_verified=u.is_verified,
             tenant_id=u.tenant_id,
@@ -643,6 +755,14 @@ async def refresh_token(
         blacklisted = await service.is_token_blacklisted(jti)
         if blacklisted:
             raise HTTPException(status_code=401, detail="Token revoked")
+        from app.database import probe_platform_owner_status
+
+        marker = await probe_platform_owner_status(uid)
+        if marker is None:
+            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+        _require_owner_platform_account(
+            is_active=marker[0], role=marker[1], is_platform_owner=marker[2]
+        )
         new_access, new_refresh = await service.rotate_owner_refresh_token(jti, uid)
         old_exp = (
             datetime.fromtimestamp(owner_payload["exp"], tz=UTC)

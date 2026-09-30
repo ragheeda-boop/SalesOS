@@ -36,21 +36,45 @@ export function useOwnerLogin() {
   });
 }
 
+export function useRequestOrgRegistration() {
+  return useMutation({
+    mutationFn: async ({
+      organizationName,
+      email,
+      fullName,
+    }: {
+      organizationName: string;
+      email: string;
+      fullName: string;
+    }) => {
+      const response = await api.post("/api/v1/identity/org-registration-requests", {
+        organization_name: organizationName,
+        manager_email: email,
+        manager_full_name: fullName,
+      });
+      return response.data as { id: string; status: string };
+    },
+  });
+}
+
 export function useRegister() {
   return useMutation({
     mutationFn: async ({
       email,
       password,
       fullName,
+      organizationName,
     }: {
       email: string;
       password: string;
       fullName: string;
+      organizationName?: string;
     }) => {
       const response = await api.post("/api/v1/identity/register", {
         email,
         password,
         full_name: fullName,
+        organization_name: organizationName || undefined,
       });
       const { access_token, refresh_token, tenant_id } = response.data;
       persistAuthTokens({ access_token, refresh_token, tenant_id });

@@ -1,4 +1,4 @@
-import { V3_CMD_EXTRA, V3_DOMAIN_NAV, isV3NavActive } from "../nav";
+import { V3_CMD_EXTRA, V3_DOMAIN_NAV, isV3NavActive, v3CommandItems, v3SidebarItems } from "../nav";
 
 const MUST_KEEP = [
   "/v3",
@@ -17,6 +17,7 @@ const MUST_KEEP = [
 
 const MUST_KEEP_IN_CMDK = [
   ...MUST_KEEP,
+  "/v3/admin/org-registrations",
   "/v3/admin/ai-prompts",
   "/v3/admin/ai-policies",
   "/v3/admin/ai-memory",
@@ -80,6 +81,25 @@ describe("V3_CMD_EXTRA", () => {
     const cmdk = [...V3_DOMAIN_NAV, ...V3_CMD_EXTRA].map((item) => item.href);
     expect(cmdk).toEqual(MUST_KEEP_IN_CMDK);
     expect(cmdk).not.toContain("/v3/shell");
+  });
+});
+
+describe("platform owner navigation", () => {
+  it("adds organization approvals to the sidebar only for the platform owner", () => {
+    expect(v3SidebarItems(false).map((item) => item.href)).toEqual(MUST_KEEP);
+    expect(v3SidebarItems(true).map((item) => item.href)).toEqual([
+      ...MUST_KEEP,
+      "/v3/admin/org-registrations",
+    ]);
+  });
+
+  it("hides organization approvals from the command list unless the caller is the platform owner", () => {
+    expect(v3CommandItems(false).map((item) => item.href)).not.toContain(
+      "/v3/admin/org-registrations"
+    );
+    expect(v3CommandItems(true).map((item) => item.href)).toContain(
+      "/v3/admin/org-registrations"
+    );
   });
 });
 

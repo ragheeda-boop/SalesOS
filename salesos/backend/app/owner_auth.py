@@ -9,10 +9,9 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from fastapi import Depends, Header, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import UnauthorizedError
-from app.dependencies import get_db_session, require_role
+from app.dependencies import require_role
 
 
 async def verify_owner_token(
@@ -42,23 +41,28 @@ async def get_current_owner_user_id(
 
 async def get_current_owner_user_role(
     token_payload: dict = Depends(verify_owner_token),
-    db: AsyncSession = Depends(get_db_session),
 ) -> str:
     """Resolve role for an Owner Platform caller (owner audience only).
 
     Tenant role alone never grants Owner Platform access: the caller must be a
     designated platform owner (``User.is_platform_owner``).
     """
-    from app.modules.identity.service import IdentityService
+    # Owner JWTs intentionally carry no tenant_id. A normal request session
+    # therefore cannot read FORCE-RLS protected users; use the same BYPASSRLS
+    # owner probe as refresh-token validation instead of turning a valid owner
+    # token into a misleading 404.
+    from app.database import probe_platform_owner_status
 
-    service = IdentityService(db=db)
-    user = await service.get_user(token_payload.get("sub", ""))
-    if not getattr(user, "is_platform_owner", False):
+    status = await probe_platform_owner_status(str(token_payload.get("sub", "")))
+    if status is None:
+        raise HTTPException(status_code=401, detail="Owner account not found")
+    is_active, role, is_platform_owner = status
+    if not is_active or not is_platform_owner:
         raise HTTPException(
             status_code=403,
             detail="Owner Platform requires a designated platform owner",
         )
-    return user.role
+    return role
 
 
 async def get_owner_scoped_tenant_id(

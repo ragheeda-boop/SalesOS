@@ -40,11 +40,46 @@ export async function ownerLogin(email: string, password: string) {
   return response.data;
 }
 
-export async function register(email: string, password: string, fullName: string) {
+export interface OrgRegistrationRequest {
+  id: string;
+  organization_name: string;
+  manager_email: string;
+  manager_full_name: string;
+  status: string;
+  created_at?: string;
+  decided_at?: string | null;
+}
+
+export async function listOrgRegistrationRequests(): Promise<OrgRegistrationRequest[]> {
+  const response = await api.get<{ items: OrgRegistrationRequest[] }>(
+    "/api/v1/identity/org-registration-requests"
+  );
+  return response.data.items ?? [];
+}
+
+export async function decideOrgRegistration(
+  requestId: string,
+  decision: "approve" | "reject",
+  reason?: string
+): Promise<OrgRegistrationRequest> {
+  const response = await api.post<OrgRegistrationRequest>(
+    `/api/v1/identity/org-registration-requests/${encodeURIComponent(requestId)}/decision`,
+    { decision, reason: reason || null }
+  );
+  return response.data;
+}
+
+export async function register(
+  email: string,
+  password: string,
+  fullName: string,
+  organizationName?: string
+) {
   const response = await api.post("/api/v1/identity/register", {
     email,
     password,
     full_name: fullName,
+    organization_name: organizationName || undefined,
   });
   const { access_token, refresh_token, tenant_id } = response.data;
   persistAuthTokens({ access_token, refresh_token, tenant_id });

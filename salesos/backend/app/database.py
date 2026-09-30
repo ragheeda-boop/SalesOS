@@ -455,6 +455,46 @@ async def _run_migrations_if_needed() -> None:
     )
 
 
+async def probe_platform_owner_status(user_id: str) -> tuple[bool, str, bool] | None:
+    """Read the owner-login bar for a refresh, bypassing FORCE RLS.
+
+    Owner refresh tokens carry no tenant id, so the request session cannot see
+    ``users``. This probe uses ``owner_engine`` (BYPASSRLS), same as login, and
+    returns ``(is_active, role, is_platform_owner)`` or ``None`` when the user
+    is gone. Callers must reject before rotating the refresh token.
+    """
+    from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
+
+    async def _once() -> tuple[bool, str, bool] | None:
+        async with _AsyncSession(owner_engine, expire_on_commit=False) as owner_db:
+            result = await owner_db.execute(
+                sa_text(
+                    "SELECT is_active, role, is_platform_owner "
+                    "FROM users WHERE id = CAST(:user_id AS uuid)"
+                ),
+                {"user_id": user_id},
+            )
+            row = result.first()
+            if row is None:
+                return None
+            return bool(row[0]), str(row[1] or ""), bool(row[2])
+
+    if os.environ.get("SALESOS_TESTING"):
+        await owner_engine.dispose()
+
+    try:
+        return await _once()
+    except RuntimeError as exc:
+        msg = str(exc).lower()
+        if "different loop" not in msg and "attached to a different" not in msg:
+            raise
+        await owner_engine.dispose()
+        try:
+            return await _once()
+        except RuntimeError:
+            return None
+
+
 async def probe_login_tenant_id(email: str) -> str | None:
     """Pre-auth tenant lookup for FORCE RLS login (DEC-149 / Stage 7).
 

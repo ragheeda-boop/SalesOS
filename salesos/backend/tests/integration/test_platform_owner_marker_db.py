@@ -121,12 +121,33 @@ def _make_app() -> FastAPI:
     return app
 
 
+def _approve_manager(email: str, organization_name: str) -> None:
+    """Seed the platform-owner approval that /register now requires."""
+
+    async def _run(s) -> None:
+        await s.execute(
+            text(
+                "INSERT INTO org_registration_approvals ("
+                "id, organization_name, manager_email, manager_full_name, status, "
+                "decided_at, created_at, updated_at"
+                ") VALUES ("
+                "CAST(:id AS uuid), :org, :email, 'Pilot Admin', 'approved', "
+                "NOW(), NOW(), NOW())"
+            ),
+            {"id": str(uuid.uuid4()), "org": organization_name, "email": email},
+        )
+        await s.commit()
+
+    _run_isolated(_run)
+
+
 def test_platform_owner_requires_explicit_marker() -> None:
     _refuse_production_db()
     app = _make_app()
     suffix = uuid.uuid4().hex[:10]
     admin_email = f"pilot178-admin-{suffix}@example.com"
     invitee_email = f"pilot178-invitee-{suffix}@example.com"
+    _approve_manager(admin_email, f"Pilot Org {suffix}")
 
     with TestClient(app) as client:
         reg = client.post(

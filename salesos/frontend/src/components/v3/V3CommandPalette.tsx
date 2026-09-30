@@ -10,8 +10,10 @@ import {
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { cn } from "@salesos/ui";
+import { useQuery } from "@tanstack/react-query";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
-import { V3_CMD_EXTRA, V3_DOMAIN_NAV, type V3NavItem } from "./nav";
+import { getCurrentUser } from "@/lib/api/identity";
+import { v3CommandItems, type V3NavItem } from "./nav";
 
 type V3CommandPaletteProps = {
   open: boolean;
@@ -31,15 +33,20 @@ export function V3CommandPalette({ open, onClose }: V3CommandPaletteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const trapRef = useFocusTrap<HTMLDivElement>(open);
 
+  const { data: me } = useQuery({
+    queryKey: ["identity", "me"],
+    queryFn: getCurrentUser,
+    retry: false,
+  });
   const items = useMemo(() => {
-    const all = [...V3_DOMAIN_NAV, ...V3_CMD_EXTRA];
+    const all = v3CommandItems(Boolean(me?.is_platform_owner));
     const seen = new Set<string>();
     return all.filter((item) => {
       if (seen.has(item.href)) return false;
       seen.add(item.href);
       return matchesQuery(item, query);
     });
-  }, [query]);
+  }, [me?.is_platform_owner, query]);
 
   useEffect(() => {
     if (open) {

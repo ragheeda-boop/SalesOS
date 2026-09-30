@@ -44,7 +44,6 @@ export default function V3ContractDetailPage() {
         sign: {
           method: "post",
           url: `/api/v1/contracts/${contractId}/sign`,
-          body: { signed_by: "current-user", signed_by_name: "Current User" },
         },
         complete: { method: "post", url: `/api/v1/contracts/${contractId}/complete` },
         terminate: {
