@@ -1216,9 +1216,9 @@ async def assign_review(
 async def decide_review(
     review_id: str,
     decision: str = Query(...),
-    decided_by: str = Query(...),
     comments: str = Query(""),
     tenant_id: str = Depends(get_current_tenant_id),
+    decided_by: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("review", PermissionAction.UPDATE)),
 ):

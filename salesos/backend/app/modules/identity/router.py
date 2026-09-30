@@ -573,12 +573,21 @@ async def invite_user(
         tenant_id=tenant_id,
     )
     role = getattr(body, "role", None) or "user"
-    if role and role != getattr(user, "role", "user"):
+    if role != getattr(user, "role", "user"):
+        # Fail closed: an account whose requested role was not applied must not
+        # be reported as created. Raising rolls back the request transaction.
         try:
             user = await service.update_user_role(str(user.id), role)
-        except Exception:
-            # Role update is best-effort; account still created.
-            pass
+        except Exception as exc:
+            await db.rollback()
+            raise HTTPException(
+                status_code=500, detail="Invite failed: role assignment did not complete"
+            ) from exc
+        if getattr(user, "role", None) != role:
+            await db.rollback()
+            raise HTTPException(
+                status_code=500, detail="Invite failed: role assignment did not complete"
+            )
     return {
         "message": (
             f"User account created for {body.email}. "
