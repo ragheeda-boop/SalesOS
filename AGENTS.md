@@ -4097,3 +4097,25 @@ Five pages under `salesos/frontend/src/app/v3/data/` fail Prettier only inside a
 Production was not written. Nothing was pushed. G8 stays NOT OPEN. G2–G16 stay closed.
 
 Full evidence: `project-audit/175_VERIFICATION_RERUN_2026-09-30.md`.
+
+---
+
+## 217. Session Summary (2026-09-30) - Pilot loop: four live seller-path fixes
+
+| Commit | Fix |
+|---|---|
+| `ac6d1b28` | Private JWKS key no longer copied into the backend image; production stage now has a writable `SALESOS_JWKS_KEY_DIR=/data/jwks` |
+| `0f217957` | `RateLimitMiddleware` now dispatches the app once; the double dispatch made `/register` hang. Red->green, 2 tests |
+| `5c94f07c` | Static `/reviews/pending` and `/reviews/kpis` routes now come before `/reviews/{review_id}` (both were 404). 3 tests |
+| `85947d22` | **P0:** self-registration can no longer join an existing tenant by passing `tenant_id` (now returns 400). Red->green; confirmed live |
+
+- **Tests:** targeted run 50 passed. The 5 `TestP1FrontendPages` failures are environmental: there is no frontend mount.
+- **Live proof:** register, login, CSRF, companies/360, contacts, opportunities, pipeline and activities all worked on a disposable stack, which is now torn down.
+- **Push:** secret-scanned clean (only a synthetic fixture password matched), then pushed as a fast-forward `32f52503..85947d22`.
+- **Open, not fixed:**
+  - `decide_review` takes `decided_by` from a query parameter, so the actor can be spoofed.
+  - `/invite` returns `temporary_password` and swallows role errors.
+  - The first user of a self-registered tenant gets no admin role, which blocks invites, tasks, proposals and reviews. This needs an RBAC decision.
+  - `Dockerfile.railway` and `Dockerfile.celery` have no JWKS key-directory fix yet.
+  - The E2E journey test was not run; RLS may block it.
+- **Gates:** G2-G16 and G8 are unchanged. Production is **NOT APPROVED**. Evidence: `project-audit/176_PILOT_LOOP_FOUR_FIXES_2026-09-30.md`.
