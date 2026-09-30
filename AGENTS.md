@@ -4119,3 +4119,19 @@ Full evidence: `project-audit/175_VERIFICATION_RERUN_2026-09-30.md`.
   - `Dockerfile.railway` and `Dockerfile.celery` have no JWKS key-directory fix yet.
   - The E2E journey test was not run; RLS may block it.
 - **Gates:** G2-G16 and G8 are unchanged. Production is **NOT APPROVED**. Evidence: `project-audit/176_PILOT_LOOP_FOUR_FIXES_2026-09-30.md`.
+
+---
+
+## 218. Session Summary (2026-09-30) - Review actor, invite fail-closed, Railway JWKS; first-user admin on hold
+
+| Commit | Change |
+|---|---|
+| `39bb564d` | `decide_review` takes `decided_by` from the JWT (query parameter ignored); `/invite` rolls back and returns 500 if role assignment fails; 6 new tests |
+| `df41b2df` | `Dockerfile.railway` and `Dockerfile.railway.celery`: builder deletes `identity/_keys`, production sets `SALESOS_JWKS_KEY_DIR=/data/jwks` |
+
+- **Tests (disposable container):** red on HEAD source 4 failed / 2 passed; green 9 passed; related regression 36 passed.
+- **Proven:** a spoofed `?decided_by=` is ignored and the JWT subject is stored; an invite never reports success when the role is not applied; a default invite stays `user`.
+- **On hold:** first-user tenant admin. `/owner/login` (`identity/router.py:445-470`) issues Owner Platform tokens to any user with role `admin`; there is no separate platform-owner marker. Making self-registrants admin would hand out cross-tenant owner powers. Needs a decision: explicit owner marker (recommended) or a self-registered exclusion.
+- **Not verified:** no Railway image build or deploy; Railway needs a `/data/jwks` volume.
+- **Open:** owner marker; invite role ceiling (only admins hold `user:CREATE` by default, so no escalation today); frontend still sends `decided_by=manager` (ignored); E2E journey test.
+- **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/177_PILOT_REVIEW_INVITE_JWKS_2026-09-30.md`.
