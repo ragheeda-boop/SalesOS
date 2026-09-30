@@ -54,6 +54,9 @@ COPY --from=builder /app/alembic.ini .
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENV PYTHONPATH="/app"
+# Signing keys live outside the source tree (never baked into the image); mount a
+# volume here to persist them across container recreation.
+ENV SALESOS_JWKS_KEY_DIR="/data/jwks"
 
 RUN mkdir -p /data/jwks && chown -R salesos:salesos /app /data/jwks
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

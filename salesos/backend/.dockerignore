@@ -20,6 +20,8 @@ tests/
 # Keep scripts/ in image context — Alembic RLS revisions import
 # scripts.generate_rls_policies (DEC-120 Slice C). Exclude heavy/dev-only later if needed.
 /data/
+# Local RSA signing keys (git-ignored); images must generate or mount their own.
+app/modules/identity/_keys/
 /.local/
 /.cache/
 conftest.py
