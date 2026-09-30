@@ -4152,3 +4152,16 @@ Full evidence: `project-audit/175_VERIFICATION_RERUN_2026-09-30.md`.
 - **Deploy note:** after migrating, real operators must be marked `is_platform_owner=true` or they lose owner access.
 - **Open:** approvals page still sends `decided_by: "current-user"`; Phase 7 reviewer / ER `tenant_id` client-supplied; owner `/refresh` does not re-check marker (use does); no Railway deploy.
 - **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/178_PILOT_PLATFORM_OWNER_MARKER_2026-09-30.md`.
+
+---
+
+## 220. Session Summary (2026-09-30) - Pilot next steps record (docs only)
+
+- **What:** records what pilot commits `0f217957`–`d262f6a0` finished and what is still open, in order. No product code changed; no tests run.
+- **Open code:**
+  1. Owner `/refresh` does not re-check `is_platform_owner`.
+  2. The Approvals UI still sends `decided_by: "current-user"`; the server ignores it.
+  3. Phase 7 reviewer identity and the ER-path `tenant_id` come from the client. Inspect before changing; do not auto-merge G2/G4.
+  4. The browser end-to-end seller journey has not been run; use a disposable stack only.
+- **Operator:** no account has `is_platform_owner`, so owner login works for nobody until the user names the owners. Do not write production `salesos`. Railway images are not built; they need a `/data/jwks` volume.
+- **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/179_PILOT_NEXT_STEPS_2026-09-30.md`.
