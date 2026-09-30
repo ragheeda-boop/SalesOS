@@ -4135,3 +4135,20 @@ Full evidence: `project-audit/175_VERIFICATION_RERUN_2026-09-30.md`.
 - **Not verified:** no Railway image build or deploy; Railway needs a `/data/jwks` volume.
 - **Open:** owner marker; invite role ceiling (only admins hold `user:CREATE` by default, so no escalation today); frontend still sends `decided_by=manager` (ignored); E2E journey test.
 - **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/177_PILOT_REVIEW_INVITE_JWKS_2026-09-30.md`.
+
+---
+
+## 219. Session Summary (2026-09-30) - Decision A: explicit platform-owner marker; self-registrant is tenant admin
+
+| Change | Detail |
+|---|---|
+| Marker | `users.is_platform_owner` (migration `b2c3d4e5f6a8`, default false). `/owner/login` needs active + admin + marker; `owner_auth` re-checks per request |
+| Self-registration | New tenant, registrant `admin` there only; `tenant_id` in body → 400 |
+| Platform-wide routes | `require_platform_owner_dep()` replaces tenant-admin on `POST /tenants`, cache, ER writes, marketplace, master-data/ingestion writes, Phase 7 disposition, demo/benchmarks/metrics/notifications/runtime admin; SAML cross-tenant config → 403 |
+| Invite | `user:CREATE`, default `user`, fail-closed (unchanged, re-proven) |
+| Review UI | `decided_by=manager` removed from `v3/reviews/[id]`; new Jest test |
+
+- **Proof (disposable DB only):** 17 passed; two red checks (HEAD identity files → self-registrant not admin; HEAD `owner_auth` only → forged owner token accepted). Frontend: Jest 10/10, tsc 0, eslint 0.
+- **Deploy note:** after migrating, real operators must be marked `is_platform_owner=true` or they lose owner access.
+- **Open:** approvals page still sends `decided_by: "current-user"`; Phase 7 reviewer / ER `tenant_id` client-supplied; owner `/refresh` does not re-check marker (use does); no Railway deploy.
+- **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/178_PILOT_PLATFORM_OWNER_MARKER_2026-09-30.md`.
