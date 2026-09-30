@@ -97,7 +97,7 @@ try {
 $outDir = Join-Path $PSScriptRoot "..\docs\audit\ga-engineering-audit\evidence\wave13-api-residual-fix"
 # When run from salesos/, adjust:
 if (-not (Test-Path $outDir)) {
-  $outDir = "C:\Users\raghe\OneDrive - RATL Technology Ltd\Muhide\docs\audit\ga-engineering-audit\evidence\wave13-api-residual-fix"
+  $outDir = Join-Path $PSScriptRoot "..\..\docs\audit\ga-engineering-audit\evidence\wave13-api-residual-fix"
 }
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $stamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHHmmssZ")
