@@ -4165,3 +4165,14 @@ Full evidence: `project-audit/175_VERIFICATION_RERUN_2026-09-30.md`.
   4. The browser end-to-end seller journey has not been run; use a disposable stack only.
 - **Operator:** no account has `is_platform_owner`, so owner login works for nobody until the user names the owners. Do not write production `salesos`. Railway images are not built; they need a `/data/jwks` volume.
 - **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/179_PILOT_NEXT_STEPS_2026-09-30.md`.
+
+---
+
+## 221. Session Summary (2026-09-30) - Pilot org roster recorded, not applied
+
+- **Roster:** ragheed is the platform owner (the only `is_platform_owner=true`). muhide is the tenant. sultan is muhide's tenant `admin` and is not a platform owner. ibrahem, feras and shaher are `user`s reporting to sultan. maria and nojood are `user`s reporting to shaher.
+- **Model:** `users` has no manager field. The reporting lines are recorded only in the report; no schema was added.
+- **Search (read-only, local/test DBs; production `salesos` never connected):** none of the 7 people and no `muhide` tenant were found. `salesos_test` is behind migration `b2c3d4e5f6a8`.
+- **Applied:** nothing. No role or flag changed, no account was created, and no credentials were guessed.
+- **Next:** sultan self-registers, which creates muhide with him as admin. He invites ibrahem, feras and shaher, then maria and nojood. An operator sets ragheed's flag in the target environment after migrating.
+- **Gates:** unchanged. Production **NOT APPROVED**. Evidence: `project-audit/180_PILOT_ORG_ROSTER_2026-09-30.md`.
